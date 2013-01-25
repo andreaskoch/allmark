@@ -1,11 +1,12 @@
 package main
 
 import (
-	"andyk/docs/indexer"
 	"andyk/docs/converter"
+	"andyk/docs/indexer"
+	"fmt"
 )
 
 func main() {
-	indexer.Index()
+	fmt.Println(indexer.Index())
 	converter.Convert()
 }

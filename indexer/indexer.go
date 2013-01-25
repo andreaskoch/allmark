@@ -1,7 +1,17 @@
 package indexer
 
-import "fmt"
+import (
+	"andyk/docs/model"
+)
 
-func Index() {
-	fmt.Println("Index")
+func Index() model.Document {
+
+	var doc model.Document
+	doc.Path = "Test"
+	doc.Title = "Test"
+	doc.Description = "Description"
+	doc.Content = "Content"
+	doc.Language = "en-US"
+
+	return doc
 }
