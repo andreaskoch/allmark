@@ -12,7 +12,7 @@
 
 FORMAT=$(echo -e "\033[1;33m%w%f\033[0m written")
 "$@"
-while inotifywait -qre close_write --format "$FORMAT" .
+while inotifywait -qre close_write --exclude '(.git)' --format "$FORMAT" .
 do
     "$@"
     go install server/server.go
