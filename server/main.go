@@ -13,7 +13,7 @@ import (
 
 func main() {
 	// define and parse application flags
-	var repositoryPath = flag.String("repository", getWorkingDirectory(), "The path to a document repository.")
+	var repositoryPath = flag.String("repository", getWorkingDirectory(), "The path to a document repository (default: \".\").")
 
 	flag.Usage = printUsageInformation
 	flag.Parse()
