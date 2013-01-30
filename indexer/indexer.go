@@ -1,33 +1,30 @@
+// Copyright 2013 Andreas Koch. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package indexer
 
 import (
 	"andyk/docs/model"
 	"fmt"
-	"io/ioutil"
-	"time"
+	"os"
+	"path/filepath"
 )
 
-func Index() model.Document {
+func walker(path string, _ os.FileInfo, _ error) error {
+	fmt.Println(path)
+	return nil
+}
 
-	files, err := ioutil.ReadDir("./")
+func Index(repositoryPath string) map[int]model.Document {
+
+	docs := make(map[int]model.Document)
+
+	// index the repository
+	err := filepath.Walk(repositoryPath, walker)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(files)
-
-	for i := 0; i < len(files); i++ {
-		file := files[i]
-		fmt.Println(file.Name())
-	}
-
-	var doc model.Document
-	doc.Path = "Test"
-	doc.Title = "Test"
-	doc.Description = "Description"
-	doc.Content = "Content"
-	doc.Language = "en-US"
-	doc.Date = time.Date(2013, 1, 13, 0, 0, 0, 0, time.UTC)
-
-	return doc
+	return docs
 }
