@@ -13,9 +13,14 @@
 # Filename:
 # start-buildservice.sh
 
+# Assemble list of files to watch
+autoBuildFileList="autobuild-files.txt"
+
+find `pwd` -name "*.go" >> $autoBuildFileList
+
 FORMAT=$(echo -e "\033[1;33m%w%f\033[0m written")
 "$@"
-while inotifywait -qre close_write --exclude '(.git)' --format "$FORMAT" .
+while inotifywait -qre close_write --fromfile $autoBuildFileList --format "$FORMAT"
 do
     "$@"
     go install ./server
