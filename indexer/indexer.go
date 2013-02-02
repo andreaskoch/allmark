@@ -32,18 +32,19 @@ func Index(repositoryPath string) map[int]model.Document {
 		return nil
 	}
 
-	items := FindAllRepositoryItems(repositoryPath)
-	fmt.Printf("%#v", items)
+	// get all repository items in the supplied repository path
+	repositoryItems := FindAllRepositoryItems(repositoryPath)
+	fmt.Printf("%v", repositoryItems)
 
 	return nil
 }
 
 func FindAllRepositoryItems(repositoryPath string) map[int]*model.RepositoryItem {
-	items := make(map[int]*model.RepositoryItem)
+	repositoryItemMap := make(map[int]*model.RepositoryItem)
 	itemIndex := 0
 
-	// repository walker
-	repositoryWalker := func(path string, _ os.FileInfo, _ error) error {
+	// index the repository
+	repositoryWalkError := filepath.Walk(repositoryPath, func(path string, _ os.FileInfo, _ error) error {
 
 		fileName := filepath.Base(path)
 
@@ -53,17 +54,15 @@ func FindAllRepositoryItems(repositoryPath string) map[int]*model.RepositoryItem
 			return nil
 		}
 
-		items[itemIndex] = model.NewRepositoryItem(path)
+		repositoryItemMap[itemIndex] = model.NewRepositoryItem(path)
 		itemIndex++
 
 		return nil
+	})
+
+	if repositoryWalkError != nil {
+		fmt.Printf("An error occured while indexing the repository path `%v`. Error: %v", repositoryPath, repositoryWalkError)
 	}
 
-	// index the repository
-	walkRepositoryError := filepath.Walk(repositoryPath, repositoryWalker)
-	if walkRepositoryError != nil {
-		fmt.Printf("An error occured while indexing the repository path `%v`. Error: %v", repositoryPath, walkRepositoryError)
-	}
-
-	return items
+	return repositoryItemMap
 }
