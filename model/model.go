@@ -10,11 +10,22 @@ package model
 
 import "time"
 
+type RepositoryItem struct {
+	Path string
+}
+
+func NewRepositoryItem(path string) *RepositoryItem {
+	return &RepositoryItem{Path: path}
+}
+
 type Document struct {
-	Path        string    // The documents folder
-	Title       string    // The document title
-	Description string    // A short description of the document content.
-	Content     string    // The document content
-	Language    string    // [optional] The ISO language code document (e.g. "en-GB", "de-DE")
-	Date        time.Time // [optional] The date the document has been created
+	Path    string // The documents folder
+	Content string // The document content
+
+	Title       string // The document title
+	Description string // A short description of the document content.
+
+	// Meta information
+	Language string    // [optional] The ISO language code document (e.g. "en-GB", "de-DE")
+	Date     time.Time // [optional] The date the document has been created
 }
