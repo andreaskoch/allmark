@@ -110,7 +110,7 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 
 func GetChildItems(repositoryItemPath string) []model.RepositoryItem {
 
-	childItems := make([]model.RepositoryItem, 0, 100)
+	childItems := make([]model.RepositoryItem, 0, 5)
 
 	files, _ := ioutil.ReadDir(repositoryItemPath)
 	for _, element := range files {
