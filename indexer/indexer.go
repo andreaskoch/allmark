@@ -35,7 +35,24 @@ func Index(repositoryPath string) map[int]model.Document {
 
 	// get all repository items in the supplied repository path
 	repositoryItems := FindAllRepositoryItems(repositoryPath)
-	fmt.Printf("%#v\n", repositoryItems)
+
+	for index, repositoryItem := range repositoryItems {
+		fmt.Println(index)
+		fmt.Println(repositoryItem.Path)
+
+		fmt.Println("Files:")
+		for _, file := range repositoryItem.Files {
+			fmt.Println(file)
+		}
+		fmt.Println()
+
+		fmt.Println("Child elements:")
+		for _, child := range repositoryItem.ChildItems {
+			fmt.Println(child.Path)
+		}
+
+		fmt.Println()
+	}
 
 	return nil
 }
@@ -46,7 +63,7 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 
 	directoryEntries, err := ioutil.ReadDir(repositoryPath)
 	if err != nil {
-		fmt.Printf("An error occured while indexing the repository path `%v`. Error: %v", repositoryPath, err)
+		fmt.Printf("An error occured while indexing the repository path `%v`. Error: %v\n", repositoryPath, err)
 		return nil
 	}
 
@@ -64,17 +81,17 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 		itemFiles := make([]string, 0, 5)
 		filesDirectoryPath := filepath.Join(repositoryPath, "files")
 		files, _ := ioutil.ReadDir(filesDirectoryPath)
-		for _, element := range files {
-			absoluteFilePath := filepath.Join(filesDirectoryPath, element.Name())
+		for _, filesDirectoryElement := range files {
+			absoluteFilePath := filepath.Join(filesDirectoryPath, filesDirectoryElement.Name())
 			itemFiles = append(itemFiles, absoluteFilePath)
 		}
 
 		// search for child items
 		childItems := make([]model.RepositoryItem, 0, 100)
-		childElements, _ := ioutil.ReadDir(filesDirectoryPath)
-		for _, element := range childElements {
-			if element.IsDir() {
-				folder := filepath.Join(repositoryPath, element.Name())
+		childElements, _ := ioutil.ReadDir(repositoryPath)
+		for _, childItemElement := range childElements {
+			if childItemElement.IsDir() {
+				folder := filepath.Join(repositoryPath, childItemElement.Name())
 				childs := FindAllRepositoryItems(folder)
 				childItems = append(childItems, childs...)
 			}
