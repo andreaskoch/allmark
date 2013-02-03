@@ -81,18 +81,10 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 		files := GetFiles(repositoryPath)
 
 		// search for child items
-		childItems := make([]model.RepositoryItem, 0, 100)
-		childElements, _ := ioutil.ReadDir(repositoryPath)
-		for _, childItemElement := range childElements {
-			if childItemElement.IsDir() {
-				folder := filepath.Join(repositoryPath, childItemElement.Name())
-				childs := FindAllRepositoryItems(folder)
-				childItems = append(childItems, childs...)
-			}
-		}
+		childs := GetChildItems(repositoryPath)
 
 		// create item and append to list
-		item := model.NewRepositoryItem(repositoryPath, files, childItems)
+		item := model.NewRepositoryItem(repositoryPath, files, childs)
 		repositoryItems = append(repositoryItems, item)
 
 		// item has been found
@@ -114,6 +106,24 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 	}
 
 	return repositoryItems
+}
+
+func GetChildItems(repositoryItemPath string) []model.RepositoryItem {
+
+	childItems := make([]model.RepositoryItem, 0, 100)
+
+	files, _ := ioutil.ReadDir(repositoryItemPath)
+	for _, element := range files {
+
+		if element.IsDir() {
+			path := filepath.Join(repositoryItemPath, element.Name())
+			childsInPath := FindAllRepositoryItems(path)
+			childItems = append(childItems, childsInPath...)
+		}
+
+	}
+
+	return childItems
 }
 
 func GetFiles(repositoryItemPath string) []string {
