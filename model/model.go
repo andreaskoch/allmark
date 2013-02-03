@@ -11,7 +11,8 @@ package model
 import "time"
 
 type RepositoryItem struct {
-	Path string
+	Path  string
+	Files []string
 }
 
 func NewRepositoryItem(path string) RepositoryItem {

@@ -50,12 +50,9 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 		return nil
 	}
 
+	// item search
+	directoryContainsItem := false
 	for _, element := range directoryEntries {
-
-		if element.IsDir() {
-			// recurse
-			repositoryItems = append(repositoryItems, FindAllRepositoryItems(filepath.Join(repositoryPath, element.Name()))...)
-		}
 
 		// check if the file a document
 		isNotaRepositoryItem := !strings.EqualFold(strings.ToLower(element.Name()), "notes.md")
@@ -63,8 +60,33 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 			continue
 		}
 
-		newItem := model.NewRepositoryItem(repositoryPath)
-		repositoryItems = append(repositoryItems, newItem)
+		// root item
+		directoryContainsItem = true
+		item := model.NewRepositoryItem(repositoryPath)
+
+		// search for files
+		itemFiles := make([]string, 0, 5)
+		filesDirectoryPath := filepath.Join(repositoryPath, "files")
+		files, _ := ioutil.ReadDir(filesDirectoryPath)
+		for _, file := range files {
+			absoluteFilePath := filepath.Join(filesDirectoryPath, file.Name())
+			itemFiles = append(itemFiles, absoluteFilePath)
+		}
+		item.Files = itemFiles
+
+		// append item
+		repositoryItems = append(repositoryItems, item)
+	}
+
+	// recursive search
+	if !directoryContainsItem {
+		for _, element := range directoryEntries {
+
+			if element.IsDir() {
+				repositoryItems = append(repositoryItems, FindAllRepositoryItems(filepath.Join(repositoryPath, element.Name()))...)
+			}
+
+		}
 	}
 
 	return repositoryItems
