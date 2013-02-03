@@ -37,21 +37,7 @@ func Index(repositoryPath string) map[int]model.Document {
 	repositoryItems := FindAllRepositoryItems(repositoryPath)
 
 	for index, repositoryItem := range repositoryItems {
-		fmt.Println(index)
-		fmt.Println(repositoryItem.Path)
-
-		fmt.Println("Files:")
-		for _, file := range repositoryItem.Files {
-			fmt.Println(file)
-		}
-		fmt.Println()
-
-		fmt.Println("Child elements:")
-		for _, child := range repositoryItem.ChildItems {
-			fmt.Println(child.Path)
-		}
-
-		fmt.Println()
+		fmt.Printf("%v)\n%v\n", index, repositoryItem.String())
 	}
 
 	return nil

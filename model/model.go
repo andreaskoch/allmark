@@ -24,6 +24,33 @@ func NewRepositoryItem(path string, files []string, childItems []RepositoryItem)
 	}
 }
 
+func (item *RepositoryItem) String() string {
+	s := item.Path + "\n"
+
+	s += "\n"
+	s += "Files:\n"
+	if len(item.Files) > 0 {
+		for _, file := range item.Files {
+			s += " - " + file + "\n"
+		}
+	} else {
+		s += "<none>\n"
+	}
+
+	s += "\n"
+	s += "ChildItems:\n"
+	if len(item.ChildItems) > 0 {
+		for _, child := range item.ChildItems {
+			s += child.String()
+		}
+	} else {
+		s += "<none>\n"
+	}
+	s += "\n"
+
+	return s
+}
+
 type Document struct {
 	Path    string // The documents folder
 	Content string // The document content
