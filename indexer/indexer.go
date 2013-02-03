@@ -34,50 +34,38 @@ func Index(repositoryPath string) map[int]model.Document {
 	}
 
 	// get all repository items in the supplied repository path
-	repositoryItems := make([]*model.RepositoryItem, 100)
-	FindAllRepositoryItems(repositoryPath, repositoryItems)
+	repositoryItems := FindAllRepositoryItems(repositoryPath)
 	fmt.Printf("%v", repositoryItems)
 
 	return nil
 }
 
-func FindAllRepositoryItems(repositoryPath string, repositoryItems []*model.RepositoryItem) {
+func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
+
+	repositoryItems := make([]model.RepositoryItem, 0, 100)
 
 	directoryEntries, err := ioutil.ReadDir(repositoryPath)
 	if err != nil {
 		fmt.Printf("An error occured while indexing the repository path `%v`. Error: %v", repositoryPath, err)
-		return
+		return nil
 	}
 
 	for _, element := range directoryEntries {
 
 		if element.IsDir() {
-			//fmt.Printf("Element `%v` is a directory. Recurse.\n", element.Name())
-			FindAllRepositoryItems(filepath.Join(repositoryPath, element.Name()), repositoryItems)
+			// recurse
+			repositoryItems = append(repositoryItems, FindAllRepositoryItems(filepath.Join(repositoryPath, element.Name()))...)
 		}
 
 		// check if the file a document
-		isRepositoryItem := strings.EqualFold(strings.ToLower(element.Name()), "notes.md")
-		if !isRepositoryItem {
+		isNotaRepositoryItem := !strings.EqualFold(strings.ToLower(element.Name()), "notes.md")
+		if isNotaRepositoryItem {
 			continue
 		}
 
 		newItem := model.NewRepositoryItem(repositoryPath)
-		numberOfItems := getNumberOfItemsInArray(repositoryItems)
-		repositoryItems[numberOfItems] = newItem
-	}
-}
-
-func getNumberOfItemsInArray(arr []*model.RepositoryItem) int {
-	if arr == nil || len(arr) == 0 {
-		return 0
+		repositoryItems = append(repositoryItems, newItem)
 	}
 
-	for index, element := range arr {
-		if element == nil {
-			return index
-		}
-	}
-
-	return len(arr)
+	return repositoryItems
 }

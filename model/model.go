@@ -14,8 +14,8 @@ type RepositoryItem struct {
 	Path string
 }
 
-func NewRepositoryItem(path string) *RepositoryItem {
-	return &RepositoryItem{Path: path}
+func NewRepositoryItem(path string) RepositoryItem {
+	return RepositoryItem{Path: path}
 }
 
 type Document struct {
