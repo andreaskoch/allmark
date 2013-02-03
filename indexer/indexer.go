@@ -78,13 +78,7 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 		}
 
 		// search for files
-		itemFiles := make([]string, 0, 5)
-		filesDirectoryPath := filepath.Join(repositoryPath, "files")
-		files, _ := ioutil.ReadDir(filesDirectoryPath)
-		for _, filesDirectoryElement := range files {
-			absoluteFilePath := filepath.Join(filesDirectoryPath, filesDirectoryElement.Name())
-			itemFiles = append(itemFiles, absoluteFilePath)
-		}
+		files := GetFiles(repositoryPath)
 
 		// search for child items
 		childItems := make([]model.RepositoryItem, 0, 100)
@@ -98,7 +92,7 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 		}
 
 		// create item and append to list
-		item := model.NewRepositoryItem(repositoryPath, itemFiles, childItems)
+		item := model.NewRepositoryItem(repositoryPath, files, childItems)
 		repositoryItems = append(repositoryItems, item)
 
 		// item has been found
@@ -120,4 +114,17 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 	}
 
 	return repositoryItems
+}
+
+func GetFiles(repositoryItemPath string) []string {
+
+	itemFiles := make([]string, 0, 1)
+	filesDirectoryEntries, _ := ioutil.ReadDir(filepath.Join(repositoryItemPath, "files"))
+
+	for _, file := range filesDirectoryEntries {
+		absoluteFilePath := filepath.Join(repositoryItemPath, file.Name())
+		itemFiles = append(itemFiles, absoluteFilePath)
+	}
+
+	return itemFiles
 }
