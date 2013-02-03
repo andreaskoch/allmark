@@ -35,7 +35,7 @@ func Index(repositoryPath string) map[int]model.Document {
 
 	// get all repository items in the supplied repository path
 	repositoryItems := FindAllRepositoryItems(repositoryPath)
-	fmt.Printf("%v", repositoryItems)
+	fmt.Printf("%#v\n", repositoryItems)
 
 	return nil
 }
@@ -60,22 +60,33 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 			continue
 		}
 
-		// root item
-		directoryContainsItem = true
-		item := model.NewRepositoryItem(repositoryPath)
-
 		// search for files
 		itemFiles := make([]string, 0, 5)
 		filesDirectoryPath := filepath.Join(repositoryPath, "files")
 		files, _ := ioutil.ReadDir(filesDirectoryPath)
-		for _, file := range files {
-			absoluteFilePath := filepath.Join(filesDirectoryPath, file.Name())
+		for _, element := range files {
+			absoluteFilePath := filepath.Join(filesDirectoryPath, element.Name())
 			itemFiles = append(itemFiles, absoluteFilePath)
 		}
-		item.Files = itemFiles
 
-		// append item
+		// search for child items
+		childItems := make([]model.RepositoryItem, 0, 100)
+		childElements, _ := ioutil.ReadDir(filesDirectoryPath)
+		for _, element := range childElements {
+			if element.IsDir() {
+				folder := filepath.Join(repositoryPath, element.Name())
+				childs := FindAllRepositoryItems(folder)
+				childItems = append(childItems, childs...)
+			}
+		}
+
+		// create item and append to list
+		item := model.NewRepositoryItem(repositoryPath, itemFiles, childItems)
 		repositoryItems = append(repositoryItems, item)
+
+		// item has been found
+		directoryContainsItem = true
+		break
 	}
 
 	// recursive search
@@ -83,7 +94,9 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 		for _, element := range directoryEntries {
 
 			if element.IsDir() {
-				repositoryItems = append(repositoryItems, FindAllRepositoryItems(filepath.Join(repositoryPath, element.Name()))...)
+				folder := filepath.Join(repositoryPath, element.Name())
+				childs := FindAllRepositoryItems(folder)
+				repositoryItems = append(repositoryItems, childs...)
 			}
 
 		}

@@ -11,12 +11,17 @@ package model
 import "time"
 
 type RepositoryItem struct {
-	Path  string
-	Files []string
+	Path       string
+	Files      []string
+	ChildItems []RepositoryItem
 }
 
-func NewRepositoryItem(path string) RepositoryItem {
-	return RepositoryItem{Path: path}
+func NewRepositoryItem(path string, files []string, childItems []RepositoryItem) RepositoryItem {
+	return RepositoryItem{
+		Path:       path,
+		Files:      files,
+		ChildItems: childItems,
+	}
 }
 
 type Document struct {
