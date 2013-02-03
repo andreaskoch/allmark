@@ -92,17 +92,9 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 		break
 	}
 
-	// recursive search
+	// search in sub directories if there is no item in the current folder
 	if !directoryContainsItem {
-		for _, element := range directoryEntries {
-
-			if element.IsDir() {
-				folder := filepath.Join(repositoryPath, element.Name())
-				childs := FindAllRepositoryItems(folder)
-				repositoryItems = append(repositoryItems, childs...)
-			}
-
-		}
+		repositoryItems = append(repositoryItems, GetChildItems(repositoryPath)...)
 	}
 
 	return repositoryItems
