@@ -128,7 +128,7 @@ func GetChildItems(repositoryItemPath string) []model.RepositoryItem {
 
 func GetFiles(repositoryItemPath string) []string {
 
-	itemFiles := make([]string, 0, 1)
+	itemFiles := make([]string, 0, 5)
 	filesDirectoryEntries, _ := ioutil.ReadDir(filepath.Join(repositoryItemPath, "files"))
 
 	for _, file := range filesDirectoryEntries {
