@@ -34,7 +34,7 @@ func Index(repositoryPath string) map[int]model.Document {
 	}
 
 	// get all repository items in the supplied repository path
-	repositoryItems := FindAllRepositoryItems(repositoryPath)
+	repositoryItems := findAllRepositoryItems(repositoryPath)
 
 	for index, repositoryItem := range repositoryItems {
 		fmt.Printf("%v)\n%v\n", index, repositoryItem.String())
@@ -43,7 +43,7 @@ func Index(repositoryPath string) map[int]model.Document {
 	return nil
 }
 
-func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
+func findAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 
 	repositoryItems := make([]model.RepositoryItem, 0, 100)
 
@@ -64,10 +64,10 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 		}
 
 		// search for files
-		files := GetFiles(repositoryPath)
+		files := getFiles(repositoryPath)
 
 		// search for child items
-		childs := GetChildItems(repositoryPath)
+		childs := getChildItems(repositoryPath)
 
 		// create item and append to list
 		item := model.NewRepositoryItem(repositoryPath, files, childs)
@@ -80,13 +80,13 @@ func FindAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 
 	// search in sub directories if there is no item in the current folder
 	if !directoryContainsItem {
-		repositoryItems = append(repositoryItems, GetChildItems(repositoryPath)...)
+		repositoryItems = append(repositoryItems, getChildItems(repositoryPath)...)
 	}
 
 	return repositoryItems
 }
 
-func GetChildItems(repositoryItemPath string) []model.RepositoryItem {
+func getChildItems(repositoryItemPath string) []model.RepositoryItem {
 
 	childItems := make([]model.RepositoryItem, 0, 5)
 
@@ -95,7 +95,7 @@ func GetChildItems(repositoryItemPath string) []model.RepositoryItem {
 
 		if element.IsDir() {
 			path := filepath.Join(repositoryItemPath, element.Name())
-			childsInPath := FindAllRepositoryItems(path)
+			childsInPath := findAllRepositoryItems(path)
 			childItems = append(childItems, childsInPath...)
 		}
 
@@ -104,7 +104,7 @@ func GetChildItems(repositoryItemPath string) []model.RepositoryItem {
 	return childItems
 }
 
-func GetFiles(repositoryItemPath string) []string {
+func getFiles(repositoryItemPath string) []string {
 
 	itemFiles := make([]string, 0, 5)
 	filesDirectoryEntries, _ := ioutil.ReadDir(filepath.Join(repositoryItemPath, "files"))
