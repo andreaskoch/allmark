@@ -105,14 +105,16 @@ func getChildItems(repositoryItemPath string) []model.RepositoryItem {
 	return childItems
 }
 
-func getFiles(repositoryItemPath string) []string {
+func getFiles(repositoryItemPath string) []model.RepositoryItemFile {
 
-	itemFiles := make([]string, 0, 5)
+	itemFiles := make([]model.RepositoryItemFile, 0, 5)
 	filesDirectoryEntries, _ := ioutil.ReadDir(filepath.Join(repositoryItemPath, "files"))
 
 	for _, file := range filesDirectoryEntries {
 		absoluteFilePath := filepath.Join(repositoryItemPath, file.Name())
-		itemFiles = append(itemFiles, absoluteFilePath)
+		repositoryItemFile := model.NewRepositoryItemFile(absoluteFilePath)
+
+		itemFiles = append(itemFiles, repositoryItemFile)
 	}
 
 	return itemFiles

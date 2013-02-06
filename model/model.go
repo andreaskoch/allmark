@@ -17,11 +17,21 @@ import (
 
 type RepositoryItem struct {
 	Path       string
-	Files      []string
+	Files      []RepositoryItemFile
 	ChildItems []RepositoryItem
 }
 
-func NewRepositoryItem(path string, files []string, childItems []RepositoryItem) RepositoryItem {
+type RepositoryItemFile struct {
+	Path string
+}
+
+func NewRepositoryItemFile(path string) RepositoryItemFile {
+	return RepositoryItemFile{
+		Path: path,
+	}
+}
+
+func NewRepositoryItem(path string, files []RepositoryItemFile, childItems []RepositoryItem) RepositoryItem {
 	return RepositoryItem{
 		Path:       path,
 		Files:      files,
@@ -49,7 +59,7 @@ func (item *RepositoryItem) String() string {
 	s += "Files:\n"
 	if len(item.Files) > 0 {
 		for _, file := range item.Files {
-			s += " - " + file + "\n"
+			s += " - " + file.Path + "\n"
 		}
 	} else {
 		s += "<none>\n"
