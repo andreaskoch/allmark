@@ -70,7 +70,8 @@ func findAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 		childs := getChildItems(repositoryPath)
 
 		// create item and append to list
-		item := model.NewRepositoryItem(repositoryPath, files, childs)
+		itemPath := filepath.Join(repositoryPath, element.Name())
+		item := model.NewRepositoryItem(itemPath, files, childs)
 		repositoryItems = append(repositoryItems, item)
 
 		// item has been found

@@ -8,7 +8,12 @@
 */
 package model
 
-import "time"
+import (
+	"crypto/sha1"
+	"encoding/hex"
+	"io/ioutil"
+	"time"
+)
 
 type RepositoryItem struct {
 	Path       string
@@ -24,8 +29,21 @@ func NewRepositoryItem(path string, files []string, childItems []RepositoryItem)
 	}
 }
 
+func (item *RepositoryItem) GetHash() string {
+	itemBytes, readFileErr := ioutil.ReadFile(item.Path)
+	if readFileErr != nil {
+		return ""
+	}
+
+	sha1Hash := sha1.New()
+	sha1Hash.Write(itemBytes)
+	hashBytes := sha1Hash.Sum(nil)
+
+	return string(hex.EncodeToString(hashBytes))
+}
+
 func (item *RepositoryItem) String() string {
-	s := item.Path + "\n"
+	s := item.Path + "(Hash: " + item.GetHash() + ")\n"
 
 	s += "\n"
 	s += "Files:\n"
