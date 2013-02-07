@@ -18,10 +18,8 @@ func main() {
 	flag.Usage = printUsageInformation
 	flag.Parse()
 
-	items := indexer.Index(*repositoryPath)
-	for index, repositoryItem := range items {
-		fmt.Printf("%v)\n%v\n", index, repositoryItem.String())
-	}
+	itemIndex := indexer.Index(*repositoryPath)
+	fmt.Printf("%v", itemIndex.ToString())
 }
 
 // Print usage information

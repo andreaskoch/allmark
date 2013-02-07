@@ -13,30 +13,30 @@ import (
 	"strings"
 )
 
-func Index(repositoryPath string) []model.RepositoryItem {
+func Index(repositoryPath string) model.RepositoryIndex {
 
 	// check if the supplied repository path is set
 	if strings.Trim(repositoryPath, " ") == "" {
-		fmt.Print("The repository path cannot be null or empty.")
-		return nil
+		panic("The repository path cannot be null or empty.")
 	}
 
 	// check if the supplied repository path exists
 	if _, err := os.Stat(repositoryPath); err != nil {
+
 		switch {
 		case os.IsNotExist(err):
-			fmt.Printf("The supplied repository path `%v` does not exist.", repositoryPath)
+			panic(fmt.Sprintf("The supplied repository path `%v` does not exist.", repositoryPath))
 		default:
-			fmt.Printf("An error occured while trying to access the supplied repository path `%v`.", repositoryPath)
+			panic(fmt.Sprintf("An error occured while trying to access the supplied repository path `%v`.", repositoryPath))
 		}
-
-		return nil
 	}
 
 	// get all repository items in the supplied repository path
 	repositoryItems := findAllRepositoryItems(repositoryPath)
 
-	return repositoryItems
+	index := model.NewRepositoryIndex(repositoryPath, repositoryItems)
+
+	return index
 }
 
 func findAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
