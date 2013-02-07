@@ -49,7 +49,7 @@ func (item *RepositoryItem) GetHash() string {
 	sha1Hash.Write(itemBytes)
 	hashBytes := sha1Hash.Sum(nil)
 
-	return string(hex.EncodeToString(hashBytes))
+	return string(hex.EncodeToString(hashBytes[0:6]))
 }
 
 func (item *RepositoryItem) String() string {
