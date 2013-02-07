@@ -20,16 +20,6 @@ type RepositoryItem struct {
 	ChildItems []RepositoryItem
 }
 
-type RepositoryItemFile struct {
-	Path string
-}
-
-func NewRepositoryItemFile(path string) RepositoryItemFile {
-	return RepositoryItemFile{
-		Path: path,
-	}
-}
-
 func NewRepositoryItem(path string, files []RepositoryItemFile, childItems []RepositoryItem) RepositoryItem {
 	return RepositoryItem{
 		Path:       path,
