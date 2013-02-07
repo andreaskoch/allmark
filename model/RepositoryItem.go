@@ -10,7 +10,7 @@ package model
 
 import (
 	"crypto/sha1"
-	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 )
 
@@ -34,11 +34,10 @@ func (item *RepositoryItem) GetHash() string {
 		return ""
 	}
 
-	sha1Hash := sha1.New()
-	sha1Hash.Write(itemBytes)
-	hashBytes := sha1Hash.Sum(nil)
+	sha1 := sha1.New()
+	sha1.Write(itemBytes)
 
-	return string(hex.EncodeToString(hashBytes[0:6]))
+	return fmt.Sprintf("%x", string(sha1.Sum(nil)[0:6]))
 }
 
 func (item *RepositoryItem) String() string {
