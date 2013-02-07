@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func Index(repositoryPath string) map[int]model.Document {
+func Index(repositoryPath string) []model.RepositoryItem {
 
 	// check if the supplied repository path is set
 	if strings.Trim(repositoryPath, " ") == "" {
@@ -36,11 +36,7 @@ func Index(repositoryPath string) map[int]model.Document {
 	// get all repository items in the supplied repository path
 	repositoryItems := findAllRepositoryItems(repositoryPath)
 
-	for index, repositoryItem := range repositoryItems {
-		fmt.Printf("%v)\n%v\n", index, repositoryItem.String())
-	}
-
-	return nil
+	return repositoryItems
 }
 
 func findAllRepositoryItems(repositoryPath string) []model.RepositoryItem {

@@ -12,7 +12,6 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"io/ioutil"
-	"time"
 )
 
 type RepositoryItem struct {
@@ -77,16 +76,4 @@ func (item *RepositoryItem) String() string {
 	s += "\n"
 
 	return s
-}
-
-type Document struct {
-	Path    string // The documents folder
-	Content string // The document content
-
-	Title       string // The document title
-	Description string // A short description of the document content.
-
-	// Meta information
-	Language string    // [optional] The ISO language code document (e.g. "en-GB", "de-DE")
-	Date     time.Time // [optional] The date the document has been created
 }
