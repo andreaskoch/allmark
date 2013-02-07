@@ -16,7 +16,7 @@
 # Assemble list of files to watch
 autoBuildFileList="autobuild-files.txt"
 
-find `pwd` -name "*.go" >> $autoBuildFileList
+find `pwd` -name "*.go" > $autoBuildFileList
 
 FORMAT=$(echo -e "\033[1;33m%w%f\033[0m written")
 "$@"
