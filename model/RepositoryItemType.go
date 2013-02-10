@@ -3,13 +3,13 @@ package model
 type RepositoryItemType byte
 
 const (
-	NONE                                     = iota
-	REPOSITORYDESCRIPTION RepositoryItemType = iota
-	DOCUMENT              RepositoryItemType = iota
-	COMMENT               RepositoryItemType = iota
-	LOCATION              RepositoryItemType = iota
-	MESSAGE               RepositoryItemType = iota
-	TAG                   RepositoryItemType = iota
+	NONE = iota
+	REPOSITORYDESCRIPTION
+	DOCUMENT
+	COMMENT
+	LOCATION
+	MESSAGE
+	TAG
 )
 
 func (itemType RepositoryItemType) String() string {
