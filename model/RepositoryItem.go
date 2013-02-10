@@ -18,13 +18,15 @@ type RepositoryItem struct {
 	Path       string
 	Files      []RepositoryItemFile
 	ChildItems []RepositoryItem
+	Type       string
 }
 
-func NewRepositoryItem(path string, files []RepositoryItemFile, childItems []RepositoryItem) RepositoryItem {
+func NewRepositoryItem(itemType string, path string, files []RepositoryItemFile, childItems []RepositoryItem) RepositoryItem {
 	return RepositoryItem{
 		Path:       path,
 		Files:      files,
 		ChildItems: childItems,
+		Type:       itemType,
 	}
 }
 
@@ -41,7 +43,7 @@ func (item *RepositoryItem) GetHash() string {
 }
 
 func (item *RepositoryItem) String() string {
-	s := item.Path + "(Hash: " + item.GetHash() + ")\n"
+	s := item.Path + "(Type: " + item.Type + ", Hash: " + item.GetHash() + ")\n"
 
 	s += "\n"
 	s += "Files:\n"
