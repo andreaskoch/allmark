@@ -12,6 +12,8 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 type RepositoryItem struct {
@@ -27,6 +29,23 @@ func NewRepositoryItem(itemType string, path string, files []RepositoryItemFile,
 		Files:      files,
 		ChildItems: childItems,
 		Type:       itemType,
+	}
+}
+
+func (item *RepositoryItem) Render() {
+
+	// assemble file path of the rendered html file
+	itemDirectory := filepath.Dir(item.Path)
+	renderedFilePath := filepath.Join(itemDirectory, item.Type+".html")
+
+	// create html file if it does not exist
+	if _, getFileStatError := os.Stat(renderedFilePath); getFileStatError != nil {
+		_ = ioutil.WriteFile(renderedFilePath, []byte(""), 0644)
+	}
+
+	// render child items
+	for _, child := range item.ChildItems {
+		child.Render()
 	}
 }
 

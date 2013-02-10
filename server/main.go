@@ -20,6 +20,10 @@ func main() {
 
 	itemIndex := indexer.Index(*repositoryPath)
 	fmt.Printf("%v", itemIndex.ToString())
+
+	for _, element := range itemIndex.Items {
+		element.Render()
+	}
 }
 
 // Print usage information
