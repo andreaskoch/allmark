@@ -34,6 +34,11 @@ func NewRepositoryItem(itemType string, path string, files []RepositoryItemFile,
 
 func (item *RepositoryItem) Render() {
 
+	// render child items
+	for _, child := range item.ChildItems {
+		child.Render()
+	}
+
 	// assemble file path of the rendered html file
 	itemDirectory := filepath.Dir(item.Path)
 	renderedFilePath := filepath.Join(itemDirectory, item.Type+".html")
@@ -41,11 +46,6 @@ func (item *RepositoryItem) Render() {
 	// create html file if it does not exist
 	if _, getFileStatError := os.Stat(renderedFilePath); getFileStatError != nil {
 		_ = ioutil.WriteFile(renderedFilePath, []byte(""), 0644)
-	}
-
-	// render child items
-	for _, child := range item.ChildItems {
-		child.Render()
 	}
 }
 
