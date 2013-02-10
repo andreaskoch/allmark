@@ -9,11 +9,13 @@
 package model
 
 import (
+	"bufio"
 	"crypto/sha1"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 type RepositoryItem struct {
@@ -39,14 +41,55 @@ func (item *RepositoryItem) Render() {
 		child.Render()
 	}
 
-	// assemble file path of the rendered html file
+	// the path of the rendered repostory item
+	renderedItemPath := item.GetRenderedItemPath()
+
+	// check if rendering is required
+	itemHashCode := item.GetHash()
+	renderedItemHashCode := item.GetRenderedItemHash()
+
+	// Abort if the hash has not changed
+	if itemHashCode == renderedItemHashCode {
+		return
+	}
+
+	content := "<!-- " + item.GetHash() + " -->"
+	_ = ioutil.WriteFile(renderedItemPath, []byte(content), 0644)
+}
+
+func (item *RepositoryItem) GetRenderedItemHash() string {
+	renderedItemPath := item.GetRenderedItemPath()
+
+	file, err := os.Open(renderedItemPath)
+	if err != nil {
+		// file does not exist or cannot be accessed
+		return ""
+	}
+
+	fileReader := bufio.NewReader(file)
+	firstLineBytes, _ := fileReader.ReadBytes('\n')
+	if firstLineBytes == nil {
+		// first line cannot be read
+		return ""
+	}
+
+	// extract hash from line
+	hashCodeRegexp := regexp.MustCompile("<!-- (\\w+) -->")
+	matches := hashCodeRegexp.FindStringSubmatch(string(firstLineBytes))
+	if len(matches) != 2 {
+		return ""
+	}
+
+	extractedHashcode := matches[1]
+
+	return string(extractedHashcode)
+}
+
+// Get the filepath of the rendered repository item
+func (item *RepositoryItem) GetRenderedItemPath() string {
 	itemDirectory := filepath.Dir(item.Path)
 	renderedFilePath := filepath.Join(itemDirectory, item.Type+".html")
-
-	// create html file if it does not exist
-	if _, getFileStatError := os.Stat(renderedFilePath); getFileStatError != nil {
-		_ = ioutil.WriteFile(renderedFilePath, []byte(""), 0644)
-	}
+	return renderedFilePath
 }
 
 func (item *RepositoryItem) GetHash() string {
