@@ -18,10 +18,12 @@ type RepositoryItem struct {
 	Path       string
 	Files      []RepositoryItemFile
 	ChildItems []RepositoryItem
+	Type       RepositoryItemType
 }
 
-func NewRepositoryItem(path string, files []RepositoryItemFile, childItems []RepositoryItem) RepositoryItem {
+func NewRepositoryItem(itemType RepositoryItemType, path string, files []RepositoryItemFile, childItems []RepositoryItem) RepositoryItem {
 	return RepositoryItem{
+		Type:       itemType,
 		Path:       path,
 		Files:      files,
 		ChildItems: childItems,

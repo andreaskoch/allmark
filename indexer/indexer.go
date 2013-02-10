@@ -54,8 +54,8 @@ func findAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 	for _, element := range directoryEntries {
 
 		// check if the file a document
-		isNotaRepositoryItem := !strings.EqualFold(strings.ToLower(element.Name()), "notes.md")
-		if isNotaRepositoryItem {
+		isRepositoryItem, itemType := fileIsRepositoryItem(element.Name())
+		if !isRepositoryItem {
 			continue
 		}
 
@@ -67,7 +67,7 @@ func findAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 
 		// create item and append to list
 		itemPath := filepath.Join(repositoryPath, element.Name())
-		item := model.NewRepositoryItem(itemPath, files, childs)
+		item := model.NewRepositoryItem(itemType, itemPath, files, childs)
 		repositoryItems = append(repositoryItems, item)
 
 		// item has been found
@@ -81,6 +81,14 @@ func findAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 	}
 
 	return repositoryItems
+}
+
+func fileIsRepositoryItem(filename string) (bool, model.RepositoryItemType) {
+	if strings.EqualFold(filename, "document.md") {
+		return true, model.DOCUMENT
+	}
+
+	return false, model.NONE
 }
 
 func getChildItems(repositoryItemPath string) []model.RepositoryItem {
