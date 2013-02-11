@@ -25,6 +25,7 @@ type RepositoryItem struct {
 	Type       string
 }
 
+// Create a new repository item
 func NewRepositoryItem(itemType string, path string, files []RepositoryItemFile, childItems []RepositoryItem) RepositoryItem {
 	return RepositoryItem{
 		Path:       path,
@@ -34,6 +35,7 @@ func NewRepositoryItem(itemType string, path string, files []RepositoryItemFile,
 	}
 }
 
+// Render this repository item
 func (item *RepositoryItem) Render() {
 
 	// render child items
@@ -57,6 +59,7 @@ func (item *RepositoryItem) Render() {
 	_ = ioutil.WriteFile(renderedItemPath, []byte(content), 0644)
 }
 
+// Get the hash code of the rendered item
 func (item *RepositoryItem) GetRenderedItemHash() string {
 	renderedItemPath := item.GetRenderedItemPath()
 
@@ -104,6 +107,7 @@ func (item *RepositoryItem) GetHash() string {
 	return fmt.Sprintf("%x", string(sha1.Sum(nil)[0:6]))
 }
 
+// Get a string representation of the current repository item
 func (item *RepositoryItem) String() string {
 	s := item.Path + "(Type: " + item.Type + ", Hash: " + item.GetHash() + ")\n"
 
