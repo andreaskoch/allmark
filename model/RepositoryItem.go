@@ -10,8 +10,10 @@ package model
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/sha1"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -55,8 +57,46 @@ func (item *RepositoryItem) Render() {
 		return
 	}
 
+	doc := item.getParsedDocument()
+
 	content := "<!-- " + item.GetHash() + " -->"
+	content += "\nTitle: " + doc["title"]
+
 	_ = ioutil.WriteFile(renderedItemPath, []byte(content), 0644)
+}
+
+func (item *RepositoryItem) getParsedDocument() map[string]string {
+	bytes := item.getBytes()
+	doc := make(map[string]string)
+
+	doc["title"] = getTitle(bytes)
+
+	return doc
+}
+
+func getTitle(content []byte) string {
+	buffer := bytes.NewBuffer(content)
+
+	titleRegexp := regexp.MustCompile("\\s*#\\s*(.+)")
+	for line, err := buffer.ReadString(10); err != io.EOF; {
+		matches := titleRegexp.FindStringSubmatch(line)
+
+		if len(matches) == 2 {
+			return matches[1]
+		}
+	}
+
+	return "No Title"
+}
+
+// Get the bytes of this repository item
+func (item *RepositoryItem) getBytes() []byte {
+	bytes, err := ioutil.ReadFile(item.Path)
+	if err != nil {
+		return make([]byte, 0)
+	}
+
+	return bytes
 }
 
 // Get the hash code of the rendered item
