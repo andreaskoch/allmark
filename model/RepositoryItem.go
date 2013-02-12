@@ -70,11 +70,27 @@ func (item *RepositoryItem) getParsedDocument() map[string]string {
 	doc := make(map[string]string)
 
 	doc["title"] = getTitle(bytes)
+	doc["description"] = getDescription(bytes)
 
 	return doc
 }
 
 func getTitle(content []byte) string {
+	buffer := bytes.NewBuffer(content)
+
+	titleRegexp := regexp.MustCompile("\\s*#\\s*(.+)")
+	for line, err := buffer.ReadString(10); err != io.EOF; {
+		matches := titleRegexp.FindStringSubmatch(line)
+
+		if len(matches) == 2 {
+			return matches[1]
+		}
+	}
+
+	return "No Title"
+}
+
+func getDescription(content []byte) string {
 	buffer := bytes.NewBuffer(content)
 
 	titleRegexp := regexp.MustCompile("\\s*#\\s*(.+)")
