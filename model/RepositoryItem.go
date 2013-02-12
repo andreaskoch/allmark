@@ -9,11 +9,10 @@
 package model
 
 import (
+	"andyk/docs/filesystem"
 	"bufio"
-	"bytes"
 	"crypto/sha1"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -61,58 +60,78 @@ func (item *RepositoryItem) Render() {
 
 	content := "<!-- " + item.GetHash() + " -->"
 	content += "\nTitle: " + doc["title"]
+	content += "\nDescription: " + doc["description"]
 
 	_ = ioutil.WriteFile(renderedItemPath, []byte(content), 0644)
 }
 
 func (item *RepositoryItem) getParsedDocument() map[string]string {
-	bytes := item.getBytes()
 	doc := make(map[string]string)
 
-	doc["title"] = getTitle(bytes)
-	doc["description"] = getDescription(bytes)
+	title, _ := item.getTitle()
+	description, _ := item.getDescription()
+
+	doc["title"] = title
+	doc["description"] = description
 
 	return doc
 }
 
-func getTitle(content []byte) string {
-	buffer := bytes.NewBuffer(content)
+func (item *RepositoryItem) getTitle() (string, int) {
+	lines := item.getLines()
 
 	titleRegexp := regexp.MustCompile("\\s*#\\s*(.+)")
-	for line, err := buffer.ReadString(10); err != io.EOF; {
+
+	for lineNumber, line := range lines {
 		matches := titleRegexp.FindStringSubmatch(line)
 
 		if len(matches) == 2 {
-			return matches[1]
+			return matches[1], lineNumber
 		}
 	}
 
-	return "No Title"
+	return "No Title", 0
 }
 
-func getDescription(content []byte) string {
-	buffer := bytes.NewBuffer(content)
+func (item *RepositoryItem) getDescription() (string, int) {
+	lines := item.getLines()
 
-	titleRegexp := regexp.MustCompile("\\s*#\\s*(.+)")
-	for line, err := buffer.ReadString(10); err != io.EOF; {
-		matches := titleRegexp.FindStringSubmatch(line)
+	descriptionRegexp := regexp.MustCompile("^\\w.+")
 
-		if len(matches) == 2 {
-			return matches[1]
+	// locate the title
+	_, titleLineNumber := item.getTitle()
+
+	for lineNumber, line := range lines {
+		if lineNumber <= titleLineNumber {
+			continue
+		}
+
+		matches := descriptionRegexp.FindStringSubmatch(line)
+		if len(matches) == 1 {
+			return matches[0], lineNumber
 		}
 	}
 
-	return "No Title"
+	return "No Description", 0
 }
 
-// Get the bytes of this repository item
-func (item *RepositoryItem) getBytes() []byte {
-	bytes, err := ioutil.ReadFile(item.Path)
+// Get lines of a repository item
+func (item *RepositoryItem) getLines() []string {
+	f, err := os.Open(item.Path)
 	if err != nil {
-		return make([]byte, 0)
+		return make([]string, 0)
 	}
 
-	return bytes
+	defer f.Close()
+	lines := make([]string, 0, 10)
+	r := bufio.NewReader(f)
+	line, err := filesystem.Readln(r)
+	for err == nil {
+		lines = append(lines, line)
+		line, err = filesystem.Readln(r)
+	}
+
+	return lines
 }
 
 // Get the hash code of the rendered item
