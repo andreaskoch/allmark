@@ -71,8 +71,8 @@ func (item *RepositoryItem) Render() {
 }
 
 func (item *RepositoryItem) getParsedDocument() Document {
-	title, _ := item.getTitle()
-	description, _ := item.getDescription()
+	title, titleLineNumber := item.getTitle()
+	description, _ := item.getDescription(titleLineNumber)
 
 	return Document{
 		Title:       title,
@@ -95,13 +95,10 @@ func (item *RepositoryItem) getTitle() (string, int) {
 	return "No Title", 0
 }
 
-func (item *RepositoryItem) getDescription() (string, int) {
+func (item *RepositoryItem) getDescription(titleLineNumber int) (string, int) {
 	lines := item.getLines()
 
 	descriptionRegexp := regexp.MustCompile("^\\w.+")
-
-	// locate the title
-	_, titleLineNumber := item.getTitle()
 
 	for lineNumber, line := range lines {
 		if lineNumber <= titleLineNumber {
