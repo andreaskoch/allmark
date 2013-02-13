@@ -5,17 +5,23 @@ import (
 )
 
 type Document struct {
-	Title         string
-	Description   string
+	Title       string
+	Description string
+	Hash        string
+
 	lastFindIndex int
 	rawLines      []string
 }
 
-func NewDocument(rawLines []string) Document {
-	return Document{
-		rawLines:      rawLines,
+func CreateDocument(repositoryItem *RepositoryItem) *Document {
+	doc := Document{
+		Hash:          repositoryItem.GetHash(),
+		rawLines:      repositoryItem.GetLines(),
 		lastFindIndex: 0,
 	}
+
+	// parse
+	return doc.setTitle().setDescription()
 }
 
 func (doc *Document) setTitle() *Document {

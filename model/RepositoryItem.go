@@ -56,23 +56,17 @@ func (item *RepositoryItem) Render() {
 		return
 	}
 
-	doc := item.getParsedDocument()
+	doc := CreateDocument(item)
 
-	content := "<!-- " + item.GetHash() + " -->"
+	content := "<!-- " + doc.Hash + " -->"
 	content += "\nTitle: " + doc.Title
 	content += "\nDescription: " + doc.Description
 
 	_ = ioutil.WriteFile(renderedItemPath, []byte(content), 0644)
 }
 
-func (item *RepositoryItem) getParsedDocument() Document {
-	doc := NewDocument(item.getLines())
-	doc = *doc.setTitle().setDescription()
-	return doc
-}
-
 // Get all lines of a repository item
-func (item *RepositoryItem) getLines() []string {
+func (item *RepositoryItem) GetLines() []string {
 	lines, err := filesystem.GetLines(item.Path)
 	if err != nil {
 		return make([]string, 0)
