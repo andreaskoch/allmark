@@ -71,47 +71,42 @@ func (item *RepositoryItem) Render() {
 }
 
 func (item *RepositoryItem) getParsedDocument() Document {
-	title, titleLineNumber := item.getTitle()
-	description, _ := item.getDescription(titleLineNumber)
-
-	return Document{
-		Title:       title,
-		Description: description,
-	}
+	doc := Document{}
+	doc, _ = item.setDescription(item.setTitle(doc, 0))
+	return doc
 }
 
-func (item *RepositoryItem) getTitle() (string, int) {
+func (item *RepositoryItem) setTitle(document Document, startLine int) (Document, int) {
 	lines := item.getLines()
 	titleRegexp := regexp.MustCompile("\\s*#\\s*(.+)")
 
-	for lineNumber, line := range lines {
+	for lineNumber, line := range lines[startLine:] {
 		matches := titleRegexp.FindStringSubmatch(line)
 
 		if len(matches) == 2 {
-			return matches[1], lineNumber
+			document.Title = matches[1]
+			return document, lineNumber
 		}
 	}
 
-	return "No Title", 0
+	return document, startLine
 }
 
-func (item *RepositoryItem) getDescription(titleLineNumber int) (string, int) {
+func (item *RepositoryItem) setDescription(document Document, startLine int) (Document, int) {
 	lines := item.getLines()
 
 	descriptionRegexp := regexp.MustCompile("^\\w.+")
 
-	for lineNumber, line := range lines {
-		if lineNumber <= titleLineNumber {
-			continue
-		}
-
+	for lineNumber, line := range lines[startLine:] {
 		matches := descriptionRegexp.FindStringSubmatch(line)
+
 		if len(matches) == 1 {
-			return matches[0], lineNumber
+			document.Description = matches[0]
+			return document, lineNumber
 		}
 	}
 
-	return "No Description", 0
+	return document, startLine
 }
 
 // Get all lines of a repository item
