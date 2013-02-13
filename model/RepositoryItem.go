@@ -20,8 +20,17 @@ import (
 )
 
 type Document struct {
-	Title       string
-	Description string
+	Title         string
+	Description   string
+	lastFindIndex int
+	rawLines      []string
+}
+
+func NewDocument(rawLines []string) Document {
+	return Document{
+		rawLines:      rawLines,
+		lastFindIndex: 0,
+	}
 }
 
 type RepositoryItem struct {
@@ -71,42 +80,41 @@ func (item *RepositoryItem) Render() {
 }
 
 func (item *RepositoryItem) getParsedDocument() Document {
-	doc := Document{}
-	doc, _ = item.setDescription(item.setTitle(doc, 0))
+	doc := NewDocument(item.getLines())
+	doc = *doc.setTitle().setDescription()
 	return doc
 }
 
-func (item *RepositoryItem) setTitle(document Document, startLine int) (Document, int) {
-	lines := item.getLines()
+func (doc *Document) setTitle() *Document {
 	titleRegexp := regexp.MustCompile("\\s*#\\s*(.+)")
 
-	for lineNumber, line := range lines[startLine:] {
+	for lineNumber, line := range doc.rawLines[doc.lastFindIndex:] {
 		matches := titleRegexp.FindStringSubmatch(line)
 
 		if len(matches) == 2 {
-			document.Title = matches[1]
-			return document, lineNumber
+			doc.lastFindIndex = lineNumber
+			doc.Title = matches[1]
+			return doc
 		}
 	}
 
-	return document, startLine
+	return doc
 }
 
-func (item *RepositoryItem) setDescription(document Document, startLine int) (Document, int) {
-	lines := item.getLines()
-
+func (doc *Document) setDescription() *Document {
 	descriptionRegexp := regexp.MustCompile("^\\w.+")
 
-	for lineNumber, line := range lines[startLine:] {
+	for lineNumber, line := range doc.rawLines[doc.lastFindIndex:] {
 		matches := descriptionRegexp.FindStringSubmatch(line)
 
 		if len(matches) == 1 {
-			document.Description = matches[0]
-			return document, lineNumber
+			doc.lastFindIndex = lineNumber
+			doc.Description = matches[0]
+			return doc
 		}
 	}
 
-	return document, startLine
+	return doc
 }
 
 // Get all lines of a repository item
