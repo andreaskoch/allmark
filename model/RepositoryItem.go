@@ -117,20 +117,11 @@ func (item *RepositoryItem) getDescription() (string, int) {
 	return "No Description", 0
 }
 
-// Get lines of a repository item
+// Get all lines of a repository item
 func (item *RepositoryItem) getLines() []string {
-	f, err := os.Open(item.Path)
+	lines, err := filesystem.GetLines(item.Path)
 	if err != nil {
 		return make([]string, 0)
-	}
-
-	defer f.Close()
-	lines := make([]string, 0, 10)
-	r := bufio.NewReader(f)
-	line, err := filesystem.Readln(r)
-	for err == nil {
-		lines = append(lines, line)
-		line, err = filesystem.Readln(r)
 	}
 
 	return lines
