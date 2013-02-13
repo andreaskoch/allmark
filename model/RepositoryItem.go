@@ -19,6 +19,11 @@ import (
 	"regexp"
 )
 
+type Document struct {
+	Title       string
+	Description string
+}
+
 type RepositoryItem struct {
 	Path       string
 	Files      []RepositoryItemFile
@@ -59,27 +64,24 @@ func (item *RepositoryItem) Render() {
 	doc := item.getParsedDocument()
 
 	content := "<!-- " + item.GetHash() + " -->"
-	content += "\nTitle: " + doc["title"]
-	content += "\nDescription: " + doc["description"]
+	content += "\nTitle: " + doc.Title
+	content += "\nDescription: " + doc.Description
 
 	_ = ioutil.WriteFile(renderedItemPath, []byte(content), 0644)
 }
 
-func (item *RepositoryItem) getParsedDocument() map[string]string {
-	doc := make(map[string]string)
-
+func (item *RepositoryItem) getParsedDocument() Document {
 	title, _ := item.getTitle()
 	description, _ := item.getDescription()
 
-	doc["title"] = title
-	doc["description"] = description
-
-	return doc
+	return Document{
+		Title:       title,
+		Description: description,
+	}
 }
 
 func (item *RepositoryItem) getTitle() (string, int) {
 	lines := item.getLines()
-
 	titleRegexp := regexp.MustCompile("\\s*#\\s*(.+)")
 
 	for lineNumber, line := range lines {
