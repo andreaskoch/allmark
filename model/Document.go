@@ -66,11 +66,12 @@ func NewLineSet(start int, end int) LineSet {
 }
 
 type MatchResult struct {
-	Found bool
-	Lines LineSet
+	Found   bool
+	Lines   LineSet
+	Matches []string
 }
 
-func Found(firstLine int, lastLine int) *MatchResult {
+func Found(firstLine int, lastLine int, matches []string) *MatchResult {
 	return &MatchResult{
 		Found: true,
 		Lines: NewLineSet(firstLine, lastLine),
@@ -84,6 +85,11 @@ func NotFound() *MatchResult {
 	}
 }
 
+func IsMatch(line string, pattern regexp.Regexp) (isMatch bool, matches []string) {
+	matches = pattern.FindStringSubmatch(line)
+	return matches != nil, matches
+}
+
 // Check if the current Document contains a title
 func (doc *Document) locateTitle() *MatchResult {
 
@@ -92,9 +98,9 @@ func (doc *Document) locateTitle() *MatchResult {
 
 	for lineNumber, line := range doc.rawLines {
 
-		lineMatchesTitlePattern := doc.pattern.Title.MatchString(line)
+		lineMatchesTitlePattern, matches := IsMatch(line, doc.pattern.Title)
 		if lineMatchesTitlePattern {
-			return Found(lineNumber, lineNumber)
+			return Found(lineNumber, lineNumber, matches)
 		}
 
 		lineIsEmpty := doc.pattern.EmptyLine.MatchString(line)
@@ -127,9 +133,9 @@ func (doc *Document) locateDescription() *MatchResult {
 	// be empty or match the description pattern.
 	for lineNumber, line := range doc.rawLines[startLine:] {
 
-		lineMatchesDescriptionPattern := doc.pattern.Description.MatchString(line)
+		lineMatchesDescriptionPattern, matches := IsMatch(line, doc.pattern.Description)
 		if lineMatchesDescriptionPattern {
-			return Found(lineNumber, lineNumber)
+			return Found(lineNumber, lineNumber, matches)
 		}
 
 		lineIsEmpty := doc.pattern.EmptyLine.MatchString(line)
@@ -174,7 +180,7 @@ func (doc *Document) locateMetaData() *MatchResult {
 
 		lineMatchesMetaDataPattern := doc.pattern.MetaData.MatchString(line)
 		if lineMatchesMetaDataPattern {
-			return Found(metaDataStartLine, len(doc.rawLines))
+			return Found(metaDataStartLine, len(doc.rawLines), doc.rawLines[metaDataStartLine:])
 		}
 
 		lineIsEmpty := doc.pattern.EmptyLine.MatchString(line)
@@ -217,5 +223,5 @@ func (doc *Document) locateContent() *MatchResult {
 	}
 
 	// All lines between the start- and endLine are content
-	return Found(startLine, endLine)
+	return Found(startLine, endLine, doc.rawLines[startLine:endLine])
 }
