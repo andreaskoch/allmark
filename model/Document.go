@@ -66,7 +66,7 @@ func (doc *Document) setContent() *Document {
 	}
 
 	doc.Content = strings.Join(contentLocation.Matches, "\n")
-	return doc
+	return doc.setMetaData()
 }
 
 func (doc *Document) setMetaData() *Document {
