@@ -63,6 +63,8 @@ func (item *RepositoryItem) Render() {
 	content += "\nDescription: " + doc.Description
 	content += "\nContent: "
 	content += "\n" + doc.Content
+	content += "\nMeta Data: "
+	content += "\n" + doc.MetaData
 
 	_ = ioutil.WriteFile(renderedItemPath, []byte(content), 0644)
 }

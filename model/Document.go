@@ -2,12 +2,14 @@ package model
 
 import (
 	"regexp"
+	"strings"
 )
 
 type Document struct {
 	Title       string
 	Description string
 	Content     string
+	MetaData    string
 	Hash        string
 
 	pattern  DocumentPattern
@@ -25,8 +27,56 @@ func CreateDocument(repositoryItem *RepositoryItem) *Document {
 	return doc.parse()
 }
 
+func getLastElement(array []string) string {
+	if array == nil {
+		return ""
+	}
+
+	return array[len(array)-1]
+}
+
 func (doc *Document) parse() *Document {
-	return setTitle(doc)
+	return doc.setTitle()
+}
+
+func (doc *Document) setTitle() *Document {
+	titleLocation := doc.locateTitle()
+	if !titleLocation.Found {
+		return doc
+	}
+
+	doc.Title = getLastElement(titleLocation.Matches)
+	return doc.setDescription()
+}
+
+func (doc *Document) setDescription() *Document {
+	descriptionLocation := doc.locateDescription()
+	if !descriptionLocation.Found {
+		return doc
+	}
+
+	doc.Description = getLastElement(descriptionLocation.Matches)
+	return doc.setContent()
+}
+
+func (doc *Document) setContent() *Document {
+	contentLocation := doc.locateContent()
+	if !contentLocation.Found {
+		return doc
+	}
+
+	doc.Content = strings.Join(contentLocation.Matches, "\n")
+	return doc
+}
+
+func (doc *Document) setMetaData() *Document {
+	metaDataLocation := doc.locateMetaData()
+	if !metaDataLocation.Found {
+		return doc
+	}
+
+	doc.MetaData = strings.Join(metaDataLocation.Matches, "\n")
+	return doc
 }
 
 type DocumentPattern struct {
@@ -73,8 +123,9 @@ type MatchResult struct {
 
 func Found(firstLine int, lastLine int, matches []string) *MatchResult {
 	return &MatchResult{
-		Found: true,
-		Lines: NewLineSet(firstLine, lastLine),
+		Found:   true,
+		Lines:   NewLineSet(firstLine, lastLine),
+		Matches: matches,
 	}
 }
 
@@ -176,11 +227,14 @@ func (doc *Document) locateMetaData() *MatchResult {
 
 	// Check if the last horizontal rule is followed
 	// either by white space or be meta data
-	for lineNumber, line := range doc.rawLines[metaDataStartLine:] {
+	for _, line := range doc.rawLines[metaDataStartLine:] {
 
 		lineMatchesMetaDataPattern := doc.pattern.MetaData.MatchString(line)
 		if lineMatchesMetaDataPattern {
-			return Found(metaDataStartLine, len(doc.rawLines), doc.rawLines[metaDataStartLine:])
+
+			endLine := len(doc.rawLines) - 1
+			return Found(metaDataStartLine, endLine, doc.rawLines[metaDataStartLine:endLine])
+
 		}
 
 		lineIsEmpty := doc.pattern.EmptyLine.MatchString(line)
@@ -219,7 +273,7 @@ func (doc *Document) locateContent() *MatchResult {
 	if metaData.Found {
 		endLine = metaData.Lines.Start - 1
 	} else {
-		endLine = len(doc.rawLines)
+		endLine = len(doc.rawLines) - 1
 	}
 
 	// All lines between the start- and endLine are content
