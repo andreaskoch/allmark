@@ -7,17 +7,16 @@ import (
 type Document struct {
 	Title       string
 	Description string
+	Content     string
 	Hash        string
 
-	lastFindIndex int
-	rawLines      []string
+	rawLines []string
 }
 
 func CreateDocument(repositoryItem *RepositoryItem) *Document {
 	doc := Document{
-		Hash:          repositoryItem.GetHash(),
-		rawLines:      repositoryItem.GetLines(),
-		lastFindIndex: 0,
+		Hash:     repositoryItem.GetHash(),
+		rawLines: repositoryItem.GetLines(),
 	}
 
 	// parse
@@ -25,13 +24,13 @@ func CreateDocument(repositoryItem *RepositoryItem) *Document {
 }
 
 func (doc *Document) parse() *Document {
-	return doc.setTitle()
+	return setTitle(doc)
 }
 
-func (doc *Document) setTitle() *Document {
+func setTitle(doc *Document) *Document {
 	titleRegexp := regexp.MustCompile("\\s*#\\s*(.+)")
 
-	for lineNumber, line := range doc.rawLines[doc.lastFindIndex:] {
+	for lineNumber, line := range doc.rawLines {
 		matches := titleRegexp.FindStringSubmatch(line)
 
 		// line must match title pattern
@@ -41,9 +40,8 @@ func (doc *Document) setTitle() *Document {
 			// is first line or all previous lines are empty
 			if lineNumber == 0 || linesMeetCondition(doc.rawLines[0:lineNumber], regexp.MustCompile("^\\s*$")) {
 
-				doc.lastFindIndex = lineNumber
 				doc.Title = matches[1]
-				return doc.setDescription()
+				return setDescription(doc, lineNumber+1)
 
 			}
 		}
@@ -52,20 +50,39 @@ func (doc *Document) setTitle() *Document {
 	return doc
 }
 
-func (doc *Document) setDescription() *Document {
+func setDescription(doc *Document, startLine int) *Document {
+	if startLine > len(doc.rawLines) {
+		return doc
+	}
+
 	descriptionRegexp := regexp.MustCompile("^\\w.+")
 
-	for lineNumber, line := range doc.rawLines[doc.lastFindIndex:] {
+	for lineNumber, line := range doc.rawLines[startLine:] {
 		matches := descriptionRegexp.FindStringSubmatch(line)
 
 		// line must match description pattern
 		lineMatchesDescriptionPattern := len(matches) == 1
 		if lineMatchesDescriptionPattern {
-			doc.lastFindIndex = lineNumber
 			doc.Description = matches[0]
-			return doc
+			return setContent(doc, lineNumber+1)
 		}
 	}
+
+	return doc
+}
+
+func setContent(doc *Document, startLine int) *Document {
+	if startLine > len(doc.rawLines) {
+		return doc
+	}
+
+	content := ""
+
+	for _, line := range doc.rawLines[startLine:] {
+		content += line + "\n"
+	}
+
+	doc.Content = content
 
 	return doc
 }

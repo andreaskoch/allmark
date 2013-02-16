@@ -61,6 +61,8 @@ func (item *RepositoryItem) Render() {
 	content := "<!-- " + doc.Hash + " -->"
 	content += "\nTitle: " + doc.Title
 	content += "\nDescription: " + doc.Description
+	content += "\nContent: "
+	content += "\n" + doc.Content
 
 	_ = ioutil.WriteFile(renderedItemPath, []byte(content), 0644)
 }
