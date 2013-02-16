@@ -232,7 +232,7 @@ func (doc *Document) locateMetaData() *MatchResult {
 		lineMatchesMetaDataPattern := doc.pattern.MetaData.MatchString(line)
 		if lineMatchesMetaDataPattern {
 
-			endLine := len(doc.rawLines) - 1
+			endLine := len(doc.rawLines)
 			return Found(metaDataStartLine, endLine, doc.rawLines[metaDataStartLine:endLine])
 
 		}
@@ -273,7 +273,7 @@ func (doc *Document) locateContent() *MatchResult {
 	if metaData.Found {
 		endLine = metaData.Lines.Start - 1
 	} else {
-		endLine = len(doc.rawLines) - 1
+		endLine = len(doc.rawLines)
 	}
 
 	// All lines between the start- and endLine are content
