@@ -21,7 +21,11 @@ func CreateDocument(repositoryItem *RepositoryItem) *Document {
 	}
 
 	// parse
-	return doc.setTitle().setDescription()
+	return doc.parse()
+}
+
+func (doc *Document) parse() *Document {
+	return doc.setTitle()
 }
 
 func (doc *Document) setTitle() *Document {
@@ -30,10 +34,18 @@ func (doc *Document) setTitle() *Document {
 	for lineNumber, line := range doc.rawLines[doc.lastFindIndex:] {
 		matches := titleRegexp.FindStringSubmatch(line)
 
-		if len(matches) == 2 {
-			doc.lastFindIndex = lineNumber
-			doc.Title = matches[1]
-			return doc
+		// line must match title pattern
+		lineMatchesTitlePattern := len(matches) == 2
+		if lineMatchesTitlePattern {
+
+			// is first line or all previous lines are empty
+			if lineNumber == 0 || linesMeetCondition(doc.rawLines[0:lineNumber], regexp.MustCompile("^\\s*$")) {
+
+				doc.lastFindIndex = lineNumber
+				doc.Title = matches[1]
+				return doc.setDescription()
+
+			}
 		}
 	}
 
@@ -46,7 +58,9 @@ func (doc *Document) setDescription() *Document {
 	for lineNumber, line := range doc.rawLines[doc.lastFindIndex:] {
 		matches := descriptionRegexp.FindStringSubmatch(line)
 
-		if len(matches) == 1 {
+		// line must match description pattern
+		lineMatchesDescriptionPattern := len(matches) == 1
+		if lineMatchesDescriptionPattern {
 			doc.lastFindIndex = lineNumber
 			doc.Description = matches[0]
 			return doc
@@ -54,4 +68,15 @@ func (doc *Document) setDescription() *Document {
 	}
 
 	return doc
+}
+
+func linesMeetCondition(lines []string, condition *regexp.Regexp) bool {
+
+	for _, line := range lines {
+		if !condition.MatchString(line) {
+			return false
+		}
+	}
+
+	return true
 }
