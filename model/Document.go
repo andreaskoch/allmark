@@ -53,8 +53,39 @@ func NewDocumentPattern() DocumentPattern {
 	}
 }
 
+type LineSet struct {
+	Start int
+	End   int
+}
+
+func NewLineSet(start int, end int) LineSet {
+	return LineSet{
+		Start: start,
+		End:   end,
+	}
+}
+
+type MatchResult struct {
+	Found bool
+	Lines LineSet
+}
+
+func Found(firstLine int, lastLine int) *MatchResult {
+	return &MatchResult{
+		Found: true,
+		Lines: NewLineSet(firstLine, lastLine),
+	}
+}
+
+func NotFound() *MatchResult {
+	return &MatchResult{
+		Found: false,
+		Lines: NewLineSet(-1, -1),
+	}
+}
+
 // Check if the current Document contains a title
-func (doc *Document) locateTitle() (found bool, lineNumber int) {
+func (doc *Document) locateTitle() *MatchResult {
 
 	// In order to be the "title" the line must either
 	// be empty or match the title pattern.
@@ -63,7 +94,7 @@ func (doc *Document) locateTitle() (found bool, lineNumber int) {
 
 		lineMatchesTitlePattern := doc.pattern.Title.MatchString(line)
 		if lineMatchesTitlePattern {
-			return true, lineNumber
+			return Found(lineNumber, lineNumber)
 		}
 
 		lineIsEmpty := doc.pattern.EmptyLine.MatchString(line)
@@ -72,24 +103,24 @@ func (doc *Document) locateTitle() (found bool, lineNumber int) {
 		}
 	}
 
-	return false, 0
+	return NotFound()
 }
 
 // Check if the current Document contains a description
-func (doc *Document) locateDescription() (found bool, lineNumber int) {
+func (doc *Document) locateDescription() *MatchResult {
 
 	// The description must be preceeded by a title
-	titleExists, titleLineNumber := doc.locateTitle()
-	if !titleExists {
-		return false, 0
+	title := doc.locateTitle()
+	if !title.Found {
+		return NotFound()
 	}
 
 	// If the document has no more lines than the line
 	// in which the title has been located, there
 	// will be no room for a description
-	startLine := titleLineNumber + 1
+	startLine := title.Lines.Start + 1
 	if len(doc.rawLines) <= startLine {
-		return false, 0
+		return NotFound()
 	}
 
 	// In order to be a "description" the line must either
@@ -98,7 +129,7 @@ func (doc *Document) locateDescription() (found bool, lineNumber int) {
 
 		lineMatchesDescriptionPattern := doc.pattern.Description.MatchString(line)
 		if lineMatchesDescriptionPattern {
-			return true, lineNumber
+			return Found(lineNumber, lineNumber)
 		}
 
 		lineIsEmpty := doc.pattern.EmptyLine.MatchString(line)
@@ -107,11 +138,11 @@ func (doc *Document) locateDescription() (found bool, lineNumber int) {
 		}
 	}
 
-	return false, 0
+	return NotFound()
 }
 
 // Check if the current Document contains meta data
-func (doc *Document) locateMetaData() (found bool, lineNumber int) {
+func (doc *Document) locateMetaData() *MatchResult {
 
 	// Find the last horizontal rule in the document
 	lastFoundHorizontalRulePosition := -1
@@ -126,7 +157,7 @@ func (doc *Document) locateMetaData() (found bool, lineNumber int) {
 
 	// If there is no horizontal rule there is no meta data
 	if lastFoundHorizontalRulePosition == -1 {
-		return false, 0
+		return NotFound()
 	}
 
 	// If the document has no more lines than
@@ -134,7 +165,7 @@ func (doc *Document) locateMetaData() (found bool, lineNumber int) {
 	// room for meta data
 	metaDataStartLine := lastFoundHorizontalRulePosition + 1
 	if len(doc.rawLines) <= metaDataStartLine {
-		return false, 0
+		return NotFound()
 	}
 
 	// Check if the last horizontal rule is followed
@@ -143,48 +174,48 @@ func (doc *Document) locateMetaData() (found bool, lineNumber int) {
 
 		lineMatchesMetaDataPattern := doc.pattern.MetaData.MatchString(line)
 		if lineMatchesMetaDataPattern {
-			return true, metaDataStartLine
+			return Found(metaDataStartLine, len(doc.rawLines))
 		}
 
 		lineIsEmpty := doc.pattern.EmptyLine.MatchString(line)
 		if !lineIsEmpty {
-			return false, 0
+			return NotFound()
 		}
 
 	}
 
-	return false, 0
+	return NotFound()
 }
 
 // Check if the current Document contains content
-func (doc *Document) locateContent() (found bool, startLine int, endLine int) {
+func (doc *Document) locateContent() *MatchResult {
 
 	// Content must be preceeded by a description
-	descriptionExists, descriptionLineNumber := doc.locateDescription()
-	if !descriptionExists {
-		return false, 0, 0
+	description := doc.locateDescription()
+	if !description.Found {
+		return NotFound()
 	}
 
 	// If the document has no more lines than the line
 	// in which the description has been located, there
 	// will be no room for content
-	startLine = descriptionLineNumber + 1
+	startLine := description.Lines.Start + 1
 	if len(doc.rawLines) <= startLine {
-		return false, 0, 0
+		return NotFound()
 	}
 
 	// If the document contains meta data
 	// the content will be between the description
 	// and the meta data. If not the content
 	// will go up to the end of the document.
-	endLine = 0
-	metaDataExists, metaDataLineNumber := doc.locateMetaData()
-	if metaDataExists {
-		endLine = metaDataLineNumber - 1
+	endLine := 0
+	metaData := doc.locateMetaData()
+	if metaData.Found {
+		endLine = metaData.Lines.Start - 1
 	} else {
 		endLine = len(doc.rawLines)
 	}
 
 	// All lines between the start- and endLine are content
-	return true, startLine, endLine
+	return Found(startLine, endLine)
 }
