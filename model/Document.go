@@ -175,18 +175,19 @@ func (doc *Document) locateDescription() *MatchResult {
 	// If the document has no more lines than the line
 	// in which the title has been located, there
 	// will be no room for a description
-	startLine := title.Lines.Start + 1
+	startLine := title.Lines.End + 1
 	if len(doc.rawLines) <= startLine {
 		return NotFound()
 	}
 
 	// In order to be a "description" the line must either
 	// be empty or match the description pattern.
-	for lineNumber, line := range doc.rawLines[startLine:] {
+	for relativeLineNumber, line := range doc.rawLines[startLine:] {
 
 		lineMatchesDescriptionPattern, matches := IsMatch(line, doc.pattern.Description)
 		if lineMatchesDescriptionPattern {
-			return Found(lineNumber, lineNumber, matches)
+			absoluteLineNumber := startLine + relativeLineNumber
+			return Found(absoluteLineNumber, absoluteLineNumber, matches)
 		}
 
 		lineIsEmpty := doc.pattern.EmptyLine.MatchString(line)
@@ -259,7 +260,7 @@ func (doc *Document) locateContent() *MatchResult {
 	// If the document has no more lines than the line
 	// in which the description has been located, there
 	// will be no room for content
-	startLine := description.Lines.Start + 1
+	startLine := description.Lines.End + 1
 	if len(doc.rawLines) <= startLine {
 		return NotFound()
 	}
