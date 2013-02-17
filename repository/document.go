@@ -1,4 +1,4 @@
-package model
+package repository
 
 import (
 	"andyk/docs/date"
@@ -34,8 +34,8 @@ type Document struct {
 	rawLines []string
 }
 
-// CreateDocument returns a new Document from the given RepositoryItem.
-func CreateDocument(repositoryItem *RepositoryItem) *Document {
+// CreateDocument returns a new Document from the given Item.
+func CreateDocument(repositoryItem *Item) *Document {
 	doc := Document{
 		Hash:     repositoryItem.GetHash(),
 		pattern:  NewDocumentPattern(),

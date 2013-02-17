@@ -6,7 +6,7 @@
 	Package model defines the basic
 	data structures of the docs engine.
 */
-package model
+package repository
 
 import (
 	"andyk/docs/filesystem"
@@ -19,16 +19,16 @@ import (
 	"regexp"
 )
 
-type RepositoryItem struct {
+type Item struct {
 	Path       string
-	Files      []RepositoryItemFile
-	ChildItems []RepositoryItem
+	Files      []File
+	ChildItems []Item
 	Type       string
 }
 
 // Create a new repository item
-func NewRepositoryItem(itemType string, path string, files []RepositoryItemFile, childItems []RepositoryItem) RepositoryItem {
-	return RepositoryItem{
+func NewItem(itemType string, path string, files []File, childItems []Item) Item {
+	return Item{
 		Path:       path,
 		Files:      files,
 		ChildItems: childItems,
@@ -37,7 +37,7 @@ func NewRepositoryItem(itemType string, path string, files []RepositoryItemFile,
 }
 
 // Render this repository item
-func (item *RepositoryItem) Render() {
+func (item *Item) Render() {
 
 	// render child items
 	for _, child := range item.ChildItems {
@@ -70,7 +70,7 @@ func (item *RepositoryItem) Render() {
 }
 
 // Get all lines of a repository item
-func (item *RepositoryItem) GetLines() []string {
+func (item *Item) GetLines() []string {
 	lines, err := filesystem.GetLines(item.Path)
 	if err != nil {
 		return make([]string, 0)
@@ -80,7 +80,7 @@ func (item *RepositoryItem) GetLines() []string {
 }
 
 // Get the hash code of the rendered item
-func (item *RepositoryItem) GetRenderedItemHash() string {
+func (item *Item) GetRenderedItemHash() string {
 	renderedItemPath := item.GetRenderedItemPath()
 
 	file, err := os.Open(renderedItemPath)
@@ -109,13 +109,13 @@ func (item *RepositoryItem) GetRenderedItemHash() string {
 }
 
 // Get the filepath of the rendered repository item
-func (item *RepositoryItem) GetRenderedItemPath() string {
+func (item *Item) GetRenderedItemPath() string {
 	itemDirectory := filepath.Dir(item.Path)
 	renderedFilePath := filepath.Join(itemDirectory, item.Type+".html")
 	return renderedFilePath
 }
 
-func (item *RepositoryItem) GetHash() string {
+func (item *Item) GetHash() string {
 	itemBytes, readFileErr := ioutil.ReadFile(item.Path)
 	if readFileErr != nil {
 		return ""
@@ -128,7 +128,7 @@ func (item *RepositoryItem) GetHash() string {
 }
 
 // Get a string representation of the current repository item
-func (item *RepositoryItem) String() string {
+func (item *Item) String() string {
 	s := item.Path + "(Type: " + item.Type + ", Hash: " + item.GetHash() + ")\n"
 
 	s += "\n"

@@ -5,7 +5,7 @@
 package indexer
 
 import (
-	"andyk/docs/model"
+	"andyk/docs/repository"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func Index(repositoryPath string) model.RepositoryIndex {
+func Index(repositoryPath string) repository.Index {
 
 	// check if the supplied repository path is set
 	if strings.Trim(repositoryPath, " ") == "" {
@@ -32,16 +32,16 @@ func Index(repositoryPath string) model.RepositoryIndex {
 	}
 
 	// get all repository items in the supplied repository path
-	repositoryItems := findAllRepositoryItems(repositoryPath)
+	items := findAllItems(repositoryPath)
 
-	index := model.NewRepositoryIndex(repositoryPath, repositoryItems)
+	index := repository.NewIndex(repositoryPath, items)
 
 	return index
 }
 
-func findAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
+func findAllItems(repositoryPath string) []repository.Item {
 
-	repositoryItems := make([]model.RepositoryItem, 0, 100)
+	items := make([]repository.Item, 0, 100)
 
 	directoryEntries, err := ioutil.ReadDir(repositoryPath)
 	if err != nil {
@@ -54,8 +54,8 @@ func findAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 	for _, element := range directoryEntries {
 
 		// check if the file a document
-		isRepositoryItem, itemType := fileIsRepositoryItem(element.Name())
-		if !isRepositoryItem {
+		isItem, itemType := fileIsItem(element.Name())
+		if !isItem {
 			continue
 		}
 
@@ -67,8 +67,8 @@ func findAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 
 		// create item and append to list
 		itemPath := filepath.Join(repositoryPath, element.Name())
-		item := model.NewRepositoryItem(itemType, itemPath, files, childs)
-		repositoryItems = append(repositoryItems, item)
+		item := repository.NewItem(itemType, itemPath, files, childs)
+		items = append(items, item)
 
 		// item has been found
 		directoryContainsItem = true
@@ -77,13 +77,13 @@ func findAllRepositoryItems(repositoryPath string) []model.RepositoryItem {
 
 	// search in sub directories if there is no item in the current folder
 	if !directoryContainsItem {
-		repositoryItems = append(repositoryItems, getChildItems(repositoryPath)...)
+		items = append(items, getChildItems(repositoryPath)...)
 	}
 
-	return repositoryItems
+	return items
 }
 
-func fileIsRepositoryItem(filename string) (bool, string) {
+func fileIsItem(filename string) (bool, string) {
 
 	lowercaseFilename := strings.ToLower(filename)
 
@@ -107,16 +107,16 @@ func fileIsRepositoryItem(filename string) (bool, string) {
 	return false, "unknown"
 }
 
-func getChildItems(repositoryItemPath string) []model.RepositoryItem {
+func getChildItems(itemPath string) []repository.Item {
 
-	childItems := make([]model.RepositoryItem, 0, 5)
+	childItems := make([]repository.Item, 0, 5)
 
-	files, _ := ioutil.ReadDir(repositoryItemPath)
+	files, _ := ioutil.ReadDir(itemPath)
 	for _, element := range files {
 
 		if element.IsDir() {
-			path := filepath.Join(repositoryItemPath, element.Name())
-			childsInPath := findAllRepositoryItems(path)
+			path := filepath.Join(itemPath, element.Name())
+			childsInPath := findAllItems(path)
 			childItems = append(childItems, childsInPath...)
 		}
 
@@ -125,16 +125,16 @@ func getChildItems(repositoryItemPath string) []model.RepositoryItem {
 	return childItems
 }
 
-func getFiles(repositoryItemPath string) []model.RepositoryItemFile {
+func getFiles(itemPath string) []repository.File {
 
-	itemFiles := make([]model.RepositoryItemFile, 0, 5)
-	filesDirectoryEntries, _ := ioutil.ReadDir(filepath.Join(repositoryItemPath, "files"))
+	itemFiles := make([]repository.File, 0, 5)
+	filesDirectoryEntries, _ := ioutil.ReadDir(filepath.Join(itemPath, "files"))
 
 	for _, file := range filesDirectoryEntries {
-		absoluteFilePath := filepath.Join(repositoryItemPath, file.Name())
-		repositoryItemFile := model.NewRepositoryItemFile(absoluteFilePath)
+		absoluteFilePath := filepath.Join(itemPath, file.Name())
+		repositoryFile := repository.NewFile(absoluteFilePath)
 
-		itemFiles = append(itemFiles, repositoryItemFile)
+		itemFiles = append(itemFiles, repositoryFile)
 	}
 
 	return itemFiles
