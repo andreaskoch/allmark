@@ -27,15 +27,15 @@ func ParseIso8601Date(value string) (time.Time, error) {
 	// parse year
 	yearString := matches[1]
 	yearInt64, parseYearError := strconv.ParseInt(yearString, 10, 16)
-	if parseYearError != nil {
-		log.Panicf("\"%v\" is not a valid year.", yearString)
+	if parseYearError != nil || yearInt64 < 1 || yearInt64 > 9999 {
+		log.Panicf("\"%v\" is not a valid value for a year. Valid values are in the range between 1 and 9999.", yearString)
 	}
 
 	// parse month
 	monthString := matches[2]
 	monthInt64, parseMonthErr := strconv.ParseInt(monthString, 10, 8)
-	if parseMonthErr != nil {
-		log.Panicf("\"%v\" is not a valid month.", monthString)
+	if parseMonthErr != nil || monthInt64 < 1 || monthInt64 > 12 {
+		log.Panicf("\"%v\" is not a valid value for a month. Valid values are in the range between 1 and 12.", monthString)
 	}
 
 	month := GetMonth(int(monthInt64))
@@ -43,8 +43,8 @@ func ParseIso8601Date(value string) (time.Time, error) {
 	// parse day
 	dayString := matches[3]
 	dayInt64, parseDayErr := strconv.ParseInt(monthString, 10, 8)
-	if parseDayErr != nil {
-		log.Panicf("\"%v\" is not a valid day.", dayString)
+	if parseDayErr != nil || dayInt64 < 1 || dayInt64 > 31 {
+		log.Panicf("\"%v\" is not a valid value for a day. Valid values are in the range between 1 and 31.", dayString)
 	}
 
 	return time.Date(int(yearInt64), month, int(dayInt64), 0, 0, 1, 0, time.UTC), nil
