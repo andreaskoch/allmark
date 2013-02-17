@@ -30,6 +30,21 @@ func Test_ParseIso8601Date_ValidIso8601Dates_NoErrorIsReturned(t *testing.T) {
 	}
 }
 
+func Test_ParseIso8601Date_ValidIso8601Date_WithValidTime_NoErrorIsReturned(t *testing.T) {
+
+	// Arrange
+	dateString := "2013-02-08 21:13"
+
+	// Act
+	_, err := ParseIso8601Date(dateString)
+
+	// Assert
+	if err != nil {
+		t.Fail()
+		t.Logf("Parsing the value '%v' returned an error even though no error was expected.", dateString)
+	}
+}
+
 func Test_ParseIso8601Date_InvalidIso8601Dates_ErrorIsReturned(t *testing.T) {
 
 	// Arrange
