@@ -13,6 +13,9 @@ import (
 // The regular expression which matches ISO 8601 date format pattern.
 var iso8601DateFormatPattern = regexp.MustCompile("^(\\d{4})-(\\d{2})-(\\d{2})$")
 
+// Represents the smallest possible value of time.Tine
+var MinDate time.Time
+
 // ParseIso8601Date parses a ISO 8601 date string (e.g. 2013-02-08 21:13)
 // and returns the time value it represents. 
 func ParseIso8601Date(value string) (time.Time, error) {
@@ -21,7 +24,7 @@ func ParseIso8601Date(value string) (time.Time, error) {
 	isValidIso8601Date, matches := pattern.IsMatch(value, *iso8601DateFormatPattern)
 
 	if !isValidIso8601Date {
-		return time.Date(1, 1, 1, 0, 0, 1, 0, time.UTC), errors.New(fmt.Sprintf("\"%v\" is not a valid ISO 8601 date", value))
+		return MinDate, errors.New(fmt.Sprintf("\"%v\" is not a valid ISO 8601 date", value))
 	}
 
 	// parse year
