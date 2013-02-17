@@ -1,16 +1,34 @@
 package model
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 )
+
+type MetaData struct {
+	Language string
+	Date     time.Time
+	Tags     []string
+}
+
+func (metaData *MetaData) String() string {
+	s := "Language: " + metaData.Language
+	s += "\nDate: " + metaData.Date.String()
+	s += "\nTags: " + strings.Join(metaData.Tags, ", ")
+
+	return s
+}
 
 type Document struct {
 	Title       string
 	Description string
 	Content     string
-	MetaData    string
+	MetaData    MetaData
 	Hash        string
 
 	pattern  DocumentPattern
@@ -98,10 +116,101 @@ func (doc *Document) setMetaData() *Document {
 	}
 
 	// assemble meta data
-	metaDataText := strings.TrimSpace(strings.Join(metaDataLocation.Matches, "\n"))
-	doc.MetaData = metaDataText
+	var metaData MetaData
+
+	for _, line := range metaDataLocation.Matches {
+		isKeyValuePair, matches := IsMatch(line, doc.pattern.MetaData)
+
+		// skip if line is not a key-value pair
+		if !isKeyValuePair {
+			continue
+		}
+
+		key := strings.ToLower(strings.TrimSpace(matches[1]))
+		value := strings.TrimSpace(matches[2])
+
+		switch strings.ToLower(key) {
+		case "language":
+			metaData.Language = value
+		case "date":
+			date, err := ParseIso8601Date(value)
+			if err == nil {
+				metaData.Date = date
+			}
+		}
+	}
+
+	// assign meta data
+	doc.MetaData = metaData
 
 	return doc
+}
+
+func ParseIso8601Date(value string) (time.Time, error) {
+
+	// check if the value matches the ISO 8601 Date pattern
+	yearMonthDayDateFormat := regexp.MustCompile("^(\\d{4})-(\\d{2})-(\\d{2})$")
+	isValidIso8601Date, matches := IsMatch(value, *yearMonthDayDateFormat)
+
+	if !isValidIso8601Date {
+		return time.Date(1, 1, 1, 0, 0, 1, 0, time.UTC), errors.New(fmt.Sprintf("\"%v\" is not a valid ISO 8601 date", value))
+	}
+
+	// parse year
+	yearString := matches[1]
+	yearInt64, parseYearError := strconv.ParseInt(yearString, 10, 16)
+	if parseYearError != nil {
+		log.Panicf("\"%v\" is not a valid year.", yearString)
+	}
+
+	// parse month
+	monthString := matches[2]
+	monthInt64, parseMonthErr := strconv.ParseInt(monthString, 10, 8)
+	if parseMonthErr != nil {
+		log.Panicf("\"%v\" is not a valid month.", monthString)
+	}
+
+	month := getMonth(int(monthInt64))
+
+	// parse day
+	dayString := matches[3]
+	dayInt64, parseDayErr := strconv.ParseInt(monthString, 10, 8)
+	if parseDayErr != nil {
+		log.Panicf("\"%v\" is not a valid day.", dayString)
+	}
+
+	return time.Date(int(yearInt64), month, int(dayInt64), 0, 0, 1, 0, time.UTC), nil
+}
+
+func getMonth(value int) time.Month {
+	switch value {
+	case 1:
+		return time.January
+	case 2:
+		return time.February
+	case 3:
+		return time.March
+	case 4:
+		return time.April
+	case 5:
+		return time.May
+	case 6:
+		return time.June
+	case 7:
+		return time.July
+	case 8:
+		return time.August
+	case 9:
+		return time.September
+	case 10:
+		return time.October
+	case 11:
+		return time.November
+	case 12:
+		return time.December
+	}
+
+	panic(fmt.Sprintf("\"%v\" is not a valid value for a month.", value))
 }
 
 // DocumentPattern contains a set of regular expression
