@@ -129,13 +129,28 @@ func (doc *Document) setMetaData() *Document {
 		value := strings.TrimSpace(matches[2])
 
 		switch strings.ToLower(key) {
+
 		case "language":
-			metaData.Language = value
-		case "date":
-			date, err := date.ParseIso8601Date(value)
-			if err == nil {
-				metaData.Date = date
+			{
+				metaData.Language = value
+				break
 			}
+
+		case "date":
+			{
+				date, err := date.ParseIso8601Date(value)
+				if err == nil {
+					metaData.Date = date
+				}
+				break
+			}
+
+		case "tags":
+			{
+				metaData.Tags = GetTagsFromValue(value)
+				break
+			}
+
 		}
 	}
 
@@ -143,6 +158,21 @@ func (doc *Document) setMetaData() *Document {
 	doc.MetaData = metaData
 
 	return doc
+}
+
+func GetTagsFromValue(value string) []string {
+	rawTags := strings.Split(value, ",")
+	tags := make([]string, 0, 1)
+
+	for _, tag := range rawTags {
+		trimmedTag := strings.TrimSpace(tag)
+		if trimmedTag != "" {
+			tags = append(tags, trimmedTag)
+		}
+
+	}
+
+	return tags
 }
 
 // DocumentPattern contains a set of regular expression
