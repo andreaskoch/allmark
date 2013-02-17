@@ -52,7 +52,10 @@ func (doc *Document) setTitle() *Document {
 		return doc
 	}
 
-	doc.Title = getLastElement(titleLocation.Matches)
+	// assemble title
+	titleText := strings.TrimSpace(getLastElement(titleLocation.Matches))
+	doc.Title = titleText
+
 	return doc.setDescription()
 }
 
@@ -64,7 +67,10 @@ func (doc *Document) setDescription() *Document {
 		return doc
 	}
 
-	doc.Description = getLastElement(descriptionLocation.Matches)
+	// assemble description
+	descriptionText := strings.TrimSpace(getLastElement(descriptionLocation.Matches))
+	doc.Description = descriptionText
+
 	return doc.setContent()
 }
 
@@ -76,7 +82,10 @@ func (doc *Document) setContent() *Document {
 		return doc
 	}
 
-	doc.Content = strings.Join(contentLocation.Matches, "\n")
+	// assemble content
+	rawContent := strings.TrimSpace(strings.Join(contentLocation.Matches, "\n"))
+	doc.Content = rawContent
+
 	return doc.setMetaData()
 }
 
@@ -88,7 +97,10 @@ func (doc *Document) setMetaData() *Document {
 		return doc
 	}
 
-	doc.MetaData = strings.Join(metaDataLocation.Matches, "\n")
+	// assemble meta data
+	metaDataText := strings.TrimSpace(strings.Join(metaDataLocation.Matches, "\n"))
+	doc.MetaData = metaDataText
+
 	return doc
 }
 
