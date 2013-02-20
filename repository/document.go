@@ -136,6 +136,12 @@ func (doc *Document) setMetaData() *Document {
 				break
 			}
 
+		case "type":
+			{
+				metaData.ItemType = value
+				break
+			}
+
 		}
 	}
 
