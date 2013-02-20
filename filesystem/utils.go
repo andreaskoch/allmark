@@ -2,14 +2,14 @@ package filesystem
 
 import (
 	"bufio"
-	"os"
+	"io"
 )
 
-// Readln returns a single line (without the ending \n)
+// readLine returns a single line (without the ending \n)
 // from the input buffered reader.
 // An error is returned iff there is an error with the
 // buffered reader.
-func Readln(r *bufio.Reader) (string, error) {
+func readLine(bufferedReader *bufio.Reader) (string, error) {
 	var (
 		isPrefix bool  = true
 		err      error = nil
@@ -17,7 +17,7 @@ func Readln(r *bufio.Reader) (string, error) {
 	)
 
 	for isPrefix && err == nil {
-		line, isPrefix, err = r.ReadLine()
+		line, isPrefix, err = bufferedReader.ReadLine()
 		ln = append(ln, line...)
 	}
 
@@ -25,20 +25,15 @@ func Readln(r *bufio.Reader) (string, error) {
 }
 
 // Get all lines of a given file
-func GetLines(filePath string) ([]string, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
+func GetLines(inFile io.Reader) []string {
 
-	defer f.Close()
 	lines := make([]string, 0, 10)
-	r := bufio.NewReader(f)
-	line, err := Readln(r)
+	bufferedReader := bufio.NewReader(inFile)
+	line, err := readLine(bufferedReader)
 	for err == nil {
 		lines = append(lines, line)
-		line, err = Readln(r)
+		line, err = readLine(bufferedReader)
 	}
 
-	return lines, nil
+	return lines
 }

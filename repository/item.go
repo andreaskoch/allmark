@@ -36,6 +36,16 @@ func NewItem(itemType string, path string, files []File, childItems []Item) Item
 	}
 }
 
+// Get all lines of a repository item
+func (item *Item) GetLines() []string {
+	inFile, err := os.Open(item.Path)
+	if err != nil {
+		panic("Could not read file.")
+	}
+
+	return filesystem.GetLines(inFile)
+}
+
 // Render this repository item
 func (item *Item) Render() {
 
@@ -67,16 +77,6 @@ func (item *Item) Render() {
 	content += "\n" + doc.MetaData.String()
 
 	_ = ioutil.WriteFile(renderedItemPath, []byte(content), 0644)
-}
-
-// Get all lines of a repository item
-func (item *Item) GetLines() []string {
-	lines, err := filesystem.GetLines(item.Path)
-	if err != nil {
-		return make([]string, 0)
-	}
-
-	return lines
 }
 
 // Get the hash code of the rendered item
