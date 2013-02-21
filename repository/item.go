@@ -43,6 +43,8 @@ func (item *Item) GetLines() []string {
 		panic("Could not read file.")
 	}
 
+	defer inFile.Close()
+
 	return filesystem.GetLines(inFile)
 }
 
@@ -88,6 +90,7 @@ func (item Item) GetRenderedItemHash() string {
 		// file does not exist or cannot be accessed
 		return ""
 	}
+	defer file.Close()
 
 	fileReader := bufio.NewReader(file)
 	firstLineBytes, _ := fileReader.ReadBytes('\n')
