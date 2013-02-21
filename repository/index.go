@@ -14,7 +14,7 @@ func NewIndex(path string, items []Item) Index {
 	}
 }
 
-func (index *Index) ToString() string {
+func (index Index) ToString() string {
 	s := ""
 
 	for index, item := range index.Items {

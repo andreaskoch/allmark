@@ -12,8 +12,8 @@ type Match struct {
 
 // Found create a new Match which represents
 // a successful match.
-func Found(firstLine int, lastLine int, matches []string) *Match {
-	return &Match{
+func Found(firstLine int, lastLine int, matches []string) Match {
+	return Match{
 		Found:   true,
 		Lines:   NewLineRange(firstLine, lastLine),
 		Matches: matches,
@@ -22,8 +22,8 @@ func Found(firstLine int, lastLine int, matches []string) *Match {
 
 // NotFound create a new Match which represents
 // an unsuccessful match.
-func NotFound() *Match {
-	return &Match{
+func NotFound() Match {
+	return Match{
 		Found: false,
 		Lines: NewLineRange(-1, -1),
 	}

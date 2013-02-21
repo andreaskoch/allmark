@@ -80,7 +80,7 @@ func (item *Item) Render() {
 }
 
 // Get the hash code of the rendered item
-func (item *Item) GetRenderedItemHash() string {
+func (item Item) GetRenderedItemHash() string {
 	renderedItemPath := item.GetRenderedItemPath()
 
 	file, err := os.Open(renderedItemPath)
@@ -109,7 +109,7 @@ func (item *Item) GetRenderedItemHash() string {
 }
 
 // Get the filepath of the rendered repository item
-func (item *Item) GetRenderedItemPath() string {
+func (item Item) GetRenderedItemPath() string {
 	itemDirectory := filepath.Dir(item.Path)
 	renderedFilePath := filepath.Join(itemDirectory, item.Type+".html")
 	return renderedFilePath
@@ -128,7 +128,7 @@ func (item *Item) GetHash() string {
 }
 
 // Get a string representation of the current repository item
-func (item *Item) String() string {
+func (item Item) String() string {
 	s := item.Path + "(Type: " + item.Type + ", Hash: " + item.GetHash() + ")\n"
 
 	s += "\n"

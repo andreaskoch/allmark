@@ -17,8 +17,8 @@ type Document struct {
 }
 
 // CreateDocument returns a new Document from the given Item.
-func CreateDocument(repositoryItem *Item) *Document {
-	doc := &Document{
+func CreateDocument(repositoryItem *Item) Document {
+	doc := Document{
 		Hash: repositoryItem.GetHash(),
 	}
 
@@ -29,7 +29,7 @@ func CreateDocument(repositoryItem *Item) *Document {
 	if !metaDataLocation.Found {
 		return doc
 	}
-	doc.MetaData = *metaData
+	doc.MetaData = metaData
 
 	// assign title
 	titleLocation := locateTitle(lines)
@@ -55,19 +55,19 @@ func CreateDocument(repositoryItem *Item) *Document {
 	return doc
 }
 
-func getTitle(titleLocation *Match) string {
+func getTitle(titleLocation Match) string {
 	return strings.TrimSpace(util.GetLastElement(titleLocation.Matches))
 }
 
-func getDescription(descriptionLocation *Match) string {
+func getDescription(descriptionLocation Match) string {
 	return strings.TrimSpace(util.GetLastElement(descriptionLocation.Matches))
 }
 
-func getContent(contentLocation *Match) string {
+func getContent(contentLocation Match) string {
 	return strings.TrimSpace(strings.Join(contentLocation.Matches, "\n"))
 }
 
-func locateTitle(lines []string) *Match {
+func locateTitle(lines []string) Match {
 
 	// In order to be the "title" the line must either
 	// be empty or match the title pattern.
@@ -88,7 +88,7 @@ func locateTitle(lines []string) *Match {
 	return NotFound()
 }
 
-func locateDescription(lines []string, titleLocation *Match) *Match {
+func locateDescription(lines []string, titleLocation Match) Match {
 
 	// The description must be preceeded by a title
 	if !titleLocation.Found {
@@ -122,7 +122,7 @@ func locateDescription(lines []string, titleLocation *Match) *Match {
 	return NotFound()
 }
 
-func locateContent(lines []string, descriptionLocation *Match, metaDataLocation *Match) *Match {
+func locateContent(lines []string, descriptionLocation Match, metaDataLocation Match) Match {
 
 	// Content must be preceeded by a description
 	if !descriptionLocation.Found {

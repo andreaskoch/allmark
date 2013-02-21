@@ -14,7 +14,7 @@ type MetaData struct {
 	ItemType string
 }
 
-func (metaData *MetaData) String() string {
+func (metaData MetaData) String() string {
 	s := "Language: " + metaData.Language
 	s += "\nDate: " + metaData.Date.String()
 	s += "\nTags: " + strings.Join(metaData.Tags, ", ")
@@ -23,10 +23,10 @@ func (metaData *MetaData) String() string {
 	return s
 }
 
-func GetMetaData(lines []string, structure pattern.DocumentStructure) (*MetaData, *Match) {
+func GetMetaData(lines []string, structure pattern.DocumentStructure) (MetaData, Match) {
 	metaDataLocation := locateMetaData(lines, structure)
 	if !metaDataLocation.Found {
-		return nil, metaDataLocation
+		return MetaData{}, NotFound()
 	}
 
 	// assemble meta data
@@ -75,12 +75,12 @@ func GetMetaData(lines []string, structure pattern.DocumentStructure) (*MetaData
 		}
 	}
 
-	return &metaData, nil
+	return metaData, metaDataLocation
 }
 
 // locateMetaData checks if the current Document
 // contains meta data.
-func locateMetaData(lines []string, structure pattern.DocumentStructure) *Match {
+func locateMetaData(lines []string, structure pattern.DocumentStructure) Match {
 
 	// Find the last horizontal rule in the document
 	lastFoundHorizontalRulePosition := -1
