@@ -68,17 +68,8 @@ func (item *Item) Render() {
 		return
 	}
 
-	doc := CreateDocument(item)
-
-	content := "<!-- " + doc.Hash + " -->"
-	content += "\nTitle: " + doc.Title
-	content += "\nDescription: " + doc.Description
-	content += "\nContent: "
-	content += "\n" + doc.Content
-	content += "\nMeta Data: "
-	content += "\n" + doc.MetaData.String()
-
-	_ = ioutil.WriteFile(renderedItemPath, []byte(content), 0644)
+	renderer := GetRenderer(item)
+	renderer.Execute()
 }
 
 // Get the hash code of the rendered item
