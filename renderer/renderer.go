@@ -3,28 +3,20 @@ package renderer
 import (
 	"andyk/docs/indexer"
 	"andyk/docs/parser"
-	"andyk/docs/util"
 	"fmt"
-	"os"
+	"log"
 	"path/filepath"
 )
 
-func GetRenderer(item indexer.Item) (func(), error) {
+func RenderItem(item indexer.Item) {
 
-	// get the lines
-	file, err := os.Open(item.Path)
+	parsedItem, err := parser.ParseItem(item)
 	if err != nil {
-		return nil, err
+		log.Printf("Could not parse item \"%v\". Error: %v", item.Path, err)
+		return
 	}
-	lines := util.GetLines(file)
-	defer file.Close()
 
-	parser := parser.GetParser(lines)
-	doc := parser()
-
-	return func() {
-		fmt.Println(doc.Title)
-	}, nil
+	fmt.Println(parsedItem.Title)
 }
 
 // Get the filepath of the rendered repository item
