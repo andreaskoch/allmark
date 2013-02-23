@@ -9,6 +9,7 @@ import (
 	"andyk/docs/renderer"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -19,11 +20,20 @@ func main() {
 	flag.Usage = printUsageInformation
 	flag.Parse()
 
+	// index all item in the supplied repository
 	index := indexer.GetIndex(*repositoryPath)
 	for _, item := range index.Items {
 
-		renderer := renderer.GetRenderer(item)
-		renderer()
+		render, err := renderer.GetRenderer(item)
+		if err != nil {
+
+			// item cannot be rendered
+			log.Printf("Cannot render item \"%v\". Error: %v", item.Path, err)
+			continue
+		}
+
+		// render the item
+		render()
 	}
 }
 
