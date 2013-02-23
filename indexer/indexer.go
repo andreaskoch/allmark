@@ -53,9 +53,11 @@ func findAllItems(repositoryPath string) []repository.Item {
 	directoryContainsItem := false
 	for _, element := range directoryEntries {
 
-		// check if the file a document
-		isItem, itemType := fileIsItem(element.Name())
-		if !isItem {
+		itemPath := filepath.Join(repositoryPath, element.Name())
+
+		// check if the file a markdown file
+		isMarkdown := isMarkdownFile(itemPath)
+		if !isMarkdown {
 			continue
 		}
 
@@ -66,8 +68,7 @@ func findAllItems(repositoryPath string) []repository.Item {
 		childs := getChildItems(repositoryPath)
 
 		// create item and append to list
-		itemPath := filepath.Join(repositoryPath, element.Name())
-		item := repository.NewItem(itemType, itemPath, files, childs)
+		item := repository.NewItem(itemPath, files, childs)
 		items = append(items, item)
 
 		// item has been found
@@ -83,28 +84,9 @@ func findAllItems(repositoryPath string) []repository.Item {
 	return items
 }
 
-func fileIsItem(filename string) (bool, string) {
-
-	lowercaseFilename := strings.ToLower(filename)
-
-	switch lowercaseFilename {
-	case "repository.md":
-		return true, "repository"
-
-	case "document.md":
-		return true, "document"
-
-	case "location.md":
-		return true, "location"
-
-	case "comment.md":
-		return true, "comment"
-
-	case "message.md":
-		return true, "message"
-	}
-
-	return false, "unknown"
+func isMarkdownFile(absoluteFilePath string) bool {
+	fileExtension := strings.ToLower(filepath.Ext(absoluteFilePath))
+	return fileExtension == ".md"
 }
 
 func getChildItems(itemPath string) []repository.Item {
