@@ -12,14 +12,6 @@ func GetRenderer(repositoryItem *Item) func() {
 
 }
 
-func GetParser(repositoryItem *Item) func() {
-
-	return func() {
-
-	}
-
-}
-
 // Get the filepath of the rendered repository item
 func GetRenderedItemPath(item Item) string {
 	itemDirectory := filepath.Dir(item.Path)

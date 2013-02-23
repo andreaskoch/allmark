@@ -1,28 +1,22 @@
-package repository
+package parser
 
 import (
-	"andyk/docs/pattern"
 	"andyk/docs/util"
 	"strings"
 )
 
-var documentStructure = pattern.NewDocumentStructure()
+var documentStructure = NewDocumentStructure()
 
 type Document struct {
 	Title       string
 	Description string
 	Content     string
 	MetaData    MetaData
-	Hash        string
 }
 
 // CreateDocument returns a new Document from the given Item.
-func CreateDocument(repositoryItem *Item) Document {
-	doc := Document{
-		Hash: repositoryItem.GetHash(),
-	}
-
-	lines := repositoryItem.GetLines()
+func CreateDocument(lines []string) Document {
+	doc := Document{}
 
 	// assign meta data
 	metaData, metaDataLocation := GetMetaData(lines, documentStructure)
@@ -74,7 +68,7 @@ func locateTitle(lines []string) Match {
 
 	for lineNumber, line := range lines {
 
-		lineMatchesTitlePattern, matches := pattern.IsMatch(line, documentStructure.Title)
+		lineMatchesTitlePattern, matches := util.IsMatch(line, documentStructure.Title)
 		if lineMatchesTitlePattern {
 			return Found(lineNumber, lineNumber, matches)
 		}
@@ -107,7 +101,7 @@ func locateDescription(lines []string, titleLocation Match) Match {
 	// be empty or match the description pattern.
 	for relativeLineNumber, line := range lines[startLine:] {
 
-		lineMatchesDescriptionPattern, matches := pattern.IsMatch(line, documentStructure.Description)
+		lineMatchesDescriptionPattern, matches := util.IsMatch(line, documentStructure.Description)
 		if lineMatchesDescriptionPattern {
 			absoluteLineNumber := startLine + relativeLineNumber
 			return Found(absoluteLineNumber, absoluteLineNumber, matches)

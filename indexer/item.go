@@ -6,14 +6,12 @@
 	Package model defines the basic
 	data structures of the docs engine.
 */
-package repository
+package indexer
 
 import (
-	"andyk/docs/filesystem"
 	"crypto/sha1"
 	"fmt"
 	"io/ioutil"
-	"os"
 )
 
 type Item struct {
@@ -29,30 +27,6 @@ func NewItem(path string, files []File, childItems []Item) Item {
 		Files:      files,
 		ChildItems: childItems,
 	}
-}
-
-// Get all lines of a repository item
-func (item *Item) GetLines() []string {
-	inFile, err := os.Open(item.Path)
-	if err != nil {
-		panic("Could not read file.")
-	}
-
-	defer inFile.Close()
-
-	return filesystem.GetLines(inFile)
-}
-
-// Render this repository item
-func (item *Item) Render() {
-
-	// render child items
-	for _, child := range item.ChildItems {
-		child.Render()
-	}
-
-	render := GetRenderer(item)
-	render()
 }
 
 func (item *Item) GetHash() string {

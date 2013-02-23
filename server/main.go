@@ -18,10 +18,9 @@ func main() {
 	flag.Usage = printUsageInformation
 	flag.Parse()
 
-	itemIndex := indexer.Index(*repositoryPath)
-
-	for _, element := range itemIndex.Items {
-		element.Render()
+	index := indexer.GetIndex(*repositoryPath)
+	for _, element := range index.Items {
+		fmt.Println(element.String())
 	}
 }
 

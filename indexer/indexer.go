@@ -5,7 +5,6 @@
 package indexer
 
 import (
-	"andyk/docs/repository"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,7 +12,7 @@ import (
 	"strings"
 )
 
-func Index(repositoryPath string) repository.Index {
+func GetIndex(repositoryPath string) Index {
 
 	// check if the supplied repository path is set
 	if strings.Trim(repositoryPath, " ") == "" {
@@ -33,15 +32,14 @@ func Index(repositoryPath string) repository.Index {
 
 	// get all repository items in the supplied repository path
 	items := findAllItems(repositoryPath)
-
-	index := repository.NewIndex(repositoryPath, items)
+	index := NewIndex(repositoryPath, items)
 
 	return index
 }
 
-func findAllItems(repositoryPath string) []repository.Item {
+func findAllItems(repositoryPath string) []Item {
 
-	items := make([]repository.Item, 0, 100)
+	items := make([]Item, 0, 100)
 
 	directoryEntries, err := ioutil.ReadDir(repositoryPath)
 	if err != nil {
@@ -68,7 +66,7 @@ func findAllItems(repositoryPath string) []repository.Item {
 		childs := getChildItems(repositoryPath)
 
 		// create item and append to list
-		item := repository.NewItem(itemPath, files, childs)
+		item := NewItem(itemPath, files, childs)
 		items = append(items, item)
 
 		// item has been found
@@ -89,9 +87,9 @@ func isMarkdownFile(absoluteFilePath string) bool {
 	return fileExtension == ".md"
 }
 
-func getChildItems(itemPath string) []repository.Item {
+func getChildItems(itemPath string) []Item {
 
-	childItems := make([]repository.Item, 0, 5)
+	childItems := make([]Item, 0, 5)
 
 	files, _ := ioutil.ReadDir(itemPath)
 	for _, element := range files {
@@ -107,14 +105,14 @@ func getChildItems(itemPath string) []repository.Item {
 	return childItems
 }
 
-func getFiles(itemPath string) []repository.File {
+func getFiles(itemPath string) []File {
 
-	itemFiles := make([]repository.File, 0, 5)
+	itemFiles := make([]File, 0, 5)
 	filesDirectoryEntries, _ := ioutil.ReadDir(filepath.Join(itemPath, "files"))
 
 	for _, file := range filesDirectoryEntries {
 		absoluteFilePath := filepath.Join(itemPath, file.Name())
-		repositoryFile := repository.NewFile(absoluteFilePath)
+		repositoryFile := NewFile(absoluteFilePath)
 
 		itemFiles = append(itemFiles, repositoryFile)
 	}

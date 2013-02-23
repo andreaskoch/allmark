@@ -1,4 +1,4 @@
-package repository
+package parser
 
 // A Match represents the result of a pattern matching
 // process on the content of an document.

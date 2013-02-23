@@ -1,8 +1,8 @@
-package repository
+package parser
 
 import (
 	"andyk/docs/date"
-	"andyk/docs/pattern"
+	"andyk/docs/util"
 	"strings"
 	"time"
 )
@@ -23,7 +23,7 @@ func (metaData MetaData) String() string {
 	return s
 }
 
-func GetMetaData(lines []string, structure pattern.DocumentStructure) (MetaData, Match) {
+func GetMetaData(lines []string, structure DocumentStructure) (MetaData, Match) {
 	metaDataLocation := locateMetaData(lines, structure)
 	if !metaDataLocation.Found {
 		return MetaData{}, NotFound()
@@ -33,7 +33,7 @@ func GetMetaData(lines []string, structure pattern.DocumentStructure) (MetaData,
 	var metaData MetaData
 
 	for _, line := range metaDataLocation.Matches {
-		isKeyValuePair, matches := pattern.IsMatch(line, documentStructure.MetaData)
+		isKeyValuePair, matches := util.IsMatch(line, documentStructure.MetaData)
 
 		// skip if line is not a key-value pair
 		if !isKeyValuePair {
@@ -80,7 +80,7 @@ func GetMetaData(lines []string, structure pattern.DocumentStructure) (MetaData,
 
 // locateMetaData checks if the current Document
 // contains meta data.
-func locateMetaData(lines []string, structure pattern.DocumentStructure) Match {
+func locateMetaData(lines []string, structure DocumentStructure) Match {
 
 	// Find the last horizontal rule in the document
 	lastFoundHorizontalRulePosition := -1
