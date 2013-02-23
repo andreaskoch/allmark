@@ -1,4 +1,4 @@
-package filesystem
+package util
 
 import (
 	"bufio"

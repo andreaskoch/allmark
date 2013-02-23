@@ -6,6 +6,7 @@ package main
 
 import (
 	"andyk/docs/indexer"
+	"andyk/docs/renderer"
 	"flag"
 	"fmt"
 	"os"
@@ -19,8 +20,10 @@ func main() {
 	flag.Parse()
 
 	index := indexer.GetIndex(*repositoryPath)
-	for _, element := range index.Items {
-		fmt.Println(element.String())
+	for _, item := range index.Items {
+
+		renderer := renderer.GetRenderer(item)
+		renderer()
 	}
 }
 

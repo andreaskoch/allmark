@@ -1,9 +1,9 @@
 package parser
 
-func GetParser() func() {
+func GetParser(lines []string) func() Document {
 
-	return func() {
-
+	return func() Document {
+		return Document{}
 	}
 
 }
