@@ -2,9 +2,6 @@ package repository
 
 import (
 	"bufio"
-	"crypto/sha1"
-	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -63,16 +60,4 @@ func GetRenderedItemPath(item Item) string {
 
 	renderedFilePath := filepath.Join(itemDirectory, itemName+".html")
 	return renderedFilePath
-}
-
-func (item *Item) GetHash() string {
-	itemBytes, readFileErr := ioutil.ReadFile(item.Path)
-	if readFileErr != nil {
-		return ""
-	}
-
-	sha1 := sha1.New()
-	sha1.Write(itemBytes)
-
-	return fmt.Sprintf("%x", string(sha1.Sum(nil)[0:6]))
 }

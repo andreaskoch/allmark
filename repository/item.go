@@ -10,6 +10,9 @@ package repository
 
 import (
 	"andyk/docs/filesystem"
+	"crypto/sha1"
+	"fmt"
+	"io/ioutil"
 	"os"
 )
 
@@ -50,6 +53,18 @@ func (item *Item) Render() {
 
 	render := GetRenderer(item)
 	render()
+}
+
+func (item *Item) GetHash() string {
+	itemBytes, readFileErr := ioutil.ReadFile(item.Path)
+	if readFileErr != nil {
+		return ""
+	}
+
+	sha1 := sha1.New()
+	sha1.Write(itemBytes)
+
+	return fmt.Sprintf("%x", string(sha1.Sum(nil)[0:6]))
 }
 
 // Get a string representation of the current repository item
