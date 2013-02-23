@@ -7,23 +7,19 @@ import (
 )
 
 type DocumentParser struct {
-	Patterns         DocumentStructure
-	MetaData         MetaData
-	MetaDataLocation Match
+	Patterns DocumentStructure
 }
 
-func NewDocumentParser(documentStructure DocumentStructure, metaData MetaData, metaDataLocation Match) DocumentParser {
+func NewDocumentParser(documentStructure DocumentStructure) DocumentParser {
 	return DocumentParser{
-		Patterns:         documentStructure,
-		MetaData:         metaData,
-		MetaDataLocation: metaDataLocation,
+		Patterns: documentStructure,
 	}
 }
 
-func (parser DocumentParser) Parse(lines []string) (item ParsedItem, err error) {
+func (parser DocumentParser) Parse(lines []string, metaData MetaData) (item ParsedItem, err error) {
 
 	// assign meta data
-	item.MetaData = parser.MetaData
+	item.MetaData = metaData
 
 	// assign title
 	titleLocation := parser.locateTitle(lines)
@@ -40,7 +36,7 @@ func (parser DocumentParser) Parse(lines []string) (item ParsedItem, err error) 
 	item.AddElement("description", getDescription(descriptionLocation))
 
 	// content
-	contentLocation := parser.locateContent(lines, descriptionLocation)
+	contentLocation := parser.locateContent(lines, descriptionLocation, metaData.Location)
 	if !contentLocation.Found {
 		return item, errors.New("No content available.")
 	}
@@ -116,7 +112,7 @@ func (parser DocumentParser) locateDescription(lines []string, titleLocation Mat
 	return NotFound()
 }
 
-func (parser DocumentParser) locateContent(lines []string, descriptionLocation Match) Match {
+func (parser DocumentParser) locateContent(lines []string, descriptionLocation Match, metaDataLocation Match) Match {
 
 	// Content must be preceeded by a description
 	if !descriptionLocation.Found {
@@ -136,8 +132,8 @@ func (parser DocumentParser) locateContent(lines []string, descriptionLocation M
 	// and the meta data. If not the content
 	// will go up to the end of the document.
 	endLine := 0
-	if parser.MetaDataLocation.Found {
-		endLine = parser.MetaDataLocation.Lines.Start - 1
+	if metaDataLocation.Found {
+		endLine = metaDataLocation.Lines.Start - 1
 	} else {
 		endLine = len(lines)
 	}

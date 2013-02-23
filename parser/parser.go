@@ -63,8 +63,8 @@ func ParseItem(item indexer.Item) (ParsedItem, error) {
 
 	// get the meta data
 	metaDataParser := NewMetaDataParser(documentStructure)
-	metaData, metaDataLocation := metaDataParser.Parse(lines)
-	if !metaDataLocation.Found {
+	metaData := metaDataParser.Parse(lines)
+	if !metaData.Location.Found {
 
 		// infer type from file name
 		metaData.ItemType = getItemTypeFromFilename(item.GetFilename())
@@ -76,8 +76,8 @@ func ParseItem(item indexer.Item) (ParsedItem, error) {
 	switch itemType {
 	case "document":
 		{
-			parser := NewDocumentParser(documentStructure, metaData, metaDataLocation)
-			return parser.Parse(lines)
+			parser := NewDocumentParser(documentStructure)
+			return parser.Parse(lines, metaData)
 		}
 	}
 
