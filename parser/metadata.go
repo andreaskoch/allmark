@@ -7,6 +7,16 @@ import (
 	"time"
 )
 
+type MetaDataParser struct {
+	Patterns DocumentStructure
+}
+
+func NewMetaDataParser(documentStructure DocumentStructure) MetaDataParser {
+	return MetaDataParser{
+		Patterns: documentStructure,
+	}
+}
+
 type MetaData struct {
 	Language string
 	Date     time.Time
@@ -23,8 +33,9 @@ func (metaData MetaData) String() string {
 	return s
 }
 
-func GetMetaData(lines []string, structure DocumentStructure) (MetaData, Match) {
-	metaDataLocation := locateMetaData(lines, structure)
+func (parser MetaDataParser) Parse(lines []string) (MetaData, Match) {
+
+	metaDataLocation := parser.locateMetaData(lines)
 	if !metaDataLocation.Found {
 		return MetaData{}, NotFound()
 	}
@@ -33,7 +44,7 @@ func GetMetaData(lines []string, structure DocumentStructure) (MetaData, Match) 
 	var metaData MetaData
 
 	for _, line := range metaDataLocation.Matches {
-		isKeyValuePair, matches := util.IsMatch(line, documentStructure.MetaData)
+		isKeyValuePair, matches := util.IsMatch(line, parser.Patterns.MetaData)
 
 		// skip if line is not a key-value pair
 		if !isKeyValuePair {
@@ -62,7 +73,7 @@ func GetMetaData(lines []string, structure DocumentStructure) (MetaData, Match) 
 
 		case "tags":
 			{
-				metaData.Tags = getTagsFromValue(value)
+				metaData.Tags = parser.getTagsFromValue(value)
 				break
 			}
 
@@ -80,13 +91,13 @@ func GetMetaData(lines []string, structure DocumentStructure) (MetaData, Match) 
 
 // locateMetaData checks if the current Document
 // contains meta data.
-func locateMetaData(lines []string, structure DocumentStructure) Match {
+func (parser MetaDataParser) locateMetaData(lines []string) Match {
 
 	// Find the last horizontal rule in the document
 	lastFoundHorizontalRulePosition := -1
 	for lineNumber, line := range lines {
 
-		lineMatchesHorizontalRulePattern := structure.HorizontalRule.MatchString(line)
+		lineMatchesHorizontalRulePattern := parser.Patterns.HorizontalRule.MatchString(line)
 		if lineMatchesHorizontalRulePattern {
 			lastFoundHorizontalRulePosition = lineNumber
 		}
@@ -110,7 +121,7 @@ func locateMetaData(lines []string, structure DocumentStructure) Match {
 	// either by white space or be meta data
 	for _, line := range lines[metaDataStartLine:] {
 
-		lineMatchesMetaDataPattern := structure.MetaData.MatchString(line)
+		lineMatchesMetaDataPattern := parser.Patterns.MetaData.MatchString(line)
 		if lineMatchesMetaDataPattern {
 
 			endLine := len(lines)
@@ -118,7 +129,7 @@ func locateMetaData(lines []string, structure DocumentStructure) Match {
 
 		}
 
-		lineIsEmpty := structure.EmptyLine.MatchString(line)
+		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
 		if !lineIsEmpty {
 			return NotFound()
 		}
@@ -128,7 +139,7 @@ func locateMetaData(lines []string, structure DocumentStructure) Match {
 	return NotFound()
 }
 
-func getTagsFromValue(value string) []string {
+func (parser MetaDataParser) getTagsFromValue(value string) []string {
 	rawTags := strings.Split(value, ",")
 	tags := make([]string, 0, 1)
 

@@ -2,51 +2,51 @@ package parser
 
 import (
 	"andyk/docs/util"
+	"errors"
 	"strings"
 )
 
-var documentStructure = NewDocumentStructure()
-
-type Document struct {
-	Title       string
-	Description string
-	Content     string
-	MetaData    MetaData
+type DocumentParser struct {
+	Patterns         DocumentStructure
+	MetaData         MetaData
+	MetaDataLocation Match
 }
 
-// CreateDocument returns a new Document from the given Item.
-func CreateDocument(lines []string) Document {
-	doc := Document{}
+func NewDocumentParser(documentStructure DocumentStructure, metaData MetaData, metaDataLocation Match) DocumentParser {
+	return DocumentParser{
+		Patterns:         documentStructure,
+		MetaData:         metaData,
+		MetaDataLocation: metaDataLocation,
+	}
+}
+
+func (parser DocumentParser) Parse(lines []string) (item ParsedItem, err error) {
 
 	// assign meta data
-	metaData, metaDataLocation := GetMetaData(lines, documentStructure)
-	if !metaDataLocation.Found {
-		return doc
-	}
-	doc.MetaData = metaData
+	item.MetaData = parser.MetaData
 
 	// assign title
-	titleLocation := locateTitle(lines)
+	titleLocation := parser.locateTitle(lines)
 	if !titleLocation.Found {
-		return doc
+		return item, errors.New("Title not found.")
 	}
-	doc.Title = getTitle(titleLocation)
+	item.AddElement("title", getTitle(titleLocation))
 
 	// description
-	descriptionLocation := locateDescription(lines, titleLocation)
+	descriptionLocation := parser.locateDescription(lines, titleLocation)
 	if !descriptionLocation.Found {
-		return doc
+		return item, errors.New("Description not found.")
 	}
-	doc.Description = getDescription(descriptionLocation)
+	item.AddElement("description", getDescription(descriptionLocation))
 
 	// content
-	contentLocation := locateContent(lines, descriptionLocation, metaDataLocation)
+	contentLocation := parser.locateContent(lines, descriptionLocation)
 	if !contentLocation.Found {
-		return doc
+		return item, errors.New("No content available.")
 	}
-	doc.Content = getContent(contentLocation)
+	item.AddElement("description", getContent(contentLocation))
 
-	return doc
+	return item, nil
 }
 
 func getTitle(titleLocation Match) string {
@@ -61,19 +61,19 @@ func getContent(contentLocation Match) string {
 	return strings.TrimSpace(strings.Join(contentLocation.Matches, "\n"))
 }
 
-func locateTitle(lines []string) Match {
+func (parser DocumentParser) locateTitle(lines []string) Match {
 
 	// In order to be the "title" the line must either
 	// be empty or match the title pattern.
 
 	for lineNumber, line := range lines {
 
-		lineMatchesTitlePattern, matches := util.IsMatch(line, documentStructure.Title)
+		lineMatchesTitlePattern, matches := util.IsMatch(line, parser.Patterns.Title)
 		if lineMatchesTitlePattern {
 			return Found(lineNumber, lineNumber, matches)
 		}
 
-		lineIsEmpty := documentStructure.EmptyLine.MatchString(line)
+		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
 		if !lineIsEmpty {
 			break
 		}
@@ -82,7 +82,7 @@ func locateTitle(lines []string) Match {
 	return NotFound()
 }
 
-func locateDescription(lines []string, titleLocation Match) Match {
+func (parser DocumentParser) locateDescription(lines []string, titleLocation Match) Match {
 
 	// The description must be preceeded by a title
 	if !titleLocation.Found {
@@ -101,13 +101,13 @@ func locateDescription(lines []string, titleLocation Match) Match {
 	// be empty or match the description pattern.
 	for relativeLineNumber, line := range lines[startLine:] {
 
-		lineMatchesDescriptionPattern, matches := util.IsMatch(line, documentStructure.Description)
+		lineMatchesDescriptionPattern, matches := util.IsMatch(line, parser.Patterns.Description)
 		if lineMatchesDescriptionPattern {
 			absoluteLineNumber := startLine + relativeLineNumber
 			return Found(absoluteLineNumber, absoluteLineNumber, matches)
 		}
 
-		lineIsEmpty := documentStructure.EmptyLine.MatchString(line)
+		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
 		if !lineIsEmpty {
 			break
 		}
@@ -116,7 +116,7 @@ func locateDescription(lines []string, titleLocation Match) Match {
 	return NotFound()
 }
 
-func locateContent(lines []string, descriptionLocation Match, metaDataLocation Match) Match {
+func (parser DocumentParser) locateContent(lines []string, descriptionLocation Match) Match {
 
 	// Content must be preceeded by a description
 	if !descriptionLocation.Found {
@@ -136,8 +136,8 @@ func locateContent(lines []string, descriptionLocation Match, metaDataLocation M
 	// and the meta data. If not the content
 	// will go up to the end of the document.
 	endLine := 0
-	if metaDataLocation.Found {
-		endLine = metaDataLocation.Lines.Start - 1
+	if parser.MetaDataLocation.Found {
+		endLine = parser.MetaDataLocation.Lines.Start - 1
 	} else {
 		endLine = len(lines)
 	}

@@ -16,7 +16,7 @@ func RenderItem(item indexer.Item) {
 		return
 	}
 
-	fmt.Println(parsedItem.Title)
+	fmt.Printf("%#v", parsedItem)
 }
 
 // Get the filepath of the rendered repository item

@@ -12,6 +12,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 )
 
 type Item struct {
@@ -27,6 +28,10 @@ func NewItem(path string, files []File, childItems []Item) Item {
 		Files:      files,
 		ChildItems: childItems,
 	}
+}
+
+func (item Item) GetFilename() string {
+	return filepath.Base(item.Path)
 }
 
 func (item *Item) GetHash() string {
