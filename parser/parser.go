@@ -63,13 +63,16 @@ func ParseItem(item indexer.Item) (ParsedItem, error) {
 
 	// get the meta data
 	metaDataParser := NewMetaDataParser(documentStructure)
-	metaData := metaDataParser.Parse(lines)
-	if !metaData.Location.Found {
+	metaData, metaDataLocation := metaDataParser.Parse(lines)
+	if !metaDataLocation.Found {
 
 		// infer type from file name
 		metaData.ItemType = getItemTypeFromFilename(item.GetFilename())
 
 	}
+
+	// exclude the lines which contain the meta data
+	lines = lines[0:metaDataLocation.Lines.Start]
 
 	// parse by type
 	itemType := strings.TrimSpace(strings.ToLower(metaData.ItemType))

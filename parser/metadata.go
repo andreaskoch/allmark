@@ -22,7 +22,6 @@ type MetaData struct {
 	Date     time.Time
 	Tags     []string
 	ItemType string
-	Location Match
 }
 
 func (metaData MetaData) String() string {
@@ -34,11 +33,11 @@ func (metaData MetaData) String() string {
 	return s
 }
 
-func (parser MetaDataParser) Parse(lines []string) MetaData {
+func (parser MetaDataParser) Parse(lines []string) (MetaData, Match) {
 
 	metaDataLocation := parser.locateMetaData(lines)
 	if !metaDataLocation.Found {
-		return MetaData{Location: NotFound()}
+		return MetaData{}, metaDataLocation
 	}
 
 	// assemble meta data
@@ -87,10 +86,7 @@ func (parser MetaDataParser) Parse(lines []string) MetaData {
 		}
 	}
 
-	// assign the location
-	metaData.Location = metaDataLocation
-
-	return metaData
+	return metaData, metaDataLocation
 }
 
 // locateMetaData checks if the current Document

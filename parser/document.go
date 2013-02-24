@@ -36,7 +36,7 @@ func (parser DocumentParser) Parse(lines []string, metaData MetaData) (item Pars
 	item.AddElement("description", getDescription(descriptionLocation))
 
 	// content
-	contentLocation := parser.locateContent(lines, descriptionLocation, metaData.Location)
+	contentLocation := parser.locateContent(lines, descriptionLocation)
 	if !contentLocation.Found {
 		return item, errors.New("No content available.")
 	}
@@ -112,7 +112,7 @@ func (parser DocumentParser) locateDescription(lines []string, titleLocation Mat
 	return NotFound()
 }
 
-func (parser DocumentParser) locateContent(lines []string, descriptionLocation Match, metaDataLocation Match) Match {
+func (parser DocumentParser) locateContent(lines []string, descriptionLocation Match) Match {
 
 	// Content must be preceeded by a description
 	if !descriptionLocation.Found {
@@ -127,16 +127,9 @@ func (parser DocumentParser) locateContent(lines []string, descriptionLocation M
 		return NotFound()
 	}
 
-	// If the document contains meta data
-	// the content will be between the description
-	// and the meta data. If not the content
-	// will go up to the end of the document.
-	endLine := 0
-	if metaDataLocation.Found {
-		endLine = metaDataLocation.Lines.Start - 1
-	} else {
-		endLine = len(lines)
-	}
+	// It is assumed that the meta data
+	// is not passed with the lines parameter.
+	endLine := len(lines)
 
 	// All lines between the start- and endLine are content
 	return Found(startLine, endLine, lines[startLine:endLine])
