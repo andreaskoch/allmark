@@ -45,31 +45,3 @@ func (item *Item) GetHash() string {
 
 	return fmt.Sprintf("%x", string(sha1.Sum(nil)[0:6]))
 }
-
-// Get a string representation of the current repository item
-func (item Item) String() string {
-	s := item.Path + "(" + item.GetHash() + ")\n"
-
-	s += "\n"
-	s += "Files:\n"
-	if len(item.Files) > 0 {
-		for _, file := range item.Files {
-			s += " - " + file.Path + "\n"
-		}
-	} else {
-		s += "<none>\n"
-	}
-
-	s += "\n"
-	s += "ChildItems:\n"
-	if len(item.ChildItems) > 0 {
-		for _, child := range item.ChildItems {
-			s += child.String()
-		}
-	} else {
-		s += "<none>\n"
-	}
-	s += "\n"
-
-	return s
-}

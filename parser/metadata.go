@@ -14,15 +14,6 @@ type MetaData struct {
 	ItemType string
 }
 
-func (metaData MetaData) String() string {
-	s := "Language: " + metaData.Language
-	s += "\nDate: " + metaData.Date.String()
-	s += "\nTags: " + strings.Join(metaData.Tags, ", ")
-	s += "\nType: " + metaData.ItemType
-
-	return s
-}
-
 func ParseMetaData(lines []string, itemTypeCallback func() string) (MetaData, Match, []string) {
 
 	metaDataLocation, lines := locateMetaData(lines)
