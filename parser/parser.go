@@ -55,8 +55,23 @@ func NewParsedItemElement(name string, value string) ParsedItemElement {
 
 type ParsedItem struct {
 	Elements []ParsedItemElement
-	Type     string
 	MetaData MetaData
+}
+
+func (parsedItem *ParsedItem) GetElementValue(name string) string {
+	if parsedItem.Elements == nil || len(parsedItem.Elements) == 0 {
+		return ""
+	}
+
+	for _, element := range parsedItem.Elements {
+
+		if strings.ToLower(element.Name) == strings.ToLower(name) {
+			return element.Value
+		}
+
+	}
+
+	return ""
 }
 
 func (parsedItem *ParsedItem) AddElement(name string, value string) {
