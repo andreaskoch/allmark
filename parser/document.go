@@ -2,7 +2,6 @@ package parser
 
 import (
 	"andyk/docs/util"
-	"errors"
 	"strings"
 )
 
@@ -22,45 +21,20 @@ func (parser DocumentParser) Parse(lines []string, metaData MetaData) (item Pars
 	item.MetaData = metaData
 
 	// title
-	titleLocation, lines := parser.locateTitle(lines)
-	if !titleLocation.Found {
-		return item, errors.New("Title not found.")
-	}
-
-	item.AddElement("title", getTitle(titleLocation))
+	title, lines := parser.getTitle(lines)
+	item.AddElement("title", title)
 
 	// description
-	descriptionLocation, lines := parser.locateDescription(lines)
-	if !descriptionLocation.Found {
-		return item, errors.New("Description not found.")
-	}
-
-	item.AddElement("description", getDescription(descriptionLocation))
+	description, lines := parser.getDescription(lines)
+	item.AddElement("description", description)
 
 	// content
-	contentLocation := parser.locateContent(lines)
-	if !contentLocation.Found {
-		return item, errors.New("No content available.")
-	}
-
-	item.AddElement("description", getContent(contentLocation))
+	item.AddElement("content", parser.getContent(lines))
 
 	return item, nil
 }
 
-func getTitle(titleLocation Match) string {
-	return strings.TrimSpace(util.GetLastElement(titleLocation.Matches))
-}
-
-func getDescription(descriptionLocation Match) string {
-	return strings.TrimSpace(util.GetLastElement(descriptionLocation.Matches))
-}
-
-func getContent(contentLocation Match) string {
-	return strings.TrimSpace(strings.Join(contentLocation.Matches, "\n"))
-}
-
-func (parser DocumentParser) locateTitle(lines []string) (Match, []string) {
+func (parser DocumentParser) getTitle(lines []string) (string, []string) {
 
 	// In order to be the "title" the line must either
 	// be empty or match the title pattern.
@@ -69,7 +43,7 @@ func (parser DocumentParser) locateTitle(lines []string) (Match, []string) {
 		lineMatchesTitlePattern, matches := util.IsMatch(line, parser.Patterns.Title)
 		if lineMatchesTitlePattern {
 			nextLine := getNextLinenumber(lineNumber, lines)
-			return Found(matches), lines[nextLine:]
+			return util.GetLastElement(matches), lines[nextLine:]
 		}
 
 		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
@@ -78,7 +52,36 @@ func (parser DocumentParser) locateTitle(lines []string) (Match, []string) {
 		}
 	}
 
-	return NotFound(), lines
+	return "", lines
+}
+
+func (parser DocumentParser) getDescription(lines []string) (string, []string) {
+
+	// In order to be a "description" the line must either
+	// be empty or match the description pattern.
+	for lineNumber, line := range lines {
+
+		lineMatchesDescriptionPattern, matches := util.IsMatch(line, parser.Patterns.Description)
+		if lineMatchesDescriptionPattern {
+			nextLine := getNextLinenumber(lineNumber, lines)
+			return util.GetLastElement(matches), lines[nextLine:]
+		}
+
+		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
+		if !lineIsEmpty {
+			break
+		}
+	}
+
+	return "", lines
+}
+
+func (parser DocumentParser) getContent(lines []string) string {
+
+	startLine := 0
+	endLine := len(lines)
+
+	return strings.TrimSpace(strings.Join(lines[startLine:endLine], "\n"))
 }
 
 func getNextLinenumber(lineNumber int, lines []string) int {
@@ -89,34 +92,4 @@ func getNextLinenumber(lineNumber int, lines []string) int {
 	}
 
 	return lineNumber
-}
-
-func (parser DocumentParser) locateDescription(lines []string) (Match, []string) {
-
-	// In order to be a "description" the line must either
-	// be empty or match the description pattern.
-	for lineNumber, line := range lines {
-
-		lineMatchesDescriptionPattern, matches := util.IsMatch(line, parser.Patterns.Description)
-		if lineMatchesDescriptionPattern {
-			nextLine := getNextLinenumber(lineNumber, lines)
-			return Found(matches), lines[nextLine:]
-		}
-
-		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
-		if !lineIsEmpty {
-			break
-		}
-	}
-
-	return NotFound(), lines
-}
-
-func (parser DocumentParser) locateContent(lines []string) Match {
-
-	startLine := 0
-	endLine := len(lines)
-
-	// All lines between the start- and endLine are content
-	return Found(lines[startLine:endLine])
 }
