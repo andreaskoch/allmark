@@ -33,7 +33,7 @@ func (metaData MetaData) String() string {
 	return s
 }
 
-func (parser MetaDataParser) Parse(lines []string) (MetaData, Match, []string) {
+func (parser MetaDataParser) Parse(lines []string, itemTypeCallback func() string) (MetaData, Match, []string) {
 
 	metaDataLocation, lines := parser.locateMetaData(lines)
 	if !metaDataLocation.Found {
@@ -51,6 +51,7 @@ func (parser MetaDataParser) Parse(lines []string) (MetaData, Match, []string) {
 			continue
 		}
 
+		// prepare key and value
 		key := strings.ToLower(strings.TrimSpace(matches[1]))
 		value := strings.TrimSpace(matches[2])
 
@@ -79,11 +80,21 @@ func (parser MetaDataParser) Parse(lines []string) (MetaData, Match, []string) {
 
 		case "type":
 			{
-				metaData.ItemType = value
+				itemTypeString := strings.ToLower(value)
+				if itemTypeString != "" {
+					metaData.ItemType = itemTypeString
+				}
 				break
 			}
 
 		}
+	}
+
+	// make sure the item type is set
+	if metaData.ItemType == "" {
+
+		// use the provided item type callback
+		metaData.ItemType = itemTypeCallback()
 	}
 
 	return metaData, metaDataLocation, lines

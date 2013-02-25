@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -63,7 +64,14 @@ func ParseItem(item indexer.Item) (ParsedItem, error) {
 
 	// get the meta data
 	metaDataParser := NewMetaDataParser(documentStructure)
-	metaData, metaDataLocation, lines := metaDataParser.Parse(lines)
+
+	// a callback function for determining the item type
+	var itemTypeCallback = func() string {
+		filename := filepath.Base(item.Path)
+		return getItemTypeFromFilename(filename)
+	}
+
+	metaData, metaDataLocation, lines := metaDataParser.Parse(lines, itemTypeCallback)
 	if !metaDataLocation.Found {
 
 		// infer type from file name
