@@ -33,11 +33,11 @@ func (metaData MetaData) String() string {
 	return s
 }
 
-func (parser MetaDataParser) Parse(lines []string) (MetaData, Match) {
+func (parser MetaDataParser) Parse(lines []string) (MetaData, Match, []string) {
 
-	metaDataLocation := parser.locateMetaData(lines)
+	metaDataLocation, lines := parser.locateMetaData(lines)
 	if !metaDataLocation.Found {
-		return MetaData{}, metaDataLocation
+		return MetaData{}, metaDataLocation, lines
 	}
 
 	// assemble meta data
@@ -86,12 +86,12 @@ func (parser MetaDataParser) Parse(lines []string) (MetaData, Match) {
 		}
 	}
 
-	return metaData, metaDataLocation
+	return metaData, metaDataLocation, lines
 }
 
 // locateMetaData checks if the current Document
 // contains meta data.
-func (parser MetaDataParser) locateMetaData(lines []string) Match {
+func (parser MetaDataParser) locateMetaData(lines []string) (Match, []string) {
 
 	// Find the last horizontal rule in the document
 	lastFoundHorizontalRulePosition := -1
@@ -106,7 +106,7 @@ func (parser MetaDataParser) locateMetaData(lines []string) Match {
 
 	// If there is no horizontal rule there is no meta data
 	if lastFoundHorizontalRulePosition == -1 {
-		return NotFound()
+		return NotFound(), lines
 	}
 
 	// If the document has no more lines than
@@ -114,7 +114,7 @@ func (parser MetaDataParser) locateMetaData(lines []string) Match {
 	// room for meta data
 	metaDataStartLine := lastFoundHorizontalRulePosition + 1
 	if len(lines) <= metaDataStartLine {
-		return NotFound()
+		return NotFound(), lines
 	}
 
 	// Check if the last horizontal rule is followed
@@ -125,18 +125,18 @@ func (parser MetaDataParser) locateMetaData(lines []string) Match {
 		if lineMatchesMetaDataPattern {
 
 			endLine := len(lines)
-			return Found(metaDataStartLine, endLine, lines[metaDataStartLine:endLine])
+			return Found(lines[metaDataStartLine:endLine]), lines
 
 		}
 
 		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
 		if !lineIsEmpty {
-			return NotFound()
+			return NotFound(), lines
 		}
 
 	}
 
-	return NotFound()
+	return NotFound(), lines
 }
 
 func (parser MetaDataParser) getTagsFromValue(value string) []string {

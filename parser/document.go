@@ -22,39 +22,27 @@ func (parser DocumentParser) Parse(lines []string, metaData MetaData) (item Pars
 	item.MetaData = metaData
 
 	// title
-	// locate title
-	titleLocation := parser.locateTitle(lines)
+	titleLocation, lines := parser.locateTitle(lines)
 	if !titleLocation.Found {
 		return item, errors.New("Title not found.")
 	}
 
-	// save title
 	item.AddElement("title", getTitle(titleLocation))
 
-	// exclude title from lines
-	lines = lines[titleLocation.Lines.End:]
-
 	// description
-	// locate the description
-	descriptionLocation := parser.locateDescription(lines)
+	descriptionLocation, lines := parser.locateDescription(lines)
 	if !descriptionLocation.Found {
 		return item, errors.New("Description not found.")
 	}
 
-	// save the description
 	item.AddElement("description", getDescription(descriptionLocation))
 
-	// exclude description from lines
-	lines = lines[descriptionLocation.Lines.End:]
-
 	// content
-	// locate the content
 	contentLocation := parser.locateContent(lines)
 	if !contentLocation.Found {
 		return item, errors.New("No content available.")
 	}
 
-	// save the content
 	item.AddElement("description", getContent(contentLocation))
 
 	return item, nil
@@ -72,7 +60,7 @@ func getContent(contentLocation Match) string {
 	return strings.TrimSpace(strings.Join(contentLocation.Matches, "\n"))
 }
 
-func (parser DocumentParser) locateTitle(lines []string) Match {
+func (parser DocumentParser) locateTitle(lines []string) (Match, []string) {
 
 	// In order to be the "title" the line must either
 	// be empty or match the title pattern.
@@ -80,7 +68,8 @@ func (parser DocumentParser) locateTitle(lines []string) Match {
 
 		lineMatchesTitlePattern, matches := util.IsMatch(line, parser.Patterns.Title)
 		if lineMatchesTitlePattern {
-			return Found(lineNumber, lineNumber, matches)
+			nextLine := getNextLinenumber(lineNumber, lines)
+			return Found(matches), lines[nextLine:]
 		}
 
 		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
@@ -89,10 +78,20 @@ func (parser DocumentParser) locateTitle(lines []string) Match {
 		}
 	}
 
-	return NotFound()
+	return NotFound(), lines
 }
 
-func (parser DocumentParser) locateDescription(lines []string) Match {
+func getNextLinenumber(lineNumber int, lines []string) int {
+	nextLine := lineNumber + 1
+
+	if nextLine <= len(lines) {
+		return nextLine
+	}
+
+	return lineNumber
+}
+
+func (parser DocumentParser) locateDescription(lines []string) (Match, []string) {
 
 	// In order to be a "description" the line must either
 	// be empty or match the description pattern.
@@ -100,7 +99,8 @@ func (parser DocumentParser) locateDescription(lines []string) Match {
 
 		lineMatchesDescriptionPattern, matches := util.IsMatch(line, parser.Patterns.Description)
 		if lineMatchesDescriptionPattern {
-			return Found(lineNumber, lineNumber, matches)
+			nextLine := getNextLinenumber(lineNumber, lines)
+			return Found(matches), lines[nextLine:]
 		}
 
 		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
@@ -109,7 +109,7 @@ func (parser DocumentParser) locateDescription(lines []string) Match {
 		}
 	}
 
-	return NotFound()
+	return NotFound(), lines
 }
 
 func (parser DocumentParser) locateContent(lines []string) Match {
@@ -118,5 +118,5 @@ func (parser DocumentParser) locateContent(lines []string) Match {
 	endLine := len(lines)
 
 	// All lines between the start- and endLine are content
-	return Found(startLine, endLine, lines[startLine:endLine])
+	return Found(lines[startLine:endLine])
 }
