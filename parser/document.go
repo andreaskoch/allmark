@@ -2,6 +2,7 @@ package parser
 
 import (
 	"andyk/docs/util"
+	"regexp"
 	"strings"
 )
 
@@ -21,11 +22,11 @@ func (parser DocumentParser) Parse(lines []string, metaData MetaData) (item Pars
 	item.MetaData = metaData
 
 	// title
-	title, lines := parser.getTitle(lines)
+	title, lines := parser.getMatchingValue(lines, parser.Patterns.Title)
 	item.AddElement("title", title)
 
 	// description
-	description, lines := parser.getDescription(lines)
+	description, lines := parser.getMatchingValue(lines, parser.Patterns.Description)
 	item.AddElement("description", description)
 
 	// content
@@ -34,35 +35,14 @@ func (parser DocumentParser) Parse(lines []string, metaData MetaData) (item Pars
 	return item, nil
 }
 
-func (parser DocumentParser) getTitle(lines []string) (string, []string) {
+func (parser DocumentParser) getMatchingValue(lines []string, pattern regexp.Regexp) (string, []string) {
 
-	// In order to be the "title" the line must either
-	// be empty or match the title pattern.
+	// In order to be the "matching value" the line must
+	// either be empty or match the supplied pattern.
 	for lineNumber, line := range lines {
 
 		lineMatchesTitlePattern, matches := util.IsMatch(line, parser.Patterns.Title)
 		if lineMatchesTitlePattern {
-			nextLine := getNextLinenumber(lineNumber, lines)
-			return util.GetLastElement(matches), lines[nextLine:]
-		}
-
-		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
-		if !lineIsEmpty {
-			break
-		}
-	}
-
-	return "", lines
-}
-
-func (parser DocumentParser) getDescription(lines []string) (string, []string) {
-
-	// In order to be a "description" the line must either
-	// be empty or match the description pattern.
-	for lineNumber, line := range lines {
-
-		lineMatchesDescriptionPattern, matches := util.IsMatch(line, parser.Patterns.Description)
-		if lineMatchesDescriptionPattern {
 			nextLine := getNextLinenumber(lineNumber, lines)
 			return util.GetLastElement(matches), lines[nextLine:]
 		}
