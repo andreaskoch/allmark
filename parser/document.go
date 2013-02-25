@@ -21,25 +21,40 @@ func (parser DocumentParser) Parse(lines []string, metaData MetaData) (item Pars
 	// assign meta data
 	item.MetaData = metaData
 
-	// assign title
+	// title
+	// locate title
 	titleLocation := parser.locateTitle(lines)
 	if !titleLocation.Found {
 		return item, errors.New("Title not found.")
 	}
+
+	// save title
 	item.AddElement("title", getTitle(titleLocation))
 
+	// exclude title from lines
+	lines = lines[titleLocation.Lines.End:]
+
 	// description
-	descriptionLocation := parser.locateDescription(lines, titleLocation)
+	// locate the description
+	descriptionLocation := parser.locateDescription(lines)
 	if !descriptionLocation.Found {
 		return item, errors.New("Description not found.")
 	}
+
+	// save the description
 	item.AddElement("description", getDescription(descriptionLocation))
 
+	// exclude description from lines
+	lines = lines[descriptionLocation.Lines.End:]
+
 	// content
-	contentLocation := parser.locateContent(lines, descriptionLocation)
+	// locate the content
+	contentLocation := parser.locateContent(lines)
 	if !contentLocation.Found {
 		return item, errors.New("No content available.")
 	}
+
+	// save the content
 	item.AddElement("description", getContent(contentLocation))
 
 	return item, nil
@@ -61,7 +76,6 @@ func (parser DocumentParser) locateTitle(lines []string) Match {
 
 	// In order to be the "title" the line must either
 	// be empty or match the title pattern.
-
 	for lineNumber, line := range lines {
 
 		lineMatchesTitlePattern, matches := util.IsMatch(line, parser.Patterns.Title)
@@ -78,29 +92,15 @@ func (parser DocumentParser) locateTitle(lines []string) Match {
 	return NotFound()
 }
 
-func (parser DocumentParser) locateDescription(lines []string, titleLocation Match) Match {
-
-	// The description must be preceeded by a title
-	if !titleLocation.Found {
-		return NotFound()
-	}
-
-	// If the document has no more lines than the line
-	// in which the title has been located, there
-	// will be no room for a description
-	startLine := titleLocation.Lines.End + 1
-	if len(lines) <= startLine {
-		return NotFound()
-	}
+func (parser DocumentParser) locateDescription(lines []string) Match {
 
 	// In order to be a "description" the line must either
 	// be empty or match the description pattern.
-	for relativeLineNumber, line := range lines[startLine:] {
+	for lineNumber, line := range lines {
 
 		lineMatchesDescriptionPattern, matches := util.IsMatch(line, parser.Patterns.Description)
 		if lineMatchesDescriptionPattern {
-			absoluteLineNumber := startLine + relativeLineNumber
-			return Found(absoluteLineNumber, absoluteLineNumber, matches)
+			return Found(lineNumber, lineNumber, matches)
 		}
 
 		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
@@ -112,23 +112,9 @@ func (parser DocumentParser) locateDescription(lines []string, titleLocation Mat
 	return NotFound()
 }
 
-func (parser DocumentParser) locateContent(lines []string, descriptionLocation Match) Match {
+func (parser DocumentParser) locateContent(lines []string) Match {
 
-	// Content must be preceeded by a description
-	if !descriptionLocation.Found {
-		return NotFound()
-	}
-
-	// If the document has no more lines than the line
-	// in which the description has been located, there
-	// will be no room for content
-	startLine := descriptionLocation.Lines.End + 1
-	if len(lines) <= startLine {
-		return NotFound()
-	}
-
-	// It is assumed that the meta data
-	// is not passed with the lines parameter.
+	startLine := 0
 	endLine := len(lines)
 
 	// All lines between the start- and endLine are content
