@@ -2,6 +2,7 @@ package parser
 
 import (
 	"andyk/docs/util"
+	"github.com/russross/blackfriday"
 	"regexp"
 	"strings"
 )
@@ -58,10 +59,13 @@ func (parser DocumentParser) getMatchingValue(lines []string, pattern regexp.Reg
 
 func (parser DocumentParser) getContent(lines []string) string {
 
-	startLine := 0
-	endLine := len(lines)
+	// all remaining lines are the (raw markdown) content
+	rawMarkdownContent := strings.TrimSpace(strings.Join(lines, "\n"))
 
-	return strings.TrimSpace(strings.Join(lines[startLine:endLine], "\n"))
+	// html encode the markdown
+	htmlEncodedContent := string(blackfriday.MarkdownBasic([]byte(rawMarkdownContent)))
+
+	return htmlEncodedContent
 }
 
 func getNextLinenumber(lineNumber int, lines []string) int {
