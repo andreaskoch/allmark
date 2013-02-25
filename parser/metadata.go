@@ -118,6 +118,9 @@ func locateMetaData(lines []string) (Match, []string) {
 		return NotFound(), lines
 	}
 
+	// the last line of content
+	contentEndPosition := lastFoundHorizontalRulePosition - 1
+
 	// Check if the last horizontal rule is followed
 	// either by white space or be meta data
 	for _, line := range lines[metaDataStartLine:] {
@@ -126,7 +129,7 @@ func locateMetaData(lines []string) (Match, []string) {
 		if lineMatchesMetaDataPattern {
 
 			endLine := len(lines)
-			return Found(lines[metaDataStartLine:endLine]), lines
+			return Found(lines[metaDataStartLine:endLine]), lines[0:contentEndPosition]
 
 		}
 
