@@ -31,6 +31,16 @@ var (
 	MetaDataPattern = regexp.MustCompile("^(\\w+):\\s*(\\w.+)$")
 )
 
+const (
+	UnknownItemType    = "unknown"
+	DocumentItemType   = "document"
+	MessageItemType    = "message"
+	LocationItemType   = "location"
+	CommentItemType    = "message"
+	TagItemType        = "tag"
+	RepositoryItemType = "repository"
+)
+
 type ParsedItemElement struct {
 	Name  string
 	Value string
@@ -92,8 +102,9 @@ func ParseItem(item indexer.Item) (ParsedItem, error) {
 
 	// parse by type
 	itemType := strings.TrimSpace(strings.ToLower(metaData.ItemType))
+
 	switch itemType {
-	case "document":
+	case DocumentItemType:
 		{
 			return ParseDocument(lines, metaData)
 		}
@@ -107,23 +118,26 @@ func getItemTypeFromFilename(filename string) string {
 	lowercaseFilename := strings.ToLower(filename)
 
 	switch lowercaseFilename {
-	case "repository.md":
-		return "repository"
-
 	case "document.md":
-		return "document"
-
-	case "location.md":
-		return "location"
-
-	case "comment.md":
-		return "comment"
+		return DocumentItemType
 
 	case "message.md":
-		return "message"
+		return MessageItemType
+
+	case "location.md":
+		return LocationItemType
+
+	case "comment.md":
+		return CommentItemType
+
+	case "tag.md":
+		return TagItemType
+
+	case "repository.md":
+		return RepositoryItemType
 	}
 
-	return "unknown"
+	return UnknownItemType
 }
 
 func getMatchingValue(lines []string, matchPattern *regexp.Regexp) (string, []string) {
