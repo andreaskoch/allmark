@@ -42,7 +42,7 @@ func (parser DocumentParser) getMatchingValue(lines []string, pattern regexp.Reg
 	// either be empty or match the supplied pattern.
 	for lineNumber, line := range lines {
 
-		lineMatchesTitlePattern, matches := util.IsMatch(line, parser.Patterns.Title)
+		lineMatchesTitlePattern, matches := util.IsMatch(line, pattern)
 		if lineMatchesTitlePattern {
 			nextLine := getNextLinenumber(lineNumber, lines)
 			return util.GetLastElement(matches), lines[nextLine:]
