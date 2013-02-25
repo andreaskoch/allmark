@@ -7,16 +7,6 @@ import (
 	"time"
 )
 
-type MetaDataParser struct {
-	Patterns DocumentStructure
-}
-
-func NewMetaDataParser(documentStructure DocumentStructure) MetaDataParser {
-	return MetaDataParser{
-		Patterns: documentStructure,
-	}
-}
-
 type MetaData struct {
 	Language string
 	Date     time.Time
@@ -33,9 +23,9 @@ func (metaData MetaData) String() string {
 	return s
 }
 
-func (parser MetaDataParser) Parse(lines []string, itemTypeCallback func() string) (MetaData, Match, []string) {
+func ParseMetaData(lines []string, itemTypeCallback func() string) (MetaData, Match, []string) {
 
-	metaDataLocation, lines := parser.locateMetaData(lines)
+	metaDataLocation, lines := locateMetaData(lines)
 	if !metaDataLocation.Found {
 		return MetaData{}, metaDataLocation, lines
 	}
@@ -44,7 +34,7 @@ func (parser MetaDataParser) Parse(lines []string, itemTypeCallback func() strin
 	var metaData MetaData
 
 	for _, line := range metaDataLocation.Matches {
-		isKeyValuePair, matches := util.IsMatch(line, parser.Patterns.MetaData)
+		isKeyValuePair, matches := util.IsMatch(line, MetaDataPattern)
 
 		// skip if line is not a key-value pair
 		if !isKeyValuePair {
@@ -74,7 +64,7 @@ func (parser MetaDataParser) Parse(lines []string, itemTypeCallback func() strin
 
 		case "tags":
 			{
-				metaData.Tags = parser.getTagsFromValue(value)
+				metaData.Tags = getTagsFromValue(value)
 				break
 			}
 
@@ -102,13 +92,13 @@ func (parser MetaDataParser) Parse(lines []string, itemTypeCallback func() strin
 
 // locateMetaData checks if the current Document
 // contains meta data.
-func (parser MetaDataParser) locateMetaData(lines []string) (Match, []string) {
+func locateMetaData(lines []string) (Match, []string) {
 
 	// Find the last horizontal rule in the document
 	lastFoundHorizontalRulePosition := -1
 	for lineNumber, line := range lines {
 
-		lineMatchesHorizontalRulePattern := parser.Patterns.HorizontalRule.MatchString(line)
+		lineMatchesHorizontalRulePattern := HorizontalRulePattern.MatchString(line)
 		if lineMatchesHorizontalRulePattern {
 			lastFoundHorizontalRulePosition = lineNumber
 		}
@@ -132,7 +122,7 @@ func (parser MetaDataParser) locateMetaData(lines []string) (Match, []string) {
 	// either by white space or be meta data
 	for _, line := range lines[metaDataStartLine:] {
 
-		lineMatchesMetaDataPattern := parser.Patterns.MetaData.MatchString(line)
+		lineMatchesMetaDataPattern := MetaDataPattern.MatchString(line)
 		if lineMatchesMetaDataPattern {
 
 			endLine := len(lines)
@@ -140,7 +130,7 @@ func (parser MetaDataParser) locateMetaData(lines []string) (Match, []string) {
 
 		}
 
-		lineIsEmpty := parser.Patterns.EmptyLine.MatchString(line)
+		lineIsEmpty := EmptyLinePattern.MatchString(line)
 		if !lineIsEmpty {
 			return NotFound(), lines
 		}
@@ -150,7 +140,7 @@ func (parser MetaDataParser) locateMetaData(lines []string) (Match, []string) {
 	return NotFound(), lines
 }
 
-func (parser MetaDataParser) getTagsFromValue(value string) []string {
+func getTagsFromValue(value string) []string {
 	rawTags := strings.Split(value, ",")
 	tags := make([]string, 0, 1)
 

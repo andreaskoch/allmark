@@ -12,6 +12,25 @@ import (
 	"strings"
 )
 
+var (
+	// Lines which contain nothing but white space characters
+	// or no characters at all.	
+	EmptyLinePattern = regexp.MustCompile("^\\s*$")
+
+	// Lines which a start with a hash, followed by zero or more
+	// white space characters, followed by text.
+	TitlePattern = regexp.MustCompile("\\s*#\\s*(\\w.+)")
+
+	// Lines which start with text
+	DescriptionPattern = regexp.MustCompile("^\\w.+")
+
+	// Lines which nothing but dashes
+	HorizontalRulePattern = regexp.MustCompile("^-{2,}")
+
+	// Lines with a "key: value" syntax
+	MetaDataPattern = regexp.MustCompile("^(\\w+):\\s*(\\w.+)$")
+)
+
 type ParsedItemElement struct {
 	Name  string
 	Value string
@@ -44,10 +63,6 @@ func (parsedItem *ParsedItem) AddElement(name string, value string) {
 
 }
 
-type Parser interface {
-	Parse(lines []string) (ParsedItem, error)
-}
-
 func ParseItem(item indexer.Item) (ParsedItem, error) {
 
 	// open the file
@@ -61,19 +76,13 @@ func ParseItem(item indexer.Item) (ParsedItem, error) {
 	// get the lines
 	lines := util.GetLines(file)
 
-	// define the patterns
-	documentStructure := NewDocumentStructure()
-
-	// get the meta data
-	metaDataParser := NewMetaDataParser(documentStructure)
-
 	// a callback function for determining the item type
 	var itemTypeCallback = func() string {
 		filename := filepath.Base(item.Path)
 		return getItemTypeFromFilename(filename)
 	}
 
-	metaData, metaDataLocation, lines := metaDataParser.Parse(lines, itemTypeCallback)
+	metaData, metaDataLocation, lines := ParseMetaData(lines, itemTypeCallback)
 	if !metaDataLocation.Found {
 
 		// infer type from file name
@@ -86,8 +95,7 @@ func ParseItem(item indexer.Item) (ParsedItem, error) {
 	switch itemType {
 	case "document":
 		{
-			parser := NewDocumentParser(documentStructure)
-			return parser.Parse(lines, metaData)
+			return ParseDocument(lines, metaData)
 		}
 	}
 
@@ -118,7 +126,7 @@ func getItemTypeFromFilename(filename string) string {
 	return "unknown"
 }
 
-func getMatchingValue(lines []string, matchPattern regexp.Regexp, emptyLinePattern regexp.Regexp) (string, []string) {
+func getMatchingValue(lines []string, matchPattern *regexp.Regexp) (string, []string) {
 
 	// In order to be the "matching value" the line must
 	// either be empty or match the supplied pattern.
@@ -130,7 +138,7 @@ func getMatchingValue(lines []string, matchPattern regexp.Regexp, emptyLinePatte
 			return util.GetLastElement(matches), lines[nextLine:]
 		}
 
-		lineIsEmpty := emptyLinePattern.MatchString(line)
+		lineIsEmpty := EmptyLinePattern.MatchString(line)
 		if !lineIsEmpty {
 			break
 		}

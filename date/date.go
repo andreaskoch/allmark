@@ -25,7 +25,7 @@ func ParseIso8601Date(value string) (time.Time, error) {
 
 	// Parse the date component (e.g. "2013-02-08")
 	// check if the value matches the ISO 8601 Date pattern
-	isValidIso8601Date, dateComponents := util.IsMatch(value, *iso8601DateFormatPattern)
+	isValidIso8601Date, dateComponents := util.IsMatch(value, iso8601DateFormatPattern)
 
 	if !isValidIso8601Date {
 		return MinDate, errors.New(fmt.Sprintf("\"%v\" is not a valid ISO 8601 date", value))
@@ -63,7 +63,7 @@ func ParseIso8601Date(value string) (time.Time, error) {
 	)
 
 	// check if the value matches the 24 hour time format pattern
-	isValidTime, timeComponents := util.IsMatch(value, *timeFormatPattern)
+	isValidTime, timeComponents := util.IsMatch(value, timeFormatPattern)
 	if isValidTime {
 
 		// parse hours
