@@ -7,6 +7,7 @@ package main
 import (
 	"andyk/docs/renderer"
 	"andyk/docs/server"
+	"andyk/docs/util"
 	"errors"
 	"fmt"
 	"os"
@@ -117,9 +118,8 @@ func repositoryPathsAreValid(repositoryPaths []string) (bool, error) {
 		}
 
 		// The respository path must be accessible
-		_, err := os.Stat(absoluteFilePath)
-		if err != nil {
-			return false, errors.New(fmt.Sprintf("The repository path \"%s\" cannot be accessed. Error: %v", path, err))
+		if !util.FileExists(absoluteFilePath) {
+			return false, errors.New(fmt.Sprintf("The repository path \"%s\" cannot be accessed.", path))
 		}
 
 		// Check for duplicates

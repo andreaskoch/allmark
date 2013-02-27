@@ -5,9 +5,9 @@
 package indexer
 
 import (
+	"andyk/docs/util"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -20,14 +20,8 @@ func GetIndex(repositoryPath string) Index {
 	}
 
 	// check if the supplied repository path exists
-	if _, err := os.Stat(repositoryPath); err != nil {
-
-		switch {
-		case os.IsNotExist(err):
-			panic(fmt.Sprintf("The supplied repository path `%v` does not exist.", repositoryPath))
-		default:
-			panic(fmt.Sprintf("An error occured while trying to access the supplied repository path `%v`.", repositoryPath))
-		}
+	if !util.FileExists(repositoryPath) {
+		panic(fmt.Sprintf("The supplied repository path `%v` does not exist.", repositoryPath))
 	}
 
 	// get all repository items in the supplied repository path

@@ -8,19 +8,17 @@ import (
 	"bufio"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
 	"text/template"
 )
 
 func Render(repositoryPaths []string) {
 	for _, repositoryPath := range repositoryPaths {
 		index := indexer.GetIndex(repositoryPath)
-		renderIndex(index)
+		RenderIndex(index)
 	}
 }
 
-func renderIndex(index indexer.Index) {
+func RenderIndex(index indexer.Index) {
 
 	for _, item := range index.Items {
 		renderItem(item)
@@ -36,12 +34,10 @@ func renderItem(item indexer.Item) {
 		return
 	}
 
-	renderedItemFilePath := getRenderedItemPath(item)
-
 	switch parsedItem.MetaData.ItemType {
 	case parser.DocumentItemType:
 		{
-			file, err := os.Create(renderedItemFilePath)
+			file, err := os.Create(item.RenderedPath)
 			if err != nil {
 				panic(err)
 			}
@@ -58,13 +54,4 @@ func renderItem(item indexer.Item) {
 			template.Execute(writer, document)
 		}
 	}
-}
-
-// Get the filepath of the rendered repository item
-func getRenderedItemPath(item indexer.Item) string {
-	itemDirectory := filepath.Dir(item.Path)
-	itemName := strings.Replace(filepath.Base(item.Path), filepath.Ext(item.Path), "", 1)
-
-	renderedFilePath := filepath.Join(itemDirectory, itemName+".html")
-	return renderedFilePath
 }

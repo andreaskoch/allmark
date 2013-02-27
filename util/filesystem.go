@@ -3,6 +3,8 @@ package util
 import (
 	"bufio"
 	"io"
+	"os"
+	"strings"
 )
 
 // readLine returns a single line (without the ending \n)
@@ -36,4 +38,17 @@ func GetLines(inFile io.Reader) []string {
 	}
 
 	return lines
+}
+
+func FileExists(path string) bool {
+	if strings.TrimSpace(path) == "" {
+		return false
+	}
+
+	_, err := os.Stat(path)
+	if err != nil && os.IsNotExist(err) {
+		return false
+	}
+
+	return true
 }
