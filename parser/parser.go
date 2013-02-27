@@ -54,8 +54,15 @@ func NewParsedItemElement(name string, value string) ParsedItemElement {
 }
 
 type ParsedItem struct {
+	Item     indexer.Item
 	Elements []ParsedItemElement
 	MetaData MetaData
+}
+
+func NewParsedItem(item indexer.Item) ParsedItem {
+	return ParsedItem{
+		Item: item,
+	}
 }
 
 func (parsedItem *ParsedItem) GetElementValue(name string) string {
@@ -88,12 +95,12 @@ func (parsedItem *ParsedItem) AddElement(name string, value string) {
 
 }
 
-func ParseItem(item indexer.Item) (ParsedItem, error) {
+func Parse(item indexer.Item) (ParsedItem, error) {
 
 	// open the file
 	file, err := os.Open(item.Path)
 	if err != nil {
-		return ParsedItem{}, err
+		return NewParsedItem(item), err
 	}
 
 	defer file.Close()
@@ -121,11 +128,12 @@ func ParseItem(item indexer.Item) (ParsedItem, error) {
 	switch itemType {
 	case DocumentItemType:
 		{
-			return ParseDocument(lines, metaData)
+			parsedDoc := NewParsedItem(item)
+			return *parsedDoc.ParseDocument(lines, metaData), nil
 		}
 	}
 
-	return ParsedItem{}, errors.New(fmt.Sprintf("Items of type \"%v\" cannot be parsed.", itemType))
+	return NewParsedItem(item), errors.New(fmt.Sprintf("Items of type \"%v\" cannot be parsed.", itemType))
 }
 
 func getItemTypeFromFilename(filename string) string {

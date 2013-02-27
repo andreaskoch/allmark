@@ -1,6 +1,6 @@
 package parser
 
-func ParseDocument(lines []string, metaData MetaData) (item ParsedItem, err error) {
+func (item *ParsedItem) ParseDocument(lines []string, metaData MetaData) *ParsedItem {
 
 	// assign meta data
 	item.MetaData = metaData
@@ -16,5 +16,5 @@ func ParseDocument(lines []string, metaData MetaData) (item ParsedItem, err erro
 	// content
 	item.AddElement("content", getContent(lines))
 
-	return item, nil
+	return item
 }

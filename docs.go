@@ -5,8 +5,8 @@
 package main
 
 import (
-	"andyk/docs/indexer"
 	"andyk/docs/renderer"
+	"andyk/docs/server"
 	"errors"
 	"fmt"
 	"os"
@@ -23,28 +23,12 @@ func main() {
 
 	// render callback
 	render := func(repositoryPaths []string) {
-
-		for _, repositoryPath := range repositoryPaths {
-			index := indexer.GetIndex(repositoryPath)
-			for _, item := range index.Items {
-
-				renderer.RenderItem(item)
-			}
-		}
-
+		renderer.Render(repositoryPaths)
 	}
 
 	// serve callback
 	serve := func(repositoryPaths []string) {
-
-		for _, repositoryPath := range repositoryPaths {
-			index := indexer.GetIndex(repositoryPath)
-			for _, item := range index.Items {
-
-				renderer.RenderItem(item)
-			}
-		}
-
+		server.Serve(repositoryPaths)
 	}
 
 	parseCommandLineArguments(os.Args, render, serve)
