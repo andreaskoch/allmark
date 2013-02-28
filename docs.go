@@ -94,8 +94,8 @@ func printUsageInformation(args []string) {
 	fmt.Fprintf(os.Stderr, "%s - %s\n", executeableName, "A markdown server and and renderer.")
 	fmt.Fprintf(os.Stderr, "\nUsage:\n%s %s %s %s %s\n", executeableName, "<command>", "[<repository path>]", "[<...>]", "[<repository path>]")
 	fmt.Fprintf(os.Stderr, "\nAvailable commands:\n")
-	fmt.Fprintf(os.Stderr, "  %s    %s\n", CommandNameServe, "Serve the supplied repositor(y/ies) via HTTP.")
-	fmt.Fprintf(os.Stderr, "  %s   %s\n", CommandNameRender, "Render the items in the supplied repositor(y/ies).")
+	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameServe, "Serve the supplied repositor(y/ies) via HTTP.")
+	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameRender, "Render the items in the supplied repositor(y/ies).")
 
 	os.Exit(2)
 }
