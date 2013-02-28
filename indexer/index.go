@@ -12,12 +12,16 @@ func NewIndex(path string, items []Item) Index {
 	}
 }
 
-func (index Index) GetRelativeItemPaths() []string {
+func (index Index) GetAllItems() []Item {
 
-	paths := make([]string, 0, 0)
+	// number of direct descendants plus the current item
+	minSize := len(index.Items) + 1
+	items := make([]Item, minSize, minSize)
+
+	// add all index items
 	for _, item := range index.Items {
-		paths = append(paths, item.GetRelativeItemPaths(index.Path)...)
+		items = append(items, item.GetAllItems()...)
 	}
 
-	return paths
+	return items
 }

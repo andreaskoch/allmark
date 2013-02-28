@@ -4,21 +4,85 @@ import (
 	"andyk/docs/indexer"
 	"andyk/docs/renderer"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 )
 
 func Serve(repositoryPaths []string) {
 
-	itemPaths := make([]string, 0, 0)
-	for _, repositoryPath := range repositoryPaths {
+	// An array of all indices for
+	// the given repositories.
+	indices := make([]indexer.Index, len(repositoryPaths), len(repositoryPaths))
+
+	for indexNumber, repositoryPath := range repositoryPaths {
 
 		// create an index
 		index := indexer.GetIndex(repositoryPath)
 
+		// capture the index
+		indices[indexNumber] = index
+
 		// render all index items
 		renderer.RenderIndex(index)
-
-		itemPaths = append(itemPaths, index.GetRelativeItemPaths()...)
 	}
 
-	fmt.Printf("%#v", itemPaths)
+	// get the routes table
+	routes := GetRoutes(indices)
+
+	var error404Handler = func(w http.ResponseWriter, r *http.Request) {
+		requestedPath := r.URL.Path
+		fmt.Fprintf(w, "Not found: %v", requestedPath)
+	}
+
+	var itemHandler = func(w http.ResponseWriter, r *http.Request) {
+		requestedPath := r.URL.Path
+
+		item, ok := routes[requestedPath]
+		if !ok {
+			error404Handler(w, r)
+			return
+		}
+
+		data, err := ioutil.ReadFile(item.GetAbsolutePath())
+		if err != nil {
+			error404Handler(w, r)
+			return
+		}
+
+		fmt.Fprintf(w, "%s", data)
+	}
+
+	var indexHandler = func(w http.ResponseWriter, r *http.Request) {
+		for route, _ := range routes {
+			fmt.Fprintln(w, route)
+		}
+	}
+
+	http.HandleFunc("/", itemHandler)
+	http.HandleFunc("/index", indexHandler)
+	http.ListenAndServe(":8080", nil)
+}
+
+func GetRoutes(indices []indexer.Index) map[string]indexer.Addresser {
+
+	routes := make(map[string]indexer.Addresser)
+
+	for _, index := range indices {
+		allItemsInIndex := index.GetAllItems()
+
+		for _, item := range allItemsInIndex {
+
+			// add the item to the route table
+			itemRoute := item.GetRelativePath(index.Path)
+			routes[itemRoute] = item
+
+			// add the item's files to the route table
+			for _, file := range item.Files {
+				fileRoute := file.GetRelativePath(index.Path)
+				routes[fileRoute] = file
+			}
+		}
+	}
+
+	return routes
 }

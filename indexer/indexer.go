@@ -12,6 +12,11 @@ import (
 	"strings"
 )
 
+type Addresser interface {
+	GetAbsolutePath() string
+	GetRelativePath(basePath string) string
+}
+
 func GetIndex(repositoryPath string) Index {
 
 	// check if the supplied repository path is set
@@ -101,11 +106,12 @@ func getChildItems(itemPath string) []Item {
 
 func getFiles(itemPath string) []File {
 
+	filesDirectory := filepath.Join(itemPath, "files")
 	itemFiles := make([]File, 0, 5)
-	filesDirectoryEntries, _ := ioutil.ReadDir(filepath.Join(itemPath, "files"))
+	filesDirectoryEntries, _ := ioutil.ReadDir(filesDirectory)
 
 	for _, file := range filesDirectoryEntries {
-		absoluteFilePath := filepath.Join(itemPath, file.Name())
+		absoluteFilePath := filepath.Join(filesDirectory, file.Name())
 		repositoryFile := NewFile(absoluteFilePath)
 
 		itemFiles = append(itemFiles, repositoryFile)

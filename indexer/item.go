@@ -38,7 +38,7 @@ func (item Item) GetFilename() string {
 	return filepath.Base(item.Path)
 }
 
-func (item *Item) GetHash() string {
+func (item Item) GetHash() string {
 	itemBytes, readFileErr := ioutil.ReadFile(item.Path)
 	if readFileErr != nil {
 		return ""
@@ -50,23 +50,36 @@ func (item *Item) GetHash() string {
 	return fmt.Sprintf("%x", string(sha1.Sum(nil)[0:6]))
 }
 
+func (item Item) GetAllItems() []Item {
+
+	// number of direct descendants plus the current item
+	minSize := len(item.ChildItems) + 1
+	items := make([]Item, minSize, minSize)
+
+	// add the current item
+	items[0] = item
+
+	// add all children
+	for _, child := range item.ChildItems {
+		items = append(items, child.GetAllItems()...)
+	}
+
+	return items
+}
+
 func (item Item) IsRendered() bool {
 	return util.FileExists(item.RenderedPath)
 }
 
-func (item Item) GetRelativeItemPaths(basePath string) []string {
+func (item Item) GetAbsolutePath() string {
+	return item.RenderedPath
+}
 
-	paths := make([]string, 0, 0)
-
-	for _, child := range item.ChildItems {
-		paths = append(paths, child.GetRelativeItemPaths(basePath)...)
-	}
+func (item Item) GetRelativePath(basePath string) string {
 
 	fullItemPath := item.RenderedPath
 	relativePath := strings.Replace(fullItemPath, basePath, "", 1)
-	paths = append(paths, relativePath)
-
-	return paths
+	return relativePath
 }
 
 // Get the filepath of the rendered repository item
