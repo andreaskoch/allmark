@@ -111,6 +111,10 @@ func getFiles(itemPath string) []File {
 	filesDirectoryEntries, _ := ioutil.ReadDir(filesDirectory)
 
 	for _, file := range filesDirectoryEntries {
+		if file.IsDir() {
+			continue
+		}
+
 		absoluteFilePath := filepath.Join(filesDirectory, file.Name())
 		repositoryFile := NewFile(absoluteFilePath)
 
