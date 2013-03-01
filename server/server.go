@@ -8,6 +8,8 @@ import (
 	"net/http"
 )
 
+var routes map[string]indexer.Addresser
+
 func Serve(repositoryPaths []string) {
 
 	// An array of all indices for
@@ -26,8 +28,8 @@ func Serve(repositoryPaths []string) {
 		renderer.RenderIndex(index)
 	}
 
-	// get the routes table
-	routes := GetRoutes(indices)
+	// Initialize the routing table
+	InitializeRoutes(indices)
 
 	var error404Handler = func(w http.ResponseWriter, r *http.Request) {
 		requestedPath := r.URL.Path
@@ -63,9 +65,9 @@ func Serve(repositoryPaths []string) {
 	http.ListenAndServe(":8080", nil)
 }
 
-func GetRoutes(indices []indexer.Index) map[string]indexer.Addresser {
+func InitializeRoutes(indices []indexer.Index) {
 
-	routes := make(map[string]indexer.Addresser)
+	routes = make(map[string]indexer.Addresser)
 
 	for _, index := range indices {
 		allItemsInIndex := index.GetAllItems()
@@ -74,15 +76,23 @@ func GetRoutes(indices []indexer.Index) map[string]indexer.Addresser {
 
 			// add the item to the route table
 			itemRoute := item.GetRelativePath(index.Path)
-			routes[itemRoute] = item
+			RegisterRoute(itemRoute, item)
 
 			// add the item's files to the route table
 			for _, file := range item.Files {
 				fileRoute := file.GetRelativePath(index.Path)
-				routes[fileRoute] = file
+				RegisterRoute(fileRoute, file)
 			}
 		}
 	}
+}
 
-	return routes
+func RegisterRoute(route string, item indexer.Addresser) {
+	item, ok := routes[route]
+	if ok {
+		fmt.Printf("The route \"%s\" is already in use by another item. Item: %#v\n", route, item)
+		return
+	}
+
+	routes[route] = item
 }
