@@ -70,9 +70,8 @@ func InitializeRoutes(indices []indexer.Index) {
 	routes = make(map[string]indexer.Addresser)
 
 	for _, index := range indices {
-		allItemsInIndex := index.GetAllItems()
 
-		for _, item := range allItemsInIndex {
+		index.Walk(func(item indexer.Item) {
 
 			// add the item to the route table
 			itemRoute := item.GetRelativePath(index.Path)
@@ -83,7 +82,9 @@ func InitializeRoutes(indices []indexer.Index) {
 				fileRoute := file.GetRelativePath(index.Path)
 				RegisterRoute(fileRoute, file)
 			}
-		}
+
+		})
+
 	}
 }
 

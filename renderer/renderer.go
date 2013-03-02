@@ -20,9 +20,9 @@ func Render(repositoryPaths []string) {
 
 func RenderIndex(index indexer.Index) {
 
-	for _, item := range index.GetAllItems() {
+	index.Walk(func(item indexer.Item) {
 		renderItem(item)
-	}
+	})
 
 }
 
