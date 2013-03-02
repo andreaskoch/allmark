@@ -20,5 +20,6 @@ func (file File) GetRelativePath(basePath string) string {
 
 	fullPath := file.Path
 	relativePath := strings.Replace(fullPath, basePath, "", 1)
+	relativePath = "/" + strings.TrimLeft(relativePath, "/")
 	return relativePath
 }
