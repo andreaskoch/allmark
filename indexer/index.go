@@ -15,12 +15,15 @@ func NewIndex(path string, items []Item) Index {
 func (index Index) GetAllItems() []Item {
 
 	// number of direct descendants plus the current item
-	minSize := len(index.Items) + 1
-	items := make([]Item, minSize, minSize)
+	items := make([]Item, 0, 0)
+
+	var walkFunc = func(item Item) {
+		items = append(items, item)
+	}
 
 	// add all index items
 	for _, item := range index.Items {
-		items = append(items, item.GetAllItems()...)
+		item.Walk(walkFunc)
 	}
 
 	return items

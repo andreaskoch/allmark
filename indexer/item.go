@@ -50,21 +50,14 @@ func (item Item) GetHash() string {
 	return fmt.Sprintf("%x", string(sha1.Sum(nil)[0:6]))
 }
 
-func (item Item) GetAllItems() []Item {
+func (item Item) Walk(walkFunc func(item Item)) {
 
-	// number of direct descendants plus the current item
-	minSize := len(item.ChildItems) + 1
-	items := make([]Item, minSize, minSize)
-
-	// add the current item
-	items[0] = item
+	walkFunc(item)
 
 	// add all children
 	for _, child := range item.ChildItems {
-		items = append(items, child.GetAllItems()...)
+		child.Walk(walkFunc)
 	}
-
-	return items
 }
 
 func (item Item) IsRendered() bool {
