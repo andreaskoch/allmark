@@ -13,6 +13,9 @@
 # Filename:
 # start-buildservice.sh
 
+# Initial build
+go install
+
 # Assemble list of files to watch
 autoBuildFileList="autobuild-files.txt"
 
