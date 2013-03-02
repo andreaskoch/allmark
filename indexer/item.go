@@ -85,8 +85,6 @@ func (item Item) GetRelativePath(basePath string) string {
 // Get the filepath of the rendered repository item
 func getRenderedItemPath(itemPath string) string {
 	itemDirectory := filepath.Dir(itemPath)
-	itemName := strings.Replace(filepath.Base(itemPath), filepath.Ext(itemPath), "", 1)
-
-	renderedFilePath := filepath.Join(itemDirectory, itemName+".html")
+	renderedFilePath := filepath.Join(itemDirectory, "index.html")
 	return renderedFilePath
 }
