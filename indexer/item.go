@@ -21,6 +21,7 @@ import (
 const (
 	UnknownItemType      = "unknown"
 	DocumentItemType     = "document"
+	PresentationItemType = "presentation"
 	CollectionItemType   = "collection"
 	MessageItemType      = "message"
 	ImageGalleryItemType = "imagegallery"
@@ -119,6 +120,9 @@ func getItemTypeFromFilename(filename string) string {
 	switch lowercaseFilename {
 	case "document.md", "readme.md":
 		return DocumentItemType
+
+	case "presentation.md":
+		return PresentationItemType
 
 	case "collection.md":
 		return CollectionItemType
