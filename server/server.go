@@ -89,9 +89,9 @@ func InitializeRoutes(indices []indexer.Index) {
 }
 
 func RegisterRoute(route string, item indexer.Addresser) {
-	item, ok := routes[route]
+	anotherItem, ok := routes[route]
 	if ok {
-		fmt.Printf("The route \"%s\" is already in use by another item. Item: %#v\n", route, item)
+		fmt.Printf("The route \"%s\" is already in use by another item. Item: %#v\n", route, anotherItem)
 		return
 	}
 
