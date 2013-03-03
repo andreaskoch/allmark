@@ -18,13 +18,15 @@ import (
 )
 
 const (
-	UnknownItemType    = "unknown"
-	DocumentItemType   = "document"
-	MessageItemType    = "message"
-	LocationItemType   = "location"
-	CommentItemType    = "message"
-	TagItemType        = "tag"
-	RepositoryItemType = "repository"
+	UnknownItemType      = "unknown"
+	DocumentItemType     = "document"
+	CollectionItemType   = "collection"
+	MessageItemType      = "message"
+	ImageGalleryItemType = "imagegallery"
+	LocationItemType     = "location"
+	CommentItemType      = "comment"
+	TagItemType          = "tag"
+	RepositoryItemType   = "repository"
 )
 
 type Item struct {
@@ -110,8 +112,14 @@ func getItemTypeFromFilename(filename string) string {
 	case "document.md":
 		return DocumentItemType
 
+	case "collection.md":
+		return CollectionItemType
+
 	case "message.md":
 		return MessageItemType
+
+	case "imagegallery.md":
+		return ImageGalleryItemType
 
 	case "location.md":
 		return LocationItemType
