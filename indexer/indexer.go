@@ -65,7 +65,12 @@ func findAllItems(repositoryPath string) []Item {
 		childs := getChildItems(repositoryPath)
 
 		// create item and append to list
-		item := NewItem(itemPath, files, childs)
+		item, err := NewItem(itemPath, files, childs)
+		if err != nil {
+			fmt.Printf("Skipping item: %s\n", err)
+			continue
+		}
+
 		items = append(items, item)
 
 		// item has been found

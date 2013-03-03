@@ -6,7 +6,7 @@ import (
 	"andyk/docs/parser"
 	"andyk/docs/templates"
 	"bufio"
-	"log"
+	"fmt"
 	"os"
 	"text/template"
 )
@@ -30,7 +30,7 @@ func renderItem(item indexer.Item) {
 
 	parsedItem, err := parser.Parse(item)
 	if err != nil {
-		log.Printf("Could not parse item \"%v\". Error: %v", item.Path, err)
+		fmt.Printf("Could not parse item \"%v\": %v\n", item.Path, err)
 		return
 	}
 

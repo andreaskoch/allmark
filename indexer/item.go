@@ -11,6 +11,7 @@ package indexer
 import (
 	"andyk/docs/util"
 	"crypto/sha1"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -38,11 +39,12 @@ type Item struct {
 }
 
 // Create a new repository item
-func NewItem(path string, files []File, childItems []Item) Item {
+func NewItem(path string, files []File, childItems []Item) (item Item, err error) {
 
-	var getItemType = func() string {
-		filename := filepath.Base(path)
-		return getItemTypeFromFilename(filename)
+	itemType := getItemType(path)
+
+	if itemType == UnknownItemType {
+		err = errors.New(fmt.Sprintf("The item %q does not match any of the known item types.", path))
 	}
 
 	return Item{
@@ -50,8 +52,8 @@ func NewItem(path string, files []File, childItems []Item) Item {
 		RenderedPath: getRenderedItemPath(path),
 		Files:        files,
 		ChildItems:   childItems,
-		Type:         getItemType(),
-	}
+		Type:         itemType,
+	}, err
 }
 
 func (item Item) GetFilename() string {
@@ -95,6 +97,12 @@ func (item Item) GetRelativePath(basePath string) string {
 	relativePath = "/" + strings.TrimLeft(relativePath, "/")
 
 	return relativePath
+}
+
+// Get the item type from the given item path
+func getItemType(itemPath string) string {
+	filename := filepath.Base(itemPath)
+	return getItemTypeFromFilename(filename)
 }
 
 // Get the filepath of the rendered repository item
