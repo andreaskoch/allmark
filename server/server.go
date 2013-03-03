@@ -5,7 +5,9 @@ import (
 	"andyk/docs/renderer"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"strings"
 )
 
 var routes map[string]indexer.Addresser
@@ -89,6 +91,17 @@ func InitializeRoutes(indices []indexer.Index) {
 }
 
 func RegisterRoute(route string, item indexer.Addresser) {
+
+	if item == nil {
+		log.Printf("Cannot add a route for an uninitialized item. Route: %#v\n", route)
+		return
+	}
+
+	if strings.TrimSpace(route) == "" {
+		log.Printf("Cannot add an empty route to the routing table. Item: %#v\n", item)
+		return
+	}
+
 	anotherItem, ok := routes[route]
 	if ok {
 		fmt.Printf("The route \"%s\" is already in use by another item. Item: %#v\n", route, anotherItem)
