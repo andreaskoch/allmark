@@ -117,7 +117,7 @@ func getItemTypeFromFilename(filename string) string {
 	lowercaseFilename := strings.ToLower(filename)
 
 	switch lowercaseFilename {
-	case "document.md":
+	case "document.md", "readme.md":
 		return DocumentItemType
 
 	case "collection.md":
