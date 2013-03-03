@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/russross/blackfriday"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -29,16 +28,6 @@ var (
 
 	// Lines with a "key: value" syntax
 	MetaDataPattern = regexp.MustCompile("^(\\w+):\\s*(\\w.+)$")
-)
-
-const (
-	UnknownItemType    = "unknown"
-	DocumentItemType   = "document"
-	MessageItemType    = "message"
-	LocationItemType   = "location"
-	CommentItemType    = "message"
-	TagItemType        = "tag"
-	RepositoryItemType = "repository"
 )
 
 type ParsedItemElement struct {
@@ -108,59 +97,15 @@ func Parse(item indexer.Item) (ParsedItem, error) {
 	// get the lines
 	lines := util.GetLines(file)
 
-	// a callback function for determining the item type
-	var itemTypeCallback = func() string {
-		filename := filepath.Base(item.Path)
-		return getItemTypeFromFilename(filename)
-	}
-
-	metaData, metaDataLocation, lines := ParseMetaData(lines, itemTypeCallback)
-	if !metaDataLocation.Found {
-
-		// infer type from file name
-		metaData.ItemType = getItemTypeFromFilename(item.GetFilename())
-
-	}
-
-	// parse by type
-	itemType := strings.TrimSpace(strings.ToLower(metaData.ItemType))
-
-	switch itemType {
-	case DocumentItemType:
+	switch item.Type {
+	case indexer.DocumentItemType:
 		{
 			parsedDoc := NewParsedItem(item)
-			return *parsedDoc.ParseDocument(lines, metaData), nil
+			return *parsedDoc.ParseDocument(lines), nil
 		}
 	}
 
-	return NewParsedItem(item), errors.New(fmt.Sprintf("Items of type \"%v\" cannot be parsed.", itemType))
-}
-
-func getItemTypeFromFilename(filename string) string {
-
-	lowercaseFilename := strings.ToLower(filename)
-
-	switch lowercaseFilename {
-	case "document.md":
-		return DocumentItemType
-
-	case "message.md":
-		return MessageItemType
-
-	case "location.md":
-		return LocationItemType
-
-	case "comment.md":
-		return CommentItemType
-
-	case "tag.md":
-		return TagItemType
-
-	case "repository.md":
-		return RepositoryItemType
-	}
-
-	return UnknownItemType
+	return NewParsedItem(item), errors.New(fmt.Sprintf("Items of type \"%v\" cannot be parsed.", item.Type))
 }
 
 func getMatchingValue(lines []string, matchPattern *regexp.Regexp) (string, []string) {

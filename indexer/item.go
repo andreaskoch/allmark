@@ -17,20 +17,38 @@ import (
 	"strings"
 )
 
+const (
+	UnknownItemType    = "unknown"
+	DocumentItemType   = "document"
+	MessageItemType    = "message"
+	LocationItemType   = "location"
+	CommentItemType    = "message"
+	TagItemType        = "tag"
+	RepositoryItemType = "repository"
+)
+
 type Item struct {
 	Path         string
 	RenderedPath string
 	Files        []File
 	ChildItems   []Item
+	Type         string
 }
 
 // Create a new repository item
 func NewItem(path string, files []File, childItems []Item) Item {
+
+	var getItemType = func() string {
+		filename := filepath.Base(path)
+		return getItemTypeFromFilename(filename)
+	}
+
 	return Item{
 		Path:         path,
 		RenderedPath: getRenderedItemPath(path),
 		Files:        files,
 		ChildItems:   childItems,
+		Type:         getItemType(),
 	}
 }
 
@@ -82,4 +100,31 @@ func getRenderedItemPath(itemPath string) string {
 	itemDirectory := filepath.Dir(itemPath)
 	renderedFilePath := filepath.Join(itemDirectory, "index.html")
 	return renderedFilePath
+}
+
+func getItemTypeFromFilename(filename string) string {
+
+	lowercaseFilename := strings.ToLower(filename)
+
+	switch lowercaseFilename {
+	case "document.md":
+		return DocumentItemType
+
+	case "message.md":
+		return MessageItemType
+
+	case "location.md":
+		return LocationItemType
+
+	case "comment.md":
+		return CommentItemType
+
+	case "tag.md":
+		return TagItemType
+
+	case "repository.md":
+		return RepositoryItemType
+	}
+
+	return UnknownItemType
 }

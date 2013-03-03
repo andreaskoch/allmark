@@ -34,8 +34,8 @@ func renderItem(item indexer.Item) {
 		return
 	}
 
-	switch parsedItem.MetaData.ItemType {
-	case parser.DocumentItemType:
+	switch parsedItem.Item.Type {
+	case indexer.DocumentItemType:
 		{
 			file, err := os.Create(item.RenderedPath)
 			if err != nil {
@@ -49,7 +49,7 @@ func renderItem(item indexer.Item) {
 			}()
 
 			document := mappers.GetDocument(parsedItem)
-			template := template.New(parser.DocumentItemType)
+			template := template.New(indexer.DocumentItemType)
 			template.Parse(templates.DocumentTemplate)
 			template.Execute(writer, document)
 		}

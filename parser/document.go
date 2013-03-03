@@ -1,9 +1,12 @@
 package parser
 
-func (item *ParsedItem) ParseDocument(lines []string, metaData MetaData) *ParsedItem {
+func (item *ParsedItem) ParseDocument(lines []string) *ParsedItem {
 
-	// assign meta data
-	item.MetaData = metaData
+	// meta data
+	metaData, metaDataLocation, lines := ParseMetaData(lines)
+	if metaDataLocation.Found {
+		item.MetaData = metaData
+	}
 
 	// title
 	title, lines := getMatchingValue(lines, TitlePattern)

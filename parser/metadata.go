@@ -11,10 +11,9 @@ type MetaData struct {
 	Language string
 	Date     time.Time
 	Tags     []string
-	ItemType string
 }
 
-func ParseMetaData(lines []string, itemTypeCallback func() string) (MetaData, Match, []string) {
+func ParseMetaData(lines []string) (MetaData, Match, []string) {
 
 	metaDataLocation, lines := locateMetaData(lines)
 	if !metaDataLocation.Found {
@@ -59,23 +58,7 @@ func ParseMetaData(lines []string, itemTypeCallback func() string) (MetaData, Ma
 				break
 			}
 
-		case "type":
-			{
-				itemTypeString := strings.ToLower(value)
-				if itemTypeString != "" {
-					metaData.ItemType = itemTypeString
-				}
-				break
-			}
-
 		}
-	}
-
-	// make sure the item type is set
-	if metaData.ItemType == "" {
-
-		// use the provided item type callback
-		metaData.ItemType = itemTypeCallback()
 	}
 
 	return metaData, metaDataLocation, lines
