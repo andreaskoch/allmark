@@ -36,6 +36,7 @@ type Item struct {
 	RenderedPath string
 	Files        []File
 	ChildItems   []Item
+	Blocks       []Block
 	Type         string
 }
 
@@ -98,6 +99,39 @@ func (item Item) GetRelativePath(basePath string) string {
 	relativePath = "/" + strings.TrimLeft(relativePath, "/")
 
 	return relativePath
+}
+
+func (item Item) GetBlockValue(name string) string {
+	if item.Blocks == nil || len(item.Blocks) == 0 {
+		return ""
+	}
+
+	for _, element := range item.Blocks {
+
+		if strings.ToLower(element.Name) == strings.ToLower(name) {
+			return element.Value
+		}
+
+	}
+
+	return ""
+}
+
+func (item *Item) AddBlock(name string, value string) {
+
+	block, err := NewBlock(name, value)
+	if err != nil {
+		panic("Cannot add a block without a name")
+	}
+
+	if item.Blocks == nil {
+		item.Blocks = make([]Block, 1, 1)
+		item.Blocks[0] = block
+		return
+	}
+
+	item.Blocks = append(item.Blocks, block)
+
 }
 
 // Get the item type from the given item path

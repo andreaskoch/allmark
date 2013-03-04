@@ -1,23 +1,21 @@
 package parser
 
-func (item *ParsedItem) ParseDocument(lines []string) *ParsedItem {
+import (
+	"andyk/docs/indexer"
+)
 
-	// meta data
-	metaData, metaDataLocation, lines := ParseMetaData(lines)
-	if metaDataLocation.Found {
-		item.MetaData = metaData
-	}
+func ParseDocument(item *indexer.Item, lines []string) *indexer.Item {
 
 	// title
 	title, lines := getMatchingValue(lines, TitlePattern)
-	item.AddElement("title", title)
+	item.AddBlock("title", title)
 
 	// description
 	description, lines := getMatchingValue(lines, DescriptionPattern)
-	item.AddElement("description", description)
+	item.AddBlock("description", description)
 
 	// content
-	item.AddElement("content", getContent(lines))
+	item.AddBlock("content", getContent(lines))
 
 	return item
 }

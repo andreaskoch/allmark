@@ -1,15 +1,15 @@
 package mappers
 
 import (
-	"andyk/docs/parser"
+	"andyk/docs/indexer"
 	"andyk/docs/viewmodel"
 )
 
-func GetDocument(parsedItem parser.ParsedItem) viewmodel.Document {
+func GetDocument(item indexer.Item) viewmodel.Document {
 	return viewmodel.Document{
-		Title:       parsedItem.GetElementValue("title"),
-		Description: parsedItem.GetElementValue("description"),
-		Content:     parsedItem.GetElementValue("content"),
-		LanguageTag: getTwoLetterLanguageCode(parsedItem.MetaData.Language),
+		Title:       item.GetBlockValue("title"),
+		Description: item.GetBlockValue("description"),
+		Content:     item.GetBlockValue("content"),
+		//LanguageTag: getTwoLetterLanguageCode(parsedItem.MetaData.Language),
 	}
 }

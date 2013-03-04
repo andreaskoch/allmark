@@ -30,66 +30,12 @@ var (
 	MetaDataPattern = regexp.MustCompile("^(\\w+):\\s*(\\w.+)$")
 )
 
-type ParsedItemElement struct {
-	Name  string
-	Value string
-}
-
-func NewParsedItemElement(name string, value string) ParsedItemElement {
-	return ParsedItemElement{
-		Name:  name,
-		Value: value,
-	}
-}
-
-type ParsedItem struct {
-	Item     indexer.Item
-	Elements []ParsedItemElement
-	MetaData MetaData
-}
-
-func NewParsedItem(item indexer.Item) ParsedItem {
-	return ParsedItem{
-		Item: item,
-	}
-}
-
-func (parsedItem *ParsedItem) GetElementValue(name string) string {
-	if parsedItem.Elements == nil || len(parsedItem.Elements) == 0 {
-		return ""
-	}
-
-	for _, element := range parsedItem.Elements {
-
-		if strings.ToLower(element.Name) == strings.ToLower(name) {
-			return element.Value
-		}
-
-	}
-
-	return ""
-}
-
-func (parsedItem *ParsedItem) AddElement(name string, value string) {
-
-	element := NewParsedItemElement(name, value)
-
-	if parsedItem.Elements == nil {
-		parsedItem.Elements = make([]ParsedItemElement, 1, 1)
-		parsedItem.Elements[0] = element
-		return
-	}
-
-	parsedItem.Elements = append(parsedItem.Elements, element)
-
-}
-
-func Parse(item indexer.Item) (ParsedItem, error) {
+func Parse(item *indexer.Item) (*indexer.Item, error) {
 
 	// open the file
 	file, err := os.Open(item.Path)
 	if err != nil {
-		return NewParsedItem(item), err
+		return item, err
 	}
 
 	defer file.Close()
@@ -100,12 +46,11 @@ func Parse(item indexer.Item) (ParsedItem, error) {
 	switch item.Type {
 	case indexer.DocumentItemType:
 		{
-			parsedDoc := NewParsedItem(item)
-			return *parsedDoc.ParseDocument(lines), nil
+			return ParseDocument(item, lines), nil
 		}
 	}
 
-	return NewParsedItem(item), errors.New(fmt.Sprintf("Items of type \"%v\" cannot be parsed.", item.Type))
+	return item, errors.New(fmt.Sprintf("Items of type \"%v\" cannot be parsed.", item.Type))
 }
 
 func getMatchingValue(lines []string, matchPattern *regexp.Regexp) (string, []string) {

@@ -28,13 +28,13 @@ func RenderIndex(index indexer.Index) {
 
 func renderItem(item indexer.Item) {
 
-	parsedItem, err := parser.Parse(item)
+	_, err := parser.Parse(&item)
 	if err != nil {
 		fmt.Printf("Could not parse item \"%v\": %v\n", item.Path, err)
 		return
 	}
 
-	switch parsedItem.Item.Type {
+	switch item.Type {
 	case indexer.DocumentItemType:
 		{
 			file, err := os.Create(item.RenderedPath)
@@ -48,7 +48,7 @@ func renderItem(item indexer.Item) {
 				file.Close()
 			}()
 
-			document := mappers.GetDocument(parsedItem)
+			document := mappers.GetDocument(item)
 			template := template.New(indexer.DocumentItemType)
 			template.Parse(templates.DocumentTemplate)
 			template.Execute(writer, document)
