@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"andyk/docs/date"
-	"andyk/docs/util"
+	"github.com/andreaskoch/docs/date"
+	"github.com/andreaskoch/docs/util"
 	"strings"
 	"time"
 )

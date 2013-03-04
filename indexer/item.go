@@ -9,10 +9,10 @@
 package indexer
 
 import (
-	"andyk/docs/util"
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"github.com/andreaskoch/docs/util"
 	"io/ioutil"
 	"path/filepath"
 	"strings"

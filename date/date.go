@@ -1,9 +1,9 @@
 package date
 
 import (
-	"andyk/docs/util"
 	"errors"
 	"fmt"
+	"github.com/andreaskoch/docs/util"
 	"log"
 	"regexp"
 	"strconv"

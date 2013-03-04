@@ -1,8 +1,8 @@
 package mappers
 
 import (
-	"andyk/docs/indexer"
-	"andyk/docs/viewmodel"
+	"github.com/andreaskoch/docs/indexer"
+	"github.com/andreaskoch/docs/viewmodel"
 )
 
 func GetDocument(item indexer.Item) viewmodel.Document {

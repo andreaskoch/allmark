@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"andyk/docs/indexer"
+	"github.com/andreaskoch/docs/indexer"
 )
 
 func ParseDocument(item *indexer.Item, lines []string) *indexer.Item {

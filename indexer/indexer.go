@@ -5,8 +5,8 @@
 package indexer
 
 import (
-	"andyk/docs/util"
 	"fmt"
+	"github.com/andreaskoch/docs/util"
 	"io/ioutil"
 	"path/filepath"
 	"strings"

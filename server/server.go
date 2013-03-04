@@ -1,9 +1,9 @@
 package server
 
 import (
-	"andyk/docs/indexer"
-	"andyk/docs/renderer"
 	"fmt"
+	"github.com/andreaskoch/docs/indexer"
+	"github.com/andreaskoch/docs/renderer"
 	"io/ioutil"
 	"log"
 	"net/http"

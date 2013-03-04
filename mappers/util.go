@@ -1,7 +1,7 @@
 package mappers
 
 import (
-	"andyk/docs/util"
+	"github.com/andreaskoch/docs/util"
 	"regexp"
 	"strings"
 )

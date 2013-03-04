@@ -1,10 +1,10 @@
 package parser
 
 import (
-	"andyk/docs/indexer"
-	"andyk/docs/util"
 	"errors"
 	"fmt"
+	"github.com/andreaskoch/docs/indexer"
+	"github.com/andreaskoch/docs/util"
 	"github.com/russross/blackfriday"
 	"os"
 	"regexp"

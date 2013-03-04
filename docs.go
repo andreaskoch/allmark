@@ -5,9 +5,9 @@
 package main
 
 import (
-	"andyk/docs/renderer"
-	"andyk/docs/server"
-	"andyk/docs/util"
+	"github.com/andreaskoch/docs/renderer"
+	"github.com/andreaskoch/docs/server"
+	"github.com/andreaskoch/docs/util"
 	"errors"
 	"fmt"
 	"os"

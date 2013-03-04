@@ -1,12 +1,12 @@
 package renderer
 
 import (
-	"andyk/docs/indexer"
-	"andyk/docs/mappers"
-	"andyk/docs/parser"
-	"andyk/docs/templates"
 	"bufio"
 	"fmt"
+	"github.com/andreaskoch/docs/indexer"
+	"github.com/andreaskoch/docs/mappers"
+	"github.com/andreaskoch/docs/parser"
+	"github.com/andreaskoch/docs/templates"
 	"os"
 	"text/template"
 )
