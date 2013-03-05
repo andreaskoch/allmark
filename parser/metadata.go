@@ -2,26 +2,20 @@ package parser
 
 import (
 	"github.com/andreaskoch/docs/date"
+	"github.com/andreaskoch/docs/indexer"
 	"github.com/andreaskoch/docs/util"
 	"strings"
-	"time"
 )
 
-type MetaData struct {
-	Language string
-	Date     time.Time
-	Tags     []string
-}
-
-func ParseMetaData(lines []string) (MetaData, Match, []string) {
+func ParseMetaData(lines []string) (indexer.MetaData, Match, []string) {
 
 	metaDataLocation, lines := locateMetaData(lines)
 	if !metaDataLocation.Found {
-		return MetaData{}, metaDataLocation, lines
+		return indexer.EmptyMetaData(), metaDataLocation, lines
 	}
 
 	// assemble meta data
-	var metaData MetaData
+	metaData := indexer.EmptyMetaData()
 
 	for _, line := range metaDataLocation.Matches {
 		isKeyValuePair, matches := util.IsMatch(line, MetaDataPattern)
