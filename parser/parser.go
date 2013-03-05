@@ -14,20 +14,20 @@ import (
 var (
 	// Lines which contain nothing but white space characters
 	// or no characters at all.	
-	EmptyLinePattern = regexp.MustCompile("^\\s*$")
+	EmptyLinePattern = regexp.MustCompile(`^\s*$`)
 
 	// Lines which a start with a hash, followed by zero or more
 	// white space characters, followed by text.
-	TitlePattern = regexp.MustCompile("\\s*#\\s*(\\w.+)")
+	TitlePattern = regexp.MustCompile(`\s*#\s*(\w.+)`)
 
 	// Lines which start with text
-	DescriptionPattern = regexp.MustCompile("^\\w.+")
+	DescriptionPattern = regexp.MustCompile(`^\w.+`)
 
 	// Lines which nothing but dashes
-	HorizontalRulePattern = regexp.MustCompile("^-{2,}")
+	HorizontalRulePattern = regexp.MustCompile(`^-{2,}`)
 
 	// Lines with a "key: value" syntax
-	MetaDataPattern = regexp.MustCompile("^(\\w+):\\s*(\\w.+)$")
+	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*(\w.+)$`)
 )
 
 func Parse(item *indexer.Item) (*indexer.Item, error) {
