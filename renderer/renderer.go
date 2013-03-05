@@ -37,21 +37,25 @@ func renderItem(item indexer.Item) {
 	switch item.Type {
 	case indexer.DocumentItemType:
 		{
-			file, err := os.Create(item.RenderedPath)
-			if err != nil {
-				panic(err)
-			}
-			writer := bufio.NewWriter(file)
-
-			defer func() {
-				writer.Flush()
-				file.Close()
-			}()
-
 			document := mappers.GetDocument(item)
-			template := template.New(indexer.DocumentItemType)
-			template.Parse(templates.DocumentTemplate)
-			template.Execute(writer, document)
+			render(item, templates.DocumentTemplate, document)
 		}
 	}
+}
+
+func render(item indexer.Item, templateText string, viewModel interface{}) {
+	file, err := os.Create(item.RenderedPath)
+	if err != nil {
+		panic(err)
+	}
+	writer := bufio.NewWriter(file)
+
+	defer func() {
+		writer.Flush()
+		file.Close()
+	}()
+
+	template := template.New(item.Type)
+	template.Parse(templateText)
+	template.Execute(writer, viewModel)
 }
