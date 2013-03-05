@@ -97,7 +97,7 @@ func (item Item) GetRelativePath(basePath string) string {
 
 	fullItemPath := item.RenderedPath
 	relativePath := strings.Replace(fullItemPath, basePath, "", 1)
-	relativePath = "/" + strings.TrimLeft(relativePath, "/")
+	relativePath = strings.TrimLeft(relativePath, "/")
 
 	return relativePath
 }

@@ -24,6 +24,14 @@ const RepositoryTemplate = `<!DOCTYPE HTML>
 {{.Content}}
 </section>
 
+<section>
+<ul>
+{{range .Entries}}
+<li><a href="{{.Path}}">{{.Path}}</a></li>
+{{end}}
+</ul>
+</section>
+
 </article>
 
 </body>

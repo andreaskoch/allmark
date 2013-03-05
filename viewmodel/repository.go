@@ -5,4 +5,9 @@ type Repository struct {
 	Description string
 	Content     string
 	LanguageTag string
+	Entries     []RepositoryEntry
+}
+
+type RepositoryEntry struct {
+	Path string
 }
