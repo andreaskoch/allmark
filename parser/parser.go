@@ -48,6 +48,11 @@ func Parse(item *indexer.Item) (*indexer.Item, error) {
 		{
 			return ParseDocument(item, lines), nil
 		}
+
+	case indexer.RepositoryItemType:
+		{
+			return ParseRepository(item, lines), nil
+		}
 	}
 
 	return item, errors.New(fmt.Sprintf("Items of type \"%v\" cannot be parsed.", item.Type))

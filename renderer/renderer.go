@@ -26,12 +26,12 @@ func RenderIndex(index indexer.Index) {
 
 }
 
-func renderItem(item indexer.Item) {
+func renderItem(item indexer.Item) interface{} {
 
 	_, err := parser.Parse(&item)
 	if err != nil {
 		fmt.Printf("Could not parse item \"%v\": %v\n", item.Path, err)
-		return
+		return nil
 	}
 
 	switch item.Type {
@@ -39,8 +39,18 @@ func renderItem(item indexer.Item) {
 		{
 			document := mappers.GetDocument(item)
 			render(item, templates.DocumentTemplate, document)
+			return document
+		}
+
+	case indexer.RepositoryItemType:
+		{
+			repository := mappers.GetRepository(item)
+			render(item, templates.RepositoryTemplate, repository)
+			return repository
 		}
 	}
+
+	return nil
 }
 
 func render(item indexer.Item, templateText string, viewModel interface{}) {
