@@ -7,15 +7,12 @@ import (
 	"strings"
 )
 
-func ParseMetaData(lines []string) (indexer.MetaData, Match, []string) {
+func ParseMetaData(item *indexer.Item, lines []string) (*indexer.Item, []string) {
 
 	metaDataLocation, lines := locateMetaData(lines)
 	if !metaDataLocation.Found {
-		return indexer.EmptyMetaData(), metaDataLocation, lines
+		return item, lines
 	}
-
-	// assemble meta data
-	metaData := indexer.EmptyMetaData()
 
 	for _, line := range metaDataLocation.Matches {
 		isKeyValuePair, matches := util.IsMatch(line, MetaDataPattern)
@@ -33,7 +30,7 @@ func ParseMetaData(lines []string) (indexer.MetaData, Match, []string) {
 
 		case "language":
 			{
-				metaData.Language = value
+				item.MetaData.Language = value
 				break
 			}
 
@@ -41,21 +38,21 @@ func ParseMetaData(lines []string) (indexer.MetaData, Match, []string) {
 			{
 				date, err := date.ParseIso8601Date(value)
 				if err == nil {
-					metaData.Date = date
+					item.MetaData.Date = date
 				}
 				break
 			}
 
 		case "tags":
 			{
-				metaData.Tags = getTagsFromValue(value)
+				item.MetaData.Tags = getTagsFromValue(value)
 				break
 			}
 
 		}
 	}
 
-	return metaData, metaDataLocation, lines
+	return item, lines
 }
 
 // locateMetaData checks if the current Document

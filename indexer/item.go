@@ -37,6 +37,7 @@ type Item struct {
 	Files        []File
 	ChildItems   []Item
 	Blocks       []Block
+	MetaData     MetaData
 	Type         string
 }
 

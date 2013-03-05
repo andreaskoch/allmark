@@ -6,6 +6,9 @@ import (
 
 func ParseDocument(item *indexer.Item, lines []string) *indexer.Item {
 
+	// meta data
+	item, lines = ParseMetaData(item, lines)
+
 	// title
 	title, lines := getMatchingValue(lines, TitlePattern)
 	item.AddBlock("title", title)
