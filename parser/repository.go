@@ -10,12 +10,10 @@ func ParseRepository(item *indexer.Item, lines []string) *indexer.Item {
 	item, lines = ParseMetaData(item, lines)
 
 	// title
-	title, lines := getMatchingValue(lines, TitlePattern)
-	item.AddBlock("title", title)
+	item.Title, lines = getMatchingValue(lines, TitlePattern)
 
 	// description
-	description, lines := getMatchingValue(lines, DescriptionPattern)
-	item.AddBlock("description", description)
+	item.Description, lines = getMatchingValue(lines, DescriptionPattern)
 
 	// content
 	item.AddBlock("content", getContent(lines))

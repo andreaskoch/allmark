@@ -1,29 +1,38 @@
 package mappers
 
 import (
-	"fmt"
 	"github.com/andreaskoch/docs/indexer"
 	"github.com/andreaskoch/docs/viewmodel"
 	"path/filepath"
 )
 
-func GetRepository(item indexer.Item) viewmodel.Repository {
+func GetRepository(item indexer.Item, childItemCallback func(item *indexer.Item)) viewmodel.Repository {
 
-	itemDirectory := filepath.Dir(item.Path)
+	return viewmodel.Repository{
+		Title:       item.Title,
+		Description: item.Description,
+		Content:     item.GetBlockValue("content"),
+		Entries:     GetRepositoryEntries(item, childItemCallback),
+		LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
+	}
+}
 
-	fmt.Println(itemDirectory)
+func GetRepositoryEntries(item indexer.Item, childItemCallback func(item *indexer.Item)) []viewmodel.RepositoryEntry {
+	parentDirectory := filepath.Dir(item.Path)
+
+	getRepositoryEntry := func(item indexer.Item) viewmodel.RepositoryEntry {
+
+		return viewmodel.RepositoryEntry{
+			Title: item.Title,
+			Path:  item.GetRelativePath(parentDirectory),
+		}
+	}
 
 	entries := make([]viewmodel.RepositoryEntry, 0, len(item.ChildItems))
 	for _, child := range item.ChildItems {
-		newEntry := viewmodel.RepositoryEntry{Path: child.GetRelativePath(itemDirectory)}
-		entries = append(entries, newEntry)
+		childItemCallback(&child)
+		entries = append(entries, getRepositoryEntry(child))
 	}
 
-	return viewmodel.Repository{
-		Title:       item.GetBlockValue("title"),
-		Description: item.GetBlockValue("description"),
-		Content:     item.GetBlockValue("content"),
-		Entries:     entries,
-		LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
-	}
+	return entries
 }

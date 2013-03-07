@@ -7,8 +7,8 @@ import (
 
 func GetDocument(item indexer.Item) viewmodel.Document {
 	return viewmodel.Document{
-		Title:       item.GetBlockValue("title"),
-		Description: item.GetBlockValue("description"),
+		Title:       item.Title,
+		Description: item.Description,
 		Content:     item.GetBlockValue("content"),
 		LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
 	}

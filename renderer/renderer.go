@@ -44,7 +44,11 @@ func renderItem(item indexer.Item) interface{} {
 
 	case indexer.RepositoryItemType:
 		{
-			repository := mappers.GetRepository(item)
+			makeSureChildItemsAreParsed := func(item *indexer.Item) {
+				parser.Parse(item)
+			}
+
+			repository := mappers.GetRepository(item, makeSureChildItemsAreParsed)
 			render(item, templates.RepositoryTemplate, repository)
 			return repository
 		}

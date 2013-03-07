@@ -32,6 +32,8 @@ const (
 )
 
 type Item struct {
+	Title        string
+	Description  string
 	Path         string
 	RenderedPath string
 	Files        []File

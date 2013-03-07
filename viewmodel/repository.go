@@ -9,5 +9,7 @@ type Repository struct {
 }
 
 type RepositoryEntry struct {
-	Path string
+	Title       string
+	Description string
+	Path        string
 }
