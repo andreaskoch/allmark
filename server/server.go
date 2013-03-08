@@ -16,19 +16,7 @@ func Serve(repositoryPaths []string) {
 
 	// An array of all indices for
 	// the given repositories.
-	indices := make([]indexer.Index, len(repositoryPaths), len(repositoryPaths))
-
-	for indexNumber, repositoryPath := range repositoryPaths {
-
-		// create an index
-		index := indexer.GetIndex(repositoryPath)
-
-		// capture the index
-		indices[indexNumber] = index
-
-		// render all index items
-		renderer.RenderIndex(index)
-	}
+	indices := renderer.Render(repositoryPaths)
 
 	// Initialize the routing table
 	InitializeRoutes(indices)

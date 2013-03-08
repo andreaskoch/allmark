@@ -11,19 +11,24 @@ import (
 	"text/template"
 )
 
-func Render(repositoryPaths []string) {
+func Render(repositoryPaths []string) []indexer.Index {
+	indizes := make([]indexer.Index, len(repositoryPaths), len(repositoryPaths))
+
 	for _, repositoryPath := range repositoryPaths {
 		index := indexer.GetIndex(repositoryPath)
-		RenderIndex(index)
+		indizes = append(indizes, renderIndex(index))
 	}
+
+	return indizes
 }
 
-func RenderIndex(index indexer.Index) {
+func renderIndex(index indexer.Index) indexer.Index {
 
 	index.Walk(func(item indexer.Item) {
 		renderItem(item)
 	})
 
+	return index
 }
 
 func renderItem(item indexer.Item) interface{} {
