@@ -4,7 +4,8 @@ import (
 	"github.com/andreaskoch/docs/indexer"
 )
 
-func ParseDocument(item *indexer.Item, lines []string) *indexer.Item {
+// Parse an item with a title, description and content
+func parseDocumentLikeItem(item *indexer.Item, lines []string) *indexer.Item {
 
 	// meta data
 	item, lines = ParseMetaData(item, lines)

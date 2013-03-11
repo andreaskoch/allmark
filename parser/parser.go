@@ -44,19 +44,9 @@ func Parse(item *indexer.Item) (*indexer.Item, error) {
 	lines := util.GetLines(file)
 
 	switch item.Type {
-	case indexer.DocumentItemType:
+	case indexer.DocumentItemType, indexer.CollectionItemType, indexer.RepositoryItemType:
 		{
-			return ParseDocument(item, lines), nil
-		}
-
-	case indexer.CollectionItemType:
-		{
-			return ParseCollection(item, lines), nil
-		}
-
-	case indexer.RepositoryItemType:
-		{
-			return ParseRepository(item, lines), nil
+			return parseDocumentLikeItem(item, lines), nil
 		}
 	}
 
