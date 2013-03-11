@@ -49,6 +49,11 @@ func Parse(item *indexer.Item) (*indexer.Item, error) {
 			return ParseDocument(item, lines), nil
 		}
 
+	case indexer.CollectionItemType:
+		{
+			return ParseCollection(item, lines), nil
+		}
+
 	case indexer.RepositoryItemType:
 		{
 			return ParseRepository(item, lines), nil

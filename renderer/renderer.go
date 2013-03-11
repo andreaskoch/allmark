@@ -47,6 +47,17 @@ func renderItem(item indexer.Item) interface{} {
 			return document
 		}
 
+	case indexer.CollectionItemType:
+		{
+			makeSureChildItemsAreParsed := func(item *indexer.Item) {
+				parser.Parse(item)
+			}
+
+			collection := mappers.GetCollection(item, makeSureChildItemsAreParsed)
+			render(item, templates.CollectionTemplate, collection)
+			return collection
+		}
+
 	case indexer.RepositoryItemType:
 		{
 			makeSureChildItemsAreParsed := func(item *indexer.Item) {

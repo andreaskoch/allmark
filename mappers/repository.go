@@ -12,12 +12,12 @@ func GetRepository(item indexer.Item, childItemCallback func(item *indexer.Item)
 		Title:       item.Title,
 		Description: item.Description,
 		Content:     item.GetBlockValue("content"),
-		Entries:     GetRepositoryEntries(item, childItemCallback),
+		Entries:     getRepositoryEntries(item, childItemCallback),
 		LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
 	}
 }
 
-func GetRepositoryEntries(item indexer.Item, childItemCallback func(item *indexer.Item)) []viewmodel.RepositoryEntry {
+func getRepositoryEntries(item indexer.Item, childItemCallback func(item *indexer.Item)) []viewmodel.RepositoryEntry {
 	parentDirectory := filepath.Dir(item.Path)
 
 	getRepositoryEntry := func(item indexer.Item) viewmodel.RepositoryEntry {
