@@ -11,7 +11,7 @@ func GetRepository(item indexer.Item, childItemCallback func(item *indexer.Item)
 	return viewmodel.Repository{
 		Title:       item.Title,
 		Description: item.Description,
-		Content:     item.GetBlockValue("content"),
+		Content:     item.Content,
 		Entries:     getRepositoryEntries(item, childItemCallback),
 		LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
 	}

@@ -11,7 +11,7 @@ func GetCollection(item indexer.Item, childItemCallback func(item *indexer.Item)
 	return viewmodel.Collection{
 		Title:       item.Title,
 		Description: item.Description,
-		Content:     item.GetBlockValue("content"),
+		Content:     item.Content,
 		Entries:     getCollectionEntries(item, childItemCallback),
 		LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
 	}

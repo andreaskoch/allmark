@@ -16,7 +16,7 @@ func ParseCollection(item *indexer.Item, lines []string) *indexer.Item {
 	item.Description, lines = getMatchingValue(lines, DescriptionPattern)
 
 	// content
-	item.AddBlock("content", getContent(lines))
+	item.Content = getContent(lines)
 
 	return item
 }
