@@ -7,6 +7,7 @@ import (
 	"github.com/andreaskoch/docs/mappers"
 	"github.com/andreaskoch/docs/parser"
 	"github.com/andreaskoch/docs/templates"
+	"github.com/howeyc/fsnotify"
 	"os"
 	"text/template"
 )
@@ -25,6 +26,28 @@ func Render(repositoryPaths []string) []indexer.Index {
 func renderIndex(index indexer.Index) indexer.Index {
 
 	index.Walk(func(item indexer.Item) {
+
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		go func() {
+			for {
+				select {
+				case _ = <-watcher.Event:
+					renderItem(item)
+				case err := <-watcher.Error:
+					fmt.Println("error:", err)
+				}
+			}
+		}()
+
+		err = watcher.Watch(item.Path)
+		if err != nil {
+			panic(err)
+		}
+
 		renderItem(item)
 	})
 

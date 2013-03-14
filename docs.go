@@ -5,14 +5,15 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"github.com/andreaskoch/docs/renderer"
 	"github.com/andreaskoch/docs/server"
 	"github.com/andreaskoch/docs/util"
-	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 const (
@@ -25,6 +26,10 @@ func main() {
 	// render callback
 	render := func(repositoryPaths []string) {
 		renderer.Render(repositoryPaths)
+
+		for {
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
 
 	// serve callback
