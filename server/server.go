@@ -29,6 +29,8 @@ func Serve(repositoryPaths []string) {
 	var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 		requestedPath := r.URL.Path
 
+		fmt.Println(requestedPath)
+
 		item, ok := routes[requestedPath]
 		if !ok {
 			error404Handler(w, r)
@@ -44,14 +46,7 @@ func Serve(repositoryPaths []string) {
 		fmt.Fprintf(w, "%s", data)
 	}
 
-	var indexHandler = func(w http.ResponseWriter, r *http.Request) {
-		for route, _ := range routes {
-			fmt.Fprintln(w, route)
-		}
-	}
-
 	http.HandleFunc("/", itemHandler)
-	http.HandleFunc("/index", indexHandler)
 	http.ListenAndServe(":8080", nil)
 }
 
