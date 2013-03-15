@@ -1,6 +1,9 @@
 package indexer
 
-import "strings"
+import (
+	"os"
+	"strings"
+)
 
 type File struct {
 	Path string
@@ -18,8 +21,9 @@ func (file File) GetAbsolutePath() string {
 
 func (file File) GetRelativePath(basePath string) string {
 
+	pathSeperator := string(os.PathSeparator)
 	fullPath := file.Path
 	relativePath := strings.Replace(fullPath, basePath, "", 1)
-	relativePath = "/" + strings.TrimLeft(relativePath, "/")
+	relativePath = pathSeperator + strings.TrimLeft(relativePath, pathSeperator)
 	return relativePath
 }

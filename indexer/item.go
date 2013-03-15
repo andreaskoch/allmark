@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/docs/util"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -97,9 +98,10 @@ func (item Item) GetAbsolutePath() string {
 
 func (item Item) GetRelativePath(basePath string) string {
 
+	pathSeperator := string(os.PathSeparator)
 	fullItemPath := item.RenderedPath
 	relativePath := strings.Replace(fullItemPath, basePath, "", 1)
-	relativePath = "/" + strings.TrimLeft(relativePath, "/")
+	relativePath = pathSeperator + strings.TrimLeft(relativePath, pathSeperator)
 
 	return relativePath
 }

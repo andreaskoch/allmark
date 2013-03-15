@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -46,7 +47,14 @@ func Serve(repositoryPaths []string) {
 		fmt.Fprintf(w, "%s", data)
 	}
 
+	var indexDebugger = func(w http.ResponseWriter, r *http.Request) {
+		for route, _ := range routes {
+			fmt.Fprintln(w, route)
+		}
+	}
+
 	http.HandleFunc("/", itemHandler)
+	http.HandleFunc("/debug/index", indexDebugger)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -59,18 +67,22 @@ func InitializeRoutes(indices []indexer.Index) {
 		index.Walk(func(item indexer.Item) {
 
 			// add the item to the route table
-			itemRoute := item.GetRelativePath(index.Path)
+			itemRoute := getHttpRouteFromFilePath(item.GetRelativePath(index.Path))
 			RegisterRoute(itemRoute, item)
 
 			// add the item's files to the route table
 			for _, file := range item.Files {
-				fileRoute := file.GetRelativePath(index.Path)
+				fileRoute := getHttpRouteFromFilePath(file.GetRelativePath(index.Path))
 				RegisterRoute(fileRoute, file)
 			}
 
 		})
 
 	}
+}
+
+func getHttpRouteFromFilePath(path string) string {
+	return strings.Replace(path, string(os.PathSeparator), "/", -1)
 }
 
 func RegisterRoute(route string, item indexer.Addresser) {
