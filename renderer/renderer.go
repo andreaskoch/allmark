@@ -16,8 +16,13 @@ func Render(repositoryPaths []string) []indexer.Index {
 	indizes := make([]indexer.Index, len(repositoryPaths), len(repositoryPaths))
 
 	for _, repositoryPath := range repositoryPaths {
-		index := indexer.GetIndex(repositoryPath)
-		indizes = append(indizes, renderIndex(index))
+		index, err := indexer.NewIndex(repositoryPath)
+		if err != nil {
+			fmt.Printf("Cannot create an index for folder %q. Error: %v", repositoryPath, err)
+			continue
+		}
+
+		indizes = append(indizes, renderIndex(*index))
 	}
 
 	return indizes
