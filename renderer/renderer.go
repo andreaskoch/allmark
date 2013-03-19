@@ -36,6 +36,7 @@ func renderIndex(index indexer.Index) indexer.Index {
 			for {
 				select {
 				case _ = <-watcher.Event:
+					item.IndexFiles()
 					renderItem(item)
 				case err := <-watcher.Error:
 					fmt.Println("error:", err)

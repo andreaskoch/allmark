@@ -45,7 +45,7 @@ type Item struct {
 }
 
 // Create a new repository item
-func NewItem(path string, files []File, childItems []Item) (item Item, err error) {
+func NewItem(path string, childItems []Item) (item Item, err error) {
 
 	itemType := getItemType(path)
 
@@ -53,13 +53,16 @@ func NewItem(path string, files []File, childItems []Item) (item Item, err error
 		err = errors.New(fmt.Sprintf("The item %q does not match any of the known item types.", path))
 	}
 
-	return Item{
+	item = Item{
 		Path:         path,
 		RenderedPath: getRenderedItemPath(path),
-		Files:        files,
 		ChildItems:   childItems,
 		Type:         itemType,
-	}, err
+	}
+
+	item.IndexFiles()
+
+	return item, err
 }
 
 func (item Item) GetFilename() string {
@@ -104,6 +107,27 @@ func (item Item) GetRelativePath(basePath string) string {
 	relativePath = pathSeperator + strings.TrimLeft(relativePath, pathSeperator)
 
 	return relativePath
+}
+
+func (item *Item) IndexFiles() *Item {
+
+	filesDirectory := filepath.Join(item.Path, "files")
+	itemFiles := make([]File, 0, 5)
+	filesDirectoryEntries, _ := ioutil.ReadDir(filesDirectory)
+
+	for _, file := range filesDirectoryEntries {
+		if file.IsDir() {
+			continue
+		}
+
+		absoluteFilePath := filepath.Join(filesDirectory, file.Name())
+		repositoryFile := NewFile(absoluteFilePath)
+
+		itemFiles = append(itemFiles, repositoryFile)
+	}
+
+	item.Files = itemFiles
+	return item
 }
 
 // Get the item type from the given item path

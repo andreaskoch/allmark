@@ -58,14 +58,11 @@ func findAllItems(repositoryPath string) []Item {
 			continue
 		}
 
-		// search for files
-		files := getFiles(repositoryPath)
-
 		// search for child items
 		childs := getChildItems(repositoryPath)
 
 		// create item and append to list
-		item, err := NewItem(itemPath, files, childs)
+		item, err := NewItem(itemPath, childs)
 		if err != nil {
 			fmt.Printf("Skipping item: %s\n", err)
 			continue
@@ -107,24 +104,4 @@ func getChildItems(itemPath string) []Item {
 	}
 
 	return childItems
-}
-
-func getFiles(itemPath string) []File {
-
-	filesDirectory := filepath.Join(itemPath, "files")
-	itemFiles := make([]File, 0, 5)
-	filesDirectoryEntries, _ := ioutil.ReadDir(filesDirectory)
-
-	for _, file := range filesDirectoryEntries {
-		if file.IsDir() {
-			continue
-		}
-
-		absoluteFilePath := filepath.Join(filesDirectory, file.Name())
-		repositoryFile := NewFile(absoluteFilePath)
-
-		itemFiles = append(itemFiles, repositoryFile)
-	}
-
-	return itemFiles
 }
