@@ -12,16 +12,17 @@ import (
 )
 
 func Render(repositoryPaths []string) []*indexer.Index {
-	indizes := make([]*indexer.Index, len(repositoryPaths), len(repositoryPaths))
+	numberOfRepositories := len(repositoryPaths)
+	indizes := make([]*indexer.Index, numberOfRepositories, numberOfRepositories)
 
-	for _, repositoryPath := range repositoryPaths {
+	for indexNumber, repositoryPath := range repositoryPaths {
 		index, err := indexer.NewIndex(repositoryPath)
 		if err != nil {
 			fmt.Printf("Cannot create an index for folder %q. Error: %v", repositoryPath, err)
 			continue
 		}
 
-		indizes = append(indizes, renderIndex(index))
+		indizes[indexNumber] = renderIndex(index)
 	}
 
 	return indizes
