@@ -71,6 +71,10 @@ func NewItem(path string, childItems []*Item) (item *Item, err error) {
 	return item, err
 }
 
+func (item *Item) String() string {
+	return fmt.Sprintf("Item %s\n", item.Path)
+}
+
 func (item Item) GetFilename() string {
 	return filepath.Base(item.Path)
 }
@@ -150,7 +154,7 @@ func (item *Item) StartWatch() *Item {
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		fmt.Printf("Error while creating watch for item %q. Error: %v", item.Path, err)
+		fmt.Printf("Error while creating watch for item %q. Error: %v", item, err)
 		return item
 	}
 
@@ -163,13 +167,13 @@ func (item *Item) StartWatch() *Item {
 					fmt.Println("Item changed ->", event)
 
 					for name, callback := range item.onChangeCallbacks {
-						fmt.Printf("Item changed. Executing callback %q on for item %q\n", name, item.Path)
+						fmt.Printf("Item changed. Executing callback %q on for item %q\n", name, item)
 						callback(item)
 					}
 				}
 
 			case err := <-watcher.Error:
-				fmt.Printf("Watch error on item %q. Error: %v\n", item.Path, err)
+				fmt.Printf("Watch error on item %q. Error: %v\n", item, err)
 			}
 		}
 	}()

@@ -38,8 +38,12 @@ func renderIndex(index *indexer.Index) *indexer.Index {
 
 		// render the item again if it changes
 		item.RegisterOnChangeCallback("RenderOnChange", func(i *indexer.Item) {
+
+			fmt.Printf("Item %q changed", item)
+
 			i.PauseWatch()
 
+			i.IndexFiles()
 			renderItem(i)
 
 			i.ResumeWatch()
@@ -50,6 +54,8 @@ func renderIndex(index *indexer.Index) *indexer.Index {
 }
 
 func renderItem(item *indexer.Item) *indexer.Item {
+
+	fmt.Printf("Rendering item %q\n", item.Path)
 
 	_, err := parser.Parse(item)
 	if err != nil {
