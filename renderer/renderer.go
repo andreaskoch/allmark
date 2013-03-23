@@ -55,6 +55,9 @@ func renderItem(item *indexer.Item) *indexer.Item {
 		return nil
 	}
 
+	fmt.Println("Reindexing files")
+	item.IndexFiles()
+
 	switch item.Type {
 	case indexer.DocumentItemType:
 		{
