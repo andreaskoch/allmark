@@ -7,13 +7,12 @@ import (
 	"github.com/andreaskoch/docs/mappers"
 	"github.com/andreaskoch/docs/parser"
 	"github.com/andreaskoch/docs/templates"
-	"github.com/howeyc/fsnotify"
 	"os"
 	"text/template"
 )
 
-func Render(repositoryPaths []string) []indexer.Index {
-	indizes := make([]indexer.Index, len(repositoryPaths), len(repositoryPaths))
+func Render(repositoryPaths []string) []*indexer.Index {
+	indizes := make([]*indexer.Index, len(repositoryPaths), len(repositoryPaths))
 
 	for _, repositoryPath := range repositoryPaths {
 		index, err := indexer.NewIndex(repositoryPath)
@@ -22,47 +21,37 @@ func Render(repositoryPaths []string) []indexer.Index {
 			continue
 		}
 
-		indizes = append(indizes, renderIndex(*index))
+		indizes = append(indizes, renderIndex(index))
 	}
 
 	return indizes
 }
 
-func renderIndex(index indexer.Index) indexer.Index {
+func renderIndex(index *indexer.Index) *indexer.Index {
 
-	index.Walk(func(item indexer.Item) {
+	index.Walk(func(item *indexer.Item) {
 
-		watcher, err := fsnotify.NewWatcher()
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		go func() {
-			for {
-				select {
-				case _ = <-watcher.Event:
-					item.IndexFiles()
-					renderItem(item)
-				case err := <-watcher.Error:
-					fmt.Println("error:", err)
-				}
-			}
-		}()
-
-		err = watcher.Watch(item.Path)
-		if err != nil {
-			panic(err)
-		}
-
+		// render the item
+		item.PauseWatch()
 		renderItem(item)
+		item.ResumeWatch()
+
+		// render the item again if it changes
+		item.RegisterOnChangeCallback("RenderOnChange", func(i *indexer.Item) {
+			i.PauseWatch()
+
+			renderItem(i)
+
+			i.ResumeWatch()
+		})
 	})
 
 	return index
 }
 
-func renderItem(item indexer.Item) interface{} {
+func renderItem(item *indexer.Item) *indexer.Item {
 
-	_, err := parser.Parse(&item)
+	_, err := parser.Parse(item)
 	if err != nil {
 		fmt.Printf("Could not parse item \"%v\": %v\n", item.Path, err)
 		return nil
@@ -71,16 +60,14 @@ func renderItem(item indexer.Item) interface{} {
 	switch item.Type {
 	case indexer.DocumentItemType:
 		{
-			document := mappers.GetDocument(item)
+			document := mappers.GetDocument(*item)
 			render(item, templates.DocumentTemplate, document)
-			return document
 		}
 
 	case indexer.MessageItemType:
 		{
-			message := mappers.GetMessage(item)
+			message := mappers.GetMessage(*item)
 			render(item, templates.MessageTemplate, message)
-			return message
 		}
 
 	case indexer.CollectionItemType:
@@ -89,9 +76,8 @@ func renderItem(item indexer.Item) interface{} {
 				parser.Parse(item)
 			}
 
-			collection := mappers.GetCollection(item, makeSureChildItemsAreParsed)
+			collection := mappers.GetCollection(*item, makeSureChildItemsAreParsed)
 			render(item, templates.CollectionTemplate, collection)
-			return collection
 		}
 
 	case indexer.RepositoryItemType:
@@ -100,20 +86,20 @@ func renderItem(item indexer.Item) interface{} {
 				parser.Parse(item)
 			}
 
-			repository := mappers.GetRepository(item, makeSureChildItemsAreParsed)
+			repository := mappers.GetRepository(*item, makeSureChildItemsAreParsed)
 			render(item, templates.RepositoryTemplate, repository)
-			return repository
 		}
 	}
 
-	return nil
+	return item
 }
 
-func render(item indexer.Item, templateText string, viewModel interface{}) {
+func render(item *indexer.Item, templateText string, viewModel interface{}) (*indexer.Item, error) {
 	file, err := os.Create(item.RenderedPath)
 	if err != nil {
-		panic(err)
+		return item, err
 	}
+
 	writer := bufio.NewWriter(file)
 
 	defer func() {
@@ -124,4 +110,6 @@ func render(item indexer.Item, templateText string, viewModel interface{}) {
 	template := template.New(item.Type)
 	template.Parse(templateText)
 	template.Execute(writer, viewModel)
+
+	return item, nil
 }

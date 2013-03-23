@@ -30,8 +30,8 @@ func getCollectionEntries(item indexer.Item, childItemCallback func(item *indexe
 
 	entries := make([]viewmodel.CollectionEntry, 0, len(item.ChildItems))
 	for _, child := range item.ChildItems {
-		childItemCallback(&child)
-		entries = append(entries, getCollectionEntry(child))
+		childItemCallback(child)
+		entries = append(entries, getCollectionEntry(*child))
 	}
 
 	return entries

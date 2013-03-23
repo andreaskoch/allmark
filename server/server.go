@@ -58,13 +58,13 @@ func Serve(repositoryPaths []string) {
 	http.ListenAndServe(":8080", nil)
 }
 
-func InitializeRoutes(indices []indexer.Index) {
+func InitializeRoutes(indices []*indexer.Index) {
 
 	routes = make(map[string]indexer.Addresser)
 
 	for _, index := range indices {
 
-		index.Walk(func(item indexer.Item) {
+		index.Walk(func(item *indexer.Item) {
 
 			// add the item to the route table
 			itemRoute := getHttpRouteFromFilePath(item.GetRelativePath(index.Path))

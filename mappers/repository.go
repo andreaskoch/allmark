@@ -30,8 +30,8 @@ func getRepositoryEntries(item indexer.Item, childItemCallback func(item *indexe
 
 	entries := make([]viewmodel.RepositoryEntry, 0, len(item.ChildItems))
 	for _, child := range item.ChildItems {
-		childItemCallback(&child)
-		entries = append(entries, getRepositoryEntry(child))
+		childItemCallback(child)
+		entries = append(entries, getRepositoryEntry(*child))
 	}
 
 	return entries

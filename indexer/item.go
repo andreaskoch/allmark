@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/andreaskoch/docs/util"
+	"github.com/howeyc/fsnotify"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -38,14 +39,17 @@ type Item struct {
 	Content      string
 	Path         string
 	RenderedPath string
-	Files        []File
-	ChildItems   []Item
+	Files        []*File
+	ChildItems   []*Item
 	MetaData     MetaData
 	Type         string
+
+	onChangeCallbacks map[string]func(item *Item)
+	watchIsPaused     bool
 }
 
 // Create a new repository item
-func NewItem(path string, childItems []Item) (item Item, err error) {
+func NewItem(path string, childItems []*Item) (item *Item, err error) {
 
 	itemType := getItemType(path)
 
@@ -53,14 +57,16 @@ func NewItem(path string, childItems []Item) (item Item, err error) {
 		err = errors.New(fmt.Sprintf("The item %q does not match any of the known item types.", path))
 	}
 
-	item = Item{
-		Path:         path,
-		RenderedPath: getRenderedItemPath(path),
-		ChildItems:   childItems,
-		Type:         itemType,
+	item = &Item{
+		Path:          path,
+		RenderedPath:  getRenderedItemPath(path),
+		ChildItems:    childItems,
+		Type:          itemType,
+		watchIsPaused: true,
 	}
 
 	item.IndexFiles()
+	item.StartWatch()
 
 	return item, err
 }
@@ -81,7 +87,7 @@ func (item Item) GetHash() string {
 	return fmt.Sprintf("%x", string(sha1.Sum(nil)[0:6]))
 }
 
-func (item Item) Walk(walkFunc func(item Item)) {
+func (item *Item) Walk(walkFunc func(item *Item)) {
 
 	walkFunc(item)
 
@@ -89,6 +95,10 @@ func (item Item) Walk(walkFunc func(item Item)) {
 	for _, child := range item.ChildItems {
 		child.Walk(walkFunc)
 	}
+}
+
+func (item Item) GetFolder() string {
+	return filepath.Dir(item.Path)
 }
 
 func (item Item) IsRendered() bool {
@@ -109,10 +119,73 @@ func (item Item) GetRelativePath(basePath string) string {
 	return relativePath
 }
 
+func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(item *Item)) {
+
+	if item.onChangeCallbacks == nil {
+		item.onChangeCallbacks = make(map[string]func(item *Item))
+	}
+
+	if _, ok := item.onChangeCallbacks[name]; ok {
+		fmt.Printf("Change callback %q already present.", name)
+	}
+
+	item.onChangeCallbacks[name] = callbackFunction
+}
+
+func (item *Item) PauseWatch() {
+	fmt.Println("Pausing watch")
+	item.watchIsPaused = true
+}
+
+func (item *Item) WatchIsPaused() bool {
+	return item.watchIsPaused
+}
+
+func (item *Item) ResumeWatch() {
+	fmt.Println("Resuming watch")
+	item.watchIsPaused = false
+}
+
+func (item *Item) StartWatch() *Item {
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		fmt.Printf("Error while creating watch for item %q. Error: %v", item.Path, err)
+		return item
+	}
+
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Event:
+
+				if !item.WatchIsPaused() {
+					fmt.Println("Item changed ->", event)
+
+					for name, callback := range item.onChangeCallbacks {
+						fmt.Printf("Item changed. Executing callback %q on for item %q\n", name, item.Path)
+						callback(item)
+					}
+				}
+
+			case err := <-watcher.Error:
+				fmt.Printf("Watch error on item %q. Error: %v\n", item.Path, err)
+			}
+		}
+	}()
+
+	err = watcher.Watch(item.Path)
+	if err != nil {
+		fmt.Printf("Error while creating watch for folder %q. Error: %v\n", item.Path, err)
+	}
+
+	return item
+}
+
 func (item *Item) IndexFiles() *Item {
 
 	filesDirectory := filepath.Join(item.Path, "files")
-	itemFiles := make([]File, 0, 5)
+	itemFiles := make([]*File, 0, 5)
 	filesDirectoryEntries, _ := ioutil.ReadDir(filesDirectory)
 
 	for _, file := range filesDirectoryEntries {

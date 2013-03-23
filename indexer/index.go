@@ -1,12 +1,12 @@
 package indexer
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
-	"errors"
-	"os"
 )
 
 type Addresser interface {
@@ -16,7 +16,7 @@ type Addresser interface {
 
 type Index struct {
 	Path  string
-	items []Item
+	items []*Item
 }
 
 func EmptyIndex() *Index {
@@ -44,15 +44,15 @@ func NewIndex(path string) (*Index, error) {
 	return index, nil
 }
 
-func (index Index) Walk(walkFunc func(item Item)) {
+func (index *Index) Walk(walkFunc func(item *Item)) {
 	for _, item := range index.items {
 		item.Walk(walkFunc)
 	}
 }
 
-func findAllItems(repositoryPath string) []Item {
+func findAllItems(repositoryPath string) []*Item {
 
-	items := make([]Item, 0, 100)
+	items := make([]*Item, 0, 100)
 
 	directoryEntries, err := ioutil.ReadDir(repositoryPath)
 	if err != nil {
@@ -102,9 +102,9 @@ func isMarkdownFile(absoluteFilePath string) bool {
 	return fileExtension == ".md"
 }
 
-func getChildItems(itemPath string) []Item {
+func getChildItems(itemPath string) []*Item {
 
-	childItems := make([]Item, 0, 5)
+	childItems := make([]*Item, 0, 5)
 
 	files, _ := ioutil.ReadDir(itemPath)
 	for _, element := range files {
