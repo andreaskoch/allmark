@@ -32,21 +32,13 @@ func renderIndex(index *indexer.Index) *indexer.Index {
 	index.Walk(func(item *indexer.Item) {
 
 		// render the item
-		item.PauseWatch()
-		renderItem(item)
-		item.ResumeWatch()
+		item.Render(renderItem)
 
 		// render the item again if it changes
 		item.RegisterOnChangeCallback("RenderOnChange", func(i *indexer.Item) {
 
 			fmt.Printf("Item %q changed", item)
-
-			i.PauseWatch()
-
-			i.IndexFiles()
-			renderItem(i)
-
-			i.ResumeWatch()
+			i.Render(renderItem)
 		})
 	})
 

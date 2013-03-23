@@ -44,8 +44,8 @@ type Item struct {
 	MetaData     MetaData
 	Type         string
 
-	onChangeCallbacks map[string]func(item *Item)
-	watchIsPaused     bool
+	onChangeCallbacks  map[string]func(item *Item)
+	itemIsBeingWatched bool
 }
 
 // Create a new repository item
@@ -58,15 +58,14 @@ func NewItem(path string, childItems []*Item) (item *Item, err error) {
 	}
 
 	item = &Item{
-		Path:          path,
-		RenderedPath:  getRenderedItemPath(path),
-		ChildItems:    childItems,
-		Type:          itemType,
-		watchIsPaused: true,
+		Path:         path,
+		RenderedPath: getRenderedItemPath(path),
+		ChildItems:   childItems,
+		Type:         itemType,
 	}
 
 	item.IndexFiles()
-	item.StartWatch()
+	item.startWatch()
 
 	return item, err
 }
@@ -123,6 +122,13 @@ func (item Item) GetRelativePath(basePath string) string {
 	return relativePath
 }
 
+func (item *Item) Render(renderFunc func(item *Item) *Item) {
+	item.pauseWatch()
+	defer item.resumeWatch()
+
+	renderFunc(item)
+}
+
 func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(item *Item)) {
 
 	if item.onChangeCallbacks == nil {
@@ -134,56 +140,6 @@ func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(it
 	}
 
 	item.onChangeCallbacks[name] = callbackFunction
-}
-
-func (item *Item) PauseWatch() {
-	fmt.Println("Pausing watch")
-	item.watchIsPaused = true
-}
-
-func (item *Item) WatchIsPaused() bool {
-	return item.watchIsPaused
-}
-
-func (item *Item) ResumeWatch() {
-	fmt.Println("Resuming watch")
-	item.watchIsPaused = false
-}
-
-func (item *Item) StartWatch() *Item {
-
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		fmt.Printf("Error while creating watch for item %q. Error: %v", item, err)
-		return item
-	}
-
-	go func() {
-		for {
-			select {
-			case event := <-watcher.Event:
-
-				if !item.WatchIsPaused() {
-					fmt.Println("Item changed ->", event)
-
-					for name, callback := range item.onChangeCallbacks {
-						fmt.Printf("Item changed. Executing callback %q on for item %q\n", name, item)
-						callback(item)
-					}
-				}
-
-			case err := <-watcher.Error:
-				fmt.Printf("Watch error on item %q. Error: %v\n", item, err)
-			}
-		}
-	}()
-
-	err = watcher.Watch(item.Path)
-	if err != nil {
-		fmt.Printf("Error while creating watch for folder %q. Error: %v\n", item.Path, err)
-	}
-
-	return item
 }
 
 func (item *Item) IndexFiles() *Item {
@@ -204,6 +160,58 @@ func (item *Item) IndexFiles() *Item {
 	}
 
 	item.Files = itemFiles
+	return item
+}
+
+func (item *Item) pauseWatch() {
+	fmt.Printf("Pausing watch on item %s\n", item)
+	item.itemIsBeingWatched = true
+}
+
+func (item *Item) watchIsPaused() bool {
+	return item.itemIsBeingWatched
+}
+
+func (item *Item) resumeWatch() {
+	fmt.Printf("Resuming watch on item %s\n", item)
+	item.itemIsBeingWatched = false
+}
+
+func (item *Item) startWatch() *Item {
+
+	item.itemIsBeingWatched = true
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		fmt.Printf("Error while creating watch for item %q. Error: %v", item, err)
+		return item
+	}
+
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Event:
+
+				if !item.watchIsPaused() {
+					fmt.Println("Item changed ->", event)
+
+					for name, callback := range item.onChangeCallbacks {
+						fmt.Printf("Item changed. Executing callback %q on for item %q\n", name, item)
+						callback(item)
+					}
+				}
+
+			case err := <-watcher.Error:
+				fmt.Printf("Watch error on item %q. Error: %v\n", item, err)
+			}
+		}
+	}()
+
+	err = watcher.Watch(item.Path)
+	if err != nil {
+		fmt.Printf("Error while creating watch for folder %q. Error: %v\n", item.Path, err)
+	}
+
 	return item
 }
 
