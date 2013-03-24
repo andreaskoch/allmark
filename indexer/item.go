@@ -108,6 +108,10 @@ func (item Item) IsRendered() bool {
 	return util.FileExists(item.RenderedPath)
 }
 
+func (item *Item) Directory() string {
+	return filepath.Dir(item.Path)
+}
+
 func (item Item) GetAbsolutePath() string {
 	return item.RenderedPath
 }
@@ -144,7 +148,7 @@ func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(it
 
 func (item *Item) IndexFiles() *Item {
 
-	filesDirectory := filepath.Join(item.Path, "files")
+	filesDirectory := filepath.Join(item.Directory(), "files")
 	itemFiles := make([]*File, 0, 5)
 	filesDirectoryEntries, _ := ioutil.ReadDir(filesDirectory)
 

@@ -64,8 +64,7 @@ func InitializeRoutes(indices []*indexer.Index) {
 
 	for _, index := range indices {
 
-		index.Walk(func(item *indexer.Item) {
-
+		updateRouteTable := func(item *indexer.Item) {
 			// add the item to the route table
 			itemRoute := getHttpRouteFromFilePath(item.GetRelativePath(index.Path))
 			RegisterRoute(itemRoute, item)
@@ -75,7 +74,10 @@ func InitializeRoutes(indices []*indexer.Index) {
 				fileRoute := getHttpRouteFromFilePath(file.GetRelativePath(index.Path))
 				RegisterRoute(fileRoute, file)
 			}
+		}
 
+		index.Walk(func(item *indexer.Item) {
+			updateRouteTable(item)
 		})
 
 	}
