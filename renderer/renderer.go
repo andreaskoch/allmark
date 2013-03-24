@@ -11,7 +11,7 @@ import (
 	"text/template"
 )
 
-func Render(repositoryPaths []string) []*indexer.Index {
+func RenderRepositories(repositoryPaths []string) []*indexer.Index {
 	numberOfRepositories := len(repositoryPaths)
 	indizes := make([]*indexer.Index, numberOfRepositories, numberOfRepositories)
 

@@ -17,7 +17,7 @@ func Serve(repositoryPaths []string) {
 
 	// An array of all indices for
 	// the given repositories.
-	indices := renderer.Render(repositoryPaths)
+	indices := renderer.RenderRepositories(repositoryPaths)
 
 	// Initialize the routing table
 	initializeRoutes(indices)

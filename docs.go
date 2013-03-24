@@ -25,7 +25,7 @@ func main() {
 
 	// render callback
 	render := func(repositoryPaths []string) {
-		renderer.Render(repositoryPaths)
+		renderer.RenderRepositories(repositoryPaths)
 
 		for {
 			time.Sleep(100 * time.Millisecond)
