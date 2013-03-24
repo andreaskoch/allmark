@@ -69,13 +69,13 @@ func InitializeRoutes(indices []*indexer.Index) {
 			// get the item route and
 			// add it to the routing table
 			itemRoute := getHttpRouteFromFilePath(item.GetRelativePath(index.Path))
-			RegisterRoute(itemRoute, item)
+			registerRoute(itemRoute, item)
 
 			// get the file routes and
 			// add them to the routing table
 			for _, file := range item.Files {
 				fileRoute := getHttpRouteFromFilePath(file.GetRelativePath(index.Path))
-				RegisterRoute(fileRoute, file)
+				registerRoute(fileRoute, file)
 			}
 		}
 
@@ -98,7 +98,7 @@ func getHttpRouteFromFilePath(path string) string {
 	return strings.Replace(path, string(os.PathSeparator), "/", -1)
 }
 
-func RegisterRoute(route string, item indexer.Addresser) {
+func registerRoute(route string, item indexer.Addresser) {
 
 	if item == nil {
 		log.Printf("Cannot add a route for an uninitialized item. Route: %#v\n", route)
