@@ -20,7 +20,7 @@ func Serve(repositoryPaths []string) {
 	indices := renderer.Render(repositoryPaths)
 
 	// Initialize the routing table
-	InitializeRoutes(indices)
+	initializeRoutes(indices)
 
 	var error404Handler = func(w http.ResponseWriter, r *http.Request) {
 		requestedPath := r.URL.Path
@@ -58,7 +58,7 @@ func Serve(repositoryPaths []string) {
 	http.ListenAndServe(":8080", nil)
 }
 
-func InitializeRoutes(indices []*indexer.Index) {
+func initializeRoutes(indices []*indexer.Index) {
 
 	routes = make(map[string]indexer.Addresser)
 
