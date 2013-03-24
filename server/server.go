@@ -65,11 +65,14 @@ func InitializeRoutes(indices []*indexer.Index) {
 	for _, index := range indices {
 
 		updateRouteTable := func(item *indexer.Item) {
-			// add the item to the route table
+
+			// get the item route and
+			// add it to the routing table
 			itemRoute := getHttpRouteFromFilePath(item.GetRelativePath(index.Path))
 			RegisterRoute(itemRoute, item)
 
-			// add the item's files to the route table
+			// get the file routes and
+			// add them to the routing table
 			for _, file := range item.Files {
 				fileRoute := getHttpRouteFromFilePath(file.GetRelativePath(index.Path))
 				RegisterRoute(fileRoute, file)
@@ -77,7 +80,15 @@ func InitializeRoutes(indices []*indexer.Index) {
 		}
 
 		index.Walk(func(item *indexer.Item) {
+
+			// add the current item to the route table
 			updateRouteTable(item)
+
+			// update route table again if item changes
+			item.RegisterOnChangeCallback("UpdateRouteTableOnChange", func(i *indexer.Item) {
+				i.IndexFiles()
+				updateRouteTable(i)
+			})
 		})
 
 	}
@@ -96,12 +107,6 @@ func RegisterRoute(route string, item indexer.Addresser) {
 
 	if strings.TrimSpace(route) == "" {
 		log.Printf("Cannot add an empty route to the routing table. Item: %#v\n", item)
-		return
-	}
-
-	anotherItem, ok := routes[route]
-	if ok {
-		fmt.Printf("The route \"%s\" is already in use by another item. Item: %#v\n", route, anotherItem)
 		return
 	}
 
