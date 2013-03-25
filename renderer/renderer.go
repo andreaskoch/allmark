@@ -74,7 +74,9 @@ func renderItem(item *indexer.Item) *indexer.Item {
 	}
 
 	// create the viewmodel
-	viewModel := mapperFunc(item, nil)
+	viewModel := mapperFunc(item, func(i *indexer.Item) {
+		parser.Parse(i)
+	})
 
 	// render the template
 	render(item, templateText, viewModel)
