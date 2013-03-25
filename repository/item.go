@@ -6,7 +6,7 @@
 	Package model defines the basic
 	data structures of the docs engine.
 */
-package indexer
+package repository
 
 import (
 	"crypto/sha1"

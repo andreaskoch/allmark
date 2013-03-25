@@ -3,22 +3,22 @@ package templates
 import (
 	"errors"
 	"fmt"
-	"github.com/andreaskoch/docs/indexer"
+	"github.com/andreaskoch/docs/repository"
 )
 
-func GetTemplate(item *indexer.Item) (string, error) {
+func GetTemplate(item *repository.Item) (string, error) {
 
 	switch itemType := item.Type; itemType {
-	case indexer.DocumentItemType:
+	case repository.DocumentItemType:
 		return documentTemplate, nil
 
-	case indexer.MessageItemType:
+	case repository.MessageItemType:
 		return messageTemplate, nil
 
-	case indexer.CollectionItemType:
+	case repository.CollectionItemType:
 		return collectionTemplate, nil
 
-	case indexer.RepositoryItemType:
+	case repository.RepositoryItemType:
 		return repositoryTemplate, nil
 
 	default:

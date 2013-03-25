@@ -2,12 +2,12 @@ package parser
 
 import (
 	"github.com/andreaskoch/docs/date"
-	"github.com/andreaskoch/docs/indexer"
+	"github.com/andreaskoch/docs/repository"
 	"github.com/andreaskoch/docs/util"
 	"strings"
 )
 
-func ParseMetaData(item *indexer.Item, lines []string) (*indexer.Item, []string) {
+func ParseMetaData(item *repository.Item, lines []string) (*repository.Item, []string) {
 
 	metaDataLocation, lines := locateMetaData(lines)
 	if !metaDataLocation.Found {

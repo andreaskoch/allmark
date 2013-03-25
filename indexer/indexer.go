@@ -3,27 +3,19 @@ package indexer
 import (
 	"errors"
 	"fmt"
+	"github.com/andreaskoch/docs/parser"
+	"github.com/andreaskoch/docs/repository"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-type Addresser interface {
-	GetAbsolutePath() string
-	GetRelativePath(basePath string) string
+func EmptyIndex() *repository.Index {
+	return &repository.Index{}
 }
 
-type Index struct {
-	Path  string
-	items []*Item
-}
-
-func EmptyIndex() *Index {
-	return &Index{}
-}
-
-func NewIndex(path string) (*Index, error) {
+func NewIndex(path string) (*repository.Index, error) {
 
 	// check if path is valid
 	fileInfo, err := os.Stat(path)
@@ -36,23 +28,14 @@ func NewIndex(path string) (*Index, error) {
 		return EmptyIndex(), errors.New(fmt.Sprintf("%q is not a directory. Cannot create an index out of a file.", path))
 	}
 
-	index := &Index{
-		Path:  path,
-		items: findAllItems(path),
-	}
+	index := repository.NewIndex(path, findAllItems(path))
 
 	return index, nil
 }
 
-func (index *Index) Walk(walkFunc func(item *Item)) {
-	for _, item := range index.items {
-		item.Walk(walkFunc)
-	}
-}
+func findAllItems(repositoryPath string) []*repository.Item {
 
-func findAllItems(repositoryPath string) []*Item {
-
-	items := make([]*Item, 0, 100)
+	items := make([]*repository.Item, 0, 100)
 
 	directoryEntries, err := ioutil.ReadDir(repositoryPath)
 	if err != nil {
@@ -75,13 +58,20 @@ func findAllItems(repositoryPath string) []*Item {
 		// search for child items
 		childs := getChildItems(repositoryPath)
 
-		// create item and append to list
-		item, err := NewItem(itemPath, childs)
+		// create item
+		item, err := repository.NewItem(itemPath, childs)
 		if err != nil {
 			fmt.Printf("Skipping item: %s\n", err)
 			continue
 		}
 
+		// parse item
+		if _, err := parser.Parse(item); err != nil {
+			fmt.Printf("Could not parse item %q. Error: %s\n", item, err)
+			continue
+		}
+
+		// append item to list
 		items = append(items, item)
 
 		// item has been found
@@ -102,9 +92,9 @@ func isMarkdownFile(absoluteFilePath string) bool {
 	return fileExtension == ".md"
 }
 
-func getChildItems(itemPath string) []*Item {
+func getChildItems(itemPath string) []*repository.Item {
 
-	childItems := make([]*Item, 0, 5)
+	childItems := make([]*repository.Item, 0, 5)
 
 	files, _ := ioutil.ReadDir(itemPath)
 	for _, element := range files {

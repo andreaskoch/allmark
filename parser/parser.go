@@ -3,7 +3,7 @@ package parser
 import (
 	"errors"
 	"fmt"
-	"github.com/andreaskoch/docs/indexer"
+	"github.com/andreaskoch/docs/repository"
 	"github.com/andreaskoch/docs/util"
 	"github.com/russross/blackfriday"
 	"os"
@@ -30,7 +30,7 @@ var (
 	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*(\w.+)$`)
 )
 
-func Parse(item *indexer.Item) (*indexer.Item, error) {
+func Parse(item *repository.Item) (*repository.Item, error) {
 
 	// open the file
 	file, err := os.Open(item.Path)
@@ -44,11 +44,11 @@ func Parse(item *indexer.Item) (*indexer.Item, error) {
 	lines := util.GetLines(file)
 
 	switch item.Type {
-	case indexer.DocumentItemType, indexer.CollectionItemType, indexer.RepositoryItemType:
+	case repository.DocumentItemType, repository.CollectionItemType, repository.RepositoryItemType:
 		{
 			return parseDocumentLikeItem(item, lines), nil
 		}
-	case indexer.MessageItemType:
+	case repository.MessageItemType:
 		{
 			return parseMessage(item, lines), nil
 		}

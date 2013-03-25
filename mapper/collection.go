@@ -1,12 +1,12 @@
 package mapper
 
 import (
-	"github.com/andreaskoch/docs/indexer"
+	"github.com/andreaskoch/docs/repository"
 	"github.com/andreaskoch/docs/viewmodel"
 	"path/filepath"
 )
 
-func collectionMapperFunc(item *indexer.Item, childItemCallback func(item *indexer.Item)) interface{} {
+func collectionMapperFunc(item *repository.Item, childItemCallback func(item *repository.Item)) interface{} {
 
 	return viewmodel.Collection{
 		Title:       item.Title,
@@ -17,10 +17,10 @@ func collectionMapperFunc(item *indexer.Item, childItemCallback func(item *index
 	}
 }
 
-func getCollectionEntries(item *indexer.Item, childItemCallback func(item *indexer.Item)) []viewmodel.CollectionEntry {
+func getCollectionEntries(item *repository.Item, childItemCallback func(item *repository.Item)) []viewmodel.CollectionEntry {
 	parentDirectory := filepath.Dir(item.Path)
 
-	getCollectionEntry := func(item indexer.Item) viewmodel.CollectionEntry {
+	getCollectionEntry := func(item repository.Item) viewmodel.CollectionEntry {
 
 		return viewmodel.CollectionEntry{
 			Title: item.Title,

@@ -2,8 +2,8 @@ package server
 
 import (
 	"fmt"
-	"github.com/andreaskoch/docs/indexer"
 	"github.com/andreaskoch/docs/renderer"
+	"github.com/andreaskoch/docs/repository"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-var routes map[string]indexer.Addresser
+var routes map[string]repository.Addresser
 
 func Serve(repositoryPaths []string) {
 
@@ -58,13 +58,13 @@ func Serve(repositoryPaths []string) {
 	http.ListenAndServe(":8080", nil)
 }
 
-func initializeRoutes(indices []*indexer.Index) {
+func initializeRoutes(indices []*repository.Index) {
 
-	routes = make(map[string]indexer.Addresser)
+	routes = make(map[string]repository.Addresser)
 
 	for _, index := range indices {
 
-		updateRouteTable := func(item *indexer.Item) {
+		updateRouteTable := func(item *repository.Item) {
 
 			// get the item route and
 			// add it to the routing table
@@ -79,13 +79,13 @@ func initializeRoutes(indices []*indexer.Index) {
 			}
 		}
 
-		index.Walk(func(item *indexer.Item) {
+		index.Walk(func(item *repository.Item) {
 
 			// add the current item to the route table
 			updateRouteTable(item)
 
 			// update route table again if item changes
-			item.RegisterOnChangeCallback("UpdateRouteTableOnChange", func(i *indexer.Item) {
+			item.RegisterOnChangeCallback("UpdateRouteTableOnChange", func(i *repository.Item) {
 				i.IndexFiles()
 				updateRouteTable(i)
 			})
@@ -98,7 +98,7 @@ func getHttpRouteFromFilePath(path string) string {
 	return strings.Replace(path, string(os.PathSeparator), "/", -1)
 }
 
-func registerRoute(route string, item indexer.Addresser) {
+func registerRoute(route string, item repository.Addresser) {
 
 	if item == nil {
 		log.Printf("Cannot add a route for an uninitialized item. Route: %#v\n", route)

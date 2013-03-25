@@ -1,11 +1,11 @@
 package mapper
 
 import (
-	"github.com/andreaskoch/docs/indexer"
+	"github.com/andreaskoch/docs/repository"
 	"github.com/andreaskoch/docs/viewmodel"
 )
 
-func messageMapperFunc(item *indexer.Item, childItemCallback func(item *indexer.Item)) interface{} {
+func messageMapperFunc(item *repository.Item, childItemCallback func(item *repository.Item)) interface{} {
 	return viewmodel.Message{
 		Title:       getTitle(item),
 		Content:     item.Content,
@@ -13,6 +13,6 @@ func messageMapperFunc(item *indexer.Item, childItemCallback func(item *indexer.
 	}
 }
 
-func getTitle(item *indexer.Item) string {
+func getTitle(item *repository.Item) string {
 	return "Message posted at " + item.MetaData.Date.String()
 }

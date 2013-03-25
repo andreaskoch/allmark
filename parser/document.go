@@ -1,11 +1,11 @@
 package parser
 
 import (
-	"github.com/andreaskoch/docs/indexer"
+	"github.com/andreaskoch/docs/repository"
 )
 
 // Parse an item with a title, description and content
-func parseDocumentLikeItem(item *indexer.Item, lines []string) *indexer.Item {
+func parseDocumentLikeItem(item *repository.Item, lines []string) *repository.Item {
 
 	// meta data
 	item, lines = ParseMetaData(item, lines)

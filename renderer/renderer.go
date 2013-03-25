@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"github.com/andreaskoch/docs/indexer"
 	"github.com/andreaskoch/docs/mapper"
-	"github.com/andreaskoch/docs/parser"
+	"github.com/andreaskoch/docs/repository"
 	"github.com/andreaskoch/docs/templates"
 	"os"
 	"text/template"
 )
 
-func RenderRepositories(repositoryPaths []string) []*indexer.Index {
+func RenderRepositories(repositoryPaths []string) []*repository.Index {
 	numberOfRepositories := len(repositoryPaths)
-	indizes := make([]*indexer.Index, numberOfRepositories, numberOfRepositories)
+	indizes := make([]*repository.Index, numberOfRepositories, numberOfRepositories)
 
 	for indexNumber, repositoryPath := range repositoryPaths {
 		index, err := indexer.NewIndex(repositoryPath)
@@ -28,15 +28,15 @@ func RenderRepositories(repositoryPaths []string) []*indexer.Index {
 	return indizes
 }
 
-func renderIndex(index *indexer.Index) *indexer.Index {
+func renderIndex(index *repository.Index) *repository.Index {
 
-	index.Walk(func(item *indexer.Item) {
+	index.Walk(func(item *repository.Item) {
 
 		// render the item
 		item.Render(renderItem)
 
 		// render the item again if it changes
-		item.RegisterOnChangeCallback("RenderOnChange", func(i *indexer.Item) {
+		item.RegisterOnChangeCallback("RenderOnChange", func(i *repository.Item) {
 
 			fmt.Printf("Item %q changed", item)
 			i.Render(renderItem)
@@ -46,15 +46,9 @@ func renderIndex(index *indexer.Index) *indexer.Index {
 	return index
 }
 
-func renderItem(item *indexer.Item) *indexer.Item {
+func renderItem(item *repository.Item) *repository.Item {
 
 	fmt.Printf("Rendering item %q\n", item.Path)
-
-	_, err := parser.Parse(item)
-	if err != nil {
-		fmt.Printf("Could not parse item \"%v\": %v\n", item.Path, err)
-		return item
-	}
 
 	fmt.Println("Reindexing files")
 	item.IndexFiles()
@@ -74,8 +68,7 @@ func renderItem(item *indexer.Item) *indexer.Item {
 	}
 
 	// create the viewmodel
-	viewModel := mapperFunc(item, func(i *indexer.Item) {
-		parser.Parse(i)
+	viewModel := mapperFunc(item, func(i *repository.Item) {
 	})
 
 	// render the template
@@ -84,7 +77,7 @@ func renderItem(item *indexer.Item) *indexer.Item {
 	return item
 }
 
-func render(item *indexer.Item, templateText string, viewModel interface{}) (*indexer.Item, error) {
+func render(item *repository.Item, templateText string, viewModel interface{}) (*repository.Item, error) {
 	file, err := os.Create(item.RenderedPath)
 	if err != nil {
 		return item, err

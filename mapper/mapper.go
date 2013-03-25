@@ -3,24 +3,24 @@ package mapper
 import (
 	"errors"
 	"fmt"
-	"github.com/andreaskoch/docs/indexer"
+	"github.com/andreaskoch/docs/repository"
 )
 
-//type Mapper func(item *indexer.Item, childItemCallback func(item *indexer.Item)) interface{}
+//type Mapper func(item *repository.Item, childItemCallback func(item *repository.Item)) interface{}
 
-func GetMapper(item *indexer.Item) (func(item *indexer.Item, childItemCallback func(item *indexer.Item)) interface{}, error) {
+func GetMapper(item *repository.Item) (func(item *repository.Item, childItemCallback func(item *repository.Item)) interface{}, error) {
 
 	switch item.Type {
-	case indexer.DocumentItemType:
+	case repository.DocumentItemType:
 		return documentMapperFunc, nil
 
-	case indexer.MessageItemType:
+	case repository.MessageItemType:
 		return messageMapperFunc, nil
 
-	case indexer.CollectionItemType:
+	case repository.CollectionItemType:
 		return collectionMapperFunc, nil
 
-	case indexer.RepositoryItemType:
+	case repository.RepositoryItemType:
 		return repositoryMapperFunc, nil
 	}
 

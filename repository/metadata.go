@@ -1,4 +1,4 @@
-package indexer
+package repository
 
 import (
 	"time"
