@@ -1,4 +1,4 @@
-package mappers
+package mapper
 
 import (
 	"github.com/andreaskoch/docs/indexer"
@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func GetRepository(item indexer.Item, childItemCallback func(item *indexer.Item)) viewmodel.Repository {
+func repositoryMapperFunc(item *indexer.Item, childItemCallback func(item *indexer.Item)) interface{} {
 
 	return viewmodel.Repository{
 		Title:       item.Title,
@@ -17,7 +17,7 @@ func GetRepository(item indexer.Item, childItemCallback func(item *indexer.Item)
 	}
 }
 
-func getRepositoryEntries(item indexer.Item, childItemCallback func(item *indexer.Item)) []viewmodel.RepositoryEntry {
+func getRepositoryEntries(item *indexer.Item, childItemCallback func(item *indexer.Item)) []viewmodel.RepositoryEntry {
 	parentDirectory := filepath.Dir(item.Path)
 
 	getRepositoryEntry := func(item indexer.Item) viewmodel.RepositoryEntry {

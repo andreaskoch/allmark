@@ -1,6 +1,6 @@
 package templates
 
-const DocumentTemplate = `<!DOCTYPE HTML>
+const documentTemplate = `<!DOCTYPE HTML>
 <html lang="{{.LanguageTag}}">
 <head>
 	<title>{{.Title}}</title>

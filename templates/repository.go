@@ -1,6 +1,6 @@
 package templates
 
-const RepositoryTemplate = `<!DOCTYPE HTML>
+const repositoryTemplate = `<!DOCTYPE HTML>
 <html lang="{{.LanguageTag}}">
 <head>
 	<title>{{.Title}}</title>

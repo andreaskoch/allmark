@@ -1,4 +1,4 @@
-package mappers
+package mapper
 
 import (
 	"github.com/andreaskoch/docs/util"

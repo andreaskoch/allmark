@@ -1,6 +1,6 @@
 package templates
 
-const MessageTemplate = `<!DOCTYPE HTML>
+const messageTemplate = `<!DOCTYPE HTML>
 <html lang="{{.LanguageTag}}">
 <head>
 	<title>{{.Title}}</title>

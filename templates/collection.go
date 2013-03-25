@@ -1,6 +1,6 @@
 package templates
 
-const CollectionTemplate = `<!DOCTYPE HTML>
+const collectionTemplate = `<!DOCTYPE HTML>
 <html lang="{{.LanguageTag}}">
 <head>
 	<title>{{.Title}}</title>

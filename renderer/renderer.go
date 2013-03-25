@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/andreaskoch/docs/indexer"
-	"github.com/andreaskoch/docs/mappers"
+	"github.com/andreaskoch/docs/mapper"
 	"github.com/andreaskoch/docs/parser"
 	"github.com/andreaskoch/docs/templates"
 	"os"
@@ -53,45 +53,31 @@ func renderItem(item *indexer.Item) *indexer.Item {
 	_, err := parser.Parse(item)
 	if err != nil {
 		fmt.Printf("Could not parse item \"%v\": %v\n", item.Path, err)
-		return nil
+		return item
 	}
 
 	fmt.Println("Reindexing files")
 	item.IndexFiles()
 
-	switch item.Type {
-	case indexer.DocumentItemType:
-		{
-			document := mappers.GetDocument(*item)
-			render(item, templates.DocumentTemplate, document)
-		}
-
-	case indexer.MessageItemType:
-		{
-			message := mappers.GetMessage(*item)
-			render(item, templates.MessageTemplate, message)
-		}
-
-	case indexer.CollectionItemType:
-		{
-			makeSureChildItemsAreParsed := func(item *indexer.Item) {
-				parser.Parse(item)
-			}
-
-			collection := mappers.GetCollection(*item, makeSureChildItemsAreParsed)
-			render(item, templates.CollectionTemplate, collection)
-		}
-
-	case indexer.RepositoryItemType:
-		{
-			makeSureChildItemsAreParsed := func(item *indexer.Item) {
-				parser.Parse(item)
-			}
-
-			repository := mappers.GetRepository(*item, makeSureChildItemsAreParsed)
-			render(item, templates.RepositoryTemplate, repository)
-		}
+	// get a template
+	templateText, err := templates.GetTemplate(item)
+	if err != nil {
+		fmt.Println(err)
+		return item
 	}
+
+	// get a viewmodel mapper
+	mapperFunc, err := mapper.GetMapper(item)
+	if err != nil {
+		fmt.Println(err)
+		return item
+	}
+
+	// create the viewmodel
+	viewModel := mapperFunc(item, nil)
+
+	// render the template
+	render(item, templateText, viewModel)
 
 	return item
 }
