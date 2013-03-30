@@ -24,6 +24,7 @@ func getRepositoryEntries(item *repository.Item, childItemCallback func(item *re
 
 		return viewmodel.RepositoryEntry{
 			Title: item.Title,
+			Description: item.Description,
 			Path:  item.GetRelativePath(parentDirectory),
 		}
 	}
