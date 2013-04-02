@@ -31,35 +31,25 @@ func RenderRepositories(repositoryPaths []string) []*repository.Index {
 
 func renderIndex(index *repository.Index) *repository.Index {
 
-	renderFunc := func(item *repository.Item) *repository.Item {
-		indexDirectory := index.Path
-
-		pathProviderFunc := func(item *repository.Item) string {
-			return item.RelativePath(indexDirectory)
-		}
-
-		return renderItem(item, pathProviderFunc)
-	}
-
 	index.Walk(func(item *repository.Item) {
 
 		// render the item
-		item.Render(renderFunc)
+		item.Render(renderItem)
 
 		// render the item again if it changes
 		item.RegisterOnChangeCallback("RenderOnChange", func(i *repository.Item) {
 
 			fmt.Printf("Item %q changed", item)
-			i.Render(renderFunc)
+			i.Render(renderItem)
 		})
 	})
 
 	return index
 }
 
-func renderItem(item *repository.Item, pathProviderFunc func(item *repository.Item) string) *repository.Item {
+func renderItem(item *repository.Item) *repository.Item {
 
-	fmt.Printf("Rendering item %q\n", item.Path)
+	fmt.Printf("Rendering item %q\n", item)
 
 	fmt.Println("Reindexing files")
 	item.IndexFiles()
@@ -72,7 +62,7 @@ func renderItem(item *repository.Item, pathProviderFunc func(item *repository.It
 	}
 
 	// get a viewmodel mapper
-	mapperFunc, err := mapper.GetMapper(item, pathProviderFunc)
+	mapperFunc, err := mapper.GetMapper(item)
 	if err != nil {
 		fmt.Println(err)
 		return item

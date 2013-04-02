@@ -5,9 +5,9 @@ import (
 	"github.com/andreaskoch/docs/view"
 )
 
-func documentMapperFunc(item *repository.Item, pathProviderFunc func(item *repository.Item) string) view.Model {
+func documentMapperFunc(item *repository.Item) view.Model {
 	return view.Model{
-		Path:        pathProviderFunc(item),
+		Path:        item.PathRelative(),
 		Title:       item.Title,
 		Description: item.Description,
 		Content:     item.Content,

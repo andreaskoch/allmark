@@ -38,7 +38,7 @@ func Serve(repositoryPaths []string) {
 			return
 		}
 
-		data, err := ioutil.ReadFile(item.AbsolutePath())
+		data, err := ioutil.ReadFile(item.PathAbsolute())
 		if err != nil {
 			error404Handler(w, r)
 			return
@@ -68,13 +68,13 @@ func initializeRoutes(indices []*repository.Index) {
 
 			// get the item route and
 			// add it to the routing table
-			itemRoute := getHttpRouteFromFilePath(item.RelativePath(index.Path))
+			itemRoute := getHttpRouteFromFilePath(item.PathRelative())
 			registerRoute(itemRoute, item)
 
 			// get the file routes and
 			// add them to the routing table
 			for _, file := range item.Files {
-				fileRoute := getHttpRouteFromFilePath(file.RelativePath(index.Path))
+				fileRoute := getHttpRouteFromFilePath(file.PathRelative())
 				registerRoute(fileRoute, file)
 			}
 		}
@@ -98,17 +98,17 @@ func getHttpRouteFromFilePath(path string) string {
 	return strings.Replace(path, string(os.PathSeparator), "/", -1)
 }
 
-func registerRoute(route string, item repository.Pather) {
+func registerRoute(route string, pather repository.Pather) {
 
-	if item == nil {
+	if pather == nil {
 		log.Printf("Cannot add a route for an uninitialized item. Route: %#v\n", route)
 		return
 	}
 
 	if strings.TrimSpace(route) == "" {
-		log.Printf("Cannot add an empty route to the routing table. Item: %#v\n", item)
+		log.Printf("Cannot add an empty route to the routing table. Item: %#v\n", pather.PathAbsolute())
 		return
 	}
 
-	routes[route] = item
+	routes[route] = pather
 }

@@ -6,24 +6,27 @@ import (
 )
 
 type File struct {
-	Path string
+	path string
 }
 
-func NewFile(path string) *File {
+func NewFile(filePath string) *File {
 	return &File{
-		Path: path,
+		path: filePath,
 	}
 }
 
-func (file File) AbsolutePath() string {
-	return file.Path
+func (file *File) PathAbsolute() string {
+	return file.path
 }
 
-func (file File) RelativePath(basePath string) string {
+func (file *File) PathRelative() string {
 
 	pathSeperator := string(os.PathSeparator)
-	fullPath := file.Path
+
+	basePath := ""
+	fullPath := file.path
 	relativePath := strings.Replace(fullPath, basePath, "", 1)
 	relativePath = pathSeperator + strings.TrimLeft(relativePath, pathSeperator)
+
 	return relativePath
 }

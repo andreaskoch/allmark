@@ -37,31 +37,31 @@ type Item struct {
 	Title        string
 	Description  string
 	Content      string
-	Path         string
 	RenderedPath string
 	Files        []*File
 	ChildItems   []*Item
 	MetaData     MetaData
 	Type         string
 
+	path               string
 	onChangeCallbacks  map[string]func(item *Item)
 	itemIsBeingWatched bool
 }
 
 // Create a new repository item
-func NewItem(path string, childItems []*Item) (item *Item, err error) {
+func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
 
-	itemType := getItemType(path)
+	itemType := getItemType(itemPath)
 
 	if itemType == UnknownItemType {
-		err = errors.New(fmt.Sprintf("The item %q does not match any of the known item types.", path))
+		err = errors.New(fmt.Sprintf("The item %q does not match any of the known item types.", itemPath))
 	}
 
 	item = &Item{
-		Path:         path,
-		RenderedPath: getRenderedItemPath(path),
-		ChildItems:   childItems,
-		Type:         itemType,
+		ChildItems: childItems,
+		Type:       itemType,
+
+		path: itemPath,
 	}
 
 	item.IndexFiles()
@@ -71,15 +71,15 @@ func NewItem(path string, childItems []*Item) (item *Item, err error) {
 }
 
 func (item *Item) String() string {
-	return fmt.Sprintf("Item %s\n", item.Path)
+	return fmt.Sprintf("Item %s\n", item.path)
 }
 
 func (item Item) GetFilename() string {
-	return filepath.Base(item.Path)
+	return filepath.Base(item.path)
 }
 
 func (item Item) GetHash() string {
-	itemBytes, readFileErr := ioutil.ReadFile(item.Path)
+	itemBytes, readFileErr := ioutil.ReadFile(item.path)
 	if readFileErr != nil {
 		return ""
 	}
@@ -101,7 +101,7 @@ func (item *Item) Walk(walkFunc func(item *Item)) {
 }
 
 func (item Item) GetFolder() string {
-	return filepath.Dir(item.Path)
+	return filepath.Dir(item.path)
 }
 
 func (item Item) IsRendered() bool {
@@ -109,18 +109,19 @@ func (item Item) IsRendered() bool {
 }
 
 func (item *Item) Directory() string {
-	return filepath.Dir(item.Path)
+	return filepath.Dir(item.path)
 }
 
-func (item Item) AbsolutePath() string {
+func (item *Item) PathAbsolute() string {
 	return item.RenderedPath
 }
 
-func (item Item) RelativePath(basePath string) string {
+func (item *Item) PathRelative() string {
 
+	basePath := "" // Todo
 	pathSeperator := string(os.PathSeparator)
-	fullItemPath := item.RenderedPath
-	relativePath := strings.Replace(fullItemPath, basePath, "", 1)
+
+	relativePath := strings.Replace(item.PathAbsolute(), basePath, "", 1)
 	relativePath = pathSeperator + strings.TrimLeft(relativePath, pathSeperator)
 
 	return relativePath
@@ -211,9 +212,9 @@ func (item *Item) startWatch() *Item {
 		}
 	}()
 
-	err = watcher.Watch(item.Path)
+	err = watcher.Watch(item.path)
 	if err != nil {
-		fmt.Printf("Error while creating watch for folder %q. Error: %v\n", item.Path, err)
+		fmt.Printf("Error while creating watch for folder %q. Error: %v\n", item.path, err)
 	}
 
 	return item

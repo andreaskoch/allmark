@@ -1,13 +1,13 @@
 package repository
 
 type Index struct {
-	Path  string
+	path  string
 	items []*Item
 }
 
-func NewIndex(path string, items []*Item) *Index {
+func NewIndex(indexPath string, items []*Item) *Index {
 	return &Index{
-		Path:  path,
+		path:  indexPath,
 		items: items,
 	}
 }
@@ -16,4 +16,12 @@ func (index *Index) Walk(walkFunc func(item *Item)) {
 	for _, item := range index.items {
 		item.Walk(walkFunc)
 	}
+}
+
+func (index *Index) PathAbsolute() string {
+	return index.path
+}
+
+func (index *Index) PathRelative() string {
+	return index.path
 }
