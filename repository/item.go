@@ -112,11 +112,11 @@ func (item *Item) Directory() string {
 	return filepath.Dir(item.Path)
 }
 
-func (item Item) GetAbsolutePath() string {
+func (item Item) AbsolutePath() string {
 	return item.RenderedPath
 }
 
-func (item Item) GetRelativePath(basePath string) string {
+func (item Item) RelativePath(basePath string) string {
 
 	pathSeperator := string(os.PathSeparator)
 	fullItemPath := item.RenderedPath

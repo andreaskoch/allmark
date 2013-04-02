@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-var routes map[string]repository.Addresser
+var routes map[string]repository.Pather
 
 func Serve(repositoryPaths []string) {
 
@@ -38,7 +38,7 @@ func Serve(repositoryPaths []string) {
 			return
 		}
 
-		data, err := ioutil.ReadFile(item.GetAbsolutePath())
+		data, err := ioutil.ReadFile(item.AbsolutePath())
 		if err != nil {
 			error404Handler(w, r)
 			return
@@ -60,7 +60,7 @@ func Serve(repositoryPaths []string) {
 
 func initializeRoutes(indices []*repository.Index) {
 
-	routes = make(map[string]repository.Addresser)
+	routes = make(map[string]repository.Pather)
 
 	for _, index := range indices {
 
@@ -68,13 +68,13 @@ func initializeRoutes(indices []*repository.Index) {
 
 			// get the item route and
 			// add it to the routing table
-			itemRoute := getHttpRouteFromFilePath(item.GetRelativePath(index.Path))
+			itemRoute := getHttpRouteFromFilePath(item.RelativePath(index.Path))
 			registerRoute(itemRoute, item)
 
 			// get the file routes and
 			// add them to the routing table
 			for _, file := range item.Files {
-				fileRoute := getHttpRouteFromFilePath(file.GetRelativePath(index.Path))
+				fileRoute := getHttpRouteFromFilePath(file.RelativePath(index.Path))
 				registerRoute(fileRoute, file)
 			}
 		}
@@ -98,7 +98,7 @@ func getHttpRouteFromFilePath(path string) string {
 	return strings.Replace(path, string(os.PathSeparator), "/", -1)
 }
 
-func registerRoute(route string, item repository.Addresser) {
+func registerRoute(route string, item repository.Pather) {
 
 	if item == nil {
 		log.Printf("Cannot add a route for an uninitialized item. Route: %#v\n", route)

@@ -35,7 +35,7 @@ func renderIndex(index *repository.Index) *repository.Index {
 		indexDirectory := index.Path
 
 		pathProviderFunc := func(item *repository.Item) string {
-			return item.GetRelativePath(indexDirectory)
+			return item.RelativePath(indexDirectory)
 		}
 
 		return renderItem(item, pathProviderFunc)

@@ -15,11 +15,11 @@ func NewFile(path string) *File {
 	}
 }
 
-func (file File) GetAbsolutePath() string {
+func (file File) AbsolutePath() string {
 	return file.Path
 }
 
-func (file File) GetRelativePath(basePath string) string {
+func (file File) RelativePath(basePath string) string {
 
 	pathSeperator := string(os.PathSeparator)
 	fullPath := file.Path
