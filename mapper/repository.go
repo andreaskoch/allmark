@@ -1,38 +1,35 @@
 package mapper
 
 import (
+	"fmt"
 	"github.com/andreaskoch/docs/repository"
-	"github.com/andreaskoch/docs/viewmodel"
-	"path/filepath"
+	"github.com/andreaskoch/docs/view"
 )
 
-func repositoryMapperFunc(item *repository.Item, childItemCallback func(item *repository.Item)) interface{} {
+func repositoryMapperFunc(item *repository.Item, pathProviderFunc func(item *repository.Item) string) view.Model {
 
-	return viewmodel.Repository{
+	return view.Model{
+		Path:        pathProviderFunc(item),
 		Title:       item.Title,
 		Description: item.Description,
 		Content:     item.Content,
-		Entries:     getRepositoryEntries(item, childItemCallback),
+		Entries:     getEntries(item, pathProviderFunc),
 		LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
 	}
 }
 
-func getRepositoryEntries(item *repository.Item, childItemCallback func(item *repository.Item)) []viewmodel.RepositoryEntry {
-	parentDirectory := filepath.Dir(item.Path)
+func getEntries(item *repository.Item, pathProviderFunc func(item *repository.Item) string) []view.Model {
 
-	getRepositoryEntry := func(item repository.Item) viewmodel.RepositoryEntry {
+	entries := make([]view.Model, 0)
 
-		return viewmodel.RepositoryEntry{
-			Title: item.Title,
-			Description: item.Description,
-			Path:  item.GetRelativePath(parentDirectory),
-		}
-	}
-
-	entries := make([]viewmodel.RepositoryEntry, 0, len(item.ChildItems))
 	for _, child := range item.ChildItems {
-		childItemCallback(child)
-		entries = append(entries, getRepositoryEntry(*child))
+		if mapperFunc, err := GetMapper(child, pathProviderFunc); err == nil {
+			viewModel := mapperFunc(child)
+			entries = append(entries, viewModel)
+		} else {
+			fmt.Println(err)
+		}
+
 	}
 
 	return entries

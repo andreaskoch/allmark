@@ -2,11 +2,12 @@ package mapper
 
 import (
 	"github.com/andreaskoch/docs/repository"
-	"github.com/andreaskoch/docs/viewmodel"
+	"github.com/andreaskoch/docs/view"
 )
 
-func messageMapperFunc(item *repository.Item, childItemCallback func(item *repository.Item)) interface{} {
-	return viewmodel.Message{
+func messageMapperFunc(item *repository.Item, pathProviderFunc func(item *repository.Item) string) view.Model {
+	return view.Model{
+		Path:        pathProviderFunc(item),
 		Title:       getTitle(item),
 		Content:     item.Content,
 		LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),

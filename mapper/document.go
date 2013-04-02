@@ -2,11 +2,12 @@ package mapper
 
 import (
 	"github.com/andreaskoch/docs/repository"
-	"github.com/andreaskoch/docs/viewmodel"
+	"github.com/andreaskoch/docs/view"
 )
 
-func documentMapperFunc(item *repository.Item, childItemCallback func(item *repository.Item)) interface{} {
-	return viewmodel.Document{
+func documentMapperFunc(item *repository.Item, pathProviderFunc func(item *repository.Item) string) view.Model {
+	return view.Model{
+		Path:        pathProviderFunc(item),
 		Title:       item.Title,
 		Description: item.Description,
 		Content:     item.Content,

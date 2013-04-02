@@ -7,6 +7,7 @@ import (
 	"github.com/andreaskoch/docs/mapper"
 	"github.com/andreaskoch/docs/repository"
 	"github.com/andreaskoch/docs/templates"
+	"github.com/andreaskoch/docs/view"
 	"os"
 	"text/template"
 )
@@ -30,23 +31,33 @@ func RenderRepositories(repositoryPaths []string) []*repository.Index {
 
 func renderIndex(index *repository.Index) *repository.Index {
 
+	renderFunc := func(item *repository.Item) *repository.Item {
+		indexDirectory := index.Path
+
+		pathProviderFunc := func(item *repository.Item) string {
+			return item.GetRelativePath(indexDirectory)
+		}
+
+		return renderItem(item, pathProviderFunc)
+	}
+
 	index.Walk(func(item *repository.Item) {
 
 		// render the item
-		item.Render(renderItem)
+		item.Render(renderFunc)
 
 		// render the item again if it changes
 		item.RegisterOnChangeCallback("RenderOnChange", func(i *repository.Item) {
 
 			fmt.Printf("Item %q changed", item)
-			i.Render(renderItem)
+			i.Render(renderFunc)
 		})
 	})
 
 	return index
 }
 
-func renderItem(item *repository.Item) *repository.Item {
+func renderItem(item *repository.Item, pathProviderFunc func(item *repository.Item) string) *repository.Item {
 
 	fmt.Printf("Rendering item %q\n", item.Path)
 
@@ -61,15 +72,14 @@ func renderItem(item *repository.Item) *repository.Item {
 	}
 
 	// get a viewmodel mapper
-	mapperFunc, err := mapper.GetMapper(item)
+	mapperFunc, err := mapper.GetMapper(item, pathProviderFunc)
 	if err != nil {
 		fmt.Println(err)
 		return item
 	}
 
 	// create the viewmodel
-	viewModel := mapperFunc(item, func(i *repository.Item) {
-	})
+	viewModel := mapperFunc(item)
 
 	// render the template
 	render(item, templateText, viewModel)
@@ -77,7 +87,7 @@ func renderItem(item *repository.Item) *repository.Item {
 	return item
 }
 
-func render(item *repository.Item, templateText string, viewModel interface{}) (*repository.Item, error) {
+func render(item *repository.Item, templateText string, viewModel view.Model) (*repository.Item, error) {
 	file, err := os.Create(item.RenderedPath)
 	if err != nil {
 		return item, err

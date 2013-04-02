@@ -1,8 +1,10 @@
-package viewmodel
+package view
 
-type Document struct {
+type Model struct {
+	Path        string
 	Title       string
 	Description string
 	Content     string
 	LanguageTag string
+	Entries     []Model
 }
