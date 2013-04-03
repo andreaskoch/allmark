@@ -34,8 +34,13 @@ func Serve(repositoryPaths []string) {
 
 		item, ok := routes[requestedPath]
 		if !ok {
-			error404Handler(w, r)
-			return
+
+			// check for fallbacks before returning a 404
+			item = getFallbackItem(requestedPath)
+			if item == nil {
+				error404Handler(w, r)
+				return
+			}
 		}
 
 		data, err := ioutil.ReadFile(item.Path())
@@ -53,9 +58,26 @@ func Serve(repositoryPaths []string) {
 		}
 	}
 
+	// register handlers
 	http.HandleFunc("/", itemHandler)
 	http.HandleFunc("/debug/index", indexDebugger)
+
+	// start http server
 	http.ListenAndServe(":8080", nil)
+}
+
+func getFallbackItem(requestedPath string) repository.Pather {
+
+	if strings.HasSuffix(requestedPath, "/index.html") {
+		return nil
+	}
+
+	newRoute := strings.TrimRight(requestedPath, "/") + "/" + "index.html"
+	if item, ok := routes[newRoute]; ok {
+		return item
+	}
+
+	return nil
 }
 
 func initializeRoutes(indices []*repository.ItemIndex) {
