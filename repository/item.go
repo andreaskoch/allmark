@@ -103,6 +103,10 @@ func (item *Item) Path() string {
 	return filepath.Join(filepath.Dir(item.path), "index.html")
 }
 
+func (item *Item) SourcePath() string {
+	return item.path
+}
+
 func (item *Item) pauseWatch() {
 	fmt.Printf("Pausing watch on item %s\n", item)
 	item.itemIsBeingWatched = true
