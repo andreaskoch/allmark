@@ -1,16 +1,19 @@
 package mapper
 
 import (
+	"github.com/andreaskoch/docs/path"
 	"github.com/andreaskoch/docs/repository"
 	"github.com/andreaskoch/docs/view"
 )
 
-func messageMapperFunc(item *repository.Item) view.Model {
-	return view.Model{
-		Path:        item.Route(),
-		Title:       getTitle(item),
-		Content:     item.Content,
-		LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
+func createMessageMapperFunc(pathProvider *path.Provider) func(item *repository.Item) view.Model {
+	return func(item *repository.Item) view.Model {
+		return view.Model{
+			Path:        pathProvider.GetWebRoute(item),
+			Title:       getTitle(item),
+			Content:     item.Content,
+			LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
+		}
 	}
 }
 

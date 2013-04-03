@@ -33,7 +33,7 @@ var (
 func Parse(item *repository.Item) (*repository.Item, error) {
 
 	// open the file
-	file, err := os.Open(item.PathAbsolute())
+	file, err := os.Open(item.Path())
 	if err != nil {
 		return item, err
 	}

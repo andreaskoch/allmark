@@ -9,12 +9,9 @@
 package repository
 
 import (
-	"crypto/sha1"
 	"errors"
 	"fmt"
 	"github.com/howeyc/fsnotify"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -36,65 +33,48 @@ type Item struct {
 	Title       string
 	Description string
 	Content     string
-	Files       []*File
+	Files       *FileIndex
 	ChildItems  []*Item
 	MetaData    MetaData
 	Type        string
 
-	indexDirectory     string
 	path               string
-	renderPath         string
 	onChangeCallbacks  map[string]func(item *Item)
 	itemIsBeingWatched bool
 }
 
-// Create a new repository item
-func NewItem(indexDirectory string, itemPath string, childItems []*Item) (item *Item, err error) {
+func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
 
+	// determine the type
 	itemType := getItemType(itemPath)
-
 	if itemType == UnknownItemType {
-		err = errors.New(fmt.Sprintf("The item %q does not match any of the known item types.", itemPath))
+		return nil, errors.New(fmt.Sprintf("The item %q does not match any of the known item types.", itemPath))
 	}
 
+	// get the item's directory
+	itemDirectory := filepath.Dir(itemPath)
+
+	// create a new item
 	item = &Item{
 		ChildItems: childItems,
 		Type:       itemType,
+		Files:      NewFileIndex(filepath.Join(itemDirectory, "files")),
 
-		indexDirectory: indexDirectory,
-		path:           itemPath,
-		renderPath:     getRenderedItemPath(itemPath),
+		path: itemPath,
 	}
 
-	item.IndexFiles()
-	item.startWatch()
-
-	return item, err
+	return item, nil
 }
 
 func (item *Item) String() string {
 	return fmt.Sprintf("Item %s\n", item.path)
 }
 
-func (item Item) GetFilename() string {
-	return filepath.Base(item.path)
-}
-
-func (item Item) GetHash() string {
-	itemBytes, readFileErr := ioutil.ReadFile(item.path)
-	if readFileErr != nil {
-		return ""
-	}
-
-	sha1 := sha1.New()
-	sha1.Write(itemBytes)
-
-	return fmt.Sprintf("%x", string(sha1.Sum(nil)[0:6]))
-}
-
 func (item *Item) Walk(walkFunc func(item *Item)) {
 
+	item.pauseWatch()
 	walkFunc(item)
+	item.resumeWatch()
 
 	// add all children
 	for _, child := range item.ChildItems {
@@ -102,52 +82,14 @@ func (item *Item) Walk(walkFunc func(item *Item)) {
 	}
 }
 
-func (item *Item) FilesDirectoryAbsolute() string {
-	return filepath.Join(item.DirectoryAbsolute(), "files")
-}
-
-func (item *Item) FilesDirectoryRelative() string {
-	return filepath.Join(item.DirectoryAbsolute(), "files")
-}
-
-func (item *Item) IndexDirectoryAbsolute() string {
-	return item.indexDirectory
-}
-
-func (item *Item) DirectoryAbsolute() string {
-	return filepath.Dir(item.path)
-}
-
-func (item *Item) PathAbsolute() string {
-	return item.path
-}
-
-func (item *Item) Route() string {
-
-	pathSeperator := string(os.PathSeparator)
-
-	relativePath := strings.Replace(item.RenderPathAbsolute(), item.IndexDirectoryAbsolute(), "", 1)
-	relativePath = pathSeperator + strings.TrimLeft(relativePath, pathSeperator)
-	relativePath = strings.Replace(relativePath, string(pathSeperator), "/", -1)
-
-	return relativePath
-}
-
-func (item *Item) RenderPathAbsolute() string {
-	return item.renderPath
-}
-
-func (item *Item) Render(renderFunc func(item *Item) *Item) {
-	item.pauseWatch()
-	defer item.resumeWatch()
-
-	renderFunc(item)
-}
-
 func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(item *Item)) {
 
 	if item.onChangeCallbacks == nil {
+		// initialize on first use
 		item.onChangeCallbacks = make(map[string]func(item *Item))
+
+		// start watching for changes
+		item.startWatch()
 	}
 
 	if _, ok := item.onChangeCallbacks[name]; ok {
@@ -157,24 +99,8 @@ func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(it
 	item.onChangeCallbacks[name] = callbackFunction
 }
 
-func (item *Item) IndexFiles() *Item {
-
-	itemFiles := make([]*File, 0, 5)
-	filesDirectoryEntries, _ := ioutil.ReadDir(item.FilesDirectoryAbsolute())
-
-	for _, file := range filesDirectoryEntries {
-		if file.IsDir() {
-			continue
-		}
-
-		absoluteFilePath := filepath.Join(item.FilesDirectoryAbsolute(), file.Name())
-		repositoryFile := NewFile(item.IndexDirectoryAbsolute(), absoluteFilePath)
-
-		itemFiles = append(itemFiles, repositoryFile)
-	}
-
-	item.Files = itemFiles
-	return item
+func (item *Item) Path() string {
+	return filepath.Join(filepath.Dir(item.path), "index.html")
 }
 
 func (item *Item) pauseWatch() {
@@ -229,22 +155,8 @@ func (item *Item) startWatch() *Item {
 	return item
 }
 
-// Get the item type from the given item path
-func getItemType(itemPath string) string {
-	filename := filepath.Base(itemPath)
-	return getItemTypeFromFilename(filename)
-}
-
-// Get the filepath of the rendered repository item
-func getRenderedItemPath(itemPath string) string {
-	itemDirectory := filepath.Dir(itemPath)
-	renderedFilePath := filepath.Join(itemDirectory, "index.html")
-	return renderedFilePath
-}
-
-func getItemTypeFromFilename(filename string) string {
-
-	lowercaseFilename := strings.ToLower(filename)
+func getItemType(filePath string) string {
+	lowercaseFilename := strings.ToLower(filepath.Base(filePath))
 
 	switch lowercaseFilename {
 	case "document.md", "readme.md":

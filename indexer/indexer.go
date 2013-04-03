@@ -11,11 +11,11 @@ import (
 	"strings"
 )
 
-func EmptyIndex() *repository.Index {
-	return &repository.Index{}
+func EmptyIndex() *repository.ItemIndex {
+	return &repository.ItemIndex{}
 }
 
-func NewIndex(indexDirectory string) (*repository.Index, error) {
+func NewItemIndex(indexDirectory string) (*repository.ItemIndex, error) {
 
 	// check if path is valid
 	folderInfo, err := os.Stat(indexDirectory)
@@ -28,12 +28,12 @@ func NewIndex(indexDirectory string) (*repository.Index, error) {
 		return EmptyIndex(), errors.New(fmt.Sprintf("%q is not a directory. Cannot create an index out of a file.", indexDirectory))
 	}
 
-	index := repository.NewIndex(indexDirectory, findAllItems(indexDirectory, indexDirectory))
+	index := repository.NewItemIndex(indexDirectory, findAllItems(indexDirectory))
 
 	return index, nil
 }
 
-func findAllItems(indexDirectory string, itemDirectory string) []*repository.Item {
+func findAllItems(itemDirectory string) []*repository.Item {
 
 	items := make([]*repository.Item, 0, 100)
 
@@ -56,10 +56,10 @@ func findAllItems(indexDirectory string, itemDirectory string) []*repository.Ite
 		}
 
 		// search for child items
-		childs := getChildItems(indexDirectory, itemDirectory)
+		childs := getChildItems(itemDirectory)
 
 		// create item
-		item, err := repository.NewItem(indexDirectory, itemPath, childs)
+		item, err := repository.NewItem(itemPath, childs)
 		if err != nil {
 			fmt.Printf("Skipping item: %s\n", err)
 			continue
@@ -81,7 +81,7 @@ func findAllItems(indexDirectory string, itemDirectory string) []*repository.Ite
 
 	// search in sub directories if there is no item in the current folder
 	if !directoryContainsItem {
-		items = append(items, getChildItems(indexDirectory, itemDirectory)...)
+		items = append(items, getChildItems(itemDirectory)...)
 	}
 
 	return items
@@ -92,7 +92,7 @@ func isMarkdownFile(absoluteFilePath string) bool {
 	return fileExtension == ".md"
 }
 
-func getChildItems(indexDirectory string, itemDirectory string) []*repository.Item {
+func getChildItems(itemDirectory string) []*repository.Item {
 
 	childItems := make([]*repository.Item, 0, 5)
 
@@ -101,7 +101,7 @@ func getChildItems(indexDirectory string, itemDirectory string) []*repository.It
 
 		if folder.IsDir() {
 			childItemDirectory := filepath.Join(itemDirectory, folder.Name())
-			childsInPath := findAllItems(indexDirectory, childItemDirectory)
+			childsInPath := findAllItems(childItemDirectory)
 			childItems = append(childItems, childsInPath...)
 		}
 

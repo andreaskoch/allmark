@@ -1,42 +1,15 @@
 package repository
 
-import (
-	"os"
-	"path/filepath"
-	"strings"
-)
-
 type File struct {
-	path           string
-	indexDirectory string
+	path string
 }
 
-func NewFile(indexDirectory string, filePath string) *File {
+func NewFile(filePath string) *File {
 	return &File{
-		path:           filePath,
-		indexDirectory: indexDirectory,
+		path: filePath,
 	}
 }
 
-func (file *File) IndexDirectoryAbsolute() string {
-	return file.indexDirectory
-}
-
-func (file *File) DirectoryAbsolute() string {
-	return filepath.Dir(file.path)
-}
-
-func (file *File) PathAbsolute() string {
+func (file *File) Path() string {
 	return file.path
-}
-
-func (file *File) Route() string {
-
-	pathSeperator := string(os.PathSeparator)
-
-	relativePath := strings.Replace(file.PathAbsolute(), file.IndexDirectoryAbsolute(), "", 1)
-	relativePath = pathSeperator + strings.TrimLeft(relativePath, pathSeperator)
-	relativePath = strings.Replace(relativePath, string(pathSeperator), "/", -1)
-
-	return relativePath
 }

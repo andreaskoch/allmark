@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/andreaskoch/docs/path"
 	"github.com/andreaskoch/docs/renderer"
 	"github.com/andreaskoch/docs/repository"
 	"io/ioutil"
@@ -37,7 +38,7 @@ func Serve(repositoryPaths []string) {
 			return
 		}
 
-		data, err := ioutil.ReadFile(item.PathAbsolute())
+		data, err := ioutil.ReadFile(item.Path())
 		if err != nil {
 			error404Handler(w, r)
 			return
@@ -57,22 +58,24 @@ func Serve(repositoryPaths []string) {
 	http.ListenAndServe(":8080", nil)
 }
 
-func initializeRoutes(indices []*repository.Index) {
+func initializeRoutes(indices []*repository.ItemIndex) {
 
 	routes = make(map[string]repository.Pather)
 
 	for _, index := range indices {
 
+		pathProvider := path.NewProvider(index.Path())
+
 		updateRouteTable := func(item *repository.Item) {
 
 			// get the item route and
 			// add it to the routing table
-			registerRoute(item.Route(), item)
+			registerRoute(pathProvider, item)
 
 			// get the file routes and
 			// add them to the routing table
-			for _, file := range item.Files {
-				registerRoute(file.Route(), file)
+			for _, file := range item.Files.Items() {
+				registerRoute(pathProvider, file)
 			}
 		}
 
@@ -83,7 +86,6 @@ func initializeRoutes(indices []*repository.Index) {
 
 			// update route table again if item changes
 			item.RegisterOnChangeCallback("UpdateRouteTableOnChange", func(i *repository.Item) {
-				i.IndexFiles()
 				updateRouteTable(i)
 			})
 		})
@@ -91,15 +93,17 @@ func initializeRoutes(indices []*repository.Index) {
 	}
 }
 
-func registerRoute(route string, pather repository.Pather) {
+func registerRoute(pathProvider *path.Provider, pather repository.Pather) {
 
 	if pather == nil {
-		log.Printf("Cannot add a route for an uninitialized item. Route: %#v\n", route)
+		log.Printf("Cannot add a route for an uninitialized item %q.\n", pather.Path())
 		return
 	}
 
+	route := pathProvider.GetWebRoute(pather)
+
 	if strings.TrimSpace(route) == "" {
-		log.Printf("Cannot add an empty route to the routing table. Item: %#v\n", pather.PathAbsolute())
+		log.Printf("Cannot add an empty route to the routing table. Item %q\n", pather.Path())
 		return
 	}
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/docs/indexer"
 	"github.com/andreaskoch/docs/mapper"
+	"github.com/andreaskoch/docs/path"
 	"github.com/andreaskoch/docs/repository"
 	"github.com/andreaskoch/docs/templates"
 	"github.com/andreaskoch/docs/view"
@@ -12,47 +13,44 @@ import (
 	"text/template"
 )
 
-func RenderRepositories(repositoryPaths []string) []*repository.Index {
+func RenderRepositories(repositoryPaths []string) []*repository.ItemIndex {
 	numberOfRepositories := len(repositoryPaths)
-	indizes := make([]*repository.Index, numberOfRepositories, numberOfRepositories)
+	indizes := make([]*repository.ItemIndex, numberOfRepositories, numberOfRepositories)
 
 	for indexNumber, repositoryPath := range repositoryPaths {
-		index, err := indexer.NewIndex(repositoryPath)
+		itemIndex, err := indexer.NewItemIndex(repositoryPath)
 		if err != nil {
-			fmt.Printf("Cannot create an index for folder %q. Error: %v", repositoryPath, err)
+			fmt.Printf("Cannot create an item index for folder %q. Error: %v", repositoryPath, err)
 			continue
 		}
 
-		indizes[indexNumber] = renderIndex(index)
+		indizes[indexNumber] = renderIndex(itemIndex)
 	}
 
 	return indizes
 }
 
-func renderIndex(index *repository.Index) *repository.Index {
+func renderIndex(itemIndex *repository.ItemIndex) *repository.ItemIndex {
 
-	index.Walk(func(item *repository.Item) {
+	itemIndex.Walk(func(item *repository.Item) {
 
 		// render the item
-		item.Render(renderItem)
+		renderItem(itemIndex.Path(), item)
 
 		// render the item again if it changes
 		item.RegisterOnChangeCallback("RenderOnChange", func(i *repository.Item) {
 
 			fmt.Printf("Item %q changed", item)
-			i.Render(renderItem)
+			renderItem(itemIndex.Path(), item)
 		})
 	})
 
-	return index
+	return itemIndex
 }
 
-func renderItem(item *repository.Item) *repository.Item {
+func renderItem(repositoryPath string, item *repository.Item) *repository.Item {
 
 	fmt.Printf("Rendering item %q\n", item)
-
-	fmt.Println("Reindexing files")
-	item.IndexFiles()
 
 	// get a template
 	templateText, err := templates.GetTemplate(item)
@@ -61,8 +59,11 @@ func renderItem(item *repository.Item) *repository.Item {
 		return item
 	}
 
+	// create a path provider
+	pathProvider := path.NewProvider(repositoryPath)
+
 	// get a viewmodel mapper
-	mapperFunc, err := mapper.GetMapper(item)
+	mapperFunc, err := mapper.GetMapper(pathProvider, item)
 	if err != nil {
 		fmt.Println(err)
 		return item
@@ -78,7 +79,7 @@ func renderItem(item *repository.Item) *repository.Item {
 }
 
 func render(item *repository.Item, templateText string, viewModel view.Model) (*repository.Item, error) {
-	file, err := os.Create(item.RenderPathAbsolute())
+	file, err := os.Create(item.Path())
 	if err != nil {
 		return item, err
 	}
