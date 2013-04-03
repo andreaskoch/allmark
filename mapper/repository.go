@@ -9,7 +9,7 @@ import (
 func repositoryMapperFunc(item *repository.Item) view.Model {
 
 	return view.Model{
-		Path:        item.PathRelative(),
+		Path:        item.Route(),
 		Title:       item.Title,
 		Description: item.Description,
 		Content:     item.Content,

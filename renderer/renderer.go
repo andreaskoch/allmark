@@ -78,7 +78,7 @@ func renderItem(item *repository.Item) *repository.Item {
 }
 
 func render(item *repository.Item, templateText string, viewModel view.Model) (*repository.Item, error) {
-	file, err := os.Create(item.RenderedPath)
+	file, err := os.Create(item.RenderPathAbsolute())
 	if err != nil {
 		return item, err
 	}

@@ -15,31 +15,31 @@ func EmptyIndex() *repository.Index {
 	return &repository.Index{}
 }
 
-func NewIndex(path string) (*repository.Index, error) {
+func NewIndex(indexDirectory string) (*repository.Index, error) {
 
 	// check if path is valid
-	fileInfo, err := os.Stat(path)
+	folderInfo, err := os.Stat(indexDirectory)
 	if err != nil {
 		return EmptyIndex(), err
 	}
 
 	// check if the path is a directory	
-	if !fileInfo.IsDir() {
-		return EmptyIndex(), errors.New(fmt.Sprintf("%q is not a directory. Cannot create an index out of a file.", path))
+	if !folderInfo.IsDir() {
+		return EmptyIndex(), errors.New(fmt.Sprintf("%q is not a directory. Cannot create an index out of a file.", indexDirectory))
 	}
 
-	index := repository.NewIndex(path, findAllItems(path))
+	index := repository.NewIndex(indexDirectory, findAllItems(indexDirectory, indexDirectory))
 
 	return index, nil
 }
 
-func findAllItems(repositoryPath string) []*repository.Item {
+func findAllItems(indexDirectory string, itemDirectory string) []*repository.Item {
 
 	items := make([]*repository.Item, 0, 100)
 
-	directoryEntries, err := ioutil.ReadDir(repositoryPath)
+	directoryEntries, err := ioutil.ReadDir(itemDirectory)
 	if err != nil {
-		fmt.Printf("An error occured while indexing the repository path `%v`. Error: %v\n", repositoryPath, err)
+		fmt.Printf("An error occured while indexing the directory `%v`. Error: %v\n", itemDirectory, err)
 		return nil
 	}
 
@@ -47,7 +47,7 @@ func findAllItems(repositoryPath string) []*repository.Item {
 	directoryContainsItem := false
 	for _, element := range directoryEntries {
 
-		itemPath := filepath.Join(repositoryPath, element.Name())
+		itemPath := filepath.Join(itemDirectory, element.Name())
 
 		// check if the file a markdown file
 		isMarkdown := isMarkdownFile(itemPath)
@@ -56,10 +56,10 @@ func findAllItems(repositoryPath string) []*repository.Item {
 		}
 
 		// search for child items
-		childs := getChildItems(repositoryPath)
+		childs := getChildItems(indexDirectory, itemDirectory)
 
 		// create item
-		item, err := repository.NewItem(itemPath, childs)
+		item, err := repository.NewItem(indexDirectory, itemPath, childs)
 		if err != nil {
 			fmt.Printf("Skipping item: %s\n", err)
 			continue
@@ -81,7 +81,7 @@ func findAllItems(repositoryPath string) []*repository.Item {
 
 	// search in sub directories if there is no item in the current folder
 	if !directoryContainsItem {
-		items = append(items, getChildItems(repositoryPath)...)
+		items = append(items, getChildItems(indexDirectory, itemDirectory)...)
 	}
 
 	return items
@@ -92,16 +92,16 @@ func isMarkdownFile(absoluteFilePath string) bool {
 	return fileExtension == ".md"
 }
 
-func getChildItems(itemPath string) []*repository.Item {
+func getChildItems(indexDirectory string, itemDirectory string) []*repository.Item {
 
 	childItems := make([]*repository.Item, 0, 5)
 
-	files, _ := ioutil.ReadDir(itemPath)
-	for _, element := range files {
+	files, _ := ioutil.ReadDir(itemDirectory)
+	for _, folder := range files {
 
-		if element.IsDir() {
-			path := filepath.Join(itemPath, element.Name())
-			childsInPath := findAllItems(path)
+		if folder.IsDir() {
+			childItemDirectory := filepath.Join(itemDirectory, folder.Name())
+			childsInPath := findAllItems(indexDirectory, childItemDirectory)
 			childItems = append(childItems, childsInPath...)
 		}
 

@@ -7,7 +7,7 @@ import (
 
 func messageMapperFunc(item *repository.Item) view.Model {
 	return view.Model{
-		Path:        item.PathRelative(),
+		Path:        item.Route(),
 		Title:       getTitle(item),
 		Content:     item.Content,
 		LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),

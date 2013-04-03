@@ -18,10 +18,6 @@ func (index *Index) Walk(walkFunc func(item *Item)) {
 	}
 }
 
-func (index *Index) PathAbsolute() string {
-	return index.path
-}
-
-func (index *Index) PathRelative() string {
+func (index *Index) DirectoryAbsolute() string {
 	return index.path
 }

@@ -1,6 +1,11 @@
 package repository
 
 type Pather interface {
+	DirectoryAbsolute() string
 	PathAbsolute() string
-	PathRelative() string
+}
+
+type RenderPather interface {
+	RenderPathAbsolute() string
+	RenderPathRelative() string
 }

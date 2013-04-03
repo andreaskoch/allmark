@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 )
 
@@ -68,14 +67,12 @@ func initializeRoutes(indices []*repository.Index) {
 
 			// get the item route and
 			// add it to the routing table
-			itemRoute := getHttpRouteFromFilePath(item.PathRelative())
-			registerRoute(itemRoute, item)
+			registerRoute(item.Route(), item)
 
 			// get the file routes and
 			// add them to the routing table
 			for _, file := range item.Files {
-				fileRoute := getHttpRouteFromFilePath(file.PathRelative())
-				registerRoute(fileRoute, file)
+				registerRoute(file.Route(), file)
 			}
 		}
 
@@ -92,10 +89,6 @@ func initializeRoutes(indices []*repository.Index) {
 		})
 
 	}
-}
-
-func getHttpRouteFromFilePath(path string) string {
-	return strings.Replace(path, string(os.PathSeparator), "/", -1)
 }
 
 func registerRoute(route string, pather repository.Pather) {

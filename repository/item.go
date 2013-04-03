@@ -12,7 +12,6 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	"github.com/andreaskoch/docs/util"
 	"github.com/howeyc/fsnotify"
 	"io/ioutil"
 	"os"
@@ -34,22 +33,23 @@ const (
 )
 
 type Item struct {
-	Title        string
-	Description  string
-	Content      string
-	RenderedPath string
-	Files        []*File
-	ChildItems   []*Item
-	MetaData     MetaData
-	Type         string
+	Title       string
+	Description string
+	Content     string
+	Files       []*File
+	ChildItems  []*Item
+	MetaData    MetaData
+	Type        string
 
+	indexDirectory     string
 	path               string
+	renderPath         string
 	onChangeCallbacks  map[string]func(item *Item)
 	itemIsBeingWatched bool
 }
 
 // Create a new repository item
-func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
+func NewItem(indexDirectory string, itemPath string, childItems []*Item) (item *Item, err error) {
 
 	itemType := getItemType(itemPath)
 
@@ -61,7 +61,9 @@ func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
 		ChildItems: childItems,
 		Type:       itemType,
 
-		path: itemPath,
+		indexDirectory: indexDirectory,
+		path:           itemPath,
+		renderPath:     getRenderedItemPath(itemPath),
 	}
 
 	item.IndexFiles()
@@ -100,31 +102,39 @@ func (item *Item) Walk(walkFunc func(item *Item)) {
 	}
 }
 
-func (item Item) GetFolder() string {
-	return filepath.Dir(item.path)
+func (item *Item) FilesDirectoryAbsolute() string {
+	return filepath.Join(item.DirectoryAbsolute(), "files")
 }
 
-func (item Item) IsRendered() bool {
-	return util.FileExists(item.RenderedPath)
+func (item *Item) FilesDirectoryRelative() string {
+	return filepath.Join(item.DirectoryAbsolute(), "files")
 }
 
-func (item *Item) Directory() string {
+func (item *Item) IndexDirectoryAbsolute() string {
+	return item.indexDirectory
+}
+
+func (item *Item) DirectoryAbsolute() string {
 	return filepath.Dir(item.path)
 }
 
 func (item *Item) PathAbsolute() string {
-	return item.RenderedPath
+	return item.path
 }
 
-func (item *Item) PathRelative() string {
+func (item *Item) Route() string {
 
-	basePath := "" // Todo
 	pathSeperator := string(os.PathSeparator)
 
-	relativePath := strings.Replace(item.PathAbsolute(), basePath, "", 1)
+	relativePath := strings.Replace(item.RenderPathAbsolute(), item.IndexDirectoryAbsolute(), "", 1)
 	relativePath = pathSeperator + strings.TrimLeft(relativePath, pathSeperator)
+	relativePath = strings.Replace(relativePath, string(pathSeperator), "/", -1)
 
 	return relativePath
+}
+
+func (item *Item) RenderPathAbsolute() string {
+	return item.renderPath
 }
 
 func (item *Item) Render(renderFunc func(item *Item) *Item) {
@@ -149,17 +159,16 @@ func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(it
 
 func (item *Item) IndexFiles() *Item {
 
-	filesDirectory := filepath.Join(item.Directory(), "files")
 	itemFiles := make([]*File, 0, 5)
-	filesDirectoryEntries, _ := ioutil.ReadDir(filesDirectory)
+	filesDirectoryEntries, _ := ioutil.ReadDir(item.FilesDirectoryAbsolute())
 
 	for _, file := range filesDirectoryEntries {
 		if file.IsDir() {
 			continue
 		}
 
-		absoluteFilePath := filepath.Join(filesDirectory, file.Name())
-		repositoryFile := NewFile(absoluteFilePath)
+		absoluteFilePath := filepath.Join(item.FilesDirectoryAbsolute(), file.Name())
+		repositoryFile := NewFile(item.IndexDirectoryAbsolute(), absoluteFilePath)
 
 		itemFiles = append(itemFiles, repositoryFile)
 	}
