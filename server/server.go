@@ -1,17 +1,24 @@
 package server
 
 import (
-	"fmt"
 	"github.com/andreaskoch/docs/path"
 	"github.com/andreaskoch/docs/renderer"
 	"github.com/andreaskoch/docs/repository"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
 )
 
 var routes map[string]repository.Pather
+
+const (
+	UrlDirectorySeperator = "/"
+	DefaultFile           = "index.html"
+
+	// Routes
+	ItemHandlerRoute  = "/"
+	DebugHandlerRoute = "/debug/index"
+)
 
 func Serve(repositoryPaths []string) {
 
@@ -22,54 +29,12 @@ func Serve(repositoryPaths []string) {
 	// Initialize the routing table
 	initializeRoutes(indices)
 
-	var error404Handler = func(w http.ResponseWriter, r *http.Request) {
-		requestedPath := r.URL.Path
-		fmt.Fprintf(w, "Not found: %v", requestedPath)
-	}
-
-	var itemHandler = func(w http.ResponseWriter, r *http.Request) {
-		requestedPath := r.URL.Path
-
-		fmt.Println(requestedPath)
-
-		item, ok := routes[requestedPath]
-		if !ok {
-
-			// check for fallbacks before returning a 404
-			if fallbackRoute, fallbackRouteFound := getFallbackRoute(requestedPath); fallbackRouteFound {
-				redirect(w, r, fallbackRoute)
-				return
-			}
-
-			error404Handler(w, r)
-			return
-		}
-
-		data, err := ioutil.ReadFile(item.Path())
-		if err != nil {
-			error404Handler(w, r)
-			return
-		}
-
-		fmt.Fprintf(w, "%s", data)
-	}
-
-	var indexDebugger = func(w http.ResponseWriter, r *http.Request) {
-		for route, _ := range routes {
-			fmt.Fprintln(w, route)
-		}
-	}
-
 	// register handlers
-	http.HandleFunc("/", itemHandler)
-	http.HandleFunc("/debug/index", indexDebugger)
+	http.HandleFunc(ItemHandlerRoute, itemHandler)
+	http.HandleFunc(DebugHandlerRoute, indexDebugger)
 
 	// start http server
 	http.ListenAndServe(":8080", nil)
-}
-
-func redirect(w http.ResponseWriter, r *http.Request, route string) {
-	http.Redirect(w, r, route, http.StatusMovedPermanently)
 }
 
 func getFallbackRoute(requestedPath string) (fallbackRoute string, found bool) {
@@ -78,7 +43,7 @@ func getFallbackRoute(requestedPath string) (fallbackRoute string, found bool) {
 		return "", false
 	}
 
-	route := strings.TrimRight(requestedPath, "/") + "/" + "index.html"
+	route := CombineUrlComponents(requestedPath, "index.html")
 	if _, ok := routes[route]; ok {
 		return route, true
 	}
