@@ -22,8 +22,11 @@ type Provider struct {
 }
 
 func (provider *Provider) GetWebRoute(pather repository.Pather) string {
-	pathSeperator := string(FilesystemPathSeperator)
-	relativePath := strings.Replace(pather.Path(), provider.basePath, "", 1)
-	relativePath = pathSeperator + strings.TrimLeft(relativePath, pathSeperator)
-	return relativePath
+	filesystemSeperatorString := string(FilesystemPathSeperator)
+
+	relativeFilepath := strings.Replace(pather.Path(), provider.basePath, "", 1)
+	relativeFilepath = filesystemSeperatorString + strings.TrimLeft(relativeFilepath, filesystemSeperatorString)
+
+	webRoute := strings.Replace(relativeFilepath, filesystemSeperatorString, "/", -1)
+	return webRoute
 }
