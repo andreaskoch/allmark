@@ -100,11 +100,11 @@ func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(it
 }
 
 func (item *Item) Path() string {
-	return filepath.Join(filepath.Dir(item.path), "index.html")
+	return item.path
 }
 
-func (item *Item) SourcePath() string {
-	return item.path
+func (item *Item) PathType() string {
+	return "item"
 }
 
 func (item *Item) pauseWatch() {

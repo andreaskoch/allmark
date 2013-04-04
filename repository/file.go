@@ -13,3 +13,6 @@ func NewFile(filePath string) *File {
 func (file *File) Path() string {
 	return file.path
 }
+func (file *File) PathType() string {
+	return "file"
+}

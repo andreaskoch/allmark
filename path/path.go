@@ -1,14 +1,20 @@
 package path
 
 import (
-	"github.com/andreaskoch/docs/repository"
+	"fmt"
 	"os"
 	"strings"
 )
 
 const (
-	FilesystemPathSeperator = os.PathSeparator
-	WebPathSeperator        = "/"
+	// Filesystem directory seperator
+	FilesystemDirectorySeperator = string(os.PathSeparator)
+
+	// Url directory seperator
+	UrlDirectorySeperator = "/"
+
+	// Web server default file
+	WebServerDefaultFilename = "index.html"
 )
 
 func NewProvider(basePath string) *Provider {
@@ -21,12 +27,59 @@ type Provider struct {
 	basePath string
 }
 
-func (provider *Provider) GetWebRoute(pather repository.Pather) string {
-	filesystemSeperatorString := string(FilesystemPathSeperator)
+func (provider *Provider) GetWebRoute(pather Pather) string {
 
-	relativeFilepath := strings.Replace(pather.Path(), provider.basePath, "", 1)
-	relativeFilepath = filesystemSeperatorString + strings.TrimLeft(relativeFilepath, filesystemSeperatorString)
+	switch pathType := pather.PathType(); pathType {
+	case PatherTypeItem:
+		return provider.GetItemRoute(pather)
+	case PatherTypeFile:
+		return provider.GetFileRoute(pather)
+	default:
+		panic(fmt.Sprintf("Unknown pather type %q", pathType))
+	}
 
-	webRoute := strings.Replace(relativeFilepath, filesystemSeperatorString, "/", -1)
-	return webRoute
+	panic("Unreachable. Unknown pather type")
+}
+
+func (provider *Provider) GetFilepath(pather Pather) string {
+
+	switch pathType := pather.PathType(); pathType {
+	case PatherTypeItem:
+		return GetRenderTargetPath(pather)
+	case PatherTypeFile:
+		return pather.Path()
+	default:
+		panic(fmt.Sprintf("Unknown pather type %q", pathType))
+	}
+
+	panic("Unreachable. Unknown pather type")
+}
+
+func (provider *Provider) GetRelativePath(filepath string) string {
+	return strings.Replace(filepath, provider.basePath, "", 1)
+}
+
+func (provider *Provider) GetItemRoute(pather Pather) string {
+	absoluteTargetFilesystemPath := GetRenderTargetPath(pather)
+	return provider.GetRouteFromFilepath(absoluteTargetFilesystemPath)
+}
+
+func (provider *Provider) GetFileRoute(pather Pather) string {
+	absoluteFilepath := provider.GetRouteFromFilepath(pather.Path())
+	return provider.GetRouteFromFilepath(absoluteFilepath)
+}
+
+func (provider *Provider) GetRouteFromFilepath(filepath string) string {
+	relativeFilepath := provider.GetRelativePath(filepath)
+
+	route := strings.Replace(relativeFilepath, FilesystemDirectorySeperator, UrlDirectorySeperator, -1)
+	route = AddLeadingUrlDirectorySeperator(route)
+
+	return route
+}
+
+func GetRenderTargetPath(pather Pather) string {
+	sourceItemPath := pather.Path()
+	renderTargetPath := sourceItemPath[0:strings.LastIndex(sourceItemPath, FilesystemDirectorySeperator)] + FilesystemDirectorySeperator + WebServerDefaultFilename
+	return renderTargetPath
 }

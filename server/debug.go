@@ -7,6 +7,6 @@ import (
 
 var indexDebugger = func(w http.ResponseWriter, r *http.Request) {
 	for route, _ := range routes {
-		fmt.Fprintln(w, route)
+		fmt.Fprintf(w, "%q => %q\n", route, routes[route])
 	}
 }

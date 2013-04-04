@@ -11,7 +11,7 @@ var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(requestedPath)
 
-	item, ok := routes[requestedPath]
+	filePath, ok := routes[requestedPath]
 	if !ok {
 
 		// check for fallbacks before returning a 404
@@ -24,7 +24,7 @@ var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := ioutil.ReadFile(item.Path())
+	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		error404Handler(w, r)
 		return

@@ -9,11 +9,9 @@ import (
 	"strings"
 )
 
-var routes map[string]repository.Pather
+var routes map[string]string
 
 const (
-	UrlDirectorySeperator = "/"
-	DefaultFile           = "index.html"
 
 	// Routes
 	ItemHandlerRoute  = "/"
@@ -39,11 +37,11 @@ func Serve(repositoryPaths []string) {
 
 func getFallbackRoute(requestedPath string) (fallbackRoute string, found bool) {
 
-	if strings.HasSuffix(requestedPath, "/index.html") {
+	if strings.HasSuffix(requestedPath, path.WebServerDefaultFilename) {
 		return "", false
 	}
 
-	route := CombineUrlComponents(requestedPath, "index.html")
+	route := path.CombineUrlComponents(requestedPath, path.WebServerDefaultFilename)
 	if _, ok := routes[route]; ok {
 		return route, true
 	}
@@ -53,7 +51,7 @@ func getFallbackRoute(requestedPath string) (fallbackRoute string, found bool) {
 
 func initializeRoutes(indices []*repository.ItemIndex) {
 
-	routes = make(map[string]repository.Pather)
+	routes = make(map[string]string)
 
 	for _, index := range indices {
 
@@ -86,7 +84,7 @@ func initializeRoutes(indices []*repository.ItemIndex) {
 	}
 }
 
-func registerRoute(pathProvider *path.Provider, pather repository.Pather) {
+func registerRoute(pathProvider *path.Provider, pather path.Pather) {
 
 	if pather == nil {
 		log.Printf("Cannot add a route for an uninitialized item %q.\n", pather.Path())
@@ -94,11 +92,12 @@ func registerRoute(pathProvider *path.Provider, pather repository.Pather) {
 	}
 
 	route := pathProvider.GetWebRoute(pather)
+	filePath := pathProvider.GetFilepath(pather)
 
 	if strings.TrimSpace(route) == "" {
-		log.Printf("Cannot add an empty route to the routing table. Item %q\n", pather.Path())
+		log.Println("Cannot add an empty route to the routing table.")
 		return
 	}
 
-	routes[route] = pather
+	routes[route] = filePath
 }
