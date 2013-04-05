@@ -1,15 +1,19 @@
+// Copyright 2013 Andreas Koch. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package renderer
 
 import (
 	"bufio"
 	"fmt"
-	"github.com/andreaskoch/docs/indexer"
-	"github.com/andreaskoch/docs/mapper"
-	"github.com/andreaskoch/docs/parser"
-	"github.com/andreaskoch/docs/path"
-	"github.com/andreaskoch/docs/repository"
-	"github.com/andreaskoch/docs/templates"
-	"github.com/andreaskoch/docs/view"
+	"github.com/andreaskoch/allmark/indexer"
+	"github.com/andreaskoch/allmark/mapper"
+	"github.com/andreaskoch/allmark/parser"
+	"github.com/andreaskoch/allmark/path"
+	"github.com/andreaskoch/allmark/repository"
+	"github.com/andreaskoch/allmark/templates"
+	"github.com/andreaskoch/allmark/view"
 	"os"
 	"text/template"
 )

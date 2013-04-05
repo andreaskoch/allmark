@@ -1,11 +1,15 @@
+// Copyright 2013 Andreas Koch. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package mapper
 
 import (
 	"errors"
 	"fmt"
-	"github.com/andreaskoch/docs/path"
-	"github.com/andreaskoch/docs/repository"
-	"github.com/andreaskoch/docs/view"
+	"github.com/andreaskoch/allmark/path"
+	"github.com/andreaskoch/allmark/repository"
+	"github.com/andreaskoch/allmark/view"
 )
 
 func GetMapper(pathProvider *path.Provider, item *repository.Item) (func(item *repository.Item) view.Model, error) {

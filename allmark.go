@@ -7,9 +7,9 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/andreaskoch/docs/renderer"
-	"github.com/andreaskoch/docs/server"
-	"github.com/andreaskoch/docs/util"
+	"github.com/andreaskoch/allmark/renderer"
+	"github.com/andreaskoch/allmark/server"
+	"github.com/andreaskoch/allmark/util"
 	"os"
 	"path/filepath"
 	"strings"

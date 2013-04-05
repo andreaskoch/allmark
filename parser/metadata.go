@@ -1,9 +1,13 @@
+// Copyright 2013 Andreas Koch. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package parser
 
 import (
-	"github.com/andreaskoch/docs/date"
-	"github.com/andreaskoch/docs/repository"
-	"github.com/andreaskoch/docs/util"
+	"github.com/andreaskoch/allmark/date"
+	"github.com/andreaskoch/allmark/repository"
+	"github.com/andreaskoch/allmark/util"
 	"strings"
 )
 
