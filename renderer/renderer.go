@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/docs/indexer"
 	"github.com/andreaskoch/docs/mapper"
+	"github.com/andreaskoch/docs/parser"
 	"github.com/andreaskoch/docs/path"
 	"github.com/andreaskoch/docs/repository"
 	"github.com/andreaskoch/docs/templates"
@@ -41,7 +42,12 @@ func renderIndex(itemIndex *repository.ItemIndex) *repository.ItemIndex {
 		item.RegisterOnChangeCallback("RenderOnChange", func(i *repository.Item) {
 
 			fmt.Printf("Item %q changed", item)
-			renderItem(itemIndex.Path(), item)
+			if _, parseError := parser.Parse(item); parseError == nil {
+				renderItem(itemIndex.Path(), item)
+			} else {
+				fmt.Printf("Cannot render the item %q, because it could not be parsed. Error: %s", item, parseError)
+			}
+
 		})
 	})
 
