@@ -6,8 +6,11 @@ package util
 
 import (
 	"bufio"
+	"errors"
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -55,4 +58,35 @@ func FileExists(path string) bool {
 	}
 
 	return true
+}
+
+func IsValidDirectory(path string) (bool, error) {
+
+	// A repository path cannot be empty
+	if strings.TrimSpace(path) == "" {
+		return false, errors.New("A repository path cannot be empty.")
+	}
+
+	// Get the absolute file path
+	absoluteFilePath, absoluteFilePathError := filepath.Abs(path)
+	if absoluteFilePathError != nil {
+		return false, errors.New(fmt.Sprintf("Cannot determine the absolute repository path for the supplied repository: %v", path))
+	}
+
+	// The respository path must be accessible
+	if !FileExists(absoluteFilePath) {
+		return false, errors.New(fmt.Sprintf("The repository path \"%s\" cannot be accessed.", path))
+	}
+
+	return true, nil
+}
+
+// Gets the current working directory in which this application is being executed.
+func GetWorkingDirectory() string {
+	workingDirectory, err := os.Getwd()
+	if err != nil {
+		return "."
+	}
+
+	return workingDirectory
 }

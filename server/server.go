@@ -22,14 +22,12 @@ const (
 	DebugHandlerRoute = "/debug/index"
 )
 
-func Serve(repositoryPaths []string) {
+func Serve(repositoryPath string) {
 
-	// An array of all indices for
-	// the given repositories.
-	indices := renderer.RenderRepositories(repositoryPaths)
+	index := renderer.RenderRepository(repositoryPath)
 
 	// Initialize the routing table
-	initializeRoutes(indices)
+	initializeRoutes(index)
 
 	// register handlers
 	http.HandleFunc(ItemHandlerRoute, itemHandler)
@@ -53,39 +51,35 @@ func getFallbackRoute(requestedPath string) (fallbackRoute string, found bool) {
 	return "", false
 }
 
-func initializeRoutes(indices []*repository.ItemIndex) {
+func initializeRoutes(index *repository.ItemIndex) {
 
 	routes = make(map[string]string)
 
-	for _, index := range indices {
+	pathProvider := path.NewProvider(index.Path())
 
-		pathProvider := path.NewProvider(index.Path())
+	updateRouteTable := func(item *repository.Item) {
 
-		updateRouteTable := func(item *repository.Item) {
+		// get the item route and
+		// add it to the routing table
+		registerRoute(pathProvider, item)
 
-			// get the item route and
-			// add it to the routing table
-			registerRoute(pathProvider, item)
-
-			// get the file routes and
-			// add them to the routing table
-			for _, file := range item.Files.Items() {
-				registerRoute(pathProvider, file)
-			}
+		// get the file routes and
+		// add them to the routing table
+		for _, file := range item.Files.Items() {
+			registerRoute(pathProvider, file)
 		}
-
-		index.Walk(func(item *repository.Item) {
-
-			// add the current item to the route table
-			updateRouteTable(item)
-
-			// update route table again if item changes
-			item.RegisterOnChangeCallback("UpdateRouteTableOnChange", func(i *repository.Item) {
-				updateRouteTable(i)
-			})
-		})
-
 	}
+
+	index.Walk(func(item *repository.Item) {
+
+		// add the current item to the route table
+		updateRouteTable(item)
+
+		// update route table again if item changes
+		item.RegisterOnChangeCallback("UpdateRouteTableOnChange", func(i *repository.Item) {
+			updateRouteTable(i)
+		})
+	})
 }
 
 func registerRoute(pathProvider *path.Provider, pather path.Pather) {

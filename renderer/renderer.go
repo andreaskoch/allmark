@@ -18,21 +18,14 @@ import (
 	"text/template"
 )
 
-func RenderRepositories(repositoryPaths []string) []*repository.ItemIndex {
-	numberOfRepositories := len(repositoryPaths)
-	indizes := make([]*repository.ItemIndex, numberOfRepositories, numberOfRepositories)
-
-	for indexNumber, repositoryPath := range repositoryPaths {
-		itemIndex, err := indexer.NewItemIndex(repositoryPath)
-		if err != nil {
-			fmt.Printf("Cannot create an item index for folder %q. Error: %v", repositoryPath, err)
-			continue
-		}
-
-		indizes[indexNumber] = renderIndex(itemIndex)
+func RenderRepository(repositoryPath string) *repository.ItemIndex {
+	itemIndex, err := indexer.NewItemIndex(repositoryPath)
+	if err != nil {
+		fmt.Printf("Cannot create an item index for folder %q. Error: %v", repositoryPath, err)
+		return nil
 	}
 
-	return indizes
+	return renderIndex(itemIndex)
 }
 
 func renderIndex(itemIndex *repository.ItemIndex) *repository.ItemIndex {
