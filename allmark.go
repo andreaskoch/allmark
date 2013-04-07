@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/config"
 	"github.com/andreaskoch/allmark/renderer"
 	"github.com/andreaskoch/allmark/server"
 	"github.com/andreaskoch/allmark/util"
@@ -15,13 +16,13 @@ import (
 )
 
 const (
+	CommandNameInit   = "init"
 	CommandNameServe  = "serve"
 	CommandNameRender = "render"
 )
 
 func main() {
 
-	// render callback
 	render := func(repositoryPath string) {
 		renderer.RenderRepository(repositoryPath)
 
@@ -30,15 +31,34 @@ func main() {
 		}
 	}
 
-	// serve callback
 	serve := func(repositoryPath string) {
 		server.Serve(repositoryPath)
 	}
 
-	parseCommandLineArguments(os.Args, render, serve)
+	init := func(repositoryPath string) {
+		config.Init(repositoryPath)
+	}
+
+	parseCommandLineArguments(os.Args, func(commandName, repositoryPath string) (commandWasFound bool) {
+		switch strings.ToLower(commandName) {
+		case CommandNameInit:
+			init(repositoryPath)
+
+		case CommandNameRender:
+			render(repositoryPath)
+
+		case CommandNameServe:
+			serve(repositoryPath)
+
+		default:
+			return false
+		}
+
+		return true
+	})
 }
 
-func parseCommandLineArguments(args []string, renderCallback func(repositoryPath string), serveCallback func(repositoryPath string)) {
+func parseCommandLineArguments(args []string, commandHandler func(commandName, repositoryPath string) (commandWasFound bool)) {
 
 	// check if the mandatory amount of
 	// command line parameters has been
@@ -69,24 +89,10 @@ func parseCommandLineArguments(args []string, renderCallback func(repositoryPath
 		return
 	}
 
-	// Read the command parameter
+	// Read the command parameter and execute the command handler
 	commandName := strings.ToLower(args[1])
-	switch commandName {
-	case CommandNameServe:
-		{
-			fmt.Printf("Serving repository: %v\n", repositoryPath)
-			serveCallback(repositoryPath)
-		}
-	case CommandNameRender:
-		{
-			fmt.Printf("Rendering repository: %v\n", repositoryPath)
-			renderCallback(repositoryPath)
-		}
-
-	default:
-		{
-			printUsageInformation(args)
-		}
+	if commandWasFound := commandHandler(commandName, repositoryPath); !commandWasFound {
+		printUsageInformation(args)
 	}
 }
 
@@ -97,6 +103,7 @@ func printUsageInformation(args []string) {
 	fmt.Fprintf(os.Stderr, "%s - %s\n", executeableName, "A markdown web server and renderer")
 	fmt.Fprintf(os.Stderr, "\nUsage:\n%s %s %s\n", executeableName, "<command>", "<repository path>")
 	fmt.Fprintf(os.Stderr, "\nAvailable commands:\n")
+	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameInit, "Initialize the configuration")
 	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameServe, "Start serving the supplied repository via HTTP")
 	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameRender, "Start rendering the items in the specified repository")
 	fmt.Fprintf(os.Stderr, "\n")

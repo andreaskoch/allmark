@@ -5,10 +5,14 @@
 package server
 
 import (
+	"fmt"
+	"github.com/andreaskoch/allmark/config"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/renderer"
 	"github.com/andreaskoch/allmark/repository"
+	"github.com/andreaskoch/allmark/util"
 	"log"
+	"math"
 	"net/http"
 	"strings"
 )
@@ -26,6 +30,9 @@ func Serve(repositoryPath string) {
 
 	index := renderer.RenderRepository(repositoryPath)
 
+	// get the configuration
+	config := config.GetConfig(repositoryPath)
+
 	// Initialize the routing table
 	initializeRoutes(index)
 
@@ -33,8 +40,28 @@ func Serve(repositoryPath string) {
 	http.HandleFunc(ItemHandlerRoute, itemHandler)
 	http.HandleFunc(DebugHandlerRoute, indexDebugger)
 
-	// start http server
-	http.ListenAndServe(":8080", nil)
+	// serve theme files
+	themeFolder := config.Server.ThemeFolder
+	if ok, _ := util.IsValidDirectory(themeFolder); ok {
+		http.Handle("/", http.FileServer(http.Dir(config.Server.ThemeFolder)))
+	}
+
+	// start http server: http
+	httpBinding := getHttpBinding(config)
+	fmt.Printf("Starting http server %q\n", httpBinding)
+
+	http.ListenAndServe(httpBinding, nil)
+}
+
+func getHttpBinding(config *config.Config) string {
+
+	// validate the port
+	port := config.Server.Http.Port
+	if port < 1 || port > math.MaxUint16 {
+		panic(fmt.Sprintf("%q is an invalid value for a port. Ports can only be in the range of %v to %v,", port, 1, math.MaxUint16))
+	}
+
+	return fmt.Sprintf(":%v", port)
 }
 
 func getFallbackRoute(requestedPath string) (fallbackRoute string, found bool) {
