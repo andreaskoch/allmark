@@ -36,7 +36,9 @@ func main() {
 	}
 
 	init := func(repositoryPath string) {
-		config.Init(repositoryPath)
+		if _, err := config.Initialize(repositoryPath); err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	parseCommandLineArguments(os.Args, func(commandName, repositoryPath string) (commandWasFound bool) {

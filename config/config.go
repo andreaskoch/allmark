@@ -7,6 +7,7 @@ package config
 import (
 	"bufio"
 	"fmt"
+	"github.com/andreaskoch/allmark/util"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -35,15 +36,15 @@ func emptyConfig() *Config {
 	return &Config{}
 }
 
-func Init(repositoryPath string) {
+func Initialize(repositoryPath string) (success bool, err error) {
 	config := GetConfig(repositoryPath)
 
 	configurationFilePath := getConfigurationFilePath(repositoryPath)
-	configurationFileDirectory := filepath.Dir(configurationFilePath)
+	if util.FileExists(configurationFilePath) {
+		return false, fmt.Errorf("The repository %q is already initialized.", repositoryPath)
+	}
 
-	os.MkdirAll(configurationFileDirectory, os.ModeDir)
-
-	writeConfigToFile(config, configurationFilePath)
+	return writeConfigToFile(config, configurationFilePath)
 }
 
 func GetConfig(repositoryPath string) *Config {
@@ -73,20 +74,36 @@ func GetConfig(repositoryPath string) *Config {
 	}
 }
 
-func writeConfigToFile(config *Config, path string) {
+func writeConfigToFile(config *Config, path string) (success bool, err error) {
 	serializer := NewJSONSerializer()
 
-	file, err := os.OpenFile(path, os.O_WRONLY, 0776)
+	// make sure the directory exists
+	directory := filepath.Dir(path)
+	if ok, _ := util.IsValidDirectory(directory); !ok {
+		os.MkdirAll(directory, 0700)
+	}
+
+	// create or overwrite the config file
+	file, err := os.Create(path)
 	if err != nil {
-		panic(fmt.Sprintf("Could not create configuration file %q. Error: ", path, err))
+		return false, fmt.Errorf("Could not create configuration file %q. Error: ", path, err)
 	}
 
+	// open the file for writing
+	file, err = os.OpenFile(path, os.O_WRONLY, 0776)
 	writer := bufio.NewWriter(file)
-	defer file.Close()
 
+	defer func() {
+		writer.Flush()
+		file.Close()
+	}()
+
+	// serialize the config
 	if serializationError := serializer.SerializeConfig(writer, config); serializationError != nil {
-		fmt.Printf("Error while saving configuration %#v to file %q. Error: %v", config, path, serializationError)
+		return false, fmt.Errorf("Error while saving configuration %#v to file %q. Error: %v", config, path, serializationError)
 	}
+
+	return true, nil
 }
 
 func readConfigFromFile(path string) (*Config, error) {
