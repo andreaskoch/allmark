@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/renderer"
 	"github.com/andreaskoch/allmark/repository"
+	"github.com/andreaskoch/allmark/util"
 	"log"
 	"math"
 	"net/http"
@@ -40,7 +41,10 @@ func Serve(repositoryPath string) {
 	http.HandleFunc(DebugHandlerRoute, indexDebugger)
 
 	// serve theme files
-	http.Handle("/", http.FileServer(http.Dir(config.ThemeFolder())))
+	if themeFolder := config.ThemeFolder(); util.DirectoryExists(themeFolder) {
+		staticFolder := "/theme/"
+		http.Handle(staticFolder, http.StripPrefix(staticFolder, http.FileServer(http.Dir(themeFolder))))
+	}
 
 	// start http server: http
 	httpBinding := getHttpBinding(config)

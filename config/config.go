@@ -134,8 +134,12 @@ func (config *Config) save() (*Config, error) {
 }
 
 func new(baseFolder string) *Config {
+	metaDataFolder := func() string {
+		return filepath.Join(baseFolder, MetaDataFolderName)
+	}
+
 	return &Config{
-		metaDataFolder: baseFolder,
+		metaDataFolder: metaDataFolder(),
 	}
 }
 
