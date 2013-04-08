@@ -24,27 +24,48 @@ type Http struct {
 }
 
 type Server struct {
-	ThemeFolder string
-	Http        Http
+	ThemeFolderName string
+	Http            Http
 }
 
 type Config struct {
 	Server Server
+
+	metaDataFolder string
+}
+
+func (config *Config) SetMetaDataFolder(folder string) *Config {
+	config.metaDataFolder = filepath.Join(folder, MetaDataFolderName)
+	return config
+}
+
+func (config *Config) MetaDataFolder() string {
+	return config.metaDataFolder
+}
+
+func (config *Config) ThemeFolder() string {
+	return filepath.Join(config.MetaDataFolder(), config.Server.ThemeFolderName)
 }
 
 func emptyConfig() *Config {
 	return &Config{}
 }
 
-func Initialize(repositoryPath string) (success bool, err error) {
+func Initialize(repositoryPath string) {
+
 	config := GetConfig(repositoryPath)
 
+	// create config
 	configurationFilePath := getConfigurationFilePath(repositoryPath)
-	if util.FileExists(configurationFilePath) {
-		return false, fmt.Errorf("The repository %q is already initialized.", repositoryPath)
+	if ok, err := writeConfigToFile(config, configurationFilePath); !ok {
+		fmt.Fprintf(os.Stderr, "Error while creating configuration file %q. Error: ", configurationFilePath, err)
 	}
 
-	return writeConfigToFile(config, configurationFilePath)
+	// create theme
+	themeFolder := config.ThemeFolder()
+	if !util.CreateDirectory(themeFolder) {
+		fmt.Fprintf(os.Stderr, "Unable to create theme folder %q.", themeFolder)
+	}
 }
 
 func GetConfig(repositoryPath string) *Config {
@@ -52,45 +73,40 @@ func GetConfig(repositoryPath string) *Config {
 	// return the local config
 	localConfigurationFile := getConfigurationFilePath(repositoryPath)
 	if localConfig, err := readConfigFromFile(localConfigurationFile); err == nil {
-		return localConfig
+		return localConfig.SetMetaDataFolder(repositoryPath)
 	}
 
 	// return the global config
 	if homeDirectory, homeDirError := getUserHomeDir(); homeDirError == nil {
 		globalConfigurationFile := getConfigurationFilePath(homeDirectory)
 		if globalConfig, configError := readConfigFromFile(globalConfigurationFile); configError == nil {
-			return globalConfig
+			return globalConfig.SetMetaDataFolder(homeDirectory)
 		}
 	}
 
 	// return the default config
-	return &Config{
+	defaultConfig := &Config{
 		Server: Server{
-			ThemeFolder: getThemeFolderPath(repositoryPath),
+			ThemeFolderName: ThemeFolderName,
 			Http: Http{
 				Port: 8080,
 			},
 		},
 	}
+
+	return defaultConfig.SetMetaDataFolder(repositoryPath)
 }
 
 func writeConfigToFile(config *Config, path string) (success bool, err error) {
 	serializer := NewJSONSerializer()
 
-	// make sure the directory exists
-	directory := filepath.Dir(path)
-	if ok, _ := util.IsValidDirectory(directory); !ok {
-		os.MkdirAll(directory, 0700)
-	}
-
 	// create or overwrite the config file
-	file, err := os.Create(path)
-	if err != nil {
+	if created, err := util.CreateFile(path); !created {
 		return false, fmt.Errorf("Could not create configuration file %q. Error: ", path, err)
 	}
 
 	// open the file for writing
-	file, err = os.OpenFile(path, os.O_WRONLY, 0776)
+	file, err := os.OpenFile(path, os.O_WRONLY, 0776)
 	writer := bufio.NewWriter(file)
 
 	defer func() {
@@ -123,10 +139,6 @@ func readConfigFromFile(path string) (*Config, error) {
 
 func getConfigurationFilePath(folder string) string {
 	return filepath.Join(folder, MetaDataFolderName, ConfigurationFileName)
-}
-
-func getThemeFolderPath(folder string) string {
-	return filepath.Join(folder, MetaDataFolderName, ThemeFolderName)
 }
 
 // Get the current users home directory path

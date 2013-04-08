@@ -36,9 +36,7 @@ func main() {
 	}
 
 	init := func(repositoryPath string) {
-		if _, err := config.Initialize(repositoryPath); err != nil {
-			fmt.Println(err)
-		}
+		config.Initialize(repositoryPath)
 	}
 
 	parseCommandLineArguments(os.Args, func(commandName, repositoryPath string) (commandWasFound bool) {
@@ -85,9 +83,8 @@ func parseCommandLineArguments(args []string, commandHandler func(commandName, r
 	}
 
 	// validate the supplied repository paths
-	_, err := util.IsValidDirectory(repositoryPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "One or more of the supplied repository paths is invalid.\nError: %v", err)
+	if !util.DirectoryExists(repositoryPath) {
+		fmt.Fprintf(os.Stderr, "The specified repository paths %q is does not exist.", repositoryPath)
 		return
 	}
 

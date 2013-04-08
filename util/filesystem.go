@@ -6,7 +6,6 @@ package util
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -47,38 +46,53 @@ func GetLines(inFile io.Reader) []string {
 	return lines
 }
 
+func CreateDirectory(directoryPath string) bool {
+	err := os.MkdirAll(directoryPath, 0700)
+	return err == nil
+}
+
+func CreateFile(filePath string) (success bool, err error) {
+
+	// make sure the parent directory exists
+	directory := filepath.Dir(filePath)
+	if !DirectoryExists(directory) {
+		if !CreateDirectory(directory) {
+			return false, fmt.Errorf("Cannot create the directory for the given file %q.", filePath)
+		}
+	}
+
+	// create the file
+	if _, err := os.Create(filePath); err != nil {
+		return false, fmt.Errorf("Could not create file %q. Error: ", filePath, err)
+	}
+
+	return true, nil
+}
+
 func FileExists(path string) bool {
 	if strings.TrimSpace(path) == "" {
 		return false
 	}
 
-	_, err := os.Stat(path)
+	file, err := os.Stat(path)
 	if err != nil && os.IsNotExist(err) {
 		return false
 	}
 
-	return true
+	return !file.IsDir()
 }
 
-func IsValidDirectory(path string) (bool, error) {
-
-	// A repository path cannot be empty
+func DirectoryExists(path string) bool {
 	if strings.TrimSpace(path) == "" {
-		return false, errors.New("A repository path cannot be empty.")
+		return false
 	}
 
-	// Get the absolute file path
-	absoluteFilePath, absoluteFilePathError := filepath.Abs(path)
-	if absoluteFilePathError != nil {
-		return false, errors.New(fmt.Sprintf("Cannot determine the absolute repository path for the supplied repository: %v", path))
+	file, err := os.Stat(path)
+	if err != nil && os.IsNotExist(err) {
+		return false
 	}
 
-	// The respository path must be accessible
-	if !FileExists(absoluteFilePath) {
-		return false, errors.New(fmt.Sprintf("The repository path \"%s\" cannot be accessed.", path))
-	}
-
-	return true, nil
+	return file.IsDir()
 }
 
 // Gets the current working directory in which this application is being executed.
