@@ -19,6 +19,39 @@ const (
 	ThemeFolderName       = "theme"
 )
 
+func Initialize(repositoryPath string) {
+	config := GetConfig(repositoryPath)
+
+	// create config
+	if _, err := config.save(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error while creating configuration file %q. Error: ", config.Filepath(), err)
+	}
+
+	// create theme
+	themeFolder := config.ThemeFolder()
+	if !util.CreateDirectory(themeFolder) {
+		fmt.Fprintf(os.Stderr, "Unable to create theme folder %q.", themeFolder)
+	}
+}
+
+func GetConfig(repositoryPath string) *Config {
+
+	// return the local config
+	if localConfig, err := new(repositoryPath).load(); err == nil {
+		return localConfig
+	}
+
+	// return the global config
+	if homeDirectory, homeDirError := getUserHomeDir(); homeDirError == nil {
+		if globalConfig, err := new(homeDirectory).load(); err == nil {
+			return globalConfig
+		}
+	}
+
+	// return the default config
+	return defaultConfig(repositoryPath)
+}
+
 type Http struct {
 	Port int
 }
@@ -34,79 +67,56 @@ type Config struct {
 	metaDataFolder string
 }
 
-func (config *Config) SetMetaDataFolder(folder string) *Config {
-	config.metaDataFolder = filepath.Join(folder, MetaDataFolderName)
-	return config
-}
-
 func (config *Config) MetaDataFolder() string {
 	return config.metaDataFolder
+}
+
+func (config *Config) Filepath() string {
+	return filepath.Join(config.MetaDataFolder(), ConfigurationFileName)
 }
 
 func (config *Config) ThemeFolder() string {
 	return filepath.Join(config.MetaDataFolder(), config.Server.ThemeFolderName)
 }
 
-func emptyConfig() *Config {
-	return &Config{}
-}
+func (config *Config) load() (*Config, error) {
 
-func Initialize(repositoryPath string) {
+	path := config.Filepath()
 
-	config := GetConfig(repositoryPath)
-
-	// create config
-	configurationFilePath := getConfigurationFilePath(repositoryPath)
-	if ok, err := writeConfigToFile(config, configurationFilePath); !ok {
-		fmt.Fprintf(os.Stderr, "Error while creating configuration file %q. Error: ", configurationFilePath, err)
+	// check if file can be accessed
+	fileInfo, err := os.Open(path)
+	if err != nil {
+		return config, fmt.Errorf("Cannot read config file %q. Error: %s", path, err)
 	}
 
-	// create theme
-	themeFolder := config.ThemeFolder()
-	if !util.CreateDirectory(themeFolder) {
-		fmt.Fprintf(os.Stderr, "Unable to create theme folder %q.", themeFolder)
-	}
-}
-
-func GetConfig(repositoryPath string) *Config {
-
-	// return the local config
-	localConfigurationFile := getConfigurationFilePath(repositoryPath)
-	if localConfig, err := readConfigFromFile(localConfigurationFile); err == nil {
-		return localConfig.SetMetaDataFolder(repositoryPath)
-	}
-
-	// return the global config
-	if homeDirectory, homeDirError := getUserHomeDir(); homeDirError == nil {
-		globalConfigurationFile := getConfigurationFilePath(homeDirectory)
-		if globalConfig, configError := readConfigFromFile(globalConfigurationFile); configError == nil {
-			return globalConfig.SetMetaDataFolder(homeDirectory)
-		}
-	}
-
-	// return the default config
-	defaultConfig := &Config{
-		Server: Server{
-			ThemeFolderName: ThemeFolderName,
-			Http: Http{
-				Port: 8080,
-			},
-		},
-	}
-
-	return defaultConfig.SetMetaDataFolder(repositoryPath)
-}
-
-func writeConfigToFile(config *Config, path string) (success bool, err error) {
+	// deserialize config
 	serializer := NewJSONSerializer()
+	loadedConfig, err := serializer.DeserializeConfig(fileInfo)
+	if err != nil {
+		return config, fmt.Errorf("Could not deserialize the configuration file %q. Error: %s", path, err)
+	}
+
+	// apply values
+	config.Server = loadedConfig.Server
+
+	return config, nil
+}
+
+func (config *Config) save() (*Config, error) {
+
+	path := config.Filepath()
 
 	// create or overwrite the config file
 	if created, err := util.CreateFile(path); !created {
-		return false, fmt.Errorf("Could not create configuration file %q. Error: ", path, err)
+		return config, fmt.Errorf("Could not create configuration file %q. Error: ", path, err)
 	}
 
 	// open the file for writing
 	file, err := os.OpenFile(path, os.O_WRONLY, 0776)
+	if err != nil {
+		return config, fmt.Errorf("Error while opening file %q for writing.", path)
+	}
+
 	writer := bufio.NewWriter(file)
 
 	defer func() {
@@ -115,30 +125,26 @@ func writeConfigToFile(config *Config, path string) (success bool, err error) {
 	}()
 
 	// serialize the config
-	if serializationError := serializer.SerializeConfig(writer, config); serializationError != nil {
-		return false, fmt.Errorf("Error while saving configuration %#v to file %q. Error: %v", config, path, serializationError)
-	}
-
-	return true, nil
-}
-
-func readConfigFromFile(path string) (*Config, error) {
-	fileInfo, err := os.Open(path)
-	if err != nil {
-		return emptyConfig(), fmt.Errorf("Cannot read config file %q. Error: %s", path, err)
-	}
-
 	serializer := NewJSONSerializer()
-	config, err := serializer.DeserializeConfig(fileInfo)
-	if err != nil {
-		return emptyConfig(), fmt.Errorf("Could not deserialize the configuration file %q. Error: %s", path, err)
+	if serializationError := serializer.SerializeConfig(writer, config); serializationError != nil {
+		return config, fmt.Errorf("Error while saving configuration %#v to file %q. Error: %v", config, path, serializationError)
 	}
 
 	return config, nil
 }
 
-func getConfigurationFilePath(folder string) string {
-	return filepath.Join(folder, MetaDataFolderName, ConfigurationFileName)
+func new(baseFolder string) *Config {
+	return &Config{
+		metaDataFolder: baseFolder,
+	}
+}
+
+func defaultConfig(baseFolder string) *Config {
+	defaultConfig := new(baseFolder)
+	defaultConfig.Server.ThemeFolderName = ThemeFolderName
+	defaultConfig.Server.Http.Port = 8080
+
+	return defaultConfig
 }
 
 // Get the current users home directory path
