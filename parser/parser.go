@@ -32,6 +32,9 @@ var (
 
 	// Lines with a "key: value" syntax
 	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*(\w.+)$`)
+
+	// !imagegallery[Some description text](<folder>)
+	ImageGalleryPattern = regexp.MustCompile(`!imagegallery\[(\w*)\]\((\w+)\)`)
 )
 
 func Parse(item *repository.Item) (*repository.Item, error) {
@@ -82,15 +85,45 @@ func getMatchingValue(lines []string, matchPattern *regexp.Regexp) (string, []st
 	return "", lines
 }
 
-func getContent(lines []string) string {
+func getContent(item *repository.Item, lines []string) string {
+
+	// render image galleries
+	lines = renderImageGalleries(item, lines)
 
 	// all remaining lines are the (raw markdown) content
 	rawMarkdownContent := strings.TrimSpace(strings.Join(lines, "\n"))
 
-	// html encode the markdown
-	htmlEncodedContent := string(blackfriday.MarkdownBasic([]byte(rawMarkdownContent)))
+	// convert markdown to html
+	html := markdownToHtml(rawMarkdownContent)
 
-	return htmlEncodedContent
+	return html
+}
+
+func renderImageGalleries(item *repository.Item, lines []string) []string {
+
+	for lineNumber, text := range lines {
+
+		if found, matches := util.IsMatch(text, ImageGalleryPattern); found && len(matches) == 3 {
+
+			// parameters
+			originalText := matches[0]
+			descriptionText := matches[1]
+			path := matches[2]
+
+			// create image gallery code
+			imageGalleryCode := fmt.Sprintf("La di da Image Gallery %s %s", descriptionText, path)
+
+			// replace markdown with image gallery
+			lines[lineNumber] = strings.Replace(text, originalText, imageGalleryCode, 1)
+		}
+	}
+
+	return lines
+
+}
+
+func markdownToHtml(markdown string) (html string) {
+	return string(blackfriday.MarkdownCommon([]byte(markdown)))
 }
 
 func getNextLinenumber(lineNumber int, lines []string) int {

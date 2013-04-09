@@ -14,7 +14,7 @@ func parseMessage(item *repository.Item, lines []string) *repository.Item {
 	item, lines = ParseMetaData(item, lines)
 
 	// content
-	item.Content = getContent(lines)
+	item.Content = getContent(item, lines)
 
 	return item
 }

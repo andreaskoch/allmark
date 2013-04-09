@@ -21,7 +21,7 @@ func parseDocumentLikeItem(item *repository.Item, lines []string) *repository.It
 	item.Description, lines = getMatchingValue(lines, DescriptionPattern)
 
 	// content
-	item.Content = getContent(lines)
+	item.Content = getContent(item, lines)
 
 	return item
 }
