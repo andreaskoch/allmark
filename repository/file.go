@@ -4,6 +4,11 @@
 
 package repository
 
+import (
+	"github.com/andreaskoch/allmark/path"
+	"path/filepath"
+)
+
 type File struct {
 	path string
 }
@@ -17,6 +22,11 @@ func NewFile(filePath string) *File {
 func (file *File) Path() string {
 	return file.path
 }
+
 func (file *File) PathType() string {
-	return "file"
+	return path.PatherTypeFile
+}
+
+func (file *File) Directory() string {
+	return filepath.Dir(file.Path())
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 )
 
 func NewFileIndex(directory string) *FileIndex {
@@ -34,6 +35,32 @@ func (fileIndex *FileIndex) String() string {
 
 func (fileIndex *FileIndex) Path() string {
 	return fileIndex.path
+}
+
+func (fileIndex *FileIndex) GetFilesByPath(path string) []*File {
+
+	if strings.Index(path, FilesDirectoryName) == 0 {
+		path = path[len(FilesDirectoryName):]
+	}
+
+	matchingFiles := make([]*File, 0)
+
+	for _, file := range fileIndex.Items() {
+
+		filePath := file.Path()
+		indexPath := fileIndex.Path()
+
+		if strings.Index(filePath, indexPath) != 0 {
+			continue
+		}
+
+		relativeFilePath := filePath[len(indexPath):]
+		if strings.HasPrefix(relativeFilePath, path) {
+			matchingFiles = append(matchingFiles, file)
+		}
+	}
+
+	return matchingFiles
 }
 
 func getFiles(directory string) []*File {

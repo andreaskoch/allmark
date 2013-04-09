@@ -7,6 +7,7 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"github.com/andreaskoch/allmark/path"
 	"github.com/howeyc/fsnotify"
 	"path/filepath"
 	"strings"
@@ -23,6 +24,8 @@ const (
 	CommentItemType      = "comment"
 	TagItemType          = "tag"
 	RepositoryItemType   = "repository"
+
+	FilesDirectoryName = "files"
 )
 
 type Item struct {
@@ -54,7 +57,7 @@ func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
 	item = &Item{
 		ChildItems: childItems,
 		Type:       itemType,
-		Files:      NewFileIndex(filepath.Join(itemDirectory, "files")),
+		Files:      NewFileIndex(filepath.Join(itemDirectory, FilesDirectoryName)),
 
 		path: itemPath,
 	}
@@ -100,7 +103,11 @@ func (item *Item) Path() string {
 }
 
 func (item *Item) PathType() string {
-	return "item"
+	return path.PatherTypeItem
+}
+
+func (item *Item) Directory() string {
+	return filepath.Dir(item.Path())
 }
 
 func (item *Item) pauseWatch() {

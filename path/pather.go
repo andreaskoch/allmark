@@ -11,5 +11,6 @@ const (
 
 type Pather interface {
 	Path() string
+	Directory() string
 	PathType() string
 }
