@@ -1,12 +1,18 @@
-package renderer
+package html
 
 import (
 	"fmt"
-	p "github.com/andreaskoch/allmark/path"
+	pathpackage "github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
 	"path/filepath"
+	"regexp"
 	"strings"
+)
+
+var (
+	// !imagegallery[Some description text](<folder>)
+	imageGalleryPattern = regexp.MustCompile(`!imagegallery\[([^\]]*)\]\(([^)]+)\)`)
 )
 
 func renderImageGalleries(item *repository.Item) *repository.Item {
@@ -21,7 +27,7 @@ func renderImageGalleries(item *repository.Item) *repository.Item {
 }
 
 func renderImageGallery(item *repository.Item, line string) (imageGalleryFound bool, transformedLine string) {
-	found, matches := util.IsMatch(line, ImageGalleryPattern)
+	found, matches := util.IsMatch(line, imageGalleryPattern)
 	if !found || (found && len(matches) != 3) {
 		return false, line
 	}
@@ -32,7 +38,7 @@ func renderImageGallery(item *repository.Item, line string) (imageGalleryFound b
 	path := matches[2]
 
 	// create image gallery code
-	files := item.Files.GetFilesByPath(path, func(pather p.Pather) bool {
+	files := item.Files.GetFilesByPath(path, func(pather pathpackage.Pather) bool {
 		fileExtension := strings.ToLower(filepath.Ext(pather.Path()))
 		switch fileExtension {
 		case ".png", ".gif", ".jpeg", ".jpg", ".svg", ".tiff":
@@ -57,7 +63,7 @@ func renderImageGallery(item *repository.Item, line string) (imageGalleryFound b
 }
 
 func getImageLinks(item *repository.Item, files []*repository.File) []string {
-	pathProvider := p.NewProvider(item.Directory())
+	pathProvider := pathpackage.NewProvider(item.Directory())
 	imagelinks := make([]string, len(files), len(files))
 	for index, file := range files {
 		imagelinks[index] = getImageLink(pathProvider, file)
@@ -65,7 +71,7 @@ func getImageLinks(item *repository.Item, files []*repository.File) []string {
 	return imagelinks
 }
 
-func getImageLink(pathProvider *p.Provider, file *repository.File) string {
+func getImageLink(pathProvider *pathpackage.Provider, file *repository.File) string {
 	fileRoute := pathProvider.GetFileRoute(file)
 	return fmt.Sprintf(`<img src="%s" />`, fileRoute)
 }

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package renderer
+package html
 
 import (
 	"github.com/andreaskoch/allmark/repository"
@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func html(item *repository.Item) string {
+func Convert(item *repository.Item) string {
 
 	// render image galleries
 	renderImageGalleries(item)

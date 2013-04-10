@@ -11,17 +11,12 @@ import (
 	"github.com/andreaskoch/allmark/mapper"
 	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/path"
+	"github.com/andreaskoch/allmark/renderer/html"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/templates"
 	"github.com/andreaskoch/allmark/view"
 	"os"
-	"regexp"
 	"text/template"
-)
-
-var (
-	// !imagegallery[Some description text](<folder>)
-	ImageGalleryPattern = regexp.MustCompile(`!imagegallery\[([^\]]*)\]\(([^)]+)\)`)
 )
 
 func RenderRepository(repositoryPath string) *repository.ItemIndex {
@@ -72,7 +67,7 @@ func renderItem(repositoryPath string, item *repository.Item) *repository.Item {
 	pathProvider := path.NewProvider(repositoryPath)
 
 	// get a viewmodel mapper
-	mapperFunc, err := mapper.GetMapper(pathProvider, html, item)
+	mapperFunc, err := mapper.GetMapper(pathProvider, html.Convert, item)
 	if err != nil {
 		fmt.Println(err)
 		return item
