@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	// !imagegallery[Some description text](<folder>)
-	imageGalleryPattern = regexp.MustCompile(`!imagegallery\[([^\]]*)\]\(([^)]+)\)`)
+	// !imagegallery[*descriptionText*](*folderPath*)
+	imageGalleryPattern = regexp.MustCompile(`!imagegallery\[([^\]]+)\]\(([^)]+)\)`)
 )
 
 func renderImageGalleries(item *repository.Item) *repository.Item {
@@ -34,44 +34,65 @@ func renderImageGallery(item *repository.Item, line string) (imageGalleryFound b
 
 	// parameters
 	originalText := matches[0]
-	descriptionText := matches[1]
+	galleryTitle := matches[1]
 	path := matches[2]
 
 	// create image gallery code
-	files := item.Files.GetFilesByPath(path, func(pather pathpackage.Pather) bool {
-		fileExtension := strings.ToLower(filepath.Ext(pather.Path()))
-		switch fileExtension {
-		case ".png", ".gif", ".jpeg", ".jpg", ".svg", ".tiff":
-			return true
-		default:
-			return false
-		}
+	files := item.Files.GetFilesByPath(path, isImageFile)
 
-		panic("Unreachable")
-	})
-
-	imageLinks := getImageLinks(item, files)
+	imageLinks := getImageLinks(galleryTitle, item, files)
 	imageGalleryCode := fmt.Sprintf(`<div class="imagegallery">
 				<header>
 					<span>%s</span>
 				</header>
-				%s
-			</div>`, descriptionText, strings.Join(imageLinks, "\n"))
+				<section>
+				<ol>
+					<li>
+					%s
+					</li>
+				</ol>
+				</section>
+			</div>`, galleryTitle, strings.Join(imageLinks, "\n</li>\n<li>\n"))
 
 	// replace markdown with image gallery
 	return true, strings.Replace(line, originalText, imageGalleryCode, 1)
 }
 
-func getImageLinks(item *repository.Item, files []*repository.File) []string {
+func getImageLinks(galleryTitle string, item *repository.Item, files []*repository.File) []string {
+
 	pathProvider := pathpackage.NewProvider(item.Directory())
-	imagelinks := make([]string, len(files), len(files))
+	numberOfFiles := len(files)
+	imagelinks := make([]string, numberOfFiles, numberOfFiles)
+
 	for index, file := range files {
-		imagelinks[index] = getImageLink(pathProvider, file)
+
+		imagePath := pathProvider.GetFileRoute(file)
+		imageTitle := fmt.Sprintf("%s - %s (Image %v of %v)", galleryTitle, getFileTitle(file), index+1, numberOfFiles)
+
+		imagelinks[index] = fmt.Sprintf(`<a href="%s" title="%s"><img src="%s" /></a>`, imagePath, imageTitle, imagePath)
 	}
+
 	return imagelinks
 }
 
-func getImageLink(pathProvider *pathpackage.Provider, file *repository.File) string {
-	fileRoute := pathProvider.GetFileRoute(file)
-	return fmt.Sprintf(`<img src="%s" />`, fileRoute)
+func getFileTitle(pather pathpackage.Pather) string {
+	fileName := filepath.Base(pather.Path())
+	fileExtension := filepath.Ext(pather.Path())
+
+	// remove the file extension from the file name
+	filenameWithoutExtension := fileName[0:(strings.LastIndex(fileName, fileExtension))]
+
+	return filenameWithoutExtension
+}
+
+func isImageFile(pather pathpackage.Pather) bool {
+	fileExtension := strings.ToLower(filepath.Ext(pather.Path()))
+	switch fileExtension {
+	case ".png", ".gif", ".jpeg", ".jpg", ".svg", ".tiff":
+		return true
+	default:
+		return false
+	}
+
+	panic("Unreachable")
 }
