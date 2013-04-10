@@ -33,9 +33,9 @@ func renderImageGallery(item *repository.Item, line string) (imageGalleryFound b
 	}
 
 	// parameters
-	originalText := matches[0]
-	galleryTitle := matches[1]
-	path := matches[2]
+	originalText := strings.TrimSpace(matches[0])
+	galleryTitle := strings.TrimSpace(matches[1])
+	path := strings.TrimSpace(matches[2])
 
 	// create image gallery code
 	files := item.Files.GetFilesByPath(path, isImageFile)

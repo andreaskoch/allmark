@@ -42,6 +42,7 @@ func (fileIndex *FileIndex) GetFilesByPath(path string, condition func(pather p.
 
 	// normalize path
 	path = strings.Replace(path, p.UrlDirectorySeperator, p.FilesystemDirectorySeperator, -1)
+	path = strings.Trim(path, p.FilesystemDirectorySeperator)
 
 	// make path relative
 	if strings.Index(path, FilesDirectoryName) == 0 {
