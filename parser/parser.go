@@ -34,7 +34,7 @@ var (
 	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*(\w.+)$`)
 
 	// !imagegallery[Some description text](<folder>)
-	ImageGalleryPattern = regexp.MustCompile(`!imagegallery\[(\w*)\]\(([^)]+)\)`)
+	ImageGalleryPattern = regexp.MustCompile(`!imagegallery\[([^\]]*)\]\(([^)]+)\)`)
 )
 
 func Parse(item *repository.Item) (*repository.Item, error) {

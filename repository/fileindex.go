@@ -6,6 +6,7 @@ package repository
 
 import (
 	"fmt"
+	p "github.com/andreaskoch/allmark/path"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -37,8 +38,12 @@ func (fileIndex *FileIndex) Path() string {
 	return fileIndex.path
 }
 
-func (fileIndex *FileIndex) GetFilesByPath(path string) []*File {
+func (fileIndex *FileIndex) GetFilesByPath(path string, condition func(pather p.Pather) bool) []*File {
 
+	// normalize path
+	path = strings.Replace(path, p.UrlDirectorySeperator, p.FilesystemDirectorySeperator, -1)
+
+	// make path relative
 	if strings.Index(path, FilesDirectoryName) == 0 {
 		path = path[len(FilesDirectoryName):]
 	}
@@ -55,7 +60,8 @@ func (fileIndex *FileIndex) GetFilesByPath(path string) []*File {
 		}
 
 		relativeFilePath := filePath[len(indexPath):]
-		if strings.HasPrefix(relativeFilePath, path) {
+		fileMatchesPath := strings.HasPrefix(relativeFilePath, path)
+		if fileMatchesPath && condition(file) {
 			matchingFiles = append(matchingFiles, file)
 		}
 	}

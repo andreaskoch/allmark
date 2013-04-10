@@ -2,9 +2,10 @@ package parser
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark/path"
+	p "github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
+	"path/filepath"
 	"strings"
 )
 
@@ -20,7 +21,17 @@ func renderImageGalleries(item *repository.Item, lines []string) []string {
 			path := matches[2]
 
 			// create image gallery code
-			files := item.Files.GetFilesByPath(path)
+			files := item.Files.GetFilesByPath(path, func(pather p.Pather) bool {
+				fileExtension := strings.ToLower(filepath.Ext(pather.Path()))
+				switch fileExtension {
+				case ".png", ".gif", ".jpeg", ".jpg", ".svg", ".tiff":
+					return true
+				default:
+					return false
+				}
+
+				panic("Unreachable")
+			})
 			imageLinks := getImageLinks(item, files)
 			imageGalleryCode := fmt.Sprintf(`<div class="imagegallery">
 				<header>
@@ -39,7 +50,7 @@ func renderImageGalleries(item *repository.Item, lines []string) []string {
 }
 
 func getImageLinks(item *repository.Item, files []*repository.File) []string {
-	pathProvider := path.NewProvider(item.Directory())
+	pathProvider := p.NewProvider(item.Directory())
 	imagelinks := make([]string, len(files), len(files))
 	for index, file := range files {
 		imagelinks[index] = getImageLink(pathProvider, file)
@@ -47,7 +58,7 @@ func getImageLinks(item *repository.Item, files []*repository.File) []string {
 	return imagelinks
 }
 
-func getImageLink(pathProvider *path.Provider, file *repository.File) string {
+func getImageLink(pathProvider *p.Provider, file *repository.File) string {
 	fileRoute := pathProvider.GetFileRoute(file)
 	return fmt.Sprintf(`<img src="%s" />`, fileRoute)
 }
