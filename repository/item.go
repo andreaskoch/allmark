@@ -69,6 +69,18 @@ func (item *Item) String() string {
 	return fmt.Sprintf("Item %s\n", item.path)
 }
 
+func (item *Item) Path() string {
+	return item.path
+}
+
+func (item *Item) PathType() string {
+	return path.PatherTypeItem
+}
+
+func (item *Item) Directory() string {
+	return filepath.Dir(item.Path())
+}
+
 func (item *Item) Walk(walkFunc func(item *Item)) {
 
 	item.pauseWatch()
@@ -98,30 +110,18 @@ func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(it
 	item.onChangeCallbacks[name] = callbackFunction
 }
 
-func (item *Item) Path() string {
-	return item.path
-}
-
-func (item *Item) PathType() string {
-	return path.PatherTypeItem
-}
-
-func (item *Item) Directory() string {
-	return filepath.Dir(item.Path())
-}
-
 func (item *Item) pauseWatch() {
 	fmt.Printf("Pausing watch on item %s\n", item)
-	item.itemIsBeingWatched = true
+	item.itemIsBeingWatched = false
 }
 
 func (item *Item) watchIsPaused() bool {
-	return item.itemIsBeingWatched
+	return item.itemIsBeingWatched == false
 }
 
 func (item *Item) resumeWatch() {
 	fmt.Printf("Resuming watch on item %s\n", item)
-	item.itemIsBeingWatched = false
+	item.itemIsBeingWatched = true
 }
 
 func (item *Item) startWatch() *Item {

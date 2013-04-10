@@ -6,6 +6,7 @@ package repository
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/path"
 )
 
 type ItemIndex struct {
@@ -32,4 +33,12 @@ func (itemIndex *ItemIndex) Walk(walkFunc func(item *Item)) {
 
 func (itemIndex *ItemIndex) Path() string {
 	return itemIndex.path
+}
+
+func (itemIndex *ItemIndex) Directory() string {
+	return itemIndex.Path()
+}
+
+func (itemIndex *ItemIndex) PathType() string {
+	return path.PatherTypeIndex
 }

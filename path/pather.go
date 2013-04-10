@@ -5,8 +5,9 @@
 package path
 
 const (
-	PatherTypeItem = "item"
-	PatherTypeFile = "file"
+	PatherTypeIndex = "index"
+	PatherTypeItem  = "item"
+	PatherTypeFile  = "file"
 )
 
 type Pather interface {
