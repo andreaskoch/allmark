@@ -10,12 +10,12 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func createMessageMapperFunc(pathProvider *path.Provider) func(item *repository.Item) view.Model {
+func createMessageMapperFunc(pathProvider *path.Provider, converterFunc func(item *repository.Item) string) func(item *repository.Item) view.Model {
 	return func(item *repository.Item) view.Model {
 		return view.Model{
 			Path:        pathProvider.GetWebRoute(item),
 			Title:       getTitle(item),
-			Content:     item.Content,
+			Content:     converterFunc(item),
 			LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
 		}
 	}

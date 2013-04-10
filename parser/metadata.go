@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func ParseMetaData(item *repository.Item, lines []string) (*repository.Item, []string) {
+func parseMetaData(item *repository.Item, lines []string) (*repository.Item, []string) {
 
 	metaDataLocation, lines := locateMetaData(lines)
 	if !metaDataLocation.Found {

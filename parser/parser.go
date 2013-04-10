@@ -9,10 +9,8 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
-	"github.com/russross/blackfriday"
 	"os"
 	"regexp"
-	"strings"
 )
 
 var (
@@ -32,9 +30,6 @@ var (
 
 	// Lines with a "key: value" syntax
 	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*(\w.+)$`)
-
-	// !imagegallery[Some description text](<folder>)
-	ImageGalleryPattern = regexp.MustCompile(`!imagegallery\[([^\]]*)\]\(([^)]+)\)`)
 )
 
 func Parse(item *repository.Item) (*repository.Item, error) {
@@ -64,6 +59,35 @@ func Parse(item *repository.Item) (*repository.Item, error) {
 	return item, errors.New(fmt.Sprintf("Items of type \"%v\" cannot be parsed.", item.Type))
 }
 
+// Parse an item with a title, description and content
+func parseDocumentLikeItem(item *repository.Item, lines []string) *repository.Item {
+
+	// meta data
+	item, lines = parseMetaData(item, lines)
+
+	// title
+	item.Title, lines = getMatchingValue(lines, TitlePattern)
+
+	// description
+	item.Description, lines = getMatchingValue(lines, DescriptionPattern)
+
+	// raw markdown content
+	item.RawLines = lines
+
+	return item
+}
+
+func parseMessage(item *repository.Item, lines []string) *repository.Item {
+
+	// meta data
+	item, lines = parseMetaData(item, lines)
+
+	// raw markdown content
+	item.RawLines = lines
+
+	return item
+}
+
 func getMatchingValue(lines []string, matchPattern *regexp.Regexp) (string, []string) {
 
 	// In order to be the "matching value" the line must
@@ -83,24 +107,6 @@ func getMatchingValue(lines []string, matchPattern *regexp.Regexp) (string, []st
 	}
 
 	return "", lines
-}
-
-func getContent(item *repository.Item, lines []string) string {
-
-	// render image galleries
-	lines = renderImageGalleries(item, lines)
-
-	// all remaining lines are the (raw markdown) content
-	rawMarkdownContent := strings.TrimSpace(strings.Join(lines, "\n"))
-
-	// convert markdown to html
-	html := markdownToHtml(rawMarkdownContent)
-
-	return html
-}
-
-func markdownToHtml(markdown string) (html string) {
-	return string(blackfriday.MarkdownCommon([]byte(markdown)))
 }
 
 func getNextLinenumber(lineNumber int, lines []string) int {

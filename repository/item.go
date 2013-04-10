@@ -31,11 +31,11 @@ const (
 type Item struct {
 	Title       string
 	Description string
-	Content     string
+	RawLines    []string
 	Files       *FileIndex
-	ChildItems  []*Item
 	MetaData    MetaData
 	Type        string
+	ChildItems  []*Item
 
 	path               string
 	onChangeCallbacks  map[string]func(item *Item)
