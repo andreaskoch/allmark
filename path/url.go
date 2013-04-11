@@ -28,13 +28,3 @@ func StripTrailingUrlDirectorySeperator(urlComponent string) string {
 
 	return url
 }
-
-func AddLeadingUrlDirectorySeperator(url string) string {
-	newUrl := url
-
-	for strings.Index(newUrl, UrlDirectorySeperator) == 0 {
-		newUrl = strings.TrimLeft(newUrl, UrlDirectorySeperator)
-	}
-
-	return UrlDirectorySeperator + newUrl
-}

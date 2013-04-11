@@ -6,12 +6,15 @@ package server
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/path"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 	requestedPath := r.URL.Path
+	requestedPath = strings.TrimLeft(requestedPath, path.UrlDirectorySeperator)
 
 	fmt.Println(requestedPath)
 

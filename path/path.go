@@ -77,7 +77,7 @@ func (provider *Provider) GetRouteFromFilepath(filepath string) string {
 	relativeFilepath := provider.GetRelativePath(filepath)
 
 	route := strings.Replace(relativeFilepath, FilesystemDirectorySeperator, UrlDirectorySeperator, -1)
-	route = AddLeadingUrlDirectorySeperator(route)
+	route = strings.TrimLeft(route, UrlDirectorySeperator)
 
 	return route
 }
