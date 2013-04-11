@@ -22,7 +22,7 @@ func NewItemIndex(directory string, items []*Item) *ItemIndex {
 }
 
 func (itemIndex *ItemIndex) String() string {
-	return fmt.Sprintf("Item Index %s", itemIndex.path)
+	return fmt.Sprintf("%s", itemIndex.path)
 }
 
 func (itemIndex *ItemIndex) Walk(walkFunc func(item *Item)) {

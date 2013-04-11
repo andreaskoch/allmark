@@ -5,6 +5,7 @@
 package repository
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark/path"
 	"path/filepath"
 )
@@ -17,6 +18,10 @@ func NewFile(filePath string) *File {
 	return &File{
 		path: filePath,
 	}
+}
+
+func (file *File) String() string {
+	return fmt.Sprintf("%s", file.path)
 }
 
 func (file *File) Path() string {

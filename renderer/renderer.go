@@ -39,11 +39,10 @@ func renderIndex(itemIndex *repository.ItemIndex) *repository.ItemIndex {
 		// render the item again if it changes
 		item.RegisterOnChangeCallback("RenderOnChange", func(i *repository.Item) {
 
-			fmt.Printf("Item %q changed", item)
 			if _, parseError := parser.Parse(item); parseError == nil {
 				renderItem(itemIndex.Path(), item)
 			} else {
-				fmt.Printf("Cannot render the item %q, because it could not be parsed. Error: %s", item, parseError)
+				fmt.Printf("Cannot render the item %q, because it could not be parsed. Error: %s\n", item, parseError)
 			}
 
 		})
@@ -54,7 +53,7 @@ func renderIndex(itemIndex *repository.ItemIndex) *repository.ItemIndex {
 
 func renderItem(repositoryPath string, item *repository.Item) *repository.Item {
 
-	fmt.Printf("Rendering item %q\n", item)
+	fmt.Printf("RENDERING: %s\n", item)
 
 	// get a template
 	templateText, err := templates.GetTemplate(item)

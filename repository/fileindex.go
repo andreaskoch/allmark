@@ -42,7 +42,7 @@ type FileIndex struct {
 }
 
 func (fileIndex *FileIndex) String() string {
-	return fmt.Sprintf("File index %s", fileIndex.path)
+	return fmt.Sprintf("%s", fileIndex.path)
 }
 
 func (fileIndex *FileIndex) Path() string {

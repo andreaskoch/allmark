@@ -5,10 +5,9 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
 	"github.com/andreaskoch/allmark/path"
-	"github.com/howeyc/fsnotify"
+	"github.com/andreaskoch/allmark/watcher"
 	"path/filepath"
 	"strings"
 )
@@ -40,6 +39,7 @@ type Item struct {
 	path               string
 	onChangeCallbacks  map[string]func(item *Item)
 	itemIsBeingWatched bool
+	watch              *watcher.FileWatcher
 }
 
 func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
@@ -47,26 +47,36 @@ func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
 	// determine the type
 	itemType := getItemType(itemPath)
 	if itemType == UnknownItemType {
-		return nil, errors.New(fmt.Sprintf("The item %q does not match any of the known item types.", itemPath))
+		return nil, fmt.Errorf("The item %q does not match any of the known item types.", itemPath)
 	}
 
 	// get the item's directory
 	itemDirectory := filepath.Dir(itemPath)
 
-	// create a new item
+	// create a watcher
+	watcher, err := watcher.NewFileWatcher(itemPath)
+	if err != nil {
+		return nil, fmt.Errorf("Error while trying to create a watch for item %q. Error: %s", item, err)
+	}
+
+	// create the file index
+	fileIndex := NewFileIndex(filepath.Join(itemDirectory, FilesDirectoryName))
+
+	// create the item
 	item = &Item{
 		ChildItems: childItems,
 		Type:       itemType,
-		Files:      NewFileIndex(filepath.Join(itemDirectory, FilesDirectoryName)),
+		Files:      fileIndex,
 
-		path: itemPath,
+		path:  itemPath,
+		watch: watcher,
 	}
 
 	return item, nil
 }
 
 func (item *Item) String() string {
-	return fmt.Sprintf("Item %s\n", item.path)
+	return fmt.Sprintf("%s", item.path)
 }
 
 func (item *Item) Path() string {
@@ -83,9 +93,9 @@ func (item *Item) Directory() string {
 
 func (item *Item) Walk(walkFunc func(item *Item)) {
 
-	item.pauseWatch()
+	item.watch.Pause()
 	walkFunc(item)
-	item.resumeWatch()
+	item.watch.Resume()
 
 	// add all children
 	for _, child := range item.ChildItems {
@@ -100,7 +110,22 @@ func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(it
 		item.onChangeCallbacks = make(map[string]func(item *Item))
 
 		// start watching for changes
-		item.startWatch()
+		go func() {
+			for {
+				select {
+				case event := <-item.watch.Event:
+
+					fmt.Printf("%s: %s\n", strings.ToUpper(event.Type.String()), event.Filepath)
+					for _, callback := range item.onChangeCallbacks {
+
+						item.watch.Pause()
+						callback(item)
+						item.watch.Resume()
+
+					}
+				}
+			}
+		}()
 	}
 
 	if _, ok := item.onChangeCallbacks[name]; ok {
@@ -108,58 +133,6 @@ func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(it
 	}
 
 	item.onChangeCallbacks[name] = callbackFunction
-}
-
-func (item *Item) pauseWatch() {
-	fmt.Printf("Pausing watch on item %s\n", item)
-	item.itemIsBeingWatched = false
-}
-
-func (item *Item) watchIsPaused() bool {
-	return item.itemIsBeingWatched == false
-}
-
-func (item *Item) resumeWatch() {
-	fmt.Printf("Resuming watch on item %s\n", item)
-	item.itemIsBeingWatched = true
-}
-
-func (item *Item) startWatch() *Item {
-
-	item.itemIsBeingWatched = true
-
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		fmt.Printf("Error while creating watch for item %q. Error: %v", item, err)
-		return item
-	}
-
-	go func() {
-		for {
-			select {
-			case event := <-watcher.Event:
-
-				if !item.watchIsPaused() {
-					fmt.Println("Item changed ->", event)
-
-					for name, callback := range item.onChangeCallbacks {
-						fmt.Printf("Item changed. Executing callback %q on for item %q\n", name, item)
-						callback(item)
-					}
-				}
-
-			case err := <-watcher.Error:
-				fmt.Printf("Watch error on item %q. Error: %v\n", item, err)
-			}
-		}
-	}()
-
-	err = watcher.Watch(item.path)
-	if err != nil {
-		fmt.Printf("Error while creating watch for folder %q. Error: %v\n", item.path, err)
-	}
-
-	return item
 }
 
 func getItemType(filePath string) string {
