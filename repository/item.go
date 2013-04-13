@@ -39,7 +39,7 @@ type Item struct {
 	ChildItems  []*Item
 
 	path              string
-	onChangeCallbacks map[string]func(item *Item)
+	onChangeCallbacks map[string]func(event *watcher.WatchEvent)
 }
 
 func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
@@ -103,11 +103,11 @@ func (item *Item) Walk(walkFunc func(item *Item)) {
 	}
 }
 
-func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(item *Item)) {
+func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(event *watcher.WatchEvent)) {
 
 	if item.onChangeCallbacks == nil {
 		// initialize on first use
-		item.onChangeCallbacks = make(map[string]func(item *Item))
+		item.onChangeCallbacks = make(map[string]func(event *watcher.WatchEvent))
 
 		// start watching for changes
 		go func() {
@@ -119,7 +119,7 @@ func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(it
 					for _, callback := range item.onChangeCallbacks {
 
 						item.Pause()
-						callback(item)
+						callback(event)
 						item.Resume()
 
 					}

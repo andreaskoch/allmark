@@ -15,6 +15,7 @@ import (
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/templates"
 	"github.com/andreaskoch/allmark/view"
+	"github.com/andreaskoch/allmark/watcher"
 	"os"
 	"text/template"
 )
@@ -37,7 +38,7 @@ func renderIndex(itemIndex *repository.ItemIndex) *repository.ItemIndex {
 		renderItem(itemIndex.Path(), item)
 
 		// render the item again if it changes
-		item.RegisterOnChangeCallback("RenderOnChange", func(i *repository.Item) {
+		item.RegisterOnChangeCallback("RenderOnChange", func(event *watcher.WatchEvent) {
 
 			if _, parseError := parser.Parse(item); parseError == nil {
 				renderItem(itemIndex.Path(), item)

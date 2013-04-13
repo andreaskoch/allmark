@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark/renderer"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
+	"github.com/andreaskoch/allmark/watcher"
 	"log"
 	"math"
 	"net/http"
@@ -103,8 +104,8 @@ func initializeRoutes(index *repository.ItemIndex) {
 		updateRouteTable(item)
 
 		// update route table again if item changes
-		item.RegisterOnChangeCallback("UpdateRouteTableOnChange", func(i *repository.Item) {
-			updateRouteTable(i)
+		item.RegisterOnChangeCallback("UpdateRouteTableOnChange", func(event *watcher.WatchEvent) {
+			updateRouteTable(item)
 		})
 	})
 }
