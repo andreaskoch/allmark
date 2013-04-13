@@ -42,21 +42,21 @@ type Item struct {
 	onChangeCallbacks map[string]func(event *watcher.WatchEvent)
 }
 
-func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
+func NewItem(filePath string, childItems []*Item) (item *Item, err error) {
 
 	// determine the type
-	itemType := getItemType(itemPath)
+	itemType := getItemType(filePath)
 	if itemType == UnknownItemType {
-		return nil, fmt.Errorf("The item %q does not match any of the known item types.", itemPath)
+		return nil, fmt.Errorf("The item %q does not match any of the known item types.", filePath)
 	}
 
 	// get the item's directory
-	itemDirectory := filepath.Dir(itemPath)
+	itemDirectory := filepath.Dir(filePath)
 
 	// create a file change handler
-	fileChangeHandler, err := watcher.NewFileChangeHandler(itemPath)
+	fileChangeHandler, err := watcher.NewFileChangeHandler(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("Could not create a change handler.\nError: %s\n", item, err)
+		return nil, fmt.Errorf("Could not create a change handler for item %q.\nError: %s\n", filePath, err)
 	}
 
 	// create the file index
@@ -69,7 +69,7 @@ func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
 		Type:          itemType,
 		Files:         fileIndex,
 
-		path: itemPath,
+		path: filePath,
 	}
 
 	return item, nil

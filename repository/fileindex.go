@@ -179,7 +179,12 @@ func getFiles(directory string) []*File {
 
 		// append new file
 		filePath := filepath.Join(directory, directoryEntry.Name())
-		files = append(files, NewFile(filePath))
+		file, err := NewFile(filePath)
+		if err != nil {
+			fmt.Printf("Unable to add file %q to index.\nError: %s\n", filePath, err)
+		}
+
+		files = append(files, file)
 	}
 
 	return files

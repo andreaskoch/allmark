@@ -7,17 +7,30 @@ package repository
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/path"
+	"github.com/andreaskoch/allmark/watcher"
 	"path/filepath"
 )
 
 type File struct {
+	watcher.ChangeHandler
 	path string
 }
 
-func NewFile(filePath string) *File {
-	return &File{
-		path: filePath,
+func NewFile(filePath string) (*File, error) {
+
+	// create a file change handler
+	fileChangeHandler, err := watcher.NewFileChangeHandler(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not create a change handler for file %q.\nError: %s\n", filePath, err)
 	}
+
+	// create the file
+	file := &File{
+		ChangeHandler: fileChangeHandler,
+		path:          filePath,
+	}
+
+	return file, nil
 }
 
 func (file *File) String() string {
