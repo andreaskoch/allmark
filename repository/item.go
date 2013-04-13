@@ -28,6 +28,8 @@ const (
 )
 
 type Item struct {
+	*watcher.FileWatcher
+
 	Title       string
 	Description string
 	RawLines    []string
@@ -36,10 +38,8 @@ type Item struct {
 	Type        string
 	ChildItems  []*Item
 
-	path               string
-	onChangeCallbacks  map[string]func(item *Item)
-	itemIsBeingWatched bool
-	watch              *watcher.FileWatcher
+	path              string
+	onChangeCallbacks map[string]func(item *Item)
 }
 
 func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
@@ -64,12 +64,12 @@ func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
 
 	// create the item
 	item = &Item{
-		ChildItems: childItems,
-		Type:       itemType,
-		Files:      fileIndex,
+		FileWatcher: watcher,
+		ChildItems:  childItems,
+		Type:        itemType,
+		Files:       fileIndex,
 
-		path:  itemPath,
-		watch: watcher,
+		path: itemPath,
 	}
 
 	return item, nil
@@ -93,9 +93,9 @@ func (item *Item) Directory() string {
 
 func (item *Item) Walk(walkFunc func(item *Item)) {
 
-	item.watch.Pause()
+	item.Pause()
 	walkFunc(item)
-	item.watch.Resume()
+	item.Resume()
 
 	// add all children
 	for _, child := range item.ChildItems {
@@ -113,14 +113,14 @@ func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(it
 		go func() {
 			for {
 				select {
-				case event := <-item.watch.Event:
+				case event := <-item.Event:
 
 					fmt.Printf("%s: %s\n", strings.ToUpper(event.Type.String()), event.Filepath)
 					for _, callback := range item.onChangeCallbacks {
 
-						item.watch.Pause()
+						item.Pause()
 						callback(item)
-						item.watch.Resume()
+						item.Resume()
 
 					}
 				}
