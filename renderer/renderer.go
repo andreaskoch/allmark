@@ -38,7 +38,7 @@ func renderIndex(itemIndex *repository.ItemIndex) *repository.ItemIndex {
 		renderItem(itemIndex.Path(), item)
 
 		// render the item again if it changes
-		item.RegisterOnChangeCallback("RenderOnChange", func(event *watcher.WatchEvent) {
+		item.OnModify("RenderOnChange", func(event *watcher.WatchEvent) {
 
 			if _, parseError := parser.Parse(item); parseError == nil {
 				renderItem(itemIndex.Path(), item)

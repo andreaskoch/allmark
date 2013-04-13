@@ -104,7 +104,7 @@ func initializeRoutes(index *repository.ItemIndex) {
 		updateRouteTable(item)
 
 		// update route table again if item changes
-		item.RegisterOnChangeCallback("UpdateRouteTableOnChange", func(event *watcher.WatchEvent) {
+		item.OnModify("UpdateRouteTableOnChange", func(event *watcher.WatchEvent) {
 			updateRouteTable(item)
 		})
 	})

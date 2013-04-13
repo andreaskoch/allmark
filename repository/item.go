@@ -28,7 +28,7 @@ const (
 )
 
 type Item struct {
-	*watcher.FileWatcher
+	watcher.ChangeHandler
 
 	Title       string
 	Description string
@@ -53,10 +53,10 @@ func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
 	// get the item's directory
 	itemDirectory := filepath.Dir(itemPath)
 
-	// create a watcher
-	watcher, err := watcher.NewFileWatcher(itemPath)
+	// create a file change handler
+	fileChangeHandler, err := watcher.NewFileChangeHandler(itemPath)
 	if err != nil {
-		return nil, fmt.Errorf("Error while trying to create a watch for item %q. Error: %s", item, err)
+		return nil, fmt.Errorf("Could not create a change handler.\nError: %s\n", item, err)
 	}
 
 	// create the file index
@@ -64,10 +64,10 @@ func NewItem(itemPath string, childItems []*Item) (item *Item, err error) {
 
 	// create the item
 	item = &Item{
-		FileWatcher: watcher,
-		ChildItems:  childItems,
-		Type:        itemType,
-		Files:       fileIndex,
+		ChangeHandler: fileChangeHandler,
+		ChildItems:    childItems,
+		Type:          itemType,
+		Files:         fileIndex,
 
 		path: itemPath,
 	}
@@ -93,46 +93,12 @@ func (item *Item) Directory() string {
 
 func (item *Item) Walk(walkFunc func(item *Item)) {
 
-	item.Pause()
 	walkFunc(item)
-	item.Resume()
 
 	// add all children
 	for _, child := range item.ChildItems {
 		child.Walk(walkFunc)
 	}
-}
-
-func (item *Item) RegisterOnChangeCallback(name string, callbackFunction func(event *watcher.WatchEvent)) {
-
-	if item.onChangeCallbacks == nil {
-		// initialize on first use
-		item.onChangeCallbacks = make(map[string]func(event *watcher.WatchEvent))
-
-		// start watching for changes
-		go func() {
-			for {
-				select {
-				case event := <-item.Event:
-
-					fmt.Printf("%s: %s\n", strings.ToUpper(event.Type.String()), event.Filepath)
-					for _, callback := range item.onChangeCallbacks {
-
-						item.Pause()
-						callback(event)
-						item.Resume()
-
-					}
-				}
-			}
-		}()
-	}
-
-	if _, ok := item.onChangeCallbacks[name]; ok {
-		fmt.Printf("Change callback %q already present.", name)
-	}
-
-	item.onChangeCallbacks[name] = callbackFunction
 }
 
 func getItemType(filePath string) string {
