@@ -13,13 +13,9 @@ type WatchEvent struct {
 	Filepath string
 }
 
-func NewWatchEventFromFileEvent(event *fsnotify.FileEvent) *WatchEvent {
-	return NewWatchEvent(event.Name)
-}
-
-func NewWatchEvent(filepath string) *WatchEvent {
+func newWatchEventFromFileEvent(event *fsnotify.FileEvent) *WatchEvent {
 	return &WatchEvent{
-		Filepath: filepath,
+		Filepath: event.Name,
 	}
 }
 

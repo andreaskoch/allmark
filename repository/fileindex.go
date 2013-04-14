@@ -21,13 +21,13 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 	}
 
 	// create a file change handler
-	folderChangeHandler, err := watcher.NewFolderChangeHandler(directory)
+	changeHandler, err := watcher.NewChangeHandler(directory)
 	if err != nil {
 		return nil, fmt.Errorf("Could not create a change handler for folder %q.\nError: %s\n", directory, err)
 	}
 
 	fileIndex := &FileIndex{
-		ChangeHandler: folderChangeHandler,
+		ChangeHandler: changeHandler,
 		Items:         getFilesFunc,
 
 		path: directory,
@@ -46,7 +46,7 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 }
 
 type FileIndex struct {
-	watcher.ChangeHandler
+	*watcher.ChangeHandler
 	Items func() []*File
 
 	path string

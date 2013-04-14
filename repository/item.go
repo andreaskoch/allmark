@@ -28,7 +28,7 @@ const (
 )
 
 type Item struct {
-	watcher.ChangeHandler
+	*watcher.ChangeHandler
 
 	Title       string
 	Description string
@@ -41,21 +41,21 @@ type Item struct {
 	path string
 }
 
-func NewItem(filePath string, childItems []*Item) (item *Item, err error) {
+func NewItem(path string, childItems []*Item) (item *Item, err error) {
 
 	// determine the type
-	itemType := getItemType(filePath)
+	itemType := getItemType(path)
 	if itemType == UnknownItemType {
-		return nil, fmt.Errorf("The item %q does not match any of the known item types.", filePath)
+		return nil, fmt.Errorf("The item %q does not match any of the known item types.", path)
 	}
 
 	// get the item's directory
-	itemDirectory := filepath.Dir(filePath)
+	itemDirectory := filepath.Dir(path)
 
 	// create a file change handler
-	fileChangeHandler, err := watcher.NewFileChangeHandler(filePath)
+	changeHandler, err := watcher.NewChangeHandler(path)
 	if err != nil {
-		return nil, fmt.Errorf("Could not create a change handler for item %q.\nError: %s\n", filePath, err)
+		return nil, fmt.Errorf("Could not create a change handler for item %q.\nError: %s\n", path, err)
 	}
 
 	// create the file index
@@ -67,12 +67,12 @@ func NewItem(filePath string, childItems []*Item) (item *Item, err error) {
 
 	// create the item
 	item = &Item{
-		ChangeHandler: fileChangeHandler,
+		ChangeHandler: changeHandler,
 		ChildItems:    childItems,
 		Type:          itemType,
 		Files:         fileIndex,
 
-		path: filePath,
+		path: path,
 	}
 
 	fileIndex.OnChange("Throw Item Events on File index change", func(event *watcher.WatchEvent) {

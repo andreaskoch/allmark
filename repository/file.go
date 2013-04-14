@@ -12,22 +12,22 @@ import (
 )
 
 type File struct {
-	watcher.ChangeHandler
+	*watcher.ChangeHandler
 	path string
 }
 
-func NewFile(filePath string) (*File, error) {
+func NewFile(path string) (*File, error) {
 
 	// create a file change handler
-	fileChangeHandler, err := watcher.NewFileChangeHandler(filePath)
+	changeHandler, err := watcher.NewChangeHandler(path)
 	if err != nil {
-		return nil, fmt.Errorf("Could not create a change handler for file %q.\nError: %s\n", filePath, err)
+		return nil, fmt.Errorf("Could not create a change handler for file %q.\nError: %s\n", path, err)
 	}
 
 	// create the file
 	file := &File{
-		ChangeHandler: fileChangeHandler,
-		path:          filePath,
+		ChangeHandler: changeHandler,
+		path:          path,
 	}
 
 	return file, nil
