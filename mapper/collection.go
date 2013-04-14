@@ -29,7 +29,7 @@ func getEntries(pathProvider *path.Provider, converterFunc func(item *repository
 
 	entries := make([]view.Model, 0)
 
-	for _, child := range item.ChildItems {
+	for _, child := range item.Childs() {
 		if mapperFunc, err := GetMapper(pathProvider, converterFunc, child); err == nil {
 			viewModel := mapperFunc(child)
 			entries = append(entries, viewModel)

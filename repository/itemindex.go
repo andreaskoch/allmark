@@ -42,12 +42,6 @@ func (itemIndex *ItemIndex) String() string {
 	return fmt.Sprintf("%s", itemIndex.path)
 }
 
-func (itemIndex *ItemIndex) Walk(walkFunc func(item *Item)) {
-	for _, item := range itemIndex.items {
-		item.Walk(walkFunc)
-	}
-}
-
 func (itemIndex *ItemIndex) Path() string {
 	return itemIndex.path
 }
@@ -58,4 +52,8 @@ func (itemIndex *ItemIndex) Directory() string {
 
 func (itemIndex *ItemIndex) PathType() string {
 	return path.PatherTypeIndex
+}
+
+func (itemIndex *ItemIndex) Items() []*Item {
+	return itemIndex.items
 }

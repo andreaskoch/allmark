@@ -4,10 +4,6 @@
 
 package watcher
 
-import (
-	"fmt"
-)
-
 type ChangeHandlerCallback func(event *WatchEvent)
 
 type CallbackList struct {
@@ -24,7 +20,6 @@ func NewCallbackList() CallbackList {
 
 func (list *CallbackList) Add(name string, callback ChangeHandlerCallback) {
 	if position, ok := list.names[name]; ok {
-		fmt.Printf("WARNING: Callback %q already present.", name)
 		list.callbacks[position] = callback
 		return
 	}

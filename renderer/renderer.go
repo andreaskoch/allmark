@@ -32,35 +32,43 @@ func RenderRepository(repositoryPath string) *repository.ItemIndex {
 
 func renderIndex(itemIndex *repository.ItemIndex) *repository.ItemIndex {
 
-	itemIndex.Walk(func(item *repository.Item) {
-
-		// render the item
-		renderItem(itemIndex.Path(), item)
-
-		// render the item again if it changes
-		item.OnChange("Render item on change", func(event *watcher.WatchEvent) {
-
-			if _, parseError := parser.Parse(item); parseError == nil {
-				renderItem(itemIndex.Path(), item)
-			} else {
-				fmt.Printf("Cannot render the item %q, because it could not be parsed. Error: %s\n", item, parseError)
-			}
-
-		})
-	})
+	repositoryPath := itemIndex.Path()
+	for _, item := range itemIndex.Items() {
+		renderItem(repositoryPath, item)
+	}
 
 	return itemIndex
 }
 
-func renderItem(repositoryPath string, item *repository.Item) *repository.Item {
+func renderItem(repositoryPath string, item *repository.Item) (*repository.Item, error) {
 
 	fmt.Printf("RENDERING: %s\n", item)
+
+	// render child items first
+	for _, child := range item.Childs() {
+
+		// attach change listener
+		child.OnChange("Throw Item Events on Child Item change", func(event *watcher.WatchEvent) {
+			item.Throw(event)
+		})
+
+		renderItem(repositoryPath, child)
+	}
+
+	// parse the item
+	if _, parseError := parser.Parse(item); parseError != nil {
+		return item, fmt.Errorf("Cannot render the item %q, because it could not be parsed.\nError: %s\n", item, parseError)
+	}
+
+	// attach change listener
+	item.OnChange("Render item on change", func(event *watcher.WatchEvent) {
+		renderItem(repositoryPath, item)
+	})
 
 	// get a template
 	templateText, err := templates.GetTemplate(item)
 	if err != nil {
-		fmt.Println(err)
-		return item
+		return item, err
 	}
 
 	// create a path provider
@@ -69,8 +77,7 @@ func renderItem(repositoryPath string, item *repository.Item) *repository.Item {
 	// get a viewmodel mapper
 	mapperFunc, err := mapper.GetMapper(pathProvider, html.Convert, item)
 	if err != nil {
-		fmt.Println(err)
-		return item
+		return item, err
 	}
 
 	// create the viewmodel
@@ -79,7 +86,7 @@ func renderItem(repositoryPath string, item *repository.Item) *repository.Item {
 	// render the template
 	render(item, templateText, viewModel)
 
-	return item
+	return item, nil
 }
 
 func render(item *repository.Item, templateText string, viewModel view.Model) (*repository.Item, error) {

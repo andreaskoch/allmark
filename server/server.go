@@ -84,30 +84,32 @@ func initializeRoutes(index *repository.ItemIndex) {
 	routes = make(map[string]string)
 
 	pathProvider := path.NewProvider(index.Path())
+	for _, item := range index.Items() {
+		registerItem(pathProvider, item)
+	}
+}
 
-	updateRouteTable := func(item *repository.Item) {
+func registerItem(pathProvider *path.Provider, item *repository.Item) {
 
-		// get the item route and
-		// add it to the routing table
-		registerRoute(pathProvider, item)
-
-		// get the file routes and
-		// add them to the routing table
-		for _, file := range item.Files.Items() {
-			registerRoute(pathProvider, file)
-		}
+	// recurse for child items
+	for _, child := range item.Childs() {
+		registerItem(pathProvider, child)
 	}
 
-	index.Walk(func(item *repository.Item) {
-
-		// add the current item to the route table
-		updateRouteTable(item)
-
-		// update route table again if item changes
-		item.OnChange("Update routing table on change", func(event *watcher.WatchEvent) {
-			updateRouteTable(item)
-		})
+	// attach change listener
+	item.OnChange("Update routing table on change", func(event *watcher.WatchEvent) {
+		registerItem(pathProvider, item)
 	})
+
+	// get the item route and
+	// add it to the routing table
+	registerRoute(pathProvider, item)
+
+	// get the file routes and
+	// add them to the routing table
+	for _, file := range item.Files.Items() {
+		registerRoute(pathProvider, file)
+	}
 }
 
 func registerRoute(pathProvider *path.Provider, pather path.Pather) {

@@ -36,7 +36,7 @@ type Item struct {
 	Files       *FileIndex
 	MetaData    MetaData
 	Type        string
-	ChildItems  []*Item
+	childItems  []*Item
 
 	path string
 }
@@ -68,11 +68,11 @@ func NewItem(path string, childItems []*Item) (item *Item, err error) {
 	// create the item
 	item = &Item{
 		ChangeHandler: changeHandler,
-		ChildItems:    childItems,
 		Type:          itemType,
 		Files:         fileIndex,
 
-		path: path,
+		childItems: childItems,
+		path:       path,
 	}
 
 	// watch for changes in the file index
@@ -91,22 +91,16 @@ func (item *Item) Path() string {
 	return item.path
 }
 
-func (item *Item) PathType() string {
-	return path.PatherTypeItem
-}
-
 func (item *Item) Directory() string {
 	return filepath.Dir(item.Path())
 }
 
-func (item *Item) Walk(walkFunc func(item *Item)) {
+func (item *Item) PathType() string {
+	return path.PatherTypeItem
+}
 
-	walkFunc(item)
-
-	// add all children
-	for _, child := range item.ChildItems {
-		child.Walk(walkFunc)
-	}
+func (item *Item) Childs() []*Item {
+	return item.childItems
 }
 
 func getItemType(filePath string) string {
