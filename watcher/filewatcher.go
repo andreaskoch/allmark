@@ -5,8 +5,8 @@
 package watcher
 
 import (
+	"github.com/andreaskoch/allmark/util"
 	"github.com/howeyc/fsnotify"
-	"os"
 )
 
 type FileWatcher struct {
@@ -19,7 +19,7 @@ type FileWatcher struct {
 
 func NewFileWatcher(filepath string) (*FileWatcher, error) {
 
-	if ok, err := isFile(filepath); !ok {
+	if ok, err := util.IsFile(filepath); !ok {
 		return nil, err // only handle files
 	}
 
@@ -77,38 +77,4 @@ func (watcher *FileWatcher) start() *FileWatcher {
 	}
 
 	return watcher
-}
-
-func getWatchEventFromFileEvent(event *fsnotify.FileEvent) *WatchEvent {
-	return NewWatchEvent(event.Name, getEventTypeFromFileEvent(event))
-}
-
-func getEventTypeFromFileEvent(event *fsnotify.FileEvent) string {
-	if event.IsModify() {
-		return "modified"
-	}
-
-	if event.IsDelete() {
-		return "delete"
-	}
-
-	if event.IsCreate() {
-		return "create"
-	}
-
-	if event.IsRename() {
-		return "rename"
-	}
-
-	return "unknown"
-}
-
-func isFile(path string) (bool, error) {
-
-	fileInfo, err := os.Stat(path)
-	if err != nil {
-		return false, err
-	}
-
-	return fileInfo.IsDir() == false, nil
 }

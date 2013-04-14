@@ -6,6 +6,7 @@ package watcher
 
 import (
 	"fmt"
+	"github.com/howeyc/fsnotify"
 	"strings"
 )
 
@@ -59,4 +60,28 @@ func getEventName(watchEventType EventType) string {
 	}
 
 	panic("Unreachable")
+}
+
+func getWatchEventFromFileEvent(event *fsnotify.FileEvent) *WatchEvent {
+	return NewWatchEvent(event.Name, getEventTypeFromFileEvent(event))
+}
+
+func getEventTypeFromFileEvent(event *fsnotify.FileEvent) string {
+	if event.IsModify() {
+		return "modified"
+	}
+
+	if event.IsDelete() {
+		return "delete"
+	}
+
+	if event.IsCreate() {
+		return "create"
+	}
+
+	if event.IsRename() {
+		return "rename"
+	}
+
+	return "unknown"
 }

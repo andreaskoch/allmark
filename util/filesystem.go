@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -95,6 +96,26 @@ func DirectoryExists(path string) bool {
 	return file.IsDir()
 }
 
+func IsFile(path string) (bool, error) {
+
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+
+	return fileInfo.IsDir() == false, nil
+}
+
+func IsDirectory(path string) (bool, error) {
+
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+
+	return fileInfo.IsDir(), nil
+}
+
 // Gets the current working directory in which this application is being executed.
 func GetWorkingDirectory() string {
 	workingDirectory, err := os.Getwd()
@@ -103,4 +124,31 @@ func GetWorkingDirectory() string {
 	}
 
 	return workingDirectory
+}
+
+func GetSubDirectories(path string) []string {
+
+	directories := make([]string, 0)
+
+	if ok, _ := IsDirectory(path); !ok {
+		fmt.Errorf("%q is not a directory.\n", path)
+		return directories
+	}
+
+	directoryEntries, err := ioutil.ReadDir(path)
+	if err != nil {
+		fmt.Errorf("Cannot read directory %q.\n", path)
+		return directories
+	}
+
+	for _, entry := range directoryEntries {
+		if !entry.IsDir() {
+			continue // skip files
+		}
+
+		subDirectory := filepath.Join(path, entry.Name())
+		directories = append(directories, subDirectory)
+	}
+
+	return directories
 }
