@@ -15,6 +15,12 @@ var (
 	imageGalleryPattern = regexp.MustCompile(`!imagegallery\[([^\]]+)\]\(([^)]+)\)`)
 )
 
+func NewImageGalleryRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *pathpackage.Provider) func(text string) string {
+	return func(text string) string {
+		return text
+	}
+}
+
 func renderImageGalleries(item *repository.Item) *repository.Item {
 
 	for lineNumber, line := range item.RawLines {

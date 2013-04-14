@@ -75,7 +75,7 @@ func renderItem(repositoryPath string, item *repository.Item) (*repository.Item,
 	pathProvider := path.NewProvider(repositoryPath)
 
 	// get a viewmodel mapper
-	mapperFunc, err := mapper.GetMapper(pathProvider, html.Convert, item)
+	mapperFunc, err := mapper.GetMapper(pathProvider, html.NewConverter, item.Type)
 	if err != nil {
 		return item, err
 	}

@@ -5,23 +5,29 @@
 package html
 
 import (
+	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
-	"github.com/russross/blackfriday"
 	"strings"
 )
 
-func Convert(item *repository.Item) string {
+func NewConverter(item *repository.Item) func() string {
 
-	// render image galleries
-	renderImageGalleries(item)
-
-	// convert markdown to html
+	// create context
+	fileIndex := item.Files
+	pathProvider := path.NewProvider(item.Directory())
 	rawMarkdownContent := strings.TrimSpace(strings.Join(item.RawLines, "\n"))
-	html := markdownToHtml(rawMarkdownContent)
 
-	return html
-}
+	return func() string {
 
-func markdownToHtml(markdown string) (html string) {
-	return string(blackfriday.MarkdownCommon([]byte(markdown)))
+		markdown := rawMarkdownContent
+
+		// image gallery
+		galleryRenderer := NewImageGalleryRenderer(rawMarkdownContent, fileIndex, pathProvider)
+		markdown = galleryRenderer(markdown)
+
+		// markdown to html
+		html := markdownToHtml(markdown)
+
+		return html
+	}
 }

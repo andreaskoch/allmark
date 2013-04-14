@@ -5,25 +5,24 @@
 package mapper
 
 import (
-	"errors"
 	"fmt"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/view"
 )
 
-func GetMapper(pathProvider *path.Provider, converterFunc func(item *repository.Item) string, item *repository.Item) (func(item *repository.Item) view.Model, error) {
+func GetMapper(pathProvider *path.Provider, converterFactory func(item *repository.Item) func() string, itemType string) (func(item *repository.Item) view.Model, error) {
 
-	switch item.Type {
+	switch itemType {
 	case repository.DocumentItemType:
-		return createDocumentMapperFunc(pathProvider, converterFunc), nil
+		return createDocumentMapperFunc(pathProvider, converterFactory), nil
 
 	case repository.MessageItemType:
-		return createMessageMapperFunc(pathProvider, converterFunc), nil
+		return createMessageMapperFunc(pathProvider, converterFactory), nil
 
 	case repository.RepositoryItemType, repository.CollectionItemType:
-		return createCollectionMapperFunc(pathProvider, converterFunc), nil
+		return createCollectionMapperFunc(pathProvider, converterFactory), nil
 	}
 
-	return nil, errors.New(fmt.Sprintf("There is no mapper available for items of type %q", item.Type))
+	return nil, fmt.Errorf("There is no mapper available for items of type %q", itemType)
 }
