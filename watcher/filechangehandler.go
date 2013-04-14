@@ -6,13 +6,12 @@ package watcher
 
 import (
 	"fmt"
-	"strings"
 )
 
 type FileChangeHandler struct {
 	*FileWatcher
 
-	callbacks map[string]*CallbackEntry
+	callbacks map[CallbackKey]*CallbackEntry
 }
 
 func NewFileChangeHandler(filePath string) (*FileChangeHandler, error) {
@@ -36,7 +35,7 @@ func NewFileChangeHandler(filePath string) (*FileChangeHandler, error) {
 
 func (changeHandler *FileChangeHandler) startWatching() {
 	if changeHandler.callbacks == nil {
-		changeHandler.callbacks = make(map[string]*CallbackEntry) // initialize on first use
+		changeHandler.callbacks = make(map[CallbackKey]*CallbackEntry) // initialize on first use
 	}
 
 	// start watching for changes
@@ -44,43 +43,59 @@ func (changeHandler *FileChangeHandler) startWatching() {
 		for {
 			select {
 			case event := <-changeHandler.Event:
-
-				fmt.Printf("%s: %s\n", strings.ToUpper(event.Type.String()), event.Filepath)
-				for _, entry := range changeHandler.callbacks {
-
-					changeHandler.Pause()
-					entry.Callback(event)
-					changeHandler.Resume()
-
-				}
+				changeHandler.Throw(event)
 			}
 		}
 	}()
 }
 
+func (changeHandler *FileChangeHandler) Throw(event *WatchEvent) {
+	fmt.Printf("%s: %s\n", event.Type, event.Filepath)
+	for _, entry := range changeHandler.getHandlersByType(event.Type) {
+
+		changeHandler.Pause()
+		entry.Callback(event)
+		changeHandler.Resume()
+
+	}
+}
+
 func (changeHandler *FileChangeHandler) OnCreate(name string, callback ChangeHandlerCallback) {
-	changeHandler.addHandler("Create", name, callback)
+	changeHandler.addHandler(CREATED, name, callback)
 }
 
 func (changeHandler *FileChangeHandler) OnDelete(name string, callback ChangeHandlerCallback) {
-	changeHandler.addHandler("Delete", name, callback)
+	changeHandler.addHandler(DELETED, name, callback)
 }
 
 func (changeHandler *FileChangeHandler) OnModify(name string, callback ChangeHandlerCallback) {
-	changeHandler.addHandler("Modify", name, callback)
+	changeHandler.addHandler(MODIFIED, name, callback)
 }
 
 func (changeHandler *FileChangeHandler) OnRename(name string, callback ChangeHandlerCallback) {
-	changeHandler.addHandler("Rename", name, callback)
+	changeHandler.addHandler(RENAMED, name, callback)
 }
 
-func (changeHandler *FileChangeHandler) addHandler(eventType, name string, callback ChangeHandlerCallback) {
+func (changeHandler *FileChangeHandler) addHandler(eventType EventType, name string, callback ChangeHandlerCallback) {
 
-	key := fmt.Sprintf("%s - %s", eventType, name)
+	key := NewCallbackKey(eventType, name)
 
 	if _, ok := changeHandler.callbacks[key]; ok {
 		fmt.Printf("WARNING: Change callback %q already present.", name)
 	}
 
 	changeHandler.callbacks[key] = NewCallbackEntry(eventType, name, callback)
+}
+
+func (changeHandler *FileChangeHandler) getHandlersByType(eventType EventType) []*CallbackEntry {
+
+	entries := make([]*CallbackEntry, 0, len(changeHandler.callbacks))
+
+	for key, entry := range changeHandler.callbacks {
+		if key.EventType == eventType {
+			entries = append(entries, entry)
+		}
+	}
+
+	return entries
 }

@@ -7,19 +7,33 @@ package watcher
 type ChangeHandlerCallback func(event *WatchEvent)
 
 type ChangeHandler interface {
+	Throw(event *WatchEvent)
+
 	OnCreate(name string, callback ChangeHandlerCallback)
 	OnDelete(name string, callback ChangeHandlerCallback)
 	OnModify(name string, callback ChangeHandlerCallback)
 	OnRename(name string, callback ChangeHandlerCallback)
 }
 
+type CallbackKey struct {
+	EventType    EventType
+	CallbackName string
+}
+
+func NewCallbackKey(eventType EventType, callbackName string) CallbackKey {
+	return CallbackKey{
+		EventType:    eventType,
+		CallbackName: callbackName,
+	}
+}
+
 type CallbackEntry struct {
-	EventType string
+	EventType EventType
 	Name      string
 	Callback  ChangeHandlerCallback
 }
 
-func NewCallbackEntry(eventType, name string, callback ChangeHandlerCallback) *CallbackEntry {
+func NewCallbackEntry(eventType EventType, name string, callback ChangeHandlerCallback) *CallbackEntry {
 	return &CallbackEntry{
 		EventType: eventType,
 		Name:      name,

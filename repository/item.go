@@ -38,8 +38,7 @@ type Item struct {
 	Type        string
 	ChildItems  []*Item
 
-	path              string
-	onChangeCallbacks map[string]func(event *watcher.WatchEvent)
+	path string
 }
 
 func NewItem(filePath string, childItems []*Item) (item *Item, err error) {
@@ -60,7 +59,11 @@ func NewItem(filePath string, childItems []*Item) (item *Item, err error) {
 	}
 
 	// create the file index
-	fileIndex := NewFileIndex(filepath.Join(itemDirectory, FilesDirectoryName))
+	filesDirectory := filepath.Join(itemDirectory, FilesDirectoryName)
+	fileIndex, err := NewFileIndex(filesDirectory)
+	if err != nil {
+		return nil, fmt.Errorf("Could not create a file index for folder %q.\nError: %s\n", filesDirectory, err)
+	}
 
 	// create the item
 	item = &Item{
@@ -71,6 +74,13 @@ func NewItem(filePath string, childItems []*Item) (item *Item, err error) {
 
 		path: filePath,
 	}
+
+	reThrow := func(event *watcher.WatchEvent) {
+		fmt.Println("Rethrow")
+		item.Throw(event)
+	}
+
+	fileIndex.OnModify("Rethrow", reThrow)
 
 	return item, nil
 }

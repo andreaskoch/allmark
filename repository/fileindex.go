@@ -7,38 +7,54 @@ package repository
 import (
 	"fmt"
 	p "github.com/andreaskoch/allmark/path"
-	"github.com/howeyc/fsnotify"
+	"github.com/andreaskoch/allmark/watcher"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 )
 
-func NewFileIndex(directory string) *FileIndex {
+func NewFileIndex(directory string) (*FileIndex, error) {
 
+	files := getFiles(directory)
 	getFilesFunc := func() []*File {
-		files := getFiles(directory)
 		return files
 	}
 
+	// create a file change handler
+	folderChangeHandler, err := watcher.NewFolderChangeHandler(directory)
+	if err != nil {
+		return nil, fmt.Errorf("Could not create a change handler for folder %q.\nError: %s\n", directory, err)
+	}
+
 	fileIndex := &FileIndex{
-		Items: getFilesFunc,
+		ChangeHandler: folderChangeHandler,
+		Items:         getFilesFunc,
 
 		path: directory,
 	}
 
-	fileIndex.RegisterOnChangeCallback("ReindexOnFilesystemEvent", func(fileIndex *FileIndex) {
-		fileIndex.Items = getFilesFunc
-	})
+	reindexFilesFunc := func(event *watcher.WatchEvent) {
+		fmt.Println("Reindexing")
+		files := getFiles(directory)
 
-	return fileIndex
+		fileIndex.Items = func() []*File {
+			return files
+		}
+	}
+
+	fileIndex.OnModify("Reindex files on Modify", reindexFilesFunc)
+	fileIndex.OnCreate("Reindex files on Create", reindexFilesFunc)
+	fileIndex.OnDelete("Reindex files on Delete", reindexFilesFunc)
+	fileIndex.OnDelete("Reindex files on Rename", reindexFilesFunc)
+
+	return fileIndex, nil
 }
 
 type FileIndex struct {
+	watcher.ChangeHandler
 	Items func() []*File
 
-	path               string
-	onChangeCallbacks  map[string]func(fileIndex *FileIndex)
-	itemIsBeingWatched bool
+	path string
 }
 
 func (fileIndex *FileIndex) String() string {
@@ -87,76 +103,6 @@ func (fileIndex *FileIndex) GetFilesByPath(path string, condition func(pather p.
 	}
 
 	return matchingFiles
-}
-
-func (fileIndex *FileIndex) RegisterOnChangeCallback(name string, callbackFunction func(fileIndex *FileIndex)) {
-
-	if fileIndex.onChangeCallbacks == nil {
-		// initialize on first use
-		fileIndex.onChangeCallbacks = make(map[string]func(fileIndex *FileIndex))
-
-		// start watching for changes
-		fileIndex.startWatch()
-	}
-
-	if _, ok := fileIndex.onChangeCallbacks[name]; ok {
-		fmt.Printf("Change callback %q already present.", name)
-	}
-
-	fileIndex.onChangeCallbacks[name] = callbackFunction
-}
-
-func (fileIndex *FileIndex) pauseWatch() {
-	fmt.Printf("Pausing watch on fileIndex %s\n", fileIndex)
-	fileIndex.itemIsBeingWatched = false
-}
-
-func (fileIndex *FileIndex) watchIsPaused() bool {
-	return fileIndex.itemIsBeingWatched == false
-}
-
-func (fileIndex *FileIndex) resumeWatch() {
-	fmt.Printf("Resuming watch on file index %s\n", fileIndex)
-	fileIndex.itemIsBeingWatched = true
-}
-
-func (fileIndex *FileIndex) startWatch() *FileIndex {
-
-	fmt.Printf("Starting watch on fileIndex %s\n", fileIndex)
-	fileIndex.itemIsBeingWatched = true
-
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		fmt.Printf("Error while creating watch for file index %q. Error: %v", fileIndex, err)
-		return fileIndex
-	}
-
-	go func() {
-		for {
-			select {
-			case event := <-watcher.Event:
-
-				if !fileIndex.watchIsPaused() {
-					fmt.Println("File index changed ->", event)
-
-					for name, callback := range fileIndex.onChangeCallbacks {
-						fmt.Printf("File index changed. Executing callback %q on for file index %q\n", name, fileIndex)
-						callback(fileIndex)
-					}
-				}
-
-			case err := <-watcher.Error:
-				fmt.Printf("Watch error on file index %q. Error: %v\n", fileIndex, err)
-			}
-		}
-	}()
-
-	err = watcher.Watch(fileIndex.Directory())
-	if err != nil {
-		fmt.Printf("Error while creating watch for folder %q. Error: %v\n", fileIndex.Directory(), err)
-	}
-
-	return fileIndex
 }
 
 func getFiles(directory string) []*File {
