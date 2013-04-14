@@ -2,7 +2,7 @@ package html
 
 import (
 	"fmt"
-	pathpackage "github.com/andreaskoch/allmark/path"
+	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
 	"path/filepath"
@@ -15,39 +15,31 @@ var (
 	imageGalleryPattern = regexp.MustCompile(`!imagegallery\[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func NewImageGalleryRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *pathpackage.Provider) func(text string) string {
+func NewImageGalleryRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {
 	return func(text string) string {
-		return text
+		return renderImageGallery(markdown, fileIndex, pathProvider)
 	}
 }
 
-func renderImageGalleries(item *repository.Item) *repository.Item {
+func renderImageGallery(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
 
-	for lineNumber, line := range item.RawLines {
-		if galleryFound, transformedLine := renderImageGallery(item, line); galleryFound {
-			item.RawLines[lineNumber] = transformedLine
+	for {
+
+		found, matches := util.IsMatch(markdown, imageGalleryPattern)
+		if !found || (found && len(matches) != 3) {
+			break
 		}
-	}
 
-	return item
-}
+		// parameters
+		originalText := strings.TrimSpace(matches[0])
+		galleryTitle := strings.TrimSpace(matches[1])
+		path := strings.TrimSpace(matches[2])
 
-func renderImageGallery(item *repository.Item, line string) (imageGalleryFound bool, transformedLine string) {
-	found, matches := util.IsMatch(line, imageGalleryPattern)
-	if !found || (found && len(matches) != 3) {
-		return false, line
-	}
+		// create image gallery code
+		files := fileIndex.GetFilesByPath(path, isImageFile)
 
-	// parameters
-	originalText := strings.TrimSpace(matches[0])
-	galleryTitle := strings.TrimSpace(matches[1])
-	path := strings.TrimSpace(matches[2])
-
-	// create image gallery code
-	files := item.Files.GetFilesByPath(path, isImageFile)
-
-	imageLinks := getImageLinks(galleryTitle, item, files)
-	imageGalleryCode := fmt.Sprintf(`<div class="imagegallery">
+		imageLinks := getImageLinks(galleryTitle, files, pathProvider)
+		imageGalleryCode := fmt.Sprintf(`<div class="imagegallery">
 				<header>
 					<span>%s</span>
 				</header>
@@ -60,13 +52,16 @@ func renderImageGallery(item *repository.Item, line string) (imageGalleryFound b
 				</section>
 			</div>`, galleryTitle, strings.Join(imageLinks, "\n</li>\n<li>\n"))
 
-	// replace markdown with image gallery
-	return true, strings.Replace(line, originalText, imageGalleryCode, 1)
+		// replace markdown with image gallery
+		markdown = strings.Replace(markdown, originalText, imageGalleryCode, 1)
+
+	}
+
+	return markdown
 }
 
-func getImageLinks(galleryTitle string, item *repository.Item, files []*repository.File) []string {
+func getImageLinks(galleryTitle string, files []*repository.File, pathProvider *path.Provider) []string {
 
-	pathProvider := pathpackage.NewProvider(item.Directory())
 	numberOfFiles := len(files)
 	imagelinks := make([]string, numberOfFiles, numberOfFiles)
 
@@ -81,7 +76,7 @@ func getImageLinks(galleryTitle string, item *repository.Item, files []*reposito
 	return imagelinks
 }
 
-func getFileTitle(pather pathpackage.Pather) string {
+func getFileTitle(pather path.Pather) string {
 	fileName := filepath.Base(pather.Path())
 	fileExtension := filepath.Ext(pather.Path())
 
@@ -91,7 +86,7 @@ func getFileTitle(pather pathpackage.Pather) string {
 	return filenameWithoutExtension
 }
 
-func isImageFile(pather pathpackage.Pather) bool {
+func isImageFile(pather path.Pather) bool {
 	fileExtension := strings.ToLower(filepath.Ext(pather.Path()))
 	switch fileExtension {
 	case ".png", ".gif", ".jpeg", ".jpg", ".svg", ".tiff":
