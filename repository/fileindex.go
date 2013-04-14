@@ -33,19 +33,14 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 		path: directory,
 	}
 
-	reindexFilesFunc := func(event *watcher.WatchEvent) {
+	fileIndex.OnChange("Reindex files on change", func(event *watcher.WatchEvent) {
 		fmt.Println("Reindexing")
 		files := getFiles(directory)
 
 		fileIndex.Items = func() []*File {
 			return files
 		}
-	}
-
-	fileIndex.OnModify("Reindex files on Modify", reindexFilesFunc)
-	fileIndex.OnCreate("Reindex files on Create", reindexFilesFunc)
-	fileIndex.OnDelete("Reindex files on Delete", reindexFilesFunc)
-	fileIndex.OnDelete("Reindex files on Rename", reindexFilesFunc)
+	})
 
 	return fileIndex, nil
 }

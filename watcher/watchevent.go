@@ -4,20 +4,25 @@
 
 package watcher
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/howeyc/fsnotify"
+)
 
 type WatchEvent struct {
 	Filepath string
-	Type     EventType
 }
 
-func NewWatchEvent(filepath, eventType string) *WatchEvent {
+func NewWatchEventFromFileEvent(event *fsnotify.FileEvent) *WatchEvent {
+	return NewWatchEvent(event.Name)
+}
+
+func NewWatchEvent(filepath string) *WatchEvent {
 	return &WatchEvent{
 		Filepath: filepath,
-		Type:     EventTypeFromText(eventType),
 	}
 }
 
 func (watchEvent *WatchEvent) String() string {
-	return fmt.Sprintf("Event (Type: %s, Path: %s)", watchEvent.Type, watchEvent.Filepath)
+	return fmt.Sprintf("Event (%s)", watchEvent.Filepath)
 }

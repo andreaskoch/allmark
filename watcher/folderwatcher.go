@@ -94,7 +94,7 @@ func (watcher *FolderWatcher) start() *FolderWatcher {
 			select {
 			case event := <-fswatcher.Event:
 				if watcher.IsWatching() {
-					watcher.Event <- getWatchEventFromFileEvent(event)
+					watcher.Event <- NewWatchEventFromFileEvent(event)
 				}
 
 			}

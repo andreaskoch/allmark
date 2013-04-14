@@ -75,12 +75,9 @@ func NewItem(filePath string, childItems []*Item) (item *Item, err error) {
 		path: filePath,
 	}
 
-	reThrow := func(event *watcher.WatchEvent) {
-		fmt.Println("Rethrow")
+	fileIndex.OnChange("Throw Item Events on File index change", func(event *watcher.WatchEvent) {
 		item.Throw(event)
-	}
-
-	fileIndex.OnModify("Rethrow", reThrow)
+	})
 
 	return item, nil
 }

@@ -64,7 +64,7 @@ func (watcher *FileWatcher) start() *FileWatcher {
 			select {
 			case event := <-fswatcher.Event:
 				if watcher.IsWatching() {
-					watcher.Event <- getWatchEventFromFileEvent(event)
+					watcher.Event <- NewWatchEventFromFileEvent(event)
 				}
 
 			}

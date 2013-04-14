@@ -11,7 +11,7 @@ import (
 type FileChangeHandler struct {
 	*FileWatcher
 
-	callbacks map[CallbackKey]*CallbackEntry
+	callbacks map[string]ChangeHandlerCallback
 }
 
 func NewFileChangeHandler(filePath string) (*FileChangeHandler, error) {
@@ -35,7 +35,7 @@ func NewFileChangeHandler(filePath string) (*FileChangeHandler, error) {
 
 func (changeHandler *FileChangeHandler) startWatching() {
 	if changeHandler.callbacks == nil {
-		changeHandler.callbacks = make(map[CallbackKey]*CallbackEntry) // initialize on first use
+		changeHandler.callbacks = make(map[string]ChangeHandlerCallback) // initialize on first use
 	}
 
 	// start watching for changes
@@ -50,52 +50,19 @@ func (changeHandler *FileChangeHandler) startWatching() {
 }
 
 func (changeHandler *FileChangeHandler) Throw(event *WatchEvent) {
-	fmt.Printf("%s: %s\n", event.Type, event.Filepath)
-	for _, entry := range changeHandler.getHandlersByType(event.Type) {
+	for _, callback := range changeHandler.callbacks {
 
 		changeHandler.Pause()
-		entry.Callback(event)
+		callback(event)
 		changeHandler.Resume()
 
 	}
 }
 
-func (changeHandler *FileChangeHandler) OnCreate(name string, callback ChangeHandlerCallback) {
-	changeHandler.addHandler(CREATED, name, callback)
-}
-
-func (changeHandler *FileChangeHandler) OnDelete(name string, callback ChangeHandlerCallback) {
-	changeHandler.addHandler(DELETED, name, callback)
-}
-
-func (changeHandler *FileChangeHandler) OnModify(name string, callback ChangeHandlerCallback) {
-	changeHandler.addHandler(MODIFIED, name, callback)
-}
-
-func (changeHandler *FileChangeHandler) OnRename(name string, callback ChangeHandlerCallback) {
-	changeHandler.addHandler(RENAMED, name, callback)
-}
-
-func (changeHandler *FileChangeHandler) addHandler(eventType EventType, name string, callback ChangeHandlerCallback) {
-
-	key := NewCallbackKey(eventType, name)
-
-	if _, ok := changeHandler.callbacks[key]; ok {
+func (changeHandler *FileChangeHandler) OnChange(name string, callback ChangeHandlerCallback) {
+	if _, ok := changeHandler.callbacks[name]; ok {
 		fmt.Printf("WARNING: Change callback %q already present.", name)
 	}
 
-	changeHandler.callbacks[key] = NewCallbackEntry(eventType, name, callback)
-}
-
-func (changeHandler *FileChangeHandler) getHandlersByType(eventType EventType) []*CallbackEntry {
-
-	entries := make([]*CallbackEntry, 0, len(changeHandler.callbacks))
-
-	for key, entry := range changeHandler.callbacks {
-		if key.EventType == eventType {
-			entries = append(entries, entry)
-		}
-	}
-
-	return entries
+	changeHandler.callbacks[name] = callback
 }
