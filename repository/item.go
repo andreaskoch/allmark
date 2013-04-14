@@ -75,6 +75,7 @@ func NewItem(path string, childItems []*Item) (item *Item, err error) {
 		path: path,
 	}
 
+	// watch for changes in the file index
 	fileIndex.OnChange("Throw Item Events on File index change", func(event *watcher.WatchEvent) {
 		item.Throw(event)
 	})

@@ -32,9 +32,7 @@ func NewItemIndex(indexDirectory string) (*repository.ItemIndex, error) {
 		return EmptyIndex(), errors.New(fmt.Sprintf("%q is not a directory. Cannot create an index out of a file.", indexDirectory))
 	}
 
-	index := repository.NewItemIndex(indexDirectory, findAllItems(indexDirectory))
-
-	return index, nil
+	return repository.NewItemIndex(indexDirectory, findAllItems(indexDirectory))
 }
 
 func findAllItems(itemDirectory string) []*repository.Item {
