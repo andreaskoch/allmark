@@ -11,7 +11,7 @@ import (
 type FileChangeHandler struct {
 	*FileWatcher
 
-	callbacks map[string]ChangeHandlerCallback
+	callbacks CallbackList
 }
 
 func NewFileChangeHandler(filePath string) (*FileChangeHandler, error) {
@@ -25,6 +25,7 @@ func NewFileChangeHandler(filePath string) (*FileChangeHandler, error) {
 	// create a new file change handler
 	fileChangeHandler := &FileChangeHandler{
 		FileWatcher: filewatcher,
+		callbacks:   NewCallbackList(),
 	}
 
 	// start watching
@@ -34,10 +35,6 @@ func NewFileChangeHandler(filePath string) (*FileChangeHandler, error) {
 }
 
 func (changeHandler *FileChangeHandler) startWatching() {
-	if changeHandler.callbacks == nil {
-		changeHandler.callbacks = make(map[string]ChangeHandlerCallback) // initialize on first use
-	}
-
 	// start watching for changes
 	go func() {
 		for {
@@ -50,7 +47,7 @@ func (changeHandler *FileChangeHandler) startWatching() {
 }
 
 func (changeHandler *FileChangeHandler) Throw(event *WatchEvent) {
-	for _, callback := range changeHandler.callbacks {
+	for _, callback := range changeHandler.callbacks.Values() {
 
 		changeHandler.Pause()
 		callback(event)
@@ -60,9 +57,5 @@ func (changeHandler *FileChangeHandler) Throw(event *WatchEvent) {
 }
 
 func (changeHandler *FileChangeHandler) OnChange(name string, callback ChangeHandlerCallback) {
-	if _, ok := changeHandler.callbacks[name]; ok {
-		fmt.Printf("WARNING: Change callback %q already present.", name)
-	}
-
-	changeHandler.callbacks[name] = callback
+	changeHandler.callbacks.Add(name, callback)
 }

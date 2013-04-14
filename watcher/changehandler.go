@@ -4,8 +4,6 @@
 
 package watcher
 
-type ChangeHandlerCallback func(event *WatchEvent)
-
 type ChangeHandler interface {
 	Throw(event *WatchEvent)
 	OnChange(name string, callback ChangeHandlerCallback)
