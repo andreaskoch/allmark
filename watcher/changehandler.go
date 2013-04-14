@@ -12,3 +12,17 @@ type ChangeHandler interface {
 	OnModify(name string, callback ChangeHandlerCallback)
 	OnRename(name string, callback ChangeHandlerCallback)
 }
+
+type CallbackEntry struct {
+	EventType string
+	Name      string
+	Callback  ChangeHandlerCallback
+}
+
+func NewCallbackEntry(eventType, name string, callback ChangeHandlerCallback) *CallbackEntry {
+	return &CallbackEntry{
+		EventType: eventType,
+		Name:      name,
+		Callback:  callback,
+	}
+}

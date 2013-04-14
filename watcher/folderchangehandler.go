@@ -9,32 +9,32 @@ import (
 	"strings"
 )
 
-type FileChangeHandler struct {
-	*FileWatcher
+type FolderChangeHandler struct {
+	*FolderWatcher
 
 	callbacks map[string]*CallbackEntry
 }
 
-func NewFileChangeHandler(filePath string) (*FileChangeHandler, error) {
+func NewFolderChangeHandler(path string) (*FolderChangeHandler, error) {
 
 	// create a watcher
-	filewatcher, err := NewFileWatcher(filePath)
+	folderwatcher, err := NewFolderWatcher(path)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to create file watcher for %q.\nError: %s\n", filePath, err)
+		return nil, fmt.Errorf("Unable to create file watcher for %q.\nError: %s\n", path, err)
 	}
 
 	// create a new file change handler
-	fileChangeHandler := &FileChangeHandler{
-		FileWatcher: filewatcher,
+	FolderChangeHandler := &FolderChangeHandler{
+		FolderWatcher: folderwatcher,
 	}
 
 	// start watching
-	fileChangeHandler.startWatching()
+	FolderChangeHandler.startWatching()
 
-	return fileChangeHandler, err
+	return FolderChangeHandler, err
 }
 
-func (changeHandler *FileChangeHandler) startWatching() {
+func (changeHandler *FolderChangeHandler) startWatching() {
 	if changeHandler.callbacks == nil {
 		changeHandler.callbacks = make(map[string]*CallbackEntry) // initialize on first use
 	}
@@ -58,23 +58,23 @@ func (changeHandler *FileChangeHandler) startWatching() {
 	}()
 }
 
-func (changeHandler *FileChangeHandler) OnCreate(name string, callback ChangeHandlerCallback) {
+func (changeHandler *FolderChangeHandler) OnCreate(name string, callback ChangeHandlerCallback) {
 	changeHandler.addHandler("Create", name, callback)
 }
 
-func (changeHandler *FileChangeHandler) OnDelete(name string, callback ChangeHandlerCallback) {
+func (changeHandler *FolderChangeHandler) OnDelete(name string, callback ChangeHandlerCallback) {
 	changeHandler.addHandler("Delete", name, callback)
 }
 
-func (changeHandler *FileChangeHandler) OnModify(name string, callback ChangeHandlerCallback) {
+func (changeHandler *FolderChangeHandler) OnModify(name string, callback ChangeHandlerCallback) {
 	changeHandler.addHandler("Modify", name, callback)
 }
 
-func (changeHandler *FileChangeHandler) OnRename(name string, callback ChangeHandlerCallback) {
+func (changeHandler *FolderChangeHandler) OnRename(name string, callback ChangeHandlerCallback) {
 	changeHandler.addHandler("Rename", name, callback)
 }
 
-func (changeHandler *FileChangeHandler) addHandler(eventType, name string, callback ChangeHandlerCallback) {
+func (changeHandler *FolderChangeHandler) addHandler(eventType, name string, callback ChangeHandlerCallback) {
 
 	key := fmt.Sprintf("%s - %s", eventType, name)
 
