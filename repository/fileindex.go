@@ -104,7 +104,6 @@ func getFiles(directory string) []*File {
 
 	filesDirectoryEntries, err := ioutil.ReadDir(directory)
 	if err != nil {
-		fmt.Printf("Cannot read files from directory %q. Error: %s", directory, err)
 		return make([]*File, 0)
 	}
 

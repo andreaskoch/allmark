@@ -5,7 +5,6 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
@@ -56,7 +55,7 @@ func Parse(item *repository.Item) (*repository.Item, error) {
 		}
 	}
 
-	return item, errors.New(fmt.Sprintf("Items of type \"%v\" cannot be parsed.", item.Type))
+	return item, fmt.Errorf("Items of type \"%v\" cannot be parsed.", item.Type)
 }
 
 // Parse an item with a title, description and content

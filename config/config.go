@@ -89,6 +89,8 @@ func (config *Config) load() (*Config, error) {
 		return config, fmt.Errorf("Cannot read config file %q. Error: %s", path, err)
 	}
 
+	defer fileInfo.Close()
+
 	// deserialize config
 	serializer := NewJSONSerializer()
 	loadedConfig, err := serializer.DeserializeConfig(fileInfo)

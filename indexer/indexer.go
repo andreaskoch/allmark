@@ -41,7 +41,7 @@ func findAllItems(itemDirectory string) []*repository.Item {
 
 	directoryEntries, err := ioutil.ReadDir(itemDirectory)
 	if err != nil {
-		fmt.Printf("An error occured while indexing the directory `%v`. Error: %v\n", itemDirectory, err)
+		fmt.Printf("An error occured while indexing the directory `%v`.\nError: %v\n", itemDirectory, err)
 		return nil
 	}
 
@@ -69,7 +69,7 @@ func findAllItems(itemDirectory string) []*repository.Item {
 
 		// parse item
 		if _, err := parser.Parse(item); err != nil {
-			fmt.Printf("Could not parse item %q. Error: %s\n", item, err)
+			fmt.Printf("Could not parse item %q.\nError: %s\n", item, err)
 			continue
 		}
 
