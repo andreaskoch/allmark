@@ -7,33 +7,20 @@ package repository
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/path"
-	"github.com/andreaskoch/allmark/watcher"
 )
 
 type ItemIndex struct {
-	*watcher.ChangeHandler
-
 	path  string
 	items []*Item
 }
 
 func NewItemIndex(path string, items []*Item) (*ItemIndex, error) {
 
-	// create a file change handler
-	changeHandler, err := watcher.NewChangeHandler(path)
-	if err != nil {
-		return nil, fmt.Errorf("Could not create a change handler for index %q.\nError: %s\n", path, err)
-	}
-
 	// create the index
 	index := &ItemIndex{
-		ChangeHandler: changeHandler,
-
 		path:  path,
 		items: items,
 	}
-
-	// todo update index on item change
 
 	return index, nil
 }
