@@ -53,8 +53,8 @@ func (watcher *Watcher) start() *Watcher {
 	if ok, _ := util.IsDirectory(watcher.path); ok {
 
 		subDirectories := util.GetSubDirectories(watcher.path)
-		watcher.subWatchers = make([]*Watcher, len(subDirectories), len(subDirectories))
-		for index, subDirectory := range subDirectories {
+		watcher.subWatchers = make([]*Watcher, 0, len(subDirectories))
+		for _, subDirectory := range subDirectories {
 
 			subFolderWatch, err := newWatcher(subDirectory)
 			if err != nil {
@@ -75,7 +75,7 @@ func (watcher *Watcher) start() *Watcher {
 				}
 			}()
 
-			watcher.subWatchers[index] = subFolderWatch
+			watcher.subWatchers = append(watcher.subWatchers, subFolderWatch)
 		}
 
 	}
