@@ -18,10 +18,6 @@ const (
 	PresentationItemType = "presentation"
 	CollectionItemType   = "collection"
 	MessageItemType      = "message"
-	ImageGalleryItemType = "imagegallery"
-	LocationItemType     = "location"
-	CommentItemType      = "comment"
-	TagItemType          = "tag"
 	RepositoryItemType   = "repository"
 
 	FilesDirectoryName = "files"
@@ -118,18 +114,6 @@ func getItemType(filePath string) string {
 
 	case "message.md":
 		return MessageItemType
-
-	case "imagegallery.md":
-		return ImageGalleryItemType
-
-	case "location.md":
-		return LocationItemType
-
-	case "comment.md":
-		return CommentItemType
-
-	case "tag.md":
-		return TagItemType
 
 	case "repository.md":
 		return RepositoryItemType
