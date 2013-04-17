@@ -5,6 +5,7 @@
 package path
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -21,9 +22,21 @@ func CombineUrlComponents(baseUrl string, components ...string) string {
 func StripTrailingUrlDirectorySeperator(urlComponent string) string {
 
 	url := urlComponent
+	for strings.LastIndex(url, UrlDirectorySeperator)+1 == len(url) && len(url) != 0 {
+		fmt.Println("stripping", url)
 
-	for strings.LastIndex(urlComponent, UrlDirectorySeperator)+1 == len(url) {
 		url = strings.TrimRight(url, UrlDirectorySeperator)
+	}
+
+	return url
+}
+
+func StripLeadingUrlDirectorySeperator(urlComponent string) string {
+
+	url := urlComponent
+
+	for strings.Index(url, UrlDirectorySeperator) == 0 {
+		url = strings.TrimLeft(url, UrlDirectorySeperator)
 	}
 
 	return url

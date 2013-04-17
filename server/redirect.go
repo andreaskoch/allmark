@@ -5,9 +5,12 @@
 package server
 
 import (
+	pather "github.com/andreaskoch/allmark/path"
 	"net/http"
 )
 
 func redirect(w http.ResponseWriter, r *http.Request, route string) {
+
+	route = "/" + pather.StripLeadingUrlDirectorySeperator(route)
 	http.Redirect(w, r, route, http.StatusMovedPermanently)
 }

@@ -65,20 +65,6 @@ func getHttpBinding(config *config.Config) string {
 	return fmt.Sprintf(":%v", port)
 }
 
-func getFallbackRoute(requestedPath string) (fallbackRoute string, found bool) {
-
-	if strings.HasSuffix(requestedPath, path.WebServerDefaultFilename) {
-		return "", false
-	}
-
-	route := path.UrlDirectorySeperator + path.CombineUrlComponents(requestedPath, path.WebServerDefaultFilename)
-	if _, ok := routes[route]; ok {
-		return route, true
-	}
-
-	return "", false
-}
-
 func initializeRoutes(index *repository.ItemIndex) {
 
 	routes = make(map[string]string)
