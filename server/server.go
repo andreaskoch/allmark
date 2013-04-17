@@ -71,7 +71,7 @@ func getFallbackRoute(requestedPath string) (fallbackRoute string, found bool) {
 		return "", false
 	}
 
-	route := path.CombineUrlComponents(requestedPath, path.WebServerDefaultFilename)
+	route := path.UrlDirectorySeperator + path.CombineUrlComponents(requestedPath, path.WebServerDefaultFilename)
 	if _, ok := routes[route]; ok {
 		return route, true
 	}
@@ -127,5 +127,6 @@ func registerRoute(pathProvider *path.Provider, pather path.Pather) {
 		return
 	}
 
+	fmt.Printf("Registering route %q\n", route)
 	routes[route] = filePath
 }
