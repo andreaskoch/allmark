@@ -6,6 +6,7 @@ package templates
 
 const messageTemplate = `<!DOCTYPE HTML>
 <html lang="{{.LanguageTag}}">
+<meta charset="utf-8">
 <head>
 	<title>{{.Title}}</title>
 </head>

@@ -6,6 +6,7 @@ package templates
 
 const documentTemplate = `<!DOCTYPE HTML>
 <html lang="{{.LanguageTag}}">
+<meta charset="utf-8">
 <head>
 	<title>{{.Title}}</title>
 </head>
