@@ -10,12 +10,11 @@ html {
 
 body {
     color: #444;
-    font-family: Georgia, Palatino, 'Palatino Linotype', Times, 'Times New Roman',
-              "Hiragino Sans GB", "STXihei", "微软雅黑", serif;
+    font-family: Georgia, Palatino, 'Palatino Linotype', Times, 'Times New Roman', "Hiragino Sans GB", "STXihei", "微软雅黑", serif;
     font-size: 12px;
     line-height: 1.5em;
     background: #fefefe;
-    width: 45em;
+    width: 75%;
     margin: 10px auto;
     padding: 1em;
     outline: 1300px solid #FAFAFA;
@@ -223,6 +222,15 @@ td {
     vertical-align: top;
 }
 
+.imagegallery>h1 {
+    font-size: 1.5em;
+}
+
+.imagegallery ol {
+    list-style: none;
+    margin-left: 0;
+}
+
 @media only screen and (min-width: 480px) {
     body {
         font-size: 14px;
@@ -284,10 +292,12 @@ td {
     img {
         max-width: 100% !important;
     }
-  @    page :left {
+
+    @page :left {
         margin: 15mm 20mm 15mm 10mm;
     }
-  @    page :right {
+
+    @page :right {
         margin: 15mm 10mm 15mm 20mm;
     }
 

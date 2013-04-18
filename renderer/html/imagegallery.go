@@ -39,18 +39,14 @@ func renderImageGallery(markdown string, fileIndex *repository.FileIndex, pathPr
 		files := fileIndex.GetFilesByPath(path, isImageFile)
 
 		imageLinks := getImageLinks(galleryTitle, files, pathProvider)
-		imageGalleryCode := fmt.Sprintf(`<div class="imagegallery">
-				<header>
-					<span>%s</span>
-				</header>
-				<section>
+		imageGalleryCode := fmt.Sprintf(`<section class="imagegallery">
+				<h1>%s</h1>
 				<ol>
 					<li>
 					%s
 					</li>
 				</ol>
-				</section>
-			</div>`, galleryTitle, strings.Join(imageLinks, "\n</li>\n<li>\n"))
+			</section>`, galleryTitle, strings.Join(imageLinks, "\n</li>\n<li>\n"))
 
 		// replace markdown with image gallery
 		markdown = strings.Replace(markdown, originalText, imageGalleryCode, 1)
