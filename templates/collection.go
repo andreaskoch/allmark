@@ -9,6 +9,7 @@ const collectionTemplate = `<!DOCTYPE HTML>
 <meta charset="utf-8">
 <head>
 	<title>{{.Title}}</title>
+	<link rel="stylesheet" type="text/css" href="/theme/screen.css">
 </head>
 
 <body>

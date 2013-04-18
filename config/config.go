@@ -7,6 +7,7 @@ package config
 import (
 	"bufio"
 	"fmt"
+	"github.com/andreaskoch/allmark/themes"
 	"github.com/andreaskoch/allmark/util"
 	"os"
 	"os/user"
@@ -32,6 +33,16 @@ func Initialize(repositoryPath string) {
 	if !util.CreateDirectory(themeFolder) {
 		fmt.Fprintf(os.Stderr, "Unable to create theme folder %q.", themeFolder)
 	}
+
+	themeFile := filepath.Join(themeFolder, "screen.css")
+	file, err := os.Create(themeFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to create theme file %q.", themeFile)
+	}
+
+	defer file.Close()
+
+	file.WriteString(themes.GetTheme())
 }
 
 func GetConfig(repositoryPath string) *Config {
@@ -64,7 +75,12 @@ type Server struct {
 type Config struct {
 	Server Server
 
-	metaDataFolder string
+	repositoryFolder string
+	metaDataFolder   string
+}
+
+func (config *Config) RepositoryFolder() string {
+	return config.repositoryFolder
 }
 
 func (config *Config) MetaDataFolder() string {
@@ -76,7 +92,7 @@ func (config *Config) Filepath() string {
 }
 
 func (config *Config) ThemeFolder() string {
-	return filepath.Join(config.MetaDataFolder(), config.Server.ThemeFolderName)
+	return filepath.Join(config.RepositoryFolder(), config.Server.ThemeFolderName)
 }
 
 func (config *Config) load() (*Config, error) {
@@ -141,7 +157,8 @@ func new(baseFolder string) *Config {
 	}
 
 	return &Config{
-		metaDataFolder: metaDataFolder(),
+		repositoryFolder: baseFolder,
+		metaDataFolder:   metaDataFolder(),
 	}
 }
 
