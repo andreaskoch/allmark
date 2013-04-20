@@ -11,18 +11,22 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func GetMapper(pathProvider *path.Provider, converterFactory func(item *repository.Item) func() string, itemType string) (func(item *repository.Item) view.Model, error) {
+type Mapper func(item *repository.Item) view.Model
+
+func New(itemType string, pathProvider *path.Provider, targetFormat string) Mapper {
 
 	switch itemType {
 	case repository.DocumentItemType:
-		return createDocumentMapperFunc(pathProvider, converterFactory), nil
+		return createDocumentMapperFunc(pathProvider, targetFormat)
 
 	case repository.MessageItemType:
-		return createMessageMapperFunc(pathProvider, converterFactory), nil
+		return createMessageMapperFunc(pathProvider, targetFormat)
 
 	case repository.RepositoryItemType, repository.CollectionItemType:
-		return createCollectionMapperFunc(pathProvider, converterFactory), nil
+		return createCollectionMapperFunc(pathProvider, targetFormat)
 	}
 
-	return nil, fmt.Errorf("There is no mapper available for items of type %q", itemType)
+	return func(item *repository.Item) view.Model {
+		return view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType))
+	}
 }

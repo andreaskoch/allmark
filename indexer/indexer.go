@@ -7,7 +7,6 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/repository"
 	"io/ioutil"
 	"os"
@@ -64,12 +63,6 @@ func findAllItems(itemDirectory string) []*repository.Item {
 		item, err := repository.NewItem(itemPath, childs)
 		if err != nil {
 			fmt.Printf("Skipping item: %s\n", err)
-			continue
-		}
-
-		// parse item
-		if _, err := parser.Parse(item); err != nil {
-			fmt.Printf("Could not parse item %q.\nError: %s\n", item, err)
 			continue
 		}
 

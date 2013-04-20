@@ -11,13 +11,17 @@ import (
 	"strings"
 )
 
-func parseMetaData(item *repository.Item, lines []string) (*repository.Item, []string) {
+func parseMetaData(lines []string) (repository.MetaData, []string) {
 
+	metaData := repository.MetaData{}
+
+	// find the meta data section
 	metaDataLocation, lines := locateMetaData(lines)
 	if !metaDataLocation.Found {
-		return item, lines
+		return metaData, lines
 	}
 
+	// parse the meta data
 	for _, line := range metaDataLocation.Matches {
 		isKeyValuePair, matches := util.IsMatch(line, MetaDataPattern)
 
@@ -34,7 +38,7 @@ func parseMetaData(item *repository.Item, lines []string) (*repository.Item, []s
 
 		case "language":
 			{
-				item.MetaData.Language = value
+				metaData.Language = value
 				break
 			}
 
@@ -42,21 +46,21 @@ func parseMetaData(item *repository.Item, lines []string) (*repository.Item, []s
 			{
 				date, err := date.ParseIso8601Date(value)
 				if err == nil {
-					item.MetaData.Date = date
+					metaData.Date = date
 				}
 				break
 			}
 
 		case "tags":
 			{
-				item.MetaData.Tags = getTagsFromValue(value)
+				metaData.Tags = getTagsFromValue(value)
 				break
 			}
 
 		}
 	}
 
-	return item, lines
+	return metaData, lines
 }
 
 // locateMetaData checks if the current Document

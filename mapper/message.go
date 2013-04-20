@@ -5,26 +5,31 @@
 package mapper
 
 import (
+	"fmt"
+	"github.com/andreaskoch/allmark/converter"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/view"
 )
 
-func createMessageMapperFunc(pathProvider *path.Provider, converterFactory func(item *repository.Item) func() string) func(item *repository.Item) view.Model {
+func createMessageMapperFunc(pathProvider *path.Provider, targetFormat string) Mapper {
 	return func(item *repository.Item) view.Model {
 
-		converter := converterFactory(item)
-		html := converter()
+		converter := converter.New(item, targetFormat)
+		parsed, err := converter()
+		if err != nil {
+			return view.Error(fmt.Sprintf("%s", err))
+		}
 
 		return view.Model{
 			Path:        pathProvider.GetWebRoute(item),
-			Title:       getTitle(item),
-			Content:     html,
-			LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
+			Title:       getTitle(&parsed.MetaData),
+			Content:     parsed.ConvertedContent,
+			LanguageTag: getTwoLetterLanguageCode(parsed.MetaData.Language),
 		}
 	}
 }
 
-func getTitle(item *repository.Item) string {
-	return "Message posted at " + item.MetaData.Date.String()
+func getTitle(metaData *repository.MetaData) string {
+	return "Message posted at " + metaData.Date.String()
 }

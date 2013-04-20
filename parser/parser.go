@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
-	"os"
 	"regexp"
 )
 
@@ -31,60 +30,65 @@ var (
 	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*(\w.+)$`)
 )
 
-func Parse(item *repository.Item) (*repository.Item, error) {
+type Result struct {
+	Title       string
+	Description string
+	RawContent  []string
+	Type        string
+	MetaData    repository.MetaData
 
-	// open the file
-	file, err := os.Open(item.Path())
-	if err != nil {
-		return item, err
-	}
+	ConvertedContent string
+}
 
-	defer file.Close()
+func Parse(lines []string, itemType string) (*Result, error) {
 
-	// get the lines
-	lines := util.GetLines(file)
+	// parse meta data
+	result := &Result{}
+	result.MetaData, lines = parseMetaData(lines)
 
-	switch item.Type {
+	switch itemType {
 	case repository.DocumentItemType, repository.CollectionItemType, repository.RepositoryItemType:
 		{
-			return parseDocumentLikeItem(item, lines), nil
+			if success, err := parseDocumentLikeItem(result, lines); success {
+				return result, nil
+			} else {
+				return nil, err
+			}
 		}
 	case repository.MessageItemType:
 		{
-			return parseMessage(item, lines), nil
+			if success, err := parseMessage(result, lines); success {
+				return result, nil
+			} else {
+				return nil, err
+			}
 		}
 	}
 
-	return item, fmt.Errorf("Items of type \"%v\" cannot be parsed.", item.Type)
+	return nil, fmt.Errorf("Items of type \"%v\" cannot be parsed.", itemType)
 }
 
 // Parse an item with a title, description and content
-func parseDocumentLikeItem(item *repository.Item, lines []string) *repository.Item {
-
-	// meta data
-	item, lines = parseMetaData(item, lines)
+func parseDocumentLikeItem(parserResult *Result, lines []string) (sucess bool, err error) {
 
 	// title
-	item.Title, lines = getMatchingValue(lines, TitlePattern)
+	parserResult.Title, lines = getMatchingValue(lines, TitlePattern)
 
 	// description
-	item.Description, lines = getMatchingValue(lines, DescriptionPattern)
+	parserResult.Description, lines = getMatchingValue(lines, DescriptionPattern)
 
 	// raw markdown content
-	item.RawLines = lines
+	parserResult.RawContent = lines
 
-	return item
+	return true, nil
 }
 
-func parseMessage(item *repository.Item, lines []string) *repository.Item {
-
-	// meta data
-	item, lines = parseMetaData(item, lines)
+func parseMessage(parserResult *Result, lines []string) (sucess bool, err error) {
 
 	// raw markdown content
-	item.RawLines = lines
+	parserResult.RawContent = lines
 
-	return item
+	return true, nil
 }
 
 func getMatchingValue(lines []string, matchPattern *regexp.Regexp) (string, []string) {

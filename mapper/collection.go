@@ -6,29 +6,33 @@ package mapper
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/converter"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/view"
 )
 
-func createCollectionMapperFunc(pathProvider *path.Provider, converterFactory func(item *repository.Item) func() string) func(item *repository.Item) view.Model {
+func createCollectionMapperFunc(pathProvider *path.Provider, targetFormat string) Mapper {
 	return func(item *repository.Item) view.Model {
 
-		converter := converterFactory(item)
-		html := converter()
+		converter := converter.New(item, targetFormat)
+		parsed, err := converter()
+		if err != nil {
+			return view.Error(fmt.Sprintf("%s", err))
+		}
 
 		return view.Model{
 			Path:        pathProvider.GetWebRoute(item),
-			Title:       item.Title,
-			Description: item.Description,
-			Content:     html,
-			Entries:     getEntries(pathProvider, converterFactory, item),
-			LanguageTag: getTwoLetterLanguageCode(item.MetaData.Language),
+			Title:       parsed.Title,
+			Description: parsed.Description,
+			Content:     parsed.ConvertedContent,
+			Entries:     getEntries(item, targetFormat),
+			LanguageTag: getTwoLetterLanguageCode(parsed.MetaData.Language),
 		}
 	}
 }
 
-func getEntries(pathProvider *path.Provider, converterFactory func(item *repository.Item) func() string, item *repository.Item) []view.Model {
+func getEntries(item *repository.Item, targetFormat string) []view.Model {
 
 	entries := make([]view.Model, 0)
 
@@ -36,13 +40,9 @@ func getEntries(pathProvider *path.Provider, converterFactory func(item *reposit
 	relativePathProvider := path.NewProvider(item.Directory())
 
 	for _, child := range item.Childs() {
-		if mapperFunc, err := GetMapper(relativePathProvider, converterFactory, child.Type); err == nil {
-			viewModel := mapperFunc(child)
-			entries = append(entries, viewModel)
-		} else {
-			fmt.Println(err)
-		}
-
+		childMapper := New(child.Type, relativePathProvider, targetFormat)
+		viewModel := childMapper(child)
+		entries = append(entries, viewModel)
 	}
 
 	return entries

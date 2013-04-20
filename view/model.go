@@ -12,3 +12,11 @@ type Model struct {
 	LanguageTag string
 	Entries     []Model
 }
+
+func Error(msg string) Model {
+	return Model{
+		Path:    "#",
+		Title:   "Error",
+		Content: msg,
+	}
+}

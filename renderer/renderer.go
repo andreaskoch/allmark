@@ -9,9 +9,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark/indexer"
 	"github.com/andreaskoch/allmark/mapper"
-	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/path"
-	"github.com/andreaskoch/allmark/renderer/html"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/templates"
 	"github.com/andreaskoch/allmark/view"
@@ -55,11 +53,6 @@ func renderItem(repositoryPath string, item *repository.Item) (*repository.Item,
 		renderItem(repositoryPath, child)
 	}
 
-	// parse the item
-	if _, parseError := parser.Parse(item); parseError != nil {
-		return item, fmt.Errorf("Cannot render the item %q, because it could not be parsed.\nError: %s\n", item, parseError)
-	}
-
 	// attach change listener
 	item.OnChange("Render item on change", func(event *watcher.WatchEvent) {
 		renderItem(repositoryPath, item)
@@ -75,13 +68,10 @@ func renderItem(repositoryPath string, item *repository.Item) (*repository.Item,
 	pathProvider := path.NewProvider(repositoryPath)
 
 	// get a viewmodel mapper
-	mapperFunc, err := mapper.GetMapper(pathProvider, html.NewConverter, item.Type)
-	if err != nil {
-		return item, err
-	}
+	viewModelMapperFunc := mapper.New(item.Type, pathProvider, "html")
 
 	// create the viewmodel
-	viewModel := mapperFunc(item)
+	viewModel := viewModelMapperFunc(item)
 
 	// render the template
 	render(item, templateText, viewModel)

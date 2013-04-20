@@ -26,13 +26,9 @@ const (
 type Item struct {
 	*watcher.ChangeHandler
 
-	Title       string
-	Description string
-	RawLines    []string
-	Files       *FileIndex
-	MetaData    MetaData
-	Type        string
-	childItems  []*Item
+	Type       string
+	Files      *FileIndex
+	childItems []*Item
 
 	path string
 }
