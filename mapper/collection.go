@@ -32,8 +32,11 @@ func getEntries(pathProvider *path.Provider, converterFactory func(item *reposit
 
 	entries := make([]view.Model, 0)
 
+	// a path provider not relative to the repository but to the parent item
+	relativePathProvider := path.NewProvider(item.Directory())
+
 	for _, child := range item.Childs() {
-		if mapperFunc, err := GetMapper(pathProvider, converterFactory, child.Type); err == nil {
+		if mapperFunc, err := GetMapper(relativePathProvider, converterFactory, child.Type); err == nil {
 			viewModel := mapperFunc(child)
 			entries = append(entries, viewModel)
 		} else {
