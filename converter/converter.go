@@ -9,16 +9,12 @@ import (
 	"os"
 )
 
-type Converter func() (*parser.Result, error)
-
-func New(item *repository.Item, targetFormat string) Converter {
+func Convert(item *repository.Item, targetFormat string) (*parser.Result, error) {
 
 	// open the file
 	file, err := os.Open(item.Path())
 	if err != nil {
-		return func() (*parser.Result, error) {
-			return nil, fmt.Errorf("%s", err)
-		}
+		return nil, fmt.Errorf("%s", err)
 	}
 
 	defer file.Close()
@@ -29,15 +25,14 @@ func New(item *repository.Item, targetFormat string) Converter {
 	// parse
 	parsedItem, err := parser.Parse(lines, item.Type)
 	if err != nil {
-		return func() (*parser.Result, error) {
-			return nil, fmt.Errorf("%s", err)
-		}
+		return nil, fmt.Errorf("%s", err)
 	}
 
 	// convert content
-	parsedItem.ConvertedContent = html.Converter(item, parsedItem.RawContent)
-
-	return func() (*parser.Result, error) {
-		return parsedItem, nil
+	switch targetFormat {
+	default:
+		parsedItem.ConvertedContent = html.Convert(item, parsedItem.RawContent)
 	}
+
+	return parsedItem, nil
 }

@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func Converter(item *repository.Item, rawLines []string) string {
+func Convert(item *repository.Item, rawLines []string) string {
 
 	// create context
 	fileIndex := item.Files

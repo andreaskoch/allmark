@@ -16,8 +16,7 @@ func createDocumentMapperFunc(pathProvider *path.Provider, targetFormat string) 
 
 	return func(item *repository.Item) view.Model {
 
-		converter := converter.New(item, targetFormat)
-		parsed, err := converter()
+		parsed, err := converter.Convert(item, targetFormat)
 		if err != nil {
 			return view.Error(fmt.Sprintf("%s", err))
 		}
