@@ -69,7 +69,7 @@ func (itemIndex *ItemIndex) Add(item *Item) {
 
 func findAllItems(itemDirectory string) []*Item {
 
-	items := make([]*Item, 0, 100)
+	items := make([]*Item, 0)
 
 	directoryEntries, err := ioutil.ReadDir(itemDirectory)
 	if err != nil {
@@ -122,7 +122,7 @@ func isMarkdownFile(absoluteFilePath string) bool {
 
 func getChildItems(itemDirectory string) []*Item {
 
-	childItems := make([]*Item, 0, 5)
+	childItems := make([]*Item, 0)
 
 	files, _ := ioutil.ReadDir(itemDirectory)
 	for _, folder := range files {

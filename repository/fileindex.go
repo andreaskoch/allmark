@@ -102,12 +102,13 @@ func (fileIndex *FileIndex) GetFilesByPath(path string, condition func(pather p.
 
 func getFiles(directory string) []*File {
 
+	files := make([]*File, 0)
+
 	filesDirectoryEntries, err := ioutil.ReadDir(directory)
 	if err != nil {
-		return make([]*File, 0)
+		return files
 	}
 
-	files := make([]*File, 0, 5)
 	for _, directoryEntry := range filesDirectoryEntries {
 
 		// recurse
