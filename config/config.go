@@ -67,6 +67,10 @@ type Http struct {
 	Port int
 }
 
+type Web struct {
+	DefaultLanguage string
+}
+
 type Server struct {
 	ThemeFolderName string
 	Http            Http
@@ -74,6 +78,7 @@ type Server struct {
 
 type Config struct {
 	Server Server
+	Web    Web
 
 	repositoryFolder string
 	metaDataFolder   string
@@ -116,6 +121,7 @@ func (config *Config) load() (*Config, error) {
 
 	// apply values
 	config.Server = loadedConfig.Server
+	config.Web = loadedConfig.Web
 
 	return config, nil
 }
@@ -166,6 +172,7 @@ func defaultConfig(baseFolder string) *Config {
 	defaultConfig := new(baseFolder)
 	defaultConfig.Server.ThemeFolderName = ThemeFolderName
 	defaultConfig.Server.Http.Port = 8080
+	defaultConfig.Web.DefaultLanguage = "en"
 
 	return defaultConfig
 }
