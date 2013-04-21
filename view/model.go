@@ -4,6 +4,10 @@
 
 package view
 
+import (
+	"fmt"
+)
+
 type Model struct {
 	Path        string
 	Title       string
@@ -13,10 +17,10 @@ type Model struct {
 	Entries     []Model
 }
 
-func Error(msg string) Model {
+func Error(msg string, path string) Model {
 	return Model{
-		Path:    "#",
-		Title:   "Error",
+		Title:   fmt.Sprintf("Error: %s", msg),
+		Path:    path,
 		Content: msg,
 	}
 }

@@ -27,6 +27,6 @@ func New(itemType string, pathProvider *path.Provider, targetFormat string) Mapp
 	}
 
 	return func(item *repository.Item) view.Model {
-		return view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType))
+		return view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType), pathProvider.GetWebRoute(item))
 	}
 }

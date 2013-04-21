@@ -17,7 +17,7 @@ func createCollectionMapperFunc(pathProvider *path.Provider, targetFormat string
 
 		parsed, err := converter.Convert(item, targetFormat)
 		if err != nil {
-			return view.Error(fmt.Sprintf("%s", err))
+			return view.Error(fmt.Sprintf("%s", err), pathProvider.GetWebRoute(item))
 		}
 
 		return view.Model{
