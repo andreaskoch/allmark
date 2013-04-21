@@ -7,6 +7,7 @@ package path
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -73,11 +74,14 @@ func (provider *Provider) GetFileRoute(pather Pather) string {
 	return provider.GetRouteFromFilepath(absoluteFilepath)
 }
 
-func (provider *Provider) GetRouteFromFilepath(filepath string) string {
-	relativeFilepath := provider.GetRelativePath(filepath)
+func (provider *Provider) GetRouteFromFilepath(path string) string {
+	relativeFilepath := provider.GetRelativePath(path)
 
-	route := strings.Replace(relativeFilepath, FilesystemDirectorySeperator, UrlDirectorySeperator, -1)
-	route = strings.TrimLeft(route, UrlDirectorySeperator)
+	// filepath to route
+	route := filepath.ToSlash(relativeFilepath)
+
+	// Trim leading slash
+	route = StripLeadingUrlDirectorySeperator(route)
 
 	return route
 }

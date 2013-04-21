@@ -5,7 +5,6 @@
 package path
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -23,8 +22,6 @@ func StripTrailingUrlDirectorySeperator(urlComponent string) string {
 
 	url := urlComponent
 	for strings.LastIndex(url, UrlDirectorySeperator)+1 == len(url) && len(url) != 0 {
-		fmt.Println("stripping", url)
-
 		url = strings.TrimRight(url, UrlDirectorySeperator)
 	}
 
