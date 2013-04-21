@@ -25,6 +25,10 @@ func NewItemIndex(path string) (*ItemIndex, error) {
 		return nil, fmt.Errorf("The path %q does not exist.", path)
 	}
 
+	if isReservedDirectory(path) {
+		return nil, fmt.Errorf("The path %q is using a reserved name and cannot be an index.", path)
+	}
+
 	// check if the path is a directory	
 	if isDirectory, _ := util.IsDirectory(path); !isDirectory {
 		path = filepath.Dir(path)
@@ -123,11 +127,17 @@ func getChildItems(itemDirectory string) []*Item {
 	files, _ := ioutil.ReadDir(itemDirectory)
 	for _, folder := range files {
 
-		if folder.IsDir() {
-			childItemDirectory := filepath.Join(itemDirectory, folder.Name())
-			childsInPath := findAllItems(childItemDirectory)
-			childItems = append(childItems, childsInPath...)
+		if !folder.IsDir() {
+			continue // skip files
 		}
+
+		childItemDirectory := filepath.Join(itemDirectory, folder.Name())
+		if isReservedDirectory(childItemDirectory) {
+			continue // skip reserved directories
+		}
+
+		childsInPath := findAllItems(childItemDirectory)
+		childItems = append(childItems, childsInPath...)
 
 	}
 
