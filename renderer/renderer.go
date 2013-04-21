@@ -58,10 +58,7 @@ func renderItem(repositoryPath string, item *repository.Item) (*repository.Item,
 	})
 
 	// get a template
-	templateText, err := templates.GetTemplate(item)
-	if err != nil {
-		return item, err
-	}
+	templateText := templates.GetTemplate(item)
 
 	// create a path provider
 	pathProvider := path.NewProvider(repositoryPath)

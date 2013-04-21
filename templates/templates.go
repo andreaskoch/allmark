@@ -5,28 +5,26 @@
 package templates
 
 import (
-	"errors"
-	"fmt"
 	"github.com/andreaskoch/allmark/repository"
 )
 
-func GetTemplate(item *repository.Item) (string, error) {
+func GetTemplate(item *repository.Item) string {
 
 	switch itemType := item.Type; itemType {
 	case repository.DocumentItemType:
-		return documentTemplate, nil
+		return documentTemplate
 
 	case repository.MessageItemType:
-		return messageTemplate, nil
+		return messageTemplate
 
 	case repository.CollectionItemType:
-		return collectionTemplate, nil
+		return collectionTemplate
 
 	case repository.RepositoryItemType:
-		return repositoryTemplate, nil
+		return repositoryTemplate
 
 	default:
-		return "", errors.New(fmt.Sprintf("No template available for items of type %q.", itemType))
+		return errorTemplate
 	}
 
 	panic("Unreachable")

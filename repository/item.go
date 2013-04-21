@@ -37,9 +37,6 @@ func NewItem(path string, childItems []*Item) (item *Item, err error) {
 
 	// determine the type
 	itemType := getItemType(path)
-	if itemType == UnknownItemType {
-		return nil, fmt.Errorf("The item %q does not match any of the known item types.", path)
-	}
 
 	// get the item's directory
 	itemDirectory := filepath.Dir(path)
@@ -99,7 +96,7 @@ func getItemType(filePath string) string {
 	lowercaseFilename := strings.ToLower(filepath.Base(filePath))
 
 	switch lowercaseFilename {
-	case "document.md", "readme.md":
+	case "document.md":
 		return DocumentItemType
 
 	case "presentation.md":
