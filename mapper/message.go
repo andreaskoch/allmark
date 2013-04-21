@@ -45,7 +45,7 @@ func getTitle(parsedResult *parser.Result) string {
 	excerpt := getTextExcerpt(text, 30)
 	time := parsedResult.MetaData.Date.Format(time.RFC850)
 
-	return fmt.Sprintf("%s ◦ %s", excerpt, time)
+	return fmt.Sprintf("%s: %s", time, excerpt)
 }
 
 func getTextExcerpt(text string, length int) string {
