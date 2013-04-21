@@ -70,6 +70,18 @@ func CreateFile(filePath string) (success bool, err error) {
 	return true, nil
 }
 
+func PathExists(path string) bool {
+	if strings.TrimSpace(path) == "" {
+		return false
+	}
+
+	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
 func FileExists(path string) bool {
 	if strings.TrimSpace(path) == "" {
 		return false

@@ -7,7 +7,6 @@ package renderer
 import (
 	"bufio"
 	"fmt"
-	"github.com/andreaskoch/allmark/indexer"
 	"github.com/andreaskoch/allmark/mapper"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
@@ -19,7 +18,7 @@ import (
 )
 
 func RenderRepository(repositoryPath string) *repository.ItemIndex {
-	itemIndex, err := indexer.NewItemIndex(repositoryPath)
+	itemIndex, err := repository.NewItemIndex(repositoryPath)
 	if err != nil {
 		fmt.Printf("Cannot create an item index for folder %q. Error: %v", repositoryPath, err)
 		return nil

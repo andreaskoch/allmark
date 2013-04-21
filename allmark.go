@@ -83,7 +83,7 @@ func parseCommandLineArguments(args []string, commandHandler func(commandName, r
 	}
 
 	// validate the supplied repository paths
-	if !util.DirectoryExists(repositoryPath) {
+	if !util.PathExists(repositoryPath) {
 		fmt.Fprintf(os.Stderr, "The specified repository paths %q is does not exist.", repositoryPath)
 		return
 	}
