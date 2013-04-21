@@ -93,22 +93,24 @@ func (item *Item) Childs() []*Item {
 }
 
 func getItemType(filePath string) string {
-	lowercaseFilename := strings.ToLower(filepath.Base(filePath))
+	extension := filepath.Ext(filePath)
+	filenameWithExtension := filepath.Base(filePath)
+	filename := filenameWithExtension[0:(strings.LastIndex(filenameWithExtension, extension))]
 
-	switch lowercaseFilename {
-	case "document.md":
+	switch strings.ToLower(filename) {
+	case DocumentItemType:
 		return DocumentItemType
 
-	case "presentation.md":
+	case PresentationItemType:
 		return PresentationItemType
 
-	case "collection.md":
+	case CollectionItemType:
 		return CollectionItemType
 
-	case "message.md":
+	case MessageItemType:
 		return MessageItemType
 
-	case "repository.md":
+	case RepositoryItemType:
 		return RepositoryItemType
 	}
 
