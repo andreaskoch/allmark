@@ -13,7 +13,3 @@ type MetaData struct {
 	Date     time.Time
 	Tags     []string
 }
-
-func EmptyMetaData() MetaData {
-	return MetaData{}
-}
