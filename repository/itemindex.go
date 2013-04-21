@@ -10,7 +10,6 @@ import (
 	"github.com/andreaskoch/allmark/util"
 	"io/ioutil"
 	"path/filepath"
-	"strings"
 )
 
 type ItemIndex struct {
@@ -113,11 +112,6 @@ func findAllItems(itemDirectory string) []*Item {
 	}
 
 	return items
-}
-
-func isMarkdownFile(absoluteFilePath string) bool {
-	fileExtension := strings.ToLower(filepath.Ext(absoluteFilePath))
-	return fileExtension == ".md"
 }
 
 func getChildItems(itemDirectory string) []*Item {

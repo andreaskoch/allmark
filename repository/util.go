@@ -25,3 +25,8 @@ func isReservedDirectory(path string) bool {
 
 	return false
 }
+
+func isMarkdownFile(absoluteFilePath string) bool {
+	fileExtension := strings.ToLower(filepath.Ext(absoluteFilePath))
+	return fileExtension == ".md"
+}
