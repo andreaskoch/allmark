@@ -16,15 +16,14 @@ const messageTemplate = `<!DOCTYPE HTML>
 
 <article>
 
-<header>
-<h1>
-{{.Title}}
-</h1>
-</header>
-
 <section>
 {{.Content}}
 </section>
+
+<section>
+{{.Description}}
+</section>
+
 
 </article>
 
