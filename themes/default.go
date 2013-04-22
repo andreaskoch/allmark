@@ -234,12 +234,21 @@ td {
 @media only screen and (min-width: 480px) {
     body {
         font-size: 14px;
+        width: 95%
     };
 }
 
 @media only screen and (min-width: 768px) {
     body {
         font-size: 16px;
+        width: 95%
+    };
+}
+
+@media only screen and (min-width: 1024px) {
+    body {
+        font-size: 16px;
+        width: 75%
     };
 }
 
@@ -254,6 +263,7 @@ td {
     body {
         font-size: 12pt;
         max-width: 100%;
+        width: 100%
         outline: none;
     }
 
@@ -290,7 +300,7 @@ td {
     }
 
     img {
-        max-width: 100% !important;
+        max-width: 95% !important;
     }
 
     @page :left {
