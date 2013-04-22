@@ -48,13 +48,13 @@ func Initialize(repositoryPath string) {
 func GetConfig(repositoryPath string) *Config {
 
 	// return the local config
-	if localConfig, err := new(repositoryPath).load(); err == nil {
+	if localConfig, err := local(repositoryPath).load(); err == nil {
 		return localConfig
 	}
 
 	// return the global config
 	if homeDirectory, homeDirError := getUserHomeDir(); homeDirError == nil {
-		if globalConfig, err := new(homeDirectory).load(); err == nil {
+		if globalConfig, err := global(homeDirectory).load(); err == nil {
 			return globalConfig
 		}
 	}
@@ -80,12 +80,13 @@ type Config struct {
 	Server Server
 	Web    Web
 
-	repositoryFolder string
-	metaDataFolder   string
+	baseFolder      string
+	metaDataFolder  string
+	themeFolderBase string
 }
 
-func (config *Config) RepositoryFolder() string {
-	return config.repositoryFolder
+func (config *Config) BaseFolder() string {
+	return config.baseFolder
 }
 
 func (config *Config) MetaDataFolder() string {
@@ -97,7 +98,12 @@ func (config *Config) Filepath() string {
 }
 
 func (config *Config) ThemeFolder() string {
-	return filepath.Join(config.RepositoryFolder(), config.Server.ThemeFolderName)
+	themeFolderName := ThemeFolderName
+	if config.Server.ThemeFolderName != "" {
+		themeFolderName = config.Server.ThemeFolderName
+	}
+
+	return filepath.Join(config.themeFolderBase, themeFolderName)
 }
 
 func (config *Config) load() (*Config, error) {
@@ -157,19 +163,28 @@ func (config *Config) save() (*Config, error) {
 	return config, nil
 }
 
-func new(baseFolder string) *Config {
-	metaDataFolder := func() string {
-		return filepath.Join(baseFolder, MetaDataFolderName)
-	}
+func local(baseFolder string) *Config {
+	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
 
 	return &Config{
-		repositoryFolder: baseFolder,
-		metaDataFolder:   metaDataFolder(),
+		baseFolder:      baseFolder,
+		metaDataFolder:  metaDataFolder,
+		themeFolderBase: metaDataFolder,
+	}
+}
+
+func global(baseFolder string) *Config {
+	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
+
+	return &Config{
+		baseFolder:      baseFolder,
+		metaDataFolder:  metaDataFolder,
+		themeFolderBase: baseFolder,
 	}
 }
 
 func defaultConfig(baseFolder string) *Config {
-	defaultConfig := new(baseFolder)
+	defaultConfig := local(baseFolder)
 	defaultConfig.Server.ThemeFolderName = ThemeFolderName
 	defaultConfig.Server.Http.Port = 8080
 	defaultConfig.Web.DefaultLanguage = "en"
