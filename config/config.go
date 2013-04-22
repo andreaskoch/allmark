@@ -20,47 +20,128 @@ const (
 	ThemeFolderName       = "theme"
 )
 
-func Initialize(repositoryPath string) {
-	config := GetConfig(repositoryPath)
-
-	// create config
-	if _, err := config.save(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error while creating configuration file %q. Error: ", config.Filepath(), err)
+func Initialize(baseFolder string) (*Config, error) {
+	homeDirectory, homeDirError := getUserHomeDir()
+	if homeDirError != nil {
+		return nil, fmt.Errorf("Cannot determine the current users home directory location.")
 	}
 
-	// create theme
-	themeFolder := config.ThemeFolder()
-	if !util.CreateDirectory(themeFolder) {
-		fmt.Fprintf(os.Stderr, "Unable to create theme folder %q.", themeFolder)
+	if filepath.Clean(baseFolder) == filepath.Clean(homeDirectory) {
+		return initializeGlobal(baseFolder)
 	}
 
-	themeFile := filepath.Join(themeFolder, "screen.css")
-	file, err := os.Create(themeFile)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to create theme file %q.", themeFile)
-	}
-
-	defer file.Close()
-
-	file.WriteString(themes.GetTheme())
+	return initializeLocal(baseFolder)
 }
 
 func GetConfig(repositoryPath string) *Config {
 
 	// return the local config
-	if localConfig, err := local(repositoryPath).load(); err == nil {
+	if exists, localConfig := getLocalConfig(repositoryPath); exists {
 		return localConfig
 	}
 
 	// return the global config
 	if homeDirectory, homeDirError := getUserHomeDir(); homeDirError == nil {
-		if globalConfig, err := global(homeDirectory).load(); err == nil {
+		if exists, globalConfig := getGlobalConfig(homeDirectory); exists {
 			return globalConfig
 		}
 	}
 
 	// return the default config
 	return defaultConfig(repositoryPath)
+}
+
+func createTheme(baseFolder string) (success bool, err error) {
+	if !util.CreateDirectory(baseFolder) {
+		return false, fmt.Errorf("Unable to create theme folder %q.", baseFolder)
+	}
+
+	themeFile := filepath.Join(baseFolder, "screen.css")
+	file, err := os.Create(themeFile)
+	if err != nil {
+		return false, fmt.Errorf("Unable to create theme file %q.", themeFile)
+	}
+
+	defer file.Close()
+	file.WriteString(themes.GetTheme())
+
+	return true, nil
+}
+
+func initializeLocal(baseFolder string) (*Config, error) {
+
+	// get the existing configuration
+	exists, existingConfig := getLocalConfig(baseFolder)
+	if !exists {
+		existingConfig = defaultConfig(baseFolder)
+	}
+
+	// create a new configuration
+	config := local(baseFolder)
+	config.apply(existingConfig)
+
+	// create config
+	if _, err := config.save(); err != nil {
+		return nil, fmt.Errorf("Error while creating configuration file %q. Error: ", config.Filepath(), err)
+	}
+
+	fmt.Printf("Local configuration created at %q.\n", config.Filepath())
+
+	// create theme
+	themeFolder := config.ThemeFolder()
+	if success, err := createTheme(themeFolder); !success {
+		return nil, fmt.Errorf("%s", err)
+	}
+
+	fmt.Printf("Local theme created at %q.\n", themeFolder)
+
+	return config, nil
+}
+
+func initializeGlobal(baseFolder string) (*Config, error) {
+
+	// get the existing configuration
+	exists, existingConfig := getGlobalConfig(baseFolder)
+	if !exists {
+		existingConfig = defaultConfig(baseFolder)
+	}
+
+	// create a new configuration
+	config := global(baseFolder)
+	config.apply(existingConfig)
+
+	// create config
+	if _, err := config.save(); err != nil {
+		return nil, fmt.Errorf("Error while creating configuration file %q. Error: ", config.Filepath(), err)
+	}
+
+	fmt.Printf("Global configuration created at %q.\n", config.Filepath())
+
+	// create theme
+	themeFolder := config.ThemeFolder()
+	if success, err := createTheme(themeFolder); !success {
+		return nil, fmt.Errorf("%s", err)
+	}
+
+	fmt.Printf("Global theme created at %q.\n", themeFolder)
+
+	return config, nil
+}
+
+func getLocalConfig(baseFolder string) (exists bool, config *Config) {
+	if config, err := local(baseFolder).load(); err == nil {
+		return true, config
+	}
+
+	return false, nil
+}
+
+func getGlobalConfig(baseFolder string) (exists bool, config *Config) {
+	if config, err := global(baseFolder).load(); err == nil {
+		return true, config
+	}
+
+	return false, nil
 }
 
 type Http struct {
@@ -163,13 +244,24 @@ func (config *Config) save() (*Config, error) {
 	return config, nil
 }
 
+func (config *Config) apply(newConfig *Config) (*Config, error) {
+	if newConfig == nil {
+		return config, fmt.Errorf("Cannot apply nil.")
+	}
+
+	config.Server = newConfig.Server
+	config.Web = newConfig.Web
+
+	return config, nil
+}
+
 func local(baseFolder string) *Config {
 	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
 
 	return &Config{
 		baseFolder:      baseFolder,
 		metaDataFolder:  metaDataFolder,
-		themeFolderBase: metaDataFolder,
+		themeFolderBase: baseFolder,
 	}
 }
 
@@ -179,7 +271,7 @@ func global(baseFolder string) *Config {
 	return &Config{
 		baseFolder:      baseFolder,
 		metaDataFolder:  metaDataFolder,
-		themeFolderBase: baseFolder,
+		themeFolderBase: metaDataFolder,
 	}
 }
 
