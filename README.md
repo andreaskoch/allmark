@@ -36,6 +36,7 @@ allmark is a lightweight markdown web server for Linux, Mac OS and Windows writt
     - geo locations
 - Different file formats
     - json
+    - RSS / ATOM
     - rtf?
 - Web Server
     - XML Sitemaps
