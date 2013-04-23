@@ -21,6 +21,10 @@ func Convert(item *repository.Item, rawLines []string) string {
 	galleryRenderer := NewImageGalleryRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
 	rawMarkdownContent = galleryRenderer(rawMarkdownContent)
 
+	// tables
+	tableRenderer := NewTableRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
+	rawMarkdownContent = tableRenderer(rawMarkdownContent)
+
 	// markdown to html
 	html := markdownToHtml(rawMarkdownContent)
 

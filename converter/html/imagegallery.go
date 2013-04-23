@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	// !imagegallery[*descriptionText*](*folderPath*)
+	// !imagegallery[*description text*](*folder path*)
 	imageGalleryPattern = regexp.MustCompile(`!imagegallery\[([^\]]+)\]\(([^)]+)\)`)
 )
 

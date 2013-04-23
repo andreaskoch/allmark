@@ -1,3 +1,7 @@
+// Copyright 2013 Andreas Koch. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package themes
 
 const defaultTheme = `
@@ -250,6 +254,34 @@ td {
     font-size: 1.0em;
     font-weight: bold;
     margin: 0;
+}
+
+.csv
+{
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    font-size: 1.0em;
+    margin: 45px;
+    text-align: left;
+    border-collapse: collapse;
+    border: 1px solid #69c;
+}
+.csv thead
+{
+    padding: 12px 17px 12px 17px;
+    font-weight: normal;
+    font-size: 1.2em;
+    color: #039;
+    border-bottom: 1px dashed #69c;
+}
+.csv td
+{
+    padding: 7px 17px 7px 17px;
+    color: #669;
+}
+.csv tbody tr:hover td
+{
+    color: #339;
+    background: #d0dafd;
 }
 
 @media only screen and (min-width: 480px) {
