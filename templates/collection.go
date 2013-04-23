@@ -30,15 +30,16 @@ const collectionTemplate = `<!DOCTYPE HTML>
 {{.Content}}
 </section>
 
-<section>
-<ul>
+<section class="collection">
+<h1>Documents</h2>
+<ol>
 {{range .Entries}}
 <li>
-	<a href="{{.Path}}">{{.Title}}</a>
+	<h2><a href="{{.Path}}" title="{{.Description}}">{{.Title}}</a></h2>
 	<p>{{.Description}}</p>
 </li>
 {{end}}
-</ul>
+</ol>
 </section>
 
 </article>

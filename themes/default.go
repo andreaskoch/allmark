@@ -223,12 +223,33 @@ td {
 }
 
 .imagegallery>h1 {
-    font-size: 1.5em;
+    font-size: 1.2em;
 }
 
 .imagegallery ol {
     list-style: none;
     margin-left: 0;
+}
+
+.collection>h1 {
+    font-size: 1.2em;
+}
+
+.collection>ol {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0 15px;
+}
+
+.collection>ol>li {
+    display: block;
+    margin: 0 0 15px 0;
+}
+
+.collection>ol>li>h2 {
+    font-size: 1.0em;
+    font-weight: bold;
+    margin: 0;
 }
 
 @media only screen and (min-width: 480px) {
