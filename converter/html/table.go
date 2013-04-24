@@ -5,6 +5,7 @@
 package html
 
 import (
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"github.com/andreaskoch/allmark/path"
@@ -106,8 +107,43 @@ func readCSV(path string) ([][]string, error) {
 
 	defer file.Close()
 
-	reader := csv.NewReader(file)
-	return reader.ReadAll()
+	// determine the separator
+	separator := determineCSVColumnSeparator(path, ';')
+
+	// read the csv
+	csvReader := csv.NewReader(file)
+	csvReader.Comma = separator
+
+	return csvReader.ReadAll()
+}
+
+func determineCSVColumnSeparator(path string, fallback rune) rune {
+
+	file, err := os.Open(path)
+	if err != nil {
+		return fallback
+	}
+
+	defer file.Close()
+
+	reader := bufio.NewReader(file)
+	line, _, err := reader.ReadLine()
+	if err != nil {
+		return fallback
+	}
+
+	for _, character := range line {
+		switch character {
+		case ',':
+			return ','
+		case ';':
+			return ';'
+		case '\t':
+			return '\t'
+		}
+	}
+
+	return fallback
 }
 
 func isCSVFile(pather path.Pather) bool {
