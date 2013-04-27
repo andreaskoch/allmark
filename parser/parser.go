@@ -6,14 +6,24 @@ package parser
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
+	"path/filepath"
 	"regexp"
+	"strings"
+)
+
+const (
+	UnknownItemType      = "unknown"
+	DocumentItemType     = "document"
+	PresentationItemType = "presentation"
+	CollectionItemType   = "collection"
+	MessageItemType      = "message"
+	RepositoryItemType   = "repository"
 )
 
 var (
 	// Lines which contain nothing but white space characters
-	// or no characters at all.	
+	// or no characters at all.
 	EmptyLinePattern = regexp.MustCompile(`^\s*$`)
 
 	// Lines which a start with a hash, followed by zero or more
@@ -35,19 +45,21 @@ type Result struct {
 	Description string
 	RawContent  []string
 	Type        string
-	MetaData    repository.MetaData
+	MetaData    MetaData
 
 	ConvertedContent string
 }
 
-func Parse(lines []string, itemType string) (*Result, error) {
+func Parse(lines []string, filePath string) (*Result, error) {
 
 	// parse meta data
 	result := &Result{}
-	result.MetaData, lines = parseMetaData(lines)
+	result.MetaData, lines = parseMetaData(lines, func() string {
+		return getItemTypeFromFilename(filePath)
+	})
 
-	switch itemType {
-	case repository.DocumentItemType, repository.CollectionItemType, repository.RepositoryItemType:
+	switch result.MetaData.ItemType {
+	case DocumentItemType, CollectionItemType, RepositoryItemType:
 		{
 			if success, err := parseDocumentLikeItem(result, lines); success {
 				return result, nil
@@ -55,7 +67,7 @@ func Parse(lines []string, itemType string) (*Result, error) {
 				return nil, err
 			}
 		}
-	case repository.MessageItemType:
+	case MessageItemType:
 		{
 			if success, err := parseMessage(result, lines); success {
 				return result, nil
@@ -65,7 +77,7 @@ func Parse(lines []string, itemType string) (*Result, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("Items of type \"%v\" cannot be parsed.", itemType)
+	return nil, fmt.Errorf("Item %q cannot be parsed.", filePath)
 }
 
 // Parse an item with a title, description and content
@@ -120,4 +132,37 @@ func getNextLinenumber(lineNumber int, lines []string) int {
 	}
 
 	return lineNumber
+}
+
+func getItemTypeFromFilename(filenameOrPath string) string {
+	extension := strings.ToLower(filepath.Ext(filenameOrPath))
+
+	if extension != ".md" && extension != ".mdown" && extension != ".markdown" {
+		return UnknownItemType // abort if file does not have a markdown extension
+	}
+
+	filenameWithExtension := filepath.Base(filenameOrPath)
+	filename := filenameWithExtension[0:(strings.LastIndex(filenameWithExtension, extension))]
+
+	switch strings.ToLower(filename) {
+	case DocumentItemType:
+		return DocumentItemType
+
+	case PresentationItemType:
+		return PresentationItemType
+
+	case CollectionItemType:
+		return CollectionItemType
+
+	case MessageItemType:
+		return MessageItemType
+
+	case RepositoryItemType:
+		return RepositoryItemType
+
+	default:
+		return DocumentItemType
+	}
+
+	return UnknownItemType
 }

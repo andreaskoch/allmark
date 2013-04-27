@@ -5,22 +5,22 @@
 package templates
 
 import (
-	"github.com/andreaskoch/allmark/repository"
+	"github.com/andreaskoch/allmark/parser"
 )
 
-func GetTemplate(item *repository.Item) string {
+func GetTemplate(parserResult *parser.Result) string {
 
-	switch itemType := item.Type; itemType {
-	case repository.DocumentItemType:
+	switch itemType := parserResult.MetaData.ItemType; itemType {
+	case parser.DocumentItemType:
 		return documentTemplate
 
-	case repository.MessageItemType:
+	case parser.MessageItemType:
 		return messageTemplate
 
-	case repository.CollectionItemType:
+	case parser.CollectionItemType:
 		return collectionTemplate
 
-	case repository.RepositoryItemType:
+	case parser.RepositoryItemType:
 		return repositoryTemplate
 
 	default:

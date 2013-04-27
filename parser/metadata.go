@@ -6,14 +6,21 @@ package parser
 
 import (
 	"github.com/andreaskoch/allmark/date"
-	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
 	"strings"
+	"time"
 )
 
-func parseMetaData(lines []string) (repository.MetaData, []string) {
+type MetaData struct {
+	Language string
+	Date     time.Time
+	Tags     []string
+	ItemType string
+}
 
-	metaData := repository.MetaData{}
+func parseMetaData(lines []string, getFallbackItemType func() string) (MetaData, []string) {
+
+	metaData := MetaData{}
 
 	// find the meta data section
 	metaDataLocation, lines := locateMetaData(lines)
@@ -57,7 +64,21 @@ func parseMetaData(lines []string) (repository.MetaData, []string) {
 				break
 			}
 
+		case "type":
+			{
+				itemTypeString := strings.ToLower(value)
+				if itemTypeString != "" {
+					metaData.ItemType = itemTypeString
+				}
+				break
+			}
+
 		}
+	}
+
+	// check item type
+	if metaData.ItemType == "" {
+		metaData.ItemType = getFallbackItemType() // use fallback type
 	}
 
 	return metaData, lines

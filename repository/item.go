@@ -9,24 +9,15 @@ import (
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/watcher"
 	"path/filepath"
-	"strings"
 )
 
 const (
-	UnknownItemType      = "unknown"
-	DocumentItemType     = "document"
-	PresentationItemType = "presentation"
-	CollectionItemType   = "collection"
-	MessageItemType      = "message"
-	RepositoryItemType   = "repository"
-
 	FilesDirectoryName = "files"
 )
 
 type Item struct {
 	*watcher.ChangeHandler
 
-	Type       string
 	Files      *FileIndex
 	childItems []*Item
 
@@ -34,9 +25,6 @@ type Item struct {
 }
 
 func NewItem(path string, childItems []*Item) (item *Item, err error) {
-
-	// determine the type
-	itemType := getItemType(path)
 
 	// get the item's directory
 	itemDirectory := filepath.Dir(path)
@@ -57,7 +45,6 @@ func NewItem(path string, childItems []*Item) (item *Item, err error) {
 	// create the item
 	item = &Item{
 		ChangeHandler: changeHandler,
-		Type:          itemType,
 		Files:         fileIndex,
 
 		childItems: childItems,
@@ -90,37 +77,4 @@ func (item *Item) PathType() string {
 
 func (item *Item) Childs() []*Item {
 	return item.childItems
-}
-
-func getItemType(filePath string) string {
-	extension := strings.ToLower(filepath.Ext(filePath))
-
-	if extension != ".md" && extension != ".mdown" && extension != ".markdown" {
-		return UnknownItemType // abort if file does not have a markdown extension
-	}
-
-	filenameWithExtension := filepath.Base(filePath)
-	filename := filenameWithExtension[0:(strings.LastIndex(filenameWithExtension, extension))]
-
-	switch strings.ToLower(filename) {
-	case DocumentItemType:
-		return DocumentItemType
-
-	case PresentationItemType:
-		return PresentationItemType
-
-	case CollectionItemType:
-		return CollectionItemType
-
-	case MessageItemType:
-		return MessageItemType
-
-	case RepositoryItemType:
-		return RepositoryItemType
-
-	default:
-		return DocumentItemType
-	}
-
-	return UnknownItemType
 }
