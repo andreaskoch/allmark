@@ -41,7 +41,7 @@ var (
 	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*(\w.+)$`)
 )
 
-type Result struct {
+type ParsedItem struct {
 	*repository.Item
 
 	Title       string
@@ -52,10 +52,10 @@ type Result struct {
 	ConvertedContent string
 }
 
-func Parse(lines []string, item *repository.Item) (*Result, error) {
+func Parse(lines []string, item *repository.Item) (*ParsedItem, error) {
 
 	// parse meta data
-	result := &Result{
+	result := &ParsedItem{
 		Item: item,
 	}
 
@@ -87,24 +87,24 @@ func Parse(lines []string, item *repository.Item) (*Result, error) {
 }
 
 // Parse an item with a title, description and content
-func parseDocumentLikeItem(parserResult *Result, lines []string) (sucess bool, err error) {
+func parseDocumentLikeItem(parserParsedItem *ParsedItem, lines []string) (sucess bool, err error) {
 
 	// title
-	parserResult.Title, lines = getMatchingValue(lines, TitlePattern)
+	parserParsedItem.Title, lines = getMatchingValue(lines, TitlePattern)
 
 	// description
-	parserResult.Description, lines = getMatchingValue(lines, DescriptionPattern)
+	parserParsedItem.Description, lines = getMatchingValue(lines, DescriptionPattern)
 
 	// raw markdown content
-	parserResult.RawContent = lines
+	parserParsedItem.RawContent = lines
 
 	return true, nil
 }
 
-func parseMessage(parserResult *Result, lines []string) (sucess bool, err error) {
+func parseMessage(parserParsedItem *ParsedItem, lines []string) (sucess bool, err error) {
 
 	// raw markdown content
-	parserResult.RawContent = lines
+	parserParsedItem.RawContent = lines
 
 	return true, nil
 }

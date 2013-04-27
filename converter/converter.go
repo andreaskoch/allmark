@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-func Convert(item *repository.Item, targetFormat string) (*parser.Result, error) {
+func Convert(item *repository.Item, targetFormat string) (*parser.ParsedItem, error) {
 
 	// open the file
 	file, err := os.Open(item.Path())

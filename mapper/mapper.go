@@ -13,7 +13,7 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-type Mapper func(parsedItem *parser.Result) view.Model
+type Mapper func(parsedItem *parser.ParsedItem) view.Model
 
 func Map(item *repository.Item, pathProvider *path.Provider, targetFormat string) view.Model {
 

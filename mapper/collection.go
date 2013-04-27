@@ -10,7 +10,7 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func createCollectionMapperFunc(parsedItem *parser.Result, pathProvider *path.Provider, targetFormat string) view.Model {
+func createCollectionMapperFunc(parsedItem *parser.ParsedItem, pathProvider *path.Provider, targetFormat string) view.Model {
 
 	return view.Model{
 		Path:        pathProvider.GetWebRoute(parsedItem),
@@ -24,7 +24,7 @@ func createCollectionMapperFunc(parsedItem *parser.Result, pathProvider *path.Pr
 
 }
 
-func getEntries(parsedItem *parser.Result, targetFormat string) []view.Model {
+func getEntries(parsedItem *parser.ParsedItem, targetFormat string) []view.Model {
 
 	viewModels := make([]view.Model, 0)
 

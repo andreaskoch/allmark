@@ -16,7 +16,7 @@ import (
 // Pattern which matches all HTML/XML tags
 var HtmlTagPattern = regexp.MustCompile(`\<[^\>]*\>`)
 
-func createMessageMapperFunc(parsedItem *parser.Result, pathProvider *path.Provider, targetFormat string) view.Model {
+func createMessageMapperFunc(parsedItem *parser.ParsedItem, pathProvider *path.Provider, targetFormat string) view.Model {
 
 	return view.Model{
 		Path:        pathProvider.GetWebRoute(parsedItem),
@@ -29,11 +29,11 @@ func createMessageMapperFunc(parsedItem *parser.Result, pathProvider *path.Provi
 
 }
 
-func getDescription(parsedItem *parser.Result) string {
+func getDescription(parsedItem *parser.ParsedItem) string {
 	return parsedItem.MetaData.Date.Format(time.RFC850)
 }
 
-func getTitle(parsedItem *parser.Result) string {
+func getTitle(parsedItem *parser.ParsedItem) string {
 	text := HtmlTagPattern.ReplaceAllString(parsedItem.ConvertedContent, "")
 	excerpt := getTextExcerpt(text, 30)
 	time := parsedItem.MetaData.Date.Format(time.RFC850)

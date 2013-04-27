@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func Test_getUserHomeDir_ResultIsNotEmpty_ErrorIsNil(t *testing.T) {
+func Test_getUserHomeDir_ParsedItemIsNotEmpty_ErrorIsNil(t *testing.T) {
 	// act
 	result, err := getUserHomeDir()
 
