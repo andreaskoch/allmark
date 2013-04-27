@@ -27,9 +27,12 @@ var (
 
 const (
 
-	// Routes
+	// Dynamic Routes
 	ItemHandlerRoute  = "/"
 	DebugHandlerRoute = "/debug/index"
+
+	// Static Routes
+	ThemeFolderRoute = "/theme/"
 )
 
 func Serve(repositoryPath string) {
@@ -48,8 +51,7 @@ func Serve(repositoryPath string) {
 
 	// serve theme files
 	if themeFolder := config.ThemeFolder(); util.DirectoryExists(themeFolder) {
-		staticFolder := "/theme/"
-		http.Handle(staticFolder, http.StripPrefix(staticFolder, http.FileServer(http.Dir(themeFolder))))
+		http.Handle(ThemeFolderRoute, http.StripPrefix(ThemeFolderRoute, http.FileServer(http.Dir(themeFolder))))
 	}
 
 	// start http server: http
