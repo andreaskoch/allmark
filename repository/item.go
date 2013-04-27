@@ -93,7 +93,12 @@ func (item *Item) Childs() []*Item {
 }
 
 func getItemType(filePath string) string {
-	extension := filepath.Ext(filePath)
+	extension := strings.ToLower(filepath.Ext(filePath))
+
+	if extension != ".md" && extension != ".mdown" && extension != ".markdown" {
+		return UnknownItemType // abort if file does not have a markdown extension
+	}
+
 	filenameWithExtension := filepath.Base(filePath)
 	filename := filenameWithExtension[0:(strings.LastIndex(filenameWithExtension, extension))]
 
@@ -112,6 +117,9 @@ func getItemType(filePath string) string {
 
 	case RepositoryItemType:
 		return RepositoryItemType
+
+	default:
+		return DocumentItemType
 	}
 
 	return UnknownItemType
