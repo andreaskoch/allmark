@@ -6,10 +6,8 @@ package mapper
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark/converter"
 	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/path"
-	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/view"
 	"regexp"
 	"time"
@@ -18,32 +16,27 @@ import (
 // Pattern which matches all HTML/XML tags
 var HtmlTagPattern = regexp.MustCompile(`\<[^\>]*\>`)
 
-func createMessageMapperFunc(pathProvider *path.Provider, targetFormat string) Mapper {
-	return func(item *repository.Item) view.Model {
+func createMessageMapperFunc(parsedItem *parser.Result, pathProvider *path.Provider, targetFormat string) view.Model {
 
-		parsed, err := converter.Convert(item, targetFormat)
-		if err != nil {
-			return view.Error(fmt.Sprintf("%s", err), pathProvider.GetWebRoute(item))
-		}
-
-		return view.Model{
-			Path:        pathProvider.GetWebRoute(item),
-			Title:       getTitle(parsed),
-			Description: getDescription(parsed),
-			Content:     parsed.ConvertedContent,
-			LanguageTag: getTwoLetterLanguageCode(parsed.MetaData.Language),
-		}
+	return view.Model{
+		Path:        pathProvider.GetWebRoute(parsedItem),
+		Title:       getTitle(parsedItem),
+		Description: getDescription(parsedItem),
+		Content:     parsedItem.ConvertedContent,
+		LanguageTag: getTwoLetterLanguageCode(parsedItem.MetaData.Language),
+		Type:        parsedItem.Type,
 	}
+
 }
 
-func getDescription(parsedResult *parser.Result) string {
-	return parsedResult.MetaData.Date.Format(time.RFC850)
+func getDescription(parsedItem *parser.Result) string {
+	return parsedItem.MetaData.Date.Format(time.RFC850)
 }
 
-func getTitle(parsedResult *parser.Result) string {
-	text := HtmlTagPattern.ReplaceAllString(parsedResult.ConvertedContent, "")
+func getTitle(parsedItem *parser.Result) string {
+	text := HtmlTagPattern.ReplaceAllString(parsedItem.ConvertedContent, "")
 	excerpt := getTextExcerpt(text, 30)
-	time := parsedResult.MetaData.Date.Format(time.RFC850)
+	time := parsedItem.MetaData.Date.Format(time.RFC850)
 
 	return fmt.Sprintf("%s: %s", time, excerpt)
 }

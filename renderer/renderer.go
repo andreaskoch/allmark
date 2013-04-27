@@ -7,7 +7,6 @@ package renderer
 import (
 	"bufio"
 	"fmt"
-	"github.com/andreaskoch/allmark/converter"
 	"github.com/andreaskoch/allmark/mapper"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
@@ -58,20 +57,14 @@ func renderItem(repositoryPath string, item *repository.Item) (*repository.Item,
 		renderItem(repositoryPath, item)
 	})
 
-	// get a template
-	templateText := templates.GetTemplate(item)
-
 	// create a path provider
 	pathProvider := path.NewProvider(repositoryPath)
 
-	// convert the item
-	parsedItem := converter.Convert(item, "html")
-
-	// get a viewmodel mapper
-	viewModelMapperFunc := mapper.New(item.Type, pathProvider, "html")
-
 	// create the viewmodel
-	viewModel := viewModelMapperFunc(item)
+	viewModel := mapper.Map(item, pathProvider, "html")
+
+	// get a template
+	templateText := templates.GetTemplate(viewModel.Type)
 
 	// render the template
 	render(item, templateText, viewModel)
@@ -94,7 +87,7 @@ func render(item *repository.Item, templateText string, viewModel view.Model) (*
 		file.Close()
 	}()
 
-	template := template.New(item.Type)
+	template := template.New(viewModel.Type)
 	template.Parse(templateText)
 	template.Execute(writer, viewModel)
 

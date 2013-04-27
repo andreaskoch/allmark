@@ -5,29 +5,20 @@
 package mapper
 
 import (
-	"fmt"
-	"github.com/andreaskoch/allmark/converter"
+	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/path"
-	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/view"
 )
 
-func createDocumentMapperFunc(pathProvider *path.Provider, targetFormat string) Mapper {
+func createDocumentMapperFunc(parsedItem *parser.Result, pathProvider *path.Provider, targetFormat string) view.Model {
 
-	return func(item *repository.Item) view.Model {
-
-		parsed, err := converter.Convert(item, targetFormat)
-		if err != nil {
-			return view.Error(fmt.Sprintf("%s", err), pathProvider.GetWebRoute(item))
-		}
-
-		return view.Model{
-			Path:        pathProvider.GetWebRoute(item),
-			Title:       parsed.Title,
-			Description: parsed.Description,
-			Content:     parsed.ConvertedContent,
-			LanguageTag: getTwoLetterLanguageCode(parsed.MetaData.Language),
-		}
+	return view.Model{
+		Path:        pathProvider.GetWebRoute(parsedItem),
+		Title:       parsedItem.Title,
+		Description: parsedItem.Description,
+		Content:     parsedItem.ConvertedContent,
+		LanguageTag: getTwoLetterLanguageCode(parsedItem.MetaData.Language),
+		Type:        parsedItem.Type,
 	}
 
 }

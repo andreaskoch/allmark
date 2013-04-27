@@ -6,6 +6,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
 	"path/filepath"
 	"regexp"
@@ -41,6 +42,7 @@ var (
 )
 
 type Result struct {
+	*repository.Item
 	Title       string
 	Description string
 	RawContent  []string

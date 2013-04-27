@@ -14,6 +14,7 @@ type Model struct {
 	Description string
 	Content     string
 	LanguageTag string
+	Type        string
 	Entries     []Model
 }
 
@@ -22,5 +23,6 @@ func Error(msg string, path string) Model {
 		Title:   fmt.Sprintf("Error: %s", msg),
 		Path:    path,
 		Content: msg,
+		Type:    "error",
 	}
 }

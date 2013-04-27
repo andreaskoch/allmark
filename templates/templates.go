@@ -8,9 +8,9 @@ import (
 	"github.com/andreaskoch/allmark/parser"
 )
 
-func GetTemplate(parserResult *parser.Result) string {
+func GetTemplate(itemType string) string {
 
-	switch itemType := parserResult.MetaData.ItemType; itemType {
+	switch itemType {
 	case parser.DocumentItemType:
 		return documentTemplate
 
