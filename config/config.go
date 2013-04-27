@@ -261,7 +261,7 @@ func local(baseFolder string) *Config {
 	return &Config{
 		baseFolder:      baseFolder,
 		metaDataFolder:  metaDataFolder,
-		themeFolderBase: baseFolder,
+		themeFolderBase: metaDataFolder,
 	}
 }
 
