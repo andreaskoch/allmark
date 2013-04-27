@@ -65,14 +65,14 @@ func renderItem(repositoryPath string, item *repository.Item) (*repository.Item,
 	templateText := templates.GetTemplate(viewModel.Type)
 
 	// render the template
-	render(item, templateText, viewModel)
+	render(item, pathProvider, templateText, viewModel)
 
 	return item, nil
 }
 
-func render(item *repository.Item, templateText string, viewModel view.Model) (*repository.Item, error) {
+func render(item *repository.Item, pathProvider *path.Provider, templateText string, viewModel view.Model) (*repository.Item, error) {
 
-	targetPath := path.GetRenderTargetPath(item)
+	targetPath := pathProvider.GetRenderTargetPath(item)
 	file, err := os.Create(targetPath)
 	if err != nil {
 		return item, err

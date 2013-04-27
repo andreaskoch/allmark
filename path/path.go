@@ -50,7 +50,7 @@ func (provider *Provider) GetFilepath(pather Pather) string {
 
 	switch pathType := pather.PathType(); pathType {
 	case PatherTypeItem:
-		return GetRenderTargetPath(pather)
+		return provider.GetRenderTargetPath(pather)
 	case PatherTypeFile:
 		return pather.Path()
 	default:
@@ -65,7 +65,7 @@ func (provider *Provider) GetRelativePath(filepath string) string {
 }
 
 func (provider *Provider) GetItemRoute(pather Pather) string {
-	absoluteTargetFilesystemPath := GetRenderTargetPath(pather)
+	absoluteTargetFilesystemPath := provider.GetRenderTargetPath(pather)
 	return provider.GetRouteFromFilepath(absoluteTargetFilesystemPath)
 }
 
@@ -86,7 +86,7 @@ func (provider *Provider) GetRouteFromFilepath(path string) string {
 	return route
 }
 
-func GetRenderTargetPath(pather Pather) string {
+func (provider *Provider) GetRenderTargetPath(pather Pather) string {
 	sourceItemPath := pather.Path()
 	renderTargetPath := sourceItemPath[0:strings.LastIndex(sourceItemPath, FilesystemDirectorySeperator)] + FilesystemDirectorySeperator + WebServerDefaultFilename
 	return renderTargetPath
