@@ -11,15 +11,17 @@ import (
 )
 
 func createCollectionMapperFunc(parsedItem *parser.Result, pathProvider *path.Provider, targetFormat string) view.Model {
+
 	return view.Model{
 		Path:        pathProvider.GetWebRoute(parsedItem),
 		Title:       parsedItem.Title,
 		Description: parsedItem.Description,
 		Content:     parsedItem.ConvertedContent,
 		Entries:     getEntries(parsedItem, targetFormat),
-		Type:        parsedItem.Type,
+		Type:        parsedItem.MetaData.ItemType,
 		LanguageTag: getTwoLetterLanguageCode(parsedItem.MetaData.Language),
 	}
+
 }
 
 func getEntries(parsedItem *parser.Result, targetFormat string) []view.Model {
@@ -30,7 +32,8 @@ func getEntries(parsedItem *parser.Result, targetFormat string) []view.Model {
 	relativePathProvider := path.NewProvider(parsedItem.Directory())
 
 	for _, child := range parsedItem.Childs() {
-		viewModels = append(viewModels, Map(child, relativePathProvider, targetFormat))
+		viewModel := Map(child, relativePathProvider, targetFormat)
+		viewModels = append(viewModels, viewModel)
 	}
 
 	return viewModels

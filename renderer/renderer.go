@@ -39,8 +39,6 @@ func renderIndex(itemIndex *repository.ItemIndex) *repository.ItemIndex {
 
 func renderItem(repositoryPath string, item *repository.Item) (*repository.Item, error) {
 
-	fmt.Printf("RENDERING: %s\n", item)
-
 	// render child items first
 	for _, child := range item.Childs() {
 

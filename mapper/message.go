@@ -24,7 +24,7 @@ func createMessageMapperFunc(parsedItem *parser.Result, pathProvider *path.Provi
 		Description: getDescription(parsedItem),
 		Content:     parsedItem.ConvertedContent,
 		LanguageTag: getTwoLetterLanguageCode(parsedItem.MetaData.Language),
-		Type:        parsedItem.Type,
+		Type:        parsedItem.MetaData.ItemType,
 	}
 
 }

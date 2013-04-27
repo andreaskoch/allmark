@@ -47,7 +47,6 @@ type Result struct {
 	Title       string
 	Description string
 	RawContent  []string
-	Type        string
 	MetaData    MetaData
 
 	ConvertedContent string
