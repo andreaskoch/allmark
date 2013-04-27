@@ -15,6 +15,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -55,7 +56,9 @@ func Serve(repositoryPath string) {
 	httpBinding := getHttpBinding(config)
 	fmt.Printf("Starting http server %q\n", httpBinding)
 
-	http.ListenAndServe(httpBinding, nil)
+	if err := http.ListenAndServe(httpBinding, nil); err != nil {
+		fmt.Fprintf(os.Stderr, "Server failed with error: %v", err)
+	}
 }
 
 func getHttpBinding(config *config.Config) string {
