@@ -6,6 +6,7 @@ package path
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/util"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,14 +23,26 @@ const (
 	WebServerDefaultFilename = "index.html"
 )
 
-func NewProvider(basePath string) *Provider {
+func NewProvider(basePath string, useTempDir bool) *Provider {
 	return &Provider{
-		basePath: basePath,
+		basePath:   basePath,
+		tempDir:    os.TempDir(),
+		useTempDir: useTempDir,
 	}
 }
 
 type Provider struct {
-	basePath string
+	basePath   string
+	tempDir    string
+	useTempDir bool
+}
+
+func (provider *Provider) UseTempDir() bool {
+	return provider.useTempDir
+}
+
+func (provider *Provider) TempDir() string {
+	return provider.tempDir
 }
 
 func (provider *Provider) GetWebRoute(pather Pather) string {
@@ -77,6 +90,11 @@ func (provider *Provider) GetFileRoute(pather Pather) string {
 func (provider *Provider) GetRouteFromFilepath(path string) string {
 	relativeFilepath := provider.GetRelativePath(path)
 
+	// remove temp dir
+	if provider.UseTempDir() {
+		relativeFilepath = strings.TrimPrefix(relativeFilepath, provider.TempDir())
+	}
+
 	// filepath to route
 	route := filepath.ToSlash(relativeFilepath)
 
@@ -87,7 +105,23 @@ func (provider *Provider) GetRouteFromFilepath(path string) string {
 }
 
 func (provider *Provider) GetRenderTargetPath(pather Pather) string {
-	sourceItemPath := pather.Path()
-	renderTargetPath := sourceItemPath[0:strings.LastIndex(sourceItemPath, FilesystemDirectorySeperator)] + FilesystemDirectorySeperator + WebServerDefaultFilename
+
+	itemDirectoryRelative := provider.GetRelativePath(pather.Directory())
+	relativeRenderTargetPath := filepath.Join(itemDirectoryRelative, WebServerDefaultFilename)
+
+	var renderTargetPath string
+	if provider.UseTempDir() {
+
+		renderTargetPath = filepath.Join(provider.TempDir(), relativeRenderTargetPath)
+
+		// make sure the directory exists
+		util.CreateDirectory(filepath.Dir(renderTargetPath))
+
+	} else {
+
+		renderTargetPath = filepath.Join(provider.basePath, relativeRenderTargetPath)
+
+	}
+
 	return renderTargetPath
 }

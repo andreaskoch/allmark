@@ -17,27 +17,27 @@ import (
 	"text/template"
 )
 
-func RenderRepository(repositoryPath string) *repository.ItemIndex {
+func RenderRepository(repositoryPath string, useTempDir bool) *repository.ItemIndex {
 	itemIndex, err := repository.NewItemIndex(repositoryPath)
 	if err != nil {
 		fmt.Printf("Cannot create an item index for folder %q. Error: %v", repositoryPath, err)
 		return nil
 	}
 
-	return renderIndex(itemIndex)
+	return renderIndex(itemIndex, useTempDir)
 }
 
-func renderIndex(itemIndex *repository.ItemIndex) *repository.ItemIndex {
+func renderIndex(itemIndex *repository.ItemIndex, useTempDir bool) *repository.ItemIndex {
 
 	repositoryPath := itemIndex.Path()
 	for _, item := range itemIndex.Items() {
-		renderItem(repositoryPath, item)
+		renderItem(repositoryPath, useTempDir, item)
 	}
 
 	return itemIndex
 }
 
-func renderItem(repositoryPath string, item *repository.Item) (*repository.Item, error) {
+func renderItem(repositoryPath string, useTempDir bool, item *repository.Item) (*repository.Item, error) {
 
 	// render child items first
 	for _, child := range item.Childs() {
@@ -47,16 +47,16 @@ func renderItem(repositoryPath string, item *repository.Item) (*repository.Item,
 			item.Throw(event)
 		})
 
-		renderItem(repositoryPath, child)
+		renderItem(repositoryPath, useTempDir, child)
 	}
 
 	// attach change listener
 	item.OnChange("Render item on change", func(event *watcher.WatchEvent) {
-		renderItem(repositoryPath, item)
+		renderItem(repositoryPath, useTempDir, item)
 	})
 
 	// create a path provider
-	pathProvider := path.NewProvider(repositoryPath)
+	pathProvider := path.NewProvider(repositoryPath, useTempDir)
 
 	// create the viewmodel
 	viewModel := mapper.Map(item, pathProvider, "html")

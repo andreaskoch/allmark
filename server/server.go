@@ -18,7 +18,11 @@ import (
 	"strings"
 )
 
-var routes map[string]string
+var (
+	routes map[string]string
+
+	useTempDir = true
+)
 
 const (
 
@@ -29,7 +33,7 @@ const (
 
 func Serve(repositoryPath string) {
 
-	index := renderer.RenderRepository(repositoryPath)
+	index := renderer.RenderRepository(repositoryPath, useTempDir)
 
 	// get the configuration
 	config := config.GetConfig(repositoryPath)
@@ -69,7 +73,7 @@ func initializeRoutes(index *repository.ItemIndex) {
 
 	routes = make(map[string]string)
 
-	pathProvider := path.NewProvider(index.Path())
+	pathProvider := path.NewProvider(index.Path(), useTempDir)
 	for _, item := range index.Items() {
 		registerItem(pathProvider, item)
 	}

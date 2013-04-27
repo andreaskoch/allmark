@@ -15,7 +15,7 @@ func Convert(item *repository.Item, rawLines []string) string {
 
 	// create context
 	fileIndex := item.Files
-	repositoryPathProvider := path.NewProvider(item.Directory())
+	repositoryPathProvider := path.NewProvider(item.Directory(), false)
 	rawMarkdownContent := strings.TrimSpace(strings.Join(rawLines, "\n"))
 
 	// image gallery

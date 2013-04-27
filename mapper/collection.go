@@ -17,19 +17,19 @@ func createCollectionMapperFunc(parsedItem *parser.ParsedItem, pathProvider *pat
 		Title:       parsedItem.Title,
 		Description: parsedItem.Description,
 		Content:     parsedItem.ConvertedContent,
-		Entries:     getEntries(parsedItem, targetFormat),
+		Entries:     getEntries(parsedItem, pathProvider.UseTempDir(), targetFormat),
 		Type:        parsedItem.MetaData.ItemType,
 		LanguageTag: getTwoLetterLanguageCode(parsedItem.MetaData.Language),
 	}
 
 }
 
-func getEntries(parsedItem *parser.ParsedItem, targetFormat string) []view.Model {
+func getEntries(parsedItem *parser.ParsedItem, useTempDir bool, targetFormat string) []view.Model {
 
 	viewModels := make([]view.Model, 0)
 
 	// a path provider not relative to the repository but to the parent item
-	relativePathProvider := path.NewProvider(parsedItem.Directory())
+	relativePathProvider := path.NewProvider(parsedItem.Directory(), useTempDir)
 
 	for _, child := range parsedItem.Childs() {
 		viewModel := Map(child, relativePathProvider, targetFormat)

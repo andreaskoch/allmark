@@ -24,7 +24,8 @@ const (
 func main() {
 
 	render := func(repositoryPath string) {
-		renderer.RenderRepository(repositoryPath)
+		useTempDir := false
+		renderer.RenderRepository(repositoryPath, useTempDir)
 
 		for {
 			time.Sleep(100 * time.Millisecond)
