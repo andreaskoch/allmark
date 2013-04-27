@@ -29,7 +29,7 @@ var (
 
 	// Lines which a start with a hash, followed by zero or more
 	// white space characters, followed by text.
-	TitlePattern = regexp.MustCompile(`\s*#\s*(\w.+)`)
+	TitlePattern = regexp.MustCompile(`^#\s*(\w.+)`)
 
 	// Lines which start with text
 	DescriptionPattern = regexp.MustCompile(`^\w.+`)
@@ -43,6 +43,7 @@ var (
 
 type Result struct {
 	*repository.Item
+
 	Title       string
 	Description string
 	RawContent  []string
@@ -52,15 +53,19 @@ type Result struct {
 	ConvertedContent string
 }
 
-func Parse(lines []string, filePath string) (*Result, error) {
+func Parse(lines []string, item *repository.Item) (*Result, error) {
 
 	// parse meta data
-	result := &Result{}
+	result := &Result{
+		Item: item,
+	}
+
 	result.MetaData, lines = parseMetaData(lines, func() string {
-		return getItemTypeFromFilename(filePath)
+		return getItemTypeFromFilename(item.Path())
 	})
 
-	switch result.MetaData.ItemType {
+	itemType := result.MetaData.ItemType
+	switch itemType {
 	case DocumentItemType, CollectionItemType, RepositoryItemType:
 		{
 			if success, err := parseDocumentLikeItem(result, lines); success {
@@ -79,7 +84,7 @@ func Parse(lines []string, filePath string) (*Result, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("Item %q cannot be parsed.", filePath)
+	return nil, fmt.Errorf("Item %q (type: %s) cannot be parsed.", item.Path(), itemType)
 }
 
 // Parse an item with a title, description and content

@@ -25,6 +25,7 @@ func parseMetaData(lines []string, getFallbackItemType func() string) (MetaData,
 	// find the meta data section
 	metaDataLocation, lines := locateMetaData(lines)
 	if !metaDataLocation.Found {
+		metaData.ItemType = getFallbackItemType()
 		return metaData, lines
 	}
 
@@ -66,7 +67,7 @@ func parseMetaData(lines []string, getFallbackItemType func() string) (MetaData,
 
 		case "type":
 			{
-				itemTypeString := strings.ToLower(value)
+				itemTypeString := strings.TrimSpace(strings.ToLower(value))
 				if itemTypeString != "" {
 					metaData.ItemType = itemTypeString
 				}

@@ -23,7 +23,7 @@ func Convert(item *repository.Item, targetFormat string) (*parser.Result, error)
 	lines := util.GetLines(file)
 
 	// parse
-	parsedItem, err := parser.Parse(lines, item.Path())
+	parsedItem, err := parser.Parse(lines, item)
 	if err != nil {
 		return nil, fmt.Errorf("%s", err)
 	}
