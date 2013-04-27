@@ -6,6 +6,7 @@ package repository
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/util"
 	"io/ioutil"
@@ -28,7 +29,7 @@ func NewItemIndex(path string) (*ItemIndex, error) {
 		return nil, fmt.Errorf("The path %q is using a reserved name and cannot be an index.", path)
 	}
 
-	// check if the path is a directory	
+	// check if the path is a directory
 	if isDirectory, _ := util.IsDirectory(path); !isDirectory {
 		path = filepath.Dir(path)
 	}
@@ -83,7 +84,7 @@ func findAllItems(itemDirectory string) []*Item {
 		itemPath := filepath.Join(itemDirectory, element.Name())
 
 		// check if the file a markdown file
-		isMarkdown := isMarkdownFile(itemPath)
+		isMarkdown := markdown.IsMarkdownFile(itemPath)
 		if !isMarkdown {
 			continue
 		}

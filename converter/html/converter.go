@@ -5,6 +5,7 @@
 package html
 
 import (
+	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"strings"
@@ -26,7 +27,7 @@ func Convert(item *repository.Item, rawLines []string) string {
 	rawMarkdownContent = tableRenderer(rawMarkdownContent)
 
 	// markdown to html
-	html := markdownToHtml(rawMarkdownContent)
+	html := markdown.ToHtml(rawMarkdownContent)
 
 	return html
 }
