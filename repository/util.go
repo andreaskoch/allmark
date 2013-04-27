@@ -20,7 +20,15 @@ func isReservedDirectory(path string) bool {
 		return false
 	}
 
+	// get the directory name
 	directoryName := strings.ToLower(filepath.Base(path))
+
+	// all dot-directories are ignored
+	if strings.HasPrefix(directoryName, ".") {
+		return true
+	}
+
+	// check the reserved directory names
 	for _, reservedDirectoryName := range ReservedDirectoryNames {
 		if directoryName == strings.ToLower(reservedDirectoryName) {
 			return true
