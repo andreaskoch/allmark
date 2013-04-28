@@ -20,19 +20,16 @@ var iso8601DateFormatPattern = regexp.MustCompile("^(\\d{4})-(\\d{2})-(\\d{2})")
 // The regular expression which matches a hh:mm time format pattern (e.g 21:13).
 var timeFormatPattern = regexp.MustCompile("\\s(\\d{2}):(\\d{2})")
 
-// Represents the smallest possible value of time.Tine
-var MinDate time.Time
-
 // ParseIso8601Date parses a ISO 8601 date string (e.g. 2013-02-08 21:13)
-// and returns the time value it represents. 
-func ParseIso8601Date(value string) (time.Time, error) {
+// and returns the time value it represents.
+func ParseIso8601Date(value string, fallback time.Time) (time.Time, error) {
 
 	// Parse the date component (e.g. "2013-02-08")
 	// check if the value matches the ISO 8601 Date pattern
 	isValidIso8601Date, dateComponents := util.IsMatch(value, iso8601DateFormatPattern)
 
 	if !isValidIso8601Date {
-		return MinDate, errors.New(fmt.Sprintf("\"%v\" is not a valid ISO 8601 date", value))
+		return fallback, errors.New(fmt.Sprintf("\"%v\" is not a valid ISO 8601 date", value))
 	}
 
 	// parse year
@@ -91,7 +88,7 @@ func ParseIso8601Date(value string) (time.Time, error) {
 	return time.Date(int(yearInt64), month, int(dayInt64), hour, minute, second, millisecond, time.UTC), nil
 }
 
-// GetMonth returns the time.Month value for 
+// GetMonth returns the time.Month value for
 // a given integer value in the range between 1 and 12.
 func GetMonth(value int) time.Month {
 	switch value {

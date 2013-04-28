@@ -18,6 +18,7 @@ func createCollectionMapperFunc(parsedItem *parser.ParsedItem, pathProvider *pat
 		Description: parsedItem.Description,
 		Content:     parsedItem.ConvertedContent,
 		Entries:     getEntries(parsedItem, pathProvider.UseTempDir(), targetFormat),
+		Date:        formatDate(parsedItem.MetaData.Date),
 		Type:        parsedItem.MetaData.ItemType,
 		LanguageTag: getTwoLetterLanguageCode(parsedItem.MetaData.Language),
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -53,10 +54,18 @@ type ParsedItem struct {
 	ConvertedContent string
 }
 
-func NewParsedItem(item *repository.Item) (*ParsedItem, error) {
+func Parse(item *repository.Item) (*ParsedItem, error) {
+	if item.IsVirtual() {
+		return parseVirtual(item)
+	}
+
+	return parsePhysical(item)
+}
+
+func parseVirtual(item *repository.Item) (*ParsedItem, error) {
 
 	if item == nil {
-		return nil, fmt.Errorf("csadsa")
+		return nil, fmt.Errorf("Cannot create meta data from nil.")
 	}
 
 	title := filepath.Base(item.Directory())
@@ -76,19 +85,33 @@ func NewParsedItem(item *repository.Item) (*ParsedItem, error) {
 	return result, nil
 }
 
-func Parse(lines []string, item *repository.Item) (*ParsedItem, error) {
+func parsePhysical(item *repository.Item) (*ParsedItem, error) {
 
-	// parse meta data
+	// open the file
+	file, err := os.Open(item.Path())
+	if err != nil {
+		return nil, fmt.Errorf("%s", err)
+	}
+
+	defer file.Close()
+
+	// get the raw lines
+	lines := util.GetLines(file)
+
+	// create a result
 	result := &ParsedItem{
 		Item: item,
 	}
 
-	result.MetaData, lines = parseMetaData(lines, func() string {
+	// parse the meta data
+	fallbackItemTypeFunc := func() string {
 		return getItemTypeFromFilename(item.Path())
-	})
+	}
 
-	itemType := result.MetaData.ItemType
-	switch itemType {
+	result.MetaData, lines = parseMetaData(item, lines, fallbackItemTypeFunc)
+
+	// parse the content
+	switch itemType := result.MetaData.ItemType; itemType {
 	case DocumentItemType, CollectionItemType, RepositoryItemType:
 		{
 			if success, err := parseDocumentLikeItem(result, lines); success {
@@ -105,9 +128,11 @@ func Parse(lines []string, item *repository.Item) (*ParsedItem, error) {
 				return nil, err
 			}
 		}
+	default:
+		return nil, fmt.Errorf("Item %q (type: %s) cannot be parsed.", item.Path(), itemType)
 	}
 
-	return nil, fmt.Errorf("Item %q (type: %s) cannot be parsed.", item.Path(), itemType)
+	panic("Unreachable")
 }
 
 // Parse an item with a title, description and content

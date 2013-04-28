@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+var minDate time.Time
+
 type MetaData struct {
 	Language string
 	Date     time.Time
@@ -21,7 +23,7 @@ type MetaData struct {
 
 func newMetaData(item *repository.Item) (MetaData, error) {
 
-	date, err := util.GetModificationTime(item.Path())
+	date, err := getItemModificationTime(item)
 	if err != nil {
 		return MetaData{}, err
 	}
@@ -34,14 +36,22 @@ func newMetaData(item *repository.Item) (MetaData, error) {
 	return metaData, nil
 }
 
-func parseMetaData(lines []string, getFallbackItemType func() string) (MetaData, []string) {
+func parseMetaData(item *repository.Item, lines []string, getFallbackItemType func() string) (MetaData, []string) {
 
 	metaData := MetaData{}
+
+	// apply fallback item type
+	metaData.ItemType = getFallbackItemType()
+
+	// apply the fallback date
+	fallbackDate := minDate
+	if date, err := getItemModificationTime(item); err == nil {
+		metaData.Date = date
+	}
 
 	// find the meta data section
 	metaDataLocation, lines := locateMetaData(lines)
 	if !metaDataLocation.Found {
-		metaData.ItemType = getFallbackItemType()
 		return metaData, lines
 	}
 
@@ -68,10 +78,8 @@ func parseMetaData(lines []string, getFallbackItemType func() string) (MetaData,
 
 		case "date":
 			{
-				date, err := date.ParseIso8601Date(value)
-				if err == nil {
-					metaData.Date = date
-				}
+				date, _ := date.ParseIso8601Date(value, fallbackDate)
+				metaData.Date = date
 				break
 			}
 
@@ -91,11 +99,6 @@ func parseMetaData(lines []string, getFallbackItemType func() string) (MetaData,
 			}
 
 		}
-	}
-
-	// check item type
-	if metaData.ItemType == "" {
-		metaData.ItemType = getFallbackItemType() // use fallback type
 	}
 
 	return metaData, lines
@@ -167,4 +170,13 @@ func getTagsFromValue(value string) []string {
 	}
 
 	return tags
+}
+
+func getItemModificationTime(item *repository.Item) (time.Time, error) {
+	date, err := util.GetModificationTime(item.Path())
+	if err != nil {
+		return minDate, err
+	}
+
+	return date, nil
 }

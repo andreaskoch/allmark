@@ -15,6 +15,7 @@ type Model struct {
 	Content     string
 	LanguageTag string
 	Type        string
+	Date        string
 	Entries     []Model
 }
 

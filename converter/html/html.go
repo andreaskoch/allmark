@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func Convert(item *repository.Item, rawLines []string) string {
+func ToHtml(item *repository.Item, rawLines []string) string {
 
 	// create context
 	fileIndex := item.Files

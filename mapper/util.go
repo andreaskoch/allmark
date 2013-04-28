@@ -8,6 +8,7 @@ import (
 	"github.com/andreaskoch/allmark/util"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // Get ISO 639-1 language code from a given language string (e.g. "en-US" => "en", "de-DE" => "de")
@@ -36,4 +37,8 @@ func getTwoLetterLanguageCode(languageString string) string {
 
 	// use fallback
 	return fallbackLangueCode
+}
+
+func formatDate(date time.Time) string {
+	return date.Format("2006-01-02")
 }

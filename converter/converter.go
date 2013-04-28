@@ -5,8 +5,6 @@ import (
 	"github.com/andreaskoch/allmark/converter/html"
 	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/repository"
-	"github.com/andreaskoch/allmark/util"
-	"os"
 )
 
 func Convert(item *repository.Item, targetFormat string) (*parser.ParsedItem, error) {
@@ -20,23 +18,13 @@ func Convert(item *repository.Item, targetFormat string) (*parser.ParsedItem, er
 }
 
 func convertVirtualItem(item *repository.Item, targetFormat string) (*parser.ParsedItem, error) {
-	return parser.NewParsedItem(item)
+	return parser.Parse(item)
 }
 
 func convertPhysicalItem(item *repository.Item, targetFormat string) (*parser.ParsedItem, error) {
-	// open the file
-	file, err := os.Open(item.Path())
-	if err != nil {
-		return nil, fmt.Errorf("%s", err)
-	}
-
-	defer file.Close()
-
-	// get the raw lines
-	lines := util.GetLines(file)
 
 	// parse
-	parsedItem, err := parser.Parse(lines, item)
+	parsedItem, err := parser.Parse(item)
 	if err != nil {
 		return nil, fmt.Errorf("%s", err)
 	}
@@ -44,7 +32,7 @@ func convertPhysicalItem(item *repository.Item, targetFormat string) (*parser.Pa
 	// convert content
 	switch targetFormat {
 	default:
-		parsedItem.ConvertedContent = html.Convert(item, parsedItem.RawContent)
+		parsedItem.ConvertedContent = html.ToHtml(item, parsedItem.RawContent)
 	}
 
 	return parsedItem, nil

@@ -18,6 +18,7 @@ func createDocumentMapperFunc(parsedItem *parser.ParsedItem, pathProvider *path.
 		Description: parsedItem.Description,
 		Content:     parsedItem.ConvertedContent,
 		LanguageTag: getTwoLetterLanguageCode(parsedItem.MetaData.Language),
+		Date:        formatDate(parsedItem.MetaData.Date),
 		Type:        parsedItem.MetaData.ItemType,
 	}
 

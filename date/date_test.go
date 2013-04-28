@@ -11,6 +11,8 @@ import (
 func Test_ParseIso8601Date_ValidIso8601Dates_NoErrorIsReturned(t *testing.T) {
 
 	// Arrange
+	var fallback time.Time
+
 	dateStrings := []string{
 		"2013-02-08",
 		"2013-01-01",
@@ -23,7 +25,7 @@ func Test_ParseIso8601Date_ValidIso8601Dates_NoErrorIsReturned(t *testing.T) {
 
 	// Act
 	for _, dateString := range dateStrings {
-		_, err := ParseIso8601Date(dateString)
+		_, err := ParseIso8601Date(dateString, fallback)
 
 		// Assert
 		if err != nil {
@@ -40,7 +42,7 @@ func Test_ParseIso8601Date_ValidIso8601Date_WithValidTime_NoErrorIsReturned(t *t
 	dateString := "2013-02-08 21:13"
 
 	// Act
-	_, err := ParseIso8601Date(dateString)
+	_, err := ParseIso8601Date(dateString, fallback)
 
 	// Assert
 	if err != nil {
@@ -65,7 +67,7 @@ func Test_ParseIso8601Date_InvalidIso8601Dates_ErrorIsReturned(t *testing.T) {
 
 	// Act
 	for _, dateString := range dateStrings {
-		_, err := ParseIso8601Date(dateString)
+		_, err := ParseIso8601Date(dateString, fallback)
 
 		// Assert
 		if err == nil {
