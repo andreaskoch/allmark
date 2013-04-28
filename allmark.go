@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/andreaskoch/allmark/config"
 	"github.com/andreaskoch/allmark/renderer"
@@ -12,7 +13,6 @@ import (
 	"github.com/andreaskoch/allmark/util"
 	"os"
 	"strings"
-	"time"
 )
 
 const (
@@ -28,10 +28,34 @@ func main() {
 		useTempDir := false
 		renderer := renderer.New(repositoryPath, config, useTempDir)
 
+		// start rendering
+		fmt.Printf("Rendering repository %q\n\n", repositoryPath)
 		renderer.Execute()
 
-		for {
-			time.Sleep(100 * time.Millisecond)
+		// stop checker
+		fmt.Println(`Write "stop" and press <Enter> to stop rendering.`)
+
+		stop := make(chan bool, 1)
+		go func() {
+			input := bufio.NewReader(os.Stdin)
+
+			for {
+
+				input, err := input.ReadString('\n')
+				if err != nil {
+					fmt.Errorf("%s\n", err)
+				}
+
+				sanatizedInput := strings.ToLower(strings.TrimSpace(input))
+				if sanatizedInput == "stop" {
+					stop <- true
+				}
+			}
+		}()
+
+		select {
+		case <-stop:
+			return
 		}
 	}
 
