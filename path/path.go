@@ -28,7 +28,9 @@ func NewProvider(basePath string, useTempDir bool) *Provider {
 	// create a unique temp directory
 	baseDirHash := util.GetHash(basePath)
 	tempDir := filepath.Join(os.TempDir(), baseDirHash)
-	util.CreateDirectory(tempDir)
+	if useTempDir {
+		util.CreateDirectory(tempDir)
+	}
 
 	return &Provider{
 		basePath:   basePath,
