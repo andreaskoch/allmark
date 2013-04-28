@@ -12,6 +12,7 @@ import (
 	"github.com/andreaskoch/allmark/util"
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -28,6 +29,10 @@ func main() {
 		renderer := renderer.New(repositoryPath, config, useTempDir)
 
 		renderer.Execute()
+
+		for {
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
 
 	serve := func(repositoryPath string) {
