@@ -6,9 +6,25 @@ package templates
 
 import (
 	"github.com/andreaskoch/allmark/parser"
+	"strings"
+)
+
+const (
+	ChildTemplatePlaceholder = "@childtemplate"
 )
 
 func GetTemplate(itemType string) string {
+	masterTemplate := getMasterTemplate()
+	childTempalte := getChildTemplate(itemType)
+
+	return strings.Replace(masterTemplate, ChildTemplatePlaceholder, childTempalte, 1)
+}
+
+func getMasterTemplate() string {
+	return masterTemplate
+}
+
+func getChildTemplate(itemType string) string {
 
 	switch itemType {
 	case parser.DocumentItemType:

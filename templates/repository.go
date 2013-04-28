@@ -4,22 +4,7 @@
 
 package templates
 
-const repositoryTemplate = `<!DOCTYPE HTML>
-<html lang="{{.LanguageTag}}">
-<meta charset="utf-8">
-<head>
-	<title>{{.Title}}</title>
-
-	<link rel="schema.DC" href="http://purl.org/dc/terms/">
-	<meta name="DC.date" content="{{.Date}}">
-
-	<link rel="stylesheet" type="text/css" href="/theme/screen.css">
-</head>
-
-<body>
-
-<article>
-
+const repositoryTemplate = `
 <header>
 <h1>
 {{.Title}}
@@ -44,8 +29,4 @@ const repositoryTemplate = `<!DOCTYPE HTML>
 {{end}}
 </ul>
 </section>
-
-</article>
-
-</body>
-</html>`
+`

@@ -4,22 +4,7 @@
 
 package templates
 
-const documentTemplate = `<!DOCTYPE HTML>
-<html lang="{{.LanguageTag}}">
-<meta charset="utf-8">
-<head>
-	<title>{{.Title}}</title>
-
-	<link rel="schema.DC" href="http://purl.org/dc/terms/">
-	<meta name="DC.date" content="{{.Date}}">
-
-	<link rel="stylesheet" type="text/css" href="/theme/screen.css">
-</head>
-
-<body>
-
-<article>
-
+const documentTemplate = `
 <header>
 <h1>
 {{.Title}}
@@ -33,8 +18,4 @@ const documentTemplate = `<!DOCTYPE HTML>
 <section>
 {{.Content}}
 </section>
-
-</article>
-
-</body>
-</html>`
+`
