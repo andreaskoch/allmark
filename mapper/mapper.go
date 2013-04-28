@@ -15,24 +15,28 @@ import (
 
 type Mapper func(parsedItem *parser.ParsedItem) view.Model
 
-func Map(item *repository.Item, pathProvider *path.Provider, targetFormat string) view.Model {
+func Map(item *repository.Item, pathProvider *path.Provider) view.Model {
 
 	// convert the item
-	parsedItem, err := converter.Convert(item, targetFormat)
+	parsedItem, err := converter.Convert(item)
 	if err != nil {
 		return view.Error(fmt.Sprintf("%s", err), pathProvider.GetWebRoute(item))
 	}
 
-	switch parsedItem.MetaData.ItemType {
+	switch itemType := parsedItem.MetaData.ItemType; itemType {
 	case parser.DocumentItemType:
-		return createDocumentMapperFunc(parsedItem, pathProvider, targetFormat)
+		return createDocumentMapperFunc(parsedItem, pathProvider)
 
 	case parser.MessageItemType:
-		return createMessageMapperFunc(parsedItem, pathProvider, targetFormat)
+		return createMessageMapperFunc(parsedItem, pathProvider)
 
 	case parser.RepositoryItemType, parser.CollectionItemType:
-		return createCollectionMapperFunc(parsedItem, pathProvider, targetFormat)
+		return createCollectionMapperFunc(parsedItem, pathProvider)
+
+	default:
+		return view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType), pathProvider.GetWebRoute(item))
 	}
 
-	return view.Error(fmt.Sprintf("There is no mapper available for items of type %q", parsedItem.MetaData.ItemType), pathProvider.GetWebRoute(item))
+	panic("Unreachable")
+
 }

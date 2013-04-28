@@ -10,7 +10,7 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func createDocumentMapperFunc(parsedItem *parser.ParsedItem, pathProvider *path.Provider, targetFormat string) view.Model {
+func createDocumentMapperFunc(parsedItem *parser.ParsedItem, pathProvider *path.Provider) view.Model {
 
 	return view.Model{
 		Path:        pathProvider.GetWebRoute(parsedItem),

@@ -59,7 +59,7 @@ func renderItem(repositoryPath string, useTempDir bool, item *repository.Item) (
 	pathProvider := path.NewProvider(repositoryPath, useTempDir)
 
 	// create the viewmodel
-	viewModel := mapper.Map(item, pathProvider, "html")
+	viewModel := mapper.Map(item, pathProvider)
 
 	// get a template
 	templateText := templates.GetTemplate(viewModel.Type)

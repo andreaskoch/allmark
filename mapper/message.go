@@ -16,7 +16,7 @@ import (
 // Pattern which matches all HTML/XML tags
 var HtmlTagPattern = regexp.MustCompile(`\<[^\>]*\>`)
 
-func createMessageMapperFunc(parsedItem *parser.ParsedItem, pathProvider *path.Provider, targetFormat string) view.Model {
+func createMessageMapperFunc(parsedItem *parser.ParsedItem, pathProvider *path.Provider) view.Model {
 
 	return view.Model{
 		Path:        pathProvider.GetWebRoute(parsedItem),

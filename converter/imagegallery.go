@@ -1,4 +1,4 @@
-package html
+package converter
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ var (
 	imageGalleryPattern = regexp.MustCompile(`!imagegallery\[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func NewImageGalleryRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {
+func newImageGalleryRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {
 	return func(text string) string {
 		return renderImageGallery(markdown, fileIndex, pathProvider)
 	}

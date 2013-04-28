@@ -2,26 +2,25 @@ package converter
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark/converter/html"
 	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/repository"
 )
 
-func Convert(item *repository.Item, targetFormat string) (*parser.ParsedItem, error) {
+func Convert(item *repository.Item) (*parser.ParsedItem, error) {
 
 	if item.IsVirtual() {
 
-		return convertVirtualItem(item, targetFormat)
+		return convertVirtualItem(item)
 	}
 
-	return convertPhysicalItem(item, targetFormat)
+	return convertPhysicalItem(item)
 }
 
-func convertVirtualItem(item *repository.Item, targetFormat string) (*parser.ParsedItem, error) {
+func convertVirtualItem(item *repository.Item) (*parser.ParsedItem, error) {
 	return parser.Parse(item)
 }
 
-func convertPhysicalItem(item *repository.Item, targetFormat string) (*parser.ParsedItem, error) {
+func convertPhysicalItem(item *repository.Item) (*parser.ParsedItem, error) {
 
 	// parse
 	parsedItem, err := parser.Parse(item)
@@ -30,10 +29,7 @@ func convertPhysicalItem(item *repository.Item, targetFormat string) (*parser.Pa
 	}
 
 	// convert content
-	switch targetFormat {
-	default:
-		parsedItem.ConvertedContent = html.ToHtml(item, parsedItem.RawContent)
-	}
+	parsedItem.ConvertedContent = toHtml(item, parsedItem.RawContent)
 
 	return parsedItem, nil
 }

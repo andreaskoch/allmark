@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package html
+package converter
 
 import (
 	"github.com/andreaskoch/allmark/markdown"
@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func ToHtml(item *repository.Item, rawLines []string) string {
+func toHtml(item *repository.Item, rawLines []string) string {
 
 	// create context
 	fileIndex := item.Files
@@ -19,11 +19,11 @@ func ToHtml(item *repository.Item, rawLines []string) string {
 	rawMarkdownContent := strings.TrimSpace(strings.Join(rawLines, "\n"))
 
 	// image gallery
-	galleryRenderer := NewImageGalleryRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
+	galleryRenderer := newImageGalleryRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
 	rawMarkdownContent = galleryRenderer(rawMarkdownContent)
 
 	// tables
-	tableRenderer := NewTableRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
+	tableRenderer := newTableRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
 	rawMarkdownContent = tableRenderer(rawMarkdownContent)
 
 	// markdown to html

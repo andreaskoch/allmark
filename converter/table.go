@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package html
+package converter
 
 import (
 	"bufio"
@@ -22,7 +22,7 @@ var (
 	tablePattern = regexp.MustCompile(`!csv\[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func NewTableRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {
+func newTableRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {
 	return func(text string) string {
 		return renderTable(markdown, fileIndex, pathProvider)
 	}

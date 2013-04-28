@@ -10,14 +10,14 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func createCollectionMapperFunc(parsedItem *parser.ParsedItem, pathProvider *path.Provider, targetFormat string) view.Model {
+func createCollectionMapperFunc(parsedItem *parser.ParsedItem, pathProvider *path.Provider) view.Model {
 
 	return view.Model{
 		Path:        pathProvider.GetWebRoute(parsedItem),
 		Title:       parsedItem.Title,
 		Description: parsedItem.Description,
 		Content:     parsedItem.ConvertedContent,
-		Entries:     getEntries(parsedItem, pathProvider.UseTempDir(), targetFormat),
+		Entries:     getEntries(parsedItem, pathProvider.UseTempDir()),
 		Date:        formatDate(parsedItem.MetaData.Date),
 		Type:        parsedItem.MetaData.ItemType,
 		LanguageTag: getTwoLetterLanguageCode(parsedItem.MetaData.Language),
@@ -25,7 +25,7 @@ func createCollectionMapperFunc(parsedItem *parser.ParsedItem, pathProvider *pat
 
 }
 
-func getEntries(parsedItem *parser.ParsedItem, useTempDir bool, targetFormat string) []view.Model {
+func getEntries(parsedItem *parser.ParsedItem, useTempDir bool) []view.Model {
 
 	viewModels := make([]view.Model, 0)
 
@@ -33,7 +33,7 @@ func getEntries(parsedItem *parser.ParsedItem, useTempDir bool, targetFormat str
 	relativePathProvider := path.NewProvider(parsedItem.Directory(), useTempDir)
 
 	for _, child := range parsedItem.Childs() {
-		viewModel := Map(child, relativePathProvider, targetFormat)
+		viewModel := Map(child, relativePathProvider)
 		viewModels = append(viewModels, viewModel)
 	}
 
