@@ -35,27 +35,42 @@ const (
 	ThemeFolderRoute = "/theme/"
 )
 
-func Serve(repositoryPath string) {
+type Server struct {
+	repositoryPath string
+	pathProvider   *path.Provider
+	config         *config.Config
+	renderer       *renderer.Renderer
+}
 
-	index := renderer.RenderRepository(repositoryPath, useTempDir)
+func New(repositoryPath string, config *config.Config, useTempDir bool) *Server {
 
-	// get the configuration
-	config := config.GetConfig(repositoryPath)
+	return &Server{
+		repositoryPath: repositoryPath,
+		pathProvider:   path.NewProvider(repositoryPath, useTempDir),
+		config:         config,
+		renderer:       renderer.New(repositoryPath, config, useTempDir),
+	}
+
+}
+
+func (server *Server) Serve() {
+
+	index := server.renderer.Execute()
 
 	// Initialize the routing table
-	initializeRoutes(index)
+	server.initializeRoutes(index)
 
 	// register handlers
 	http.HandleFunc(ItemHandlerRoute, itemHandler)
 	http.HandleFunc(DebugHandlerRoute, indexDebugger)
 
 	// serve theme files
-	if themeFolder := config.ThemeFolder(); util.DirectoryExists(themeFolder) {
+	if themeFolder := server.config.ThemeFolder(); util.DirectoryExists(themeFolder) {
 		http.Handle(ThemeFolderRoute, http.StripPrefix(ThemeFolderRoute, http.FileServer(http.Dir(themeFolder))))
 	}
 
 	// start http server: http
-	httpBinding := getHttpBinding(config)
+	httpBinding := server.getHttpBinding()
 	fmt.Printf("Starting http server %q\n", httpBinding)
 
 	if err := http.ListenAndServe(httpBinding, nil); err != nil {
@@ -63,10 +78,10 @@ func Serve(repositoryPath string) {
 	}
 }
 
-func getHttpBinding(config *config.Config) string {
+func (server *Server) getHttpBinding() string {
 
 	// validate the port
-	port := config.Server.Http.Port
+	port := server.config.Server.Http.Port
 	if port < 1 || port > math.MaxUint16 {
 		panic(fmt.Sprintf("%q is an invalid value for a port. Ports can only be in the range of %v to %v,", port, 1, math.MaxUint16))
 	}
@@ -74,48 +89,47 @@ func getHttpBinding(config *config.Config) string {
 	return fmt.Sprintf(":%v", port)
 }
 
-func initializeRoutes(index *repository.ItemIndex) {
+func (server *Server) initializeRoutes(index *repository.ItemIndex) {
 
 	routes = make(map[string]string)
 
-	pathProvider := path.NewProvider(index.Path(), useTempDir)
 	for _, item := range index.Items() {
-		registerItem(pathProvider, item)
+		server.registerItem(item)
 	}
 }
 
-func registerItem(pathProvider *path.Provider, item *repository.Item) {
+func (server *Server) registerItem(item *repository.Item) {
 
 	// recurse for child items
 	for _, child := range item.Childs() {
-		registerItem(pathProvider, child)
+		server.registerItem(child)
 	}
 
 	// attach change listener
 	item.OnChange("Update routing table on change", func(event *watcher.WatchEvent) {
-		registerItem(pathProvider, item)
+		server.registerItem(item)
 	})
 
 	// get the item route and
 	// add it to the routing table
-	registerRoute(pathProvider, item)
+	server.registerRoute(item)
 
 	// get the file routes and
 	// add them to the routing table
 	for _, file := range item.Files.Items() {
-		registerRoute(pathProvider, file)
+		server.registerRoute(file)
 	}
 }
 
-func registerRoute(pathProvider *path.Provider, pather path.Pather) {
+func (server *Server) registerRoute(pather path.Pather) {
 
 	if pather == nil {
 		log.Printf("Cannot add a route for an uninitialized item %q.\n", pather.Path())
 		return
 	}
 
-	route := pathProvider.GetWebRoute(pather)
-	filePath := pathProvider.GetFilepath(pather)
+	route := server.pathProvider.GetWebRoute(pather)
+	filePath := server.pathProvider.GetFilepath(pather)
 
 	if strings.TrimSpace(route) == "" {
 		log.Println("Cannot add an empty route to the routing table.")

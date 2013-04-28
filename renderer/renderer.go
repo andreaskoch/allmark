@@ -7,6 +7,7 @@ package renderer
 import (
 	"bufio"
 	"fmt"
+	"github.com/andreaskoch/allmark/config"
 	"github.com/andreaskoch/allmark/mapper"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
@@ -17,27 +18,36 @@ import (
 	"text/template"
 )
 
-func RenderRepository(repositoryPath string, useTempDir bool) *repository.ItemIndex {
-	itemIndex, err := repository.NewItemIndex(repositoryPath)
-	if err != nil {
-		fmt.Printf("Cannot create an item index for folder %q. Error: %v", repositoryPath, err)
-		return nil
-	}
-
-	return renderIndex(itemIndex, useTempDir)
+type Renderer struct {
+	repositoryPath string
+	pathProvider   *path.Provider
+	config         *config.Config
 }
 
-func renderIndex(itemIndex *repository.ItemIndex, useTempDir bool) *repository.ItemIndex {
+func New(repositoryPath string, config *config.Config, useTempDir bool) *Renderer {
 
-	repositoryPath := itemIndex.Path()
+	return &Renderer{
+		repositoryPath: repositoryPath,
+		pathProvider:   path.NewProvider(repositoryPath, useTempDir),
+		config:         config,
+	}
+
+}
+
+func (renderer *Renderer) Execute() *repository.ItemIndex {
+	itemIndex, err := repository.NewItemIndex(renderer.repositoryPath)
+	if err != nil {
+		fmt.Printf("Cannot create an item index for folder %q. Error: %v", renderer.repositoryPath, err)
+	}
+
 	for _, item := range itemIndex.Items() {
-		renderItem(repositoryPath, useTempDir, item)
+		renderer.renderItem(item)
 	}
 
 	return itemIndex
 }
 
-func renderItem(repositoryPath string, useTempDir bool, item *repository.Item) (*repository.Item, error) {
+func (renderer *Renderer) renderItem(item *repository.Item) {
 
 	// render child items first
 	for _, child := range item.Childs() {
@@ -47,35 +57,29 @@ func renderItem(repositoryPath string, useTempDir bool, item *repository.Item) (
 			item.Throw(event)
 		})
 
-		renderItem(repositoryPath, useTempDir, child)
+		renderer.renderItem(child)
 	}
 
 	// attach change listener
 	item.OnChange("Render item on change", func(event *watcher.WatchEvent) {
-		renderItem(repositoryPath, useTempDir, item)
+		renderer.renderItem(item)
 	})
 
-	// create a path provider
-	pathProvider := path.NewProvider(repositoryPath, useTempDir)
-
 	// create the viewmodel
-	viewModel := mapper.Map(item, pathProvider)
+	viewModel := mapper.Map(item, renderer.pathProvider)
 
 	// get a template
 	templateText := templates.GetTemplate(viewModel.Type)
 
 	// render the template
-	render(item, pathProvider, templateText, viewModel)
-
-	return item, nil
+	targetPath := renderer.pathProvider.GetRenderTargetPath(item)
+	renderer.writeOutput(viewModel, templateText, targetPath)
 }
 
-func render(item *repository.Item, pathProvider *path.Provider, templateText string, viewModel view.Model) (*repository.Item, error) {
-
-	targetPath := pathProvider.GetRenderTargetPath(item)
+func (renderer *Renderer) writeOutput(viewModel view.Model, templateText string, targetPath string) {
 	file, err := os.Create(targetPath)
 	if err != nil {
-		return item, err
+		fmt.Errorf("%s", err)
 	}
 
 	writer := bufio.NewWriter(file)
@@ -88,6 +92,4 @@ func render(item *repository.Item, pathProvider *path.Provider, templateText str
 	template := template.New(viewModel.Type)
 	template.Parse(templateText)
 	template.Execute(writer, viewModel)
-
-	return item, nil
 }

@@ -24,8 +24,11 @@ const (
 func main() {
 
 	render := func(repositoryPath string) {
+		config := config.GetConfig(repositoryPath)
 		useTempDir := false
-		renderer.RenderRepository(repositoryPath, useTempDir)
+		renderer := renderer.New(repositoryPath, config, useTempDir)
+
+		renderer.Execute()
 
 		for {
 			time.Sleep(100 * time.Millisecond)
@@ -33,7 +36,12 @@ func main() {
 	}
 
 	serve := func(repositoryPath string) {
-		server.Serve(repositoryPath)
+
+		config := config.GetConfig(repositoryPath)
+		useTempDir := false
+		server := server.New(repositoryPath, config, useTempDir)
+
+		server.Serve()
 	}
 
 	init := func(repositoryPath string) {
