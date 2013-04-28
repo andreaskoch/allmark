@@ -6,6 +6,7 @@ package parser
 
 import (
 	"github.com/andreaskoch/allmark/date"
+	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
 	"strings"
 	"time"
@@ -16,6 +17,21 @@ type MetaData struct {
 	Date     time.Time
 	Tags     []string
 	ItemType string
+}
+
+func newMetaData(item *repository.Item) (MetaData, error) {
+
+	date, err := util.GetModificationTime(item.Path())
+	if err != nil {
+		return MetaData{}, err
+	}
+
+	metaData := MetaData{
+		ItemType: RepositoryItemType,
+		Date:     date,
+	}
+
+	return metaData, nil
 }
 
 func parseMetaData(lines []string, getFallbackItemType func() string) (MetaData, []string) {

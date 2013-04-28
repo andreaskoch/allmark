@@ -53,6 +53,29 @@ type ParsedItem struct {
 	ConvertedContent string
 }
 
+func NewParsedItem(item *repository.Item) (*ParsedItem, error) {
+
+	if item == nil {
+		return nil, fmt.Errorf("csadsa")
+	}
+
+	title := filepath.Base(item.Directory())
+
+	metaData, err := newMetaData(item)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &ParsedItem{
+		Item: item,
+
+		Title:    title,
+		MetaData: metaData,
+	}
+
+	return result, nil
+}
+
 func Parse(lines []string, item *repository.Item) (*ParsedItem, error) {
 
 	// parse meta data

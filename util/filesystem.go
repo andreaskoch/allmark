@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // readLine returns a single line (without the ending \n)
@@ -163,4 +164,13 @@ func GetSubDirectories(path string) []string {
 	}
 
 	return directories
+}
+
+func GetModificationTime(path string) (time.Time, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return time.Now(), err
+	}
+
+	return info.ModTime(), nil
 }

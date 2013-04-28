@@ -11,6 +11,19 @@ import (
 
 func Convert(item *repository.Item, targetFormat string) (*parser.ParsedItem, error) {
 
+	if item.IsVirtual() {
+
+		return convertVirtualItem(item, targetFormat)
+	}
+
+	return convertPhysicalItem(item, targetFormat)
+}
+
+func convertVirtualItem(item *repository.Item, targetFormat string) (*parser.ParsedItem, error) {
+	return parser.NewParsedItem(item)
+}
+
+func convertPhysicalItem(item *repository.Item, targetFormat string) (*parser.ParsedItem, error) {
 	// open the file
 	file, err := os.Open(item.Path())
 	if err != nil {

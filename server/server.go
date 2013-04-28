@@ -122,6 +122,5 @@ func registerRoute(pathProvider *path.Provider, pather path.Pather) {
 		return
 	}
 
-	fmt.Printf("Registering route %q\n", route)
 	routes[route] = filePath
 }
