@@ -18,6 +18,7 @@ const (
 	MetaDataFolderName    = ".allmark"
 	ConfigurationFileName = "config"
 	ThemeFolderName       = "theme"
+	TemplatesFolderName   = "templates"
 )
 
 func Initialize(baseFolder string) (*Config, error) {
@@ -164,6 +165,7 @@ type Config struct {
 	baseFolder      string
 	metaDataFolder  string
 	themeFolderBase string
+	templatesFolder string
 }
 
 func (config *Config) BaseFolder() string {
@@ -172,6 +174,10 @@ func (config *Config) BaseFolder() string {
 
 func (config *Config) MetaDataFolder() string {
 	return config.metaDataFolder
+}
+
+func (config *Config) TemplatesFolder() string {
+	return config.templatesFolder
 }
 
 func (config *Config) Filepath() string {
@@ -257,21 +263,25 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 
 func local(baseFolder string) *Config {
 	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
+	templatesFolder := filepath.Join(baseFolder, TemplatesFolderName)
 
 	return &Config{
 		baseFolder:      baseFolder,
 		metaDataFolder:  metaDataFolder,
 		themeFolderBase: metaDataFolder,
+		templatesFolder: templatesFolder,
 	}
 }
 
 func global(baseFolder string) *Config {
 	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
+	templatesFolder := filepath.Join(baseFolder, TemplatesFolderName)
 
 	return &Config{
 		baseFolder:      baseFolder,
 		metaDataFolder:  metaDataFolder,
 		themeFolderBase: metaDataFolder,
+		templatesFolder: templatesFolder,
 	}
 }
 

@@ -19,17 +19,19 @@ import (
 )
 
 type Renderer struct {
-	repositoryPath string
-	pathProvider   *path.Provider
-	config         *config.Config
+	repositoryPath   string
+	pathProvider     *path.Provider
+	templateProvider *templates.TemplateProvider
+	config           *config.Config
 }
 
 func New(repositoryPath string, config *config.Config, useTempDir bool) *Renderer {
 
 	return &Renderer{
-		repositoryPath: repositoryPath,
-		pathProvider:   path.NewProvider(repositoryPath, useTempDir),
-		config:         config,
+		repositoryPath:   repositoryPath,
+		pathProvider:     path.NewProvider(repositoryPath, useTempDir),
+		templateProvider: templates.New(config.TemplatesFolder()),
+		config:           config,
 	}
 
 }
@@ -69,14 +71,18 @@ func (renderer *Renderer) renderItem(item *repository.Item) {
 	viewModel := mapper.Map(item, renderer.pathProvider)
 
 	// get a template
-	templateText := templates.GetTemplate(viewModel.Type)
+	if template, err := renderer.templateProvider.GetTemplate(viewModel.Type); err == nil {
 
-	// render the template
-	targetPath := renderer.pathProvider.GetRenderTargetPath(item)
-	renderer.writeOutput(viewModel, templateText, targetPath)
+		// render the template
+		targetPath := renderer.pathProvider.GetRenderTargetPath(item)
+		renderer.writeOutput(viewModel, template, targetPath)
+	} else {
+		fmt.Fprintf(os.Stderr, "No template for item of type %q.", viewModel.Type)
+	}
+
 }
 
-func (renderer *Renderer) writeOutput(viewModel view.Model, templateText string, targetPath string) {
+func (renderer *Renderer) writeOutput(viewModel view.Model, template *template.Template, targetPath string) {
 	file, err := os.Create(targetPath)
 	if err != nil {
 		fmt.Errorf("%s", err)
@@ -89,7 +95,5 @@ func (renderer *Renderer) writeOutput(viewModel view.Model, templateText string,
 		file.Close()
 	}()
 
-	template := template.New(viewModel.Type)
-	template.Parse(templateText)
 	template.Execute(writer, viewModel)
 }

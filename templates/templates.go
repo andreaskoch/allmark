@@ -7,24 +7,54 @@ package templates
 import (
 	"github.com/andreaskoch/allmark/parser"
 	"strings"
+	"text/template"
 )
 
 const (
 	ChildTemplatePlaceholder = "@childtemplate"
 )
 
-func GetTemplate(itemType string) string {
-	masterTemplate := getMasterTemplate()
-	childTempalte := getChildTemplate(itemType)
-
-	return strings.Replace(masterTemplate, ChildTemplatePlaceholder, childTempalte, 1)
+type TemplateProvider struct {
+	folder string
+	cache  map[string]*template.Template
 }
 
-func getMasterTemplate() string {
+func New(templateFolder string) *TemplateProvider {
+	return &TemplateProvider{
+		folder: templateFolder,
+		cache:  make(map[string]*template.Template),
+	}
+}
+
+func (templateProvider *TemplateProvider) GetTemplate(itemType string) (*template.Template, error) {
+
+	// get template from cache
+	if template, ok := templateProvider.cache[itemType]; ok {
+		return template, nil
+	}
+
+	// assemble to the template
+	masterTemplate := templateProvider.getMasterTemplate()
+	childTempalte := templateProvider.getChildTemplate(itemType)
+	mergedTemplateText := strings.Replace(masterTemplate, ChildTemplatePlaceholder, childTempalte, 1)
+
+	// parse the template
+	template, err := template.New(itemType).Parse(mergedTemplateText)
+	if err != nil {
+		return nil, err
+	}
+
+	// add template to cache
+	templateProvider.cache[itemType] = template
+
+	return template, nil
+}
+
+func (templateProvider *TemplateProvider) getMasterTemplate() string {
 	return masterTemplate
 }
 
-func getChildTemplate(itemType string) string {
+func (templateProvider *TemplateProvider) getChildTemplate(itemType string) string {
 
 	switch itemType {
 	case parser.DocumentItemType:
