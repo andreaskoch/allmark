@@ -15,7 +15,7 @@ import (
 )
 
 func Initialize(baseFolder string) (success bool, err error) {
-	config := config.GetConfig(baseFolder)
+	config := config.Default(baseFolder)
 
 	// create config
 	if _, err := config.Save(); err != nil {

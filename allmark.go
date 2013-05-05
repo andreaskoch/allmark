@@ -25,7 +25,7 @@ const (
 func main() {
 
 	render := func(repositoryPath string) {
-		config := config.GetConfig(repositoryPath)
+		config := config.Get(repositoryPath)
 		useTempDir := false
 		renderer := renderer.New(repositoryPath, config, useTempDir)
 
@@ -62,7 +62,7 @@ func main() {
 
 	serve := func(repositoryPath string) {
 
-		config := config.GetConfig(repositoryPath)
+		config := config.Get(repositoryPath)
 		useTempDir := true
 		server := server.New(repositoryPath, config, useTempDir)
 

@@ -20,7 +20,7 @@ const (
 	TemplatesFolderName   = "templates"
 )
 
-var isHomeDir func(directory string) bool
+var homeDirectory func() string
 
 func init() {
 
@@ -29,36 +29,59 @@ func init() {
 		panic(fmt.Sprintf("Cannot determine the current users home direcotry. Error: %s", err))
 	}
 
-	isHomeDir = func(directory string) bool {
-		return filepath.Clean(directory) == filepath.Clean(usr.HomeDir)
+	homeDirectory = func() string {
+		return filepath.Clean(usr.HomeDir)
 	}
 }
 
-func GetConfig(baseFolder string) *Config {
+func isHomeDir(directory string) bool {
+	return filepath.Clean(directory) == homeDirectory()
+}
 
-	// check if the base folder is the home dir
-	if isHomeDir(baseFolder) {
+func Get(baseFolder string) *Config {
 
-		// return the global config
-		if config, err := global(baseFolder).load(); err == nil {
+	// local
+	if config, err := New(baseFolder).Load(); err == nil {
+		return config
+	}
+
+	// global
+	if !isHomeDir(baseFolder) {
+
+		homeDirectory := homeDirectory()
+		if config, err := New(homeDirectory).Load(); err == nil {
 			return config
 		}
 
-		return defaultConfig(baseFolder)
 	}
 
-	// return the local config
-	if config, err := local(baseFolder).load(); err == nil {
-		return config
-	}
+	// default
+	return Default(baseFolder)
+}
 
-	// return the global config
-	if config, err := global(baseFolder).load(); err == nil {
-		return config
-	}
+func New(baseFolder string) *Config {
+	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
+	templatesFolder := filepath.Join(metaDataFolder, TemplatesFolderName)
 
-	// return the default config
-	return defaultConfig(baseFolder)
+	return &Config{
+		baseFolder:      baseFolder,
+		metaDataFolder:  metaDataFolder,
+		themeFolderBase: metaDataFolder,
+		templatesFolder: templatesFolder,
+	}
+}
+
+func Default(baseFolder string) *Config {
+
+	// create a new config
+	config := New(baseFolder)
+
+	// apply default values
+	config.Server.ThemeFolderName = ThemeFolderName
+	config.Server.Http.Port = 8080
+	config.Web.DefaultLanguage = "en"
+
+	return config
 }
 
 type Http struct {
@@ -109,7 +132,7 @@ func (config *Config) ThemeFolder() string {
 	return filepath.Join(config.themeFolderBase, themeFolderName)
 }
 
-func (config *Config) load() (*Config, error) {
+func (config *Config) Load() (*Config, error) {
 
 	path := config.Filepath()
 
@@ -175,46 +198,4 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 	config.Web = newConfig.Web
 
 	return config, nil
-}
-
-func local(baseFolder string) *Config {
-	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
-	templatesFolder := filepath.Join(metaDataFolder, TemplatesFolderName)
-
-	return &Config{
-		baseFolder:      baseFolder,
-		metaDataFolder:  metaDataFolder,
-		themeFolderBase: metaDataFolder,
-		templatesFolder: templatesFolder,
-	}
-}
-
-func global(baseFolder string) *Config {
-	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
-	templatesFolder := filepath.Join(metaDataFolder, TemplatesFolderName)
-
-	return &Config{
-		baseFolder:      baseFolder,
-		metaDataFolder:  metaDataFolder,
-		themeFolderBase: metaDataFolder,
-		templatesFolder: templatesFolder,
-	}
-}
-
-func defaultConfig(baseFolder string) *Config {
-
-	var config *Config
-
-	if isHomeDir(baseFolder) {
-		config = global(baseFolder) // global config
-	} else {
-		config = local(baseFolder) // local config
-	}
-
-	// set the default values
-	config.Server.ThemeFolderName = ThemeFolderName
-	config.Server.Http.Port = 8080
-	config.Web.DefaultLanguage = "en"
-
-	return config
 }
