@@ -38,10 +38,16 @@ func NewProvider(templateFolder string) *Provider {
 	return &Provider{
 		folder:    templateFolder,
 		templates: templates,
+		cache:     make(map[string]*template.Template),
 	}
 }
 
 func (provider *Provider) GetTemplate(itemType string) (*template.Template, error) {
+
+	// get template from cache
+	if template, ok := provider.cache[itemType]; ok {
+		return template, nil
+	}
 
 	// assemble to the template
 	templateText, err := provider.getTemplateText(itemType)
@@ -54,6 +60,9 @@ func (provider *Provider) GetTemplate(itemType string) (*template.Template, erro
 	if err != nil {
 		return nil, err
 	}
+
+	// add template to cache
+	provider.cache[itemType] = template
 
 	return template, nil
 }
