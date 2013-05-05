@@ -69,8 +69,7 @@ func main() {
 	}
 
 	init := func(repositoryPath string) {
-		_, err := config.Initialize(repositoryPath)
-		if err != nil {
+		if success, err := config.Initialize(repositoryPath); !success {
 			fmt.Println(err)
 		}
 	}

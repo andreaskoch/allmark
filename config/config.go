@@ -22,10 +22,10 @@ const (
 	TemplatesFolderName   = "templates"
 )
 
-func Initialize(baseFolder string) (*Config, error) {
+func Initialize(baseFolder string) (success bool, err error) {
 	homeDirectory, homeDirError := getUserHomeDir()
 	if homeDirError != nil {
-		return nil, fmt.Errorf("Cannot determine the current users home directory location.")
+		return false, fmt.Errorf("Cannot determine the current users home directory location.")
 	}
 
 	if filepath.Clean(baseFolder) == filepath.Clean(homeDirectory) {
@@ -38,13 +38,13 @@ func Initialize(baseFolder string) (*Config, error) {
 func GetConfig(repositoryPath string) *Config {
 
 	// return the local config
-	if exists, localConfig := getLocalConfig(repositoryPath); exists {
+	if exists, localConfig := loadLocalConfigFromDisk(repositoryPath); exists {
 		return localConfig
 	}
 
 	// return the global config
 	if homeDirectory, homeDirError := getUserHomeDir(); homeDirError == nil {
-		if exists, globalConfig := getGlobalConfig(homeDirectory); exists {
+		if exists, globalConfig := loadGlobalConfigFromDisk(homeDirectory); exists {
 			return globalConfig
 		}
 	}
@@ -75,83 +75,68 @@ func createTemplates(baseFolder string) (success bool, err error) {
 	return templateProvider.StoreTemplatesOnDisc()
 }
 
-func initializeLocal(baseFolder string) (*Config, error) {
+func initializeLocal(baseFolder string) (success bool, err error) {
 
 	// get the existing configuration
-	exists, existingConfig := getLocalConfig(baseFolder)
+	exists, existingConfig := loadLocalConfigFromDisk(baseFolder)
 	if !exists {
-		existingConfig = defaultConfig(baseFolder)
-	}
-
-	// create a new configuration
-	config := local(baseFolder)
-	config.apply(existingConfig)
-
-	// create config
-	if _, err := config.save(); err != nil {
-		return nil, fmt.Errorf("Error while creating configuration file %q. Error: ", config.Filepath(), err)
-	}
-
-	fmt.Printf("Local configuration created at %q.\n", config.Filepath())
-
-	// create theme
-	themeFolder := config.ThemeFolder()
-	if success, err := createTheme(themeFolder); !success {
-		return nil, fmt.Errorf("%s", err)
-	}
-
-	fmt.Printf("Local theme created at %q.\n", themeFolder)
-
-	// create templates
-	templateFolder := config.TemplatesFolder()
-	if success, err := createTemplates(templateFolder); !success {
-		return nil, fmt.Errorf("%s", err)
-	}
-
-	fmt.Printf("Local templates created at %q.\n", templateFolder)
-
-	return config, nil
-}
-
-func initializeGlobal(baseFolder string) (*Config, error) {
-
-	// get the existing configuration
-	exists, existingConfig := getGlobalConfig(baseFolder)
-	if !exists {
-		existingConfig = defaultConfig(baseFolder)
+		existingConfig = defaultConfig(baseFolder) // load default config
 	}
 
 	// create a new configuration
 	config := global(baseFolder)
+
+	// apply the existing config
 	config.apply(existingConfig)
+
+	return saveSettingsToDisk(config)
+}
+
+func initializeGlobal(baseFolder string) (success bool, err error) {
+
+	// get the existing configuration
+	exists, existingConfig := loadGlobalConfigFromDisk(baseFolder)
+	if !exists {
+		existingConfig = defaultConfig(baseFolder) // load default config
+	}
+
+	// create a new configuration
+	config := global(baseFolder)
+
+	// apply the existing config
+	config.apply(existingConfig)
+
+	return saveSettingsToDisk(config)
+}
+
+func saveSettingsToDisk(config *Config) (success bool, err error) {
 
 	// create config
 	if _, err := config.save(); err != nil {
-		return nil, fmt.Errorf("Error while creating configuration file %q. Error: ", config.Filepath(), err)
+		return false, fmt.Errorf("Error while creating configuration file %q. Error: ", config.Filepath(), err)
 	}
 
-	fmt.Printf("Global configuration created at %q.\n", config.Filepath())
+	fmt.Printf("Configuration file created at %q.\n", config.Filepath())
 
 	// create theme
 	themeFolder := config.ThemeFolder()
 	if success, err := createTheme(themeFolder); !success {
-		return nil, fmt.Errorf("%s", err)
+		return false, fmt.Errorf("%s", err)
 	}
 
-	fmt.Printf("Global theme created at %q.\n", themeFolder)
+	fmt.Printf("Theme stored in folder %q.\n", themeFolder)
 
 	// create templates
 	templateFolder := config.TemplatesFolder()
 	if success, err := createTemplates(templateFolder); !success {
-		return nil, fmt.Errorf("%s", err)
+		return false, fmt.Errorf("%s", err)
 	}
 
-	fmt.Printf("Global templates created at %q.\n", templateFolder)
-
-	return config, nil
+	fmt.Printf("Templates stored in folder %q.\n", templateFolder)
+	return true, nil
 }
 
-func getLocalConfig(baseFolder string) (exists bool, config *Config) {
+func loadLocalConfigFromDisk(baseFolder string) (exists bool, config *Config) {
 	if config, err := local(baseFolder).load(); err == nil {
 		return true, config
 	}
@@ -159,7 +144,7 @@ func getLocalConfig(baseFolder string) (exists bool, config *Config) {
 	return false, nil
 }
 
-func getGlobalConfig(baseFolder string) (exists bool, config *Config) {
+func loadGlobalConfigFromDisk(baseFolder string) (exists bool, config *Config) {
 	if config, err := global(baseFolder).load(); err == nil {
 		return true, config
 	}
@@ -246,13 +231,12 @@ func (config *Config) save() (*Config, error) {
 	path := config.Filepath()
 
 	// make sure the directory exists
-	directory := filepath.Dir(path)
-	if created := util.CreateDirectory(directory); !created {
-		return config, fmt.Errorf("Could not create the folder %q for the configuration file.", directory)
+	if created, err := util.CreateFile(path); !created {
+		return config, fmt.Errorf("Could not create path %q.\nError: %s\n", path, err)
 	}
 
 	// open the file for writing
-	file, err := os.OpenFile(path, os.O_WRONLY, 0776)
+	file, err := os.OpenFile(path, os.O_WRONLY, 0600)
 	if err != nil {
 		return config, fmt.Errorf("Error while opening file %q for writing.", path)
 	}
