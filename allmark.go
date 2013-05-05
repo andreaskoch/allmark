@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/andreaskoch/allmark/config"
+	"github.com/andreaskoch/allmark/initialization"
 	"github.com/andreaskoch/allmark/renderer"
 	"github.com/andreaskoch/allmark/server"
 	"github.com/andreaskoch/allmark/util"
@@ -69,7 +70,7 @@ func main() {
 	}
 
 	init := func(repositoryPath string) {
-		if success, err := config.Initialize(repositoryPath); !success {
+		if success, err := initialization.Initialize(repositoryPath); !success {
 			fmt.Println(err)
 		}
 	}

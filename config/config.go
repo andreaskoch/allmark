@@ -7,8 +7,6 @@ package config
 import (
 	"bufio"
 	"fmt"
-	"github.com/andreaskoch/allmark/templates"
-	"github.com/andreaskoch/allmark/themes"
 	"github.com/andreaskoch/allmark/util"
 	"os"
 	"os/user"
@@ -22,134 +20,45 @@ const (
 	TemplatesFolderName   = "templates"
 )
 
-func Initialize(baseFolder string) (success bool, err error) {
-	homeDirectory, homeDirError := getUserHomeDir()
-	if homeDirError != nil {
-		return false, fmt.Errorf("Cannot determine the current users home directory location.")
+var isHomeDir func(directory string) bool
+
+func init() {
+
+	usr, err := user.Current()
+	if err != nil {
+		panic(fmt.Sprintf("Cannot determine the current users home direcotry. Error: %s", err))
 	}
 
-	if filepath.Clean(baseFolder) == filepath.Clean(homeDirectory) {
-		return initializeGlobal(baseFolder)
+	isHomeDir = func(directory string) bool {
+		return filepath.Clean(directory) == filepath.Clean(usr.HomeDir)
 	}
-
-	return initializeLocal(baseFolder)
 }
 
-func GetConfig(repositoryPath string) *Config {
+func GetConfig(baseFolder string) *Config {
+
+	// check if the base folder is the home dir
+	if isHomeDir(baseFolder) {
+
+		// return the global config
+		if config, err := global(baseFolder).load(); err == nil {
+			return config
+		}
+
+		return defaultConfig(baseFolder)
+	}
 
 	// return the local config
-	if exists, localConfig := loadLocalConfigFromDisk(repositoryPath); exists {
-		return localConfig
+	if config, err := local(baseFolder).load(); err == nil {
+		return config
 	}
 
 	// return the global config
-	if homeDirectory, homeDirError := getUserHomeDir(); homeDirError == nil {
-		if exists, globalConfig := loadGlobalConfigFromDisk(homeDirectory); exists {
-			return globalConfig
-		}
+	if config, err := global(baseFolder).load(); err == nil {
+		return config
 	}
 
 	// return the default config
-	return defaultConfig(repositoryPath)
-}
-
-func createTheme(baseFolder string) (success bool, err error) {
-	if !util.CreateDirectory(baseFolder) {
-		return false, fmt.Errorf("Unable to create theme folder %q.", baseFolder)
-	}
-
-	themeFile := filepath.Join(baseFolder, "screen.css")
-	file, err := os.Create(themeFile)
-	if err != nil {
-		return false, fmt.Errorf("Unable to create theme file %q.", themeFile)
-	}
-
-	defer file.Close()
-	file.WriteString(themes.GetTheme())
-
-	return true, nil
-}
-
-func createTemplates(baseFolder string) (success bool, err error) {
-	templateProvider := templates.NewProvider(baseFolder)
-	return templateProvider.StoreTemplatesOnDisc()
-}
-
-func initializeLocal(baseFolder string) (success bool, err error) {
-
-	// get the existing configuration
-	exists, existingConfig := loadLocalConfigFromDisk(baseFolder)
-	if !exists {
-		existingConfig = defaultConfig(baseFolder) // load default config
-	}
-
-	// create a new configuration
-	config := global(baseFolder)
-
-	// apply the existing config
-	config.apply(existingConfig)
-
-	return saveSettingsToDisk(config)
-}
-
-func initializeGlobal(baseFolder string) (success bool, err error) {
-
-	// get the existing configuration
-	exists, existingConfig := loadGlobalConfigFromDisk(baseFolder)
-	if !exists {
-		existingConfig = defaultConfig(baseFolder) // load default config
-	}
-
-	// create a new configuration
-	config := global(baseFolder)
-
-	// apply the existing config
-	config.apply(existingConfig)
-
-	return saveSettingsToDisk(config)
-}
-
-func saveSettingsToDisk(config *Config) (success bool, err error) {
-
-	// create config
-	if _, err := config.save(); err != nil {
-		return false, fmt.Errorf("Error while creating configuration file %q. Error: ", config.Filepath(), err)
-	}
-
-	fmt.Printf("Configuration file created at %q.\n", config.Filepath())
-
-	// create theme
-	themeFolder := config.ThemeFolder()
-	if success, err := createTheme(themeFolder); !success {
-		return false, fmt.Errorf("%s", err)
-	}
-
-	fmt.Printf("Theme stored in folder %q.\n", themeFolder)
-
-	// create templates
-	templateFolder := config.TemplatesFolder()
-	if success, err := createTemplates(templateFolder); !success {
-		return false, fmt.Errorf("%s", err)
-	}
-
-	fmt.Printf("Templates stored in folder %q.\n", templateFolder)
-	return true, nil
-}
-
-func loadLocalConfigFromDisk(baseFolder string) (exists bool, config *Config) {
-	if config, err := local(baseFolder).load(); err == nil {
-		return true, config
-	}
-
-	return false, nil
-}
-
-func loadGlobalConfigFromDisk(baseFolder string) (exists bool, config *Config) {
-	if config, err := global(baseFolder).load(); err == nil {
-		return true, config
-	}
-
-	return false, nil
+	return defaultConfig(baseFolder)
 }
 
 type Http struct {
@@ -226,7 +135,7 @@ func (config *Config) load() (*Config, error) {
 	return config, nil
 }
 
-func (config *Config) save() (*Config, error) {
+func (config *Config) Save() (*Config, error) {
 
 	path := config.Filepath()
 
@@ -293,20 +202,19 @@ func global(baseFolder string) *Config {
 }
 
 func defaultConfig(baseFolder string) *Config {
-	defaultConfig := local(baseFolder)
-	defaultConfig.Server.ThemeFolderName = ThemeFolderName
-	defaultConfig.Server.Http.Port = 8080
-	defaultConfig.Web.DefaultLanguage = "en"
 
-	return defaultConfig
-}
+	var config *Config
 
-// Get the current users home directory path
-func getUserHomeDir() (string, error) {
-	usr, err := user.Current()
-	if err != nil {
-		return "", fmt.Errorf("Cannot determine the current users home direcotry. Error: %s", err)
+	if isHomeDir(baseFolder) {
+		config = global(baseFolder) // global config
+	} else {
+		config = local(baseFolder) // local config
 	}
 
-	return usr.HomeDir, nil
+	// set the default values
+	config.Server.ThemeFolderName = ThemeFolderName
+	config.Server.Http.Port = 8080
+	config.Web.DefaultLanguage = "en"
+
+	return config
 }
