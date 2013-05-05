@@ -7,6 +7,7 @@ package templates
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/types"
+	"github.com/andreaskoch/allmark/watcher"
 	"strings"
 	"text/template"
 )
@@ -21,6 +22,8 @@ const (
 )
 
 type Provider struct {
+	TemplateChanged chan *watcher.WatchEvent
+
 	folder    string
 	templates map[string]*Template
 	cache     map[string]*template.Template
@@ -39,11 +42,28 @@ func NewProvider(templateFolder string) *Provider {
 	templates[types.CollectionItemType] = NewTemplate(templateFolder, types.CollectionItemType, collectionTemplate)
 	templates[types.RepositoryItemType] = NewTemplate(templateFolder, types.RepositoryItemType, repositoryTemplate)
 
-	return &Provider{
+	// create the provider
+	provider := &Provider{
+		TemplateChanged: make(chan *watcher.WatchEvent, 1),
+
 		folder:    templateFolder,
 		templates: templates,
 		cache:     make(map[string]*template.Template),
 	}
+
+	// watch for changes
+	for _, template := range provider.templates {
+		template.OnChange(fmt.Sprintf("Template %q changed.", template.Name()), func(event *watcher.WatchEvent) {
+
+			// clear the template cache
+			provider.ClearCache()
+
+			// send out a "template-changed" event
+			provider.TemplateChanged <- event
+		})
+	}
+
+	return provider
 }
 
 func (provider *Provider) GetTemplate(itemType string) (*template.Template, error) {
@@ -79,6 +99,12 @@ func (provider *Provider) StoreTemplatesOnDisc() (success bool, err error) {
 	}
 
 	return true, nil
+}
+
+func (provider *Provider) ClearCache() {
+	fmt.Println("Clearing the template cache.")
+
+	provider.cache = make(map[string]*template.Template)
 }
 
 func (provider *Provider) getTemplateText(childTemplateName string) (string, error) {

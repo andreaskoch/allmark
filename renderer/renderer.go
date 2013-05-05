@@ -37,35 +37,82 @@ func New(repositoryPath string, config *config.Config, useTempDir bool) *Rendere
 }
 
 func (renderer *Renderer) Execute() *repository.ItemIndex {
-	itemIndex, err := repository.NewItemIndex(renderer.repositoryPath)
+
+	// create an index from the repository
+	index, err := repository.NewItemIndex(renderer.repositoryPath)
 	if err != nil {
-		fmt.Printf("Cannot create an item index for folder %q. Error: %v", renderer.repositoryPath, err)
+		panic(fmt.Sprintf("Cannot create an item index for folder %q.\nError: %s\n", renderer.repositoryPath, err))
 	}
 
-	for _, item := range itemIndex.Items() {
-		renderer.renderItem(item)
+	// get all items
+	items := index.Items()
+
+	// create a foreach function
+	var forEachItem = func(expression func(item *repository.Item)) {
+		for _, item := range items {
+			expression(item)
+		}
 	}
 
-	return itemIndex
+	// create a "attach change listener to each item" function
+	attachChangeListenerFunc := func() {
+		forEachItem(func(item *repository.Item) {
+			renderer.attachChangeListener(item)
+		})
+	}
+
+	// attach a change listeners to each item
+	defer attachChangeListenerFunc()
+
+	// create a "render each item" function
+	renderFunc := func() {
+		forEachItem(func(item *repository.Item) {
+			renderer.renderItem(item)
+		})
+	}
+
+	// render each item
+	renderFunc()
+
+	// re-render on template change
+	go func() {
+		for {
+			select {
+			case event := <-renderer.templateProvider.TemplateChanged:
+				fmt.Printf("Template %q changed. Rendering all items.\n", event.Filepath)
+				renderFunc()
+			}
+		}
+	}()
+
+	return index
 }
 
-func (renderer *Renderer) renderItem(item *repository.Item) {
+func (renderer *Renderer) attachChangeListener(item *repository.Item) {
 
-	// render child items first
 	for _, child := range item.Childs() {
 
-		// attach change listener
+		// aggregate child events
 		child.OnChange("Throw Item Events on Child Item change", func(event *watcher.WatchEvent) {
 			item.Throw(event)
 		})
 
-		renderer.renderItem(child)
+		// recurse
+		renderer.attachChangeListener(child)
 	}
 
 	// attach change listener
 	item.OnChange("Render item on change", func(event *watcher.WatchEvent) {
 		renderer.renderItem(item)
 	})
+}
+
+func (renderer *Renderer) renderItem(item *repository.Item) {
+
+	// render childs first
+	for _, child := range item.Childs() {
+		renderer.renderItem(child) // recurse
+	}
 
 	// create the viewmodel
 	viewModel := mapper.Map(item, renderer.pathProvider)
@@ -76,6 +123,7 @@ func (renderer *Renderer) renderItem(item *repository.Item) {
 		// render the template
 		targetPath := renderer.pathProvider.GetRenderTargetPath(item)
 		renderer.writeOutput(viewModel, template, targetPath)
+
 	} else {
 		fmt.Fprintf(os.Stderr, "No template for item of type %q.", viewModel.Type)
 	}
