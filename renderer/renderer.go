@@ -21,7 +21,7 @@ import (
 type Renderer struct {
 	repositoryPath   string
 	pathProvider     *path.Provider
-	templateProvider *templates.TemplateProvider
+	templateProvider *templates.Provider
 	config           *config.Config
 }
 
@@ -30,7 +30,7 @@ func New(repositoryPath string, config *config.Config, useTempDir bool) *Rendere
 	return &Renderer{
 		repositoryPath:   repositoryPath,
 		pathProvider:     path.NewProvider(repositoryPath, useTempDir),
-		templateProvider: templates.New(config.TemplatesFolder()),
+		templateProvider: templates.NewProvider(config.TemplatesFolder()),
 		config:           config,
 	}
 

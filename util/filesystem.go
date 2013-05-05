@@ -48,8 +48,8 @@ func GetLines(inFile io.Reader) []string {
 	return lines
 }
 
-func CreateDirectory(directoryPath string) bool {
-	err := os.MkdirAll(directoryPath, 0700)
+func CreateDirectory(path string) bool {
+	err := os.MkdirAll(path, 0700)
 	return err == nil
 }
 

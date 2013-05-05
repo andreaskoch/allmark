@@ -7,6 +7,7 @@ package config
 import (
 	"bufio"
 	"fmt"
+	"github.com/andreaskoch/allmark/templates"
 	"github.com/andreaskoch/allmark/themes"
 	"github.com/andreaskoch/allmark/util"
 	"os"
@@ -69,6 +70,11 @@ func createTheme(baseFolder string) (success bool, err error) {
 	return true, nil
 }
 
+func createTemplates(baseFolder string) (success bool, err error) {
+	templateProvider := templates.NewProvider(baseFolder)
+	return templateProvider.StoreTemplatesOnDisc()
+}
+
 func initializeLocal(baseFolder string) (*Config, error) {
 
 	// get the existing configuration
@@ -95,6 +101,14 @@ func initializeLocal(baseFolder string) (*Config, error) {
 	}
 
 	fmt.Printf("Local theme created at %q.\n", themeFolder)
+
+	// create templates
+	templateFolder := config.TemplatesFolder()
+	if success, err := createTemplates(templateFolder); !success {
+		return nil, fmt.Errorf("%s", err)
+	}
+
+	fmt.Printf("Local templates created at %q.\n", templateFolder)
 
 	return config, nil
 }
@@ -125,6 +139,14 @@ func initializeGlobal(baseFolder string) (*Config, error) {
 	}
 
 	fmt.Printf("Global theme created at %q.\n", themeFolder)
+
+	// create templates
+	templateFolder := config.TemplatesFolder()
+	if success, err := createTemplates(templateFolder); !success {
+		return nil, fmt.Errorf("%s", err)
+	}
+
+	fmt.Printf("Global templates created at %q.\n", templateFolder)
 
 	return config, nil
 }
@@ -223,9 +245,10 @@ func (config *Config) save() (*Config, error) {
 
 	path := config.Filepath()
 
-	// create or overwrite the config file
-	if created, err := util.CreateFile(path); !created {
-		return config, fmt.Errorf("Could not create configuration file %q. Error: ", path, err)
+	// make sure the directory exists
+	directory := filepath.Dir(path)
+	if created := util.CreateDirectory(directory); !created {
+		return config, fmt.Errorf("Could not create the folder %q for the configuration file.", directory)
 	}
 
 	// open the file for writing
@@ -263,7 +286,7 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 
 func local(baseFolder string) *Config {
 	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
-	templatesFolder := filepath.Join(baseFolder, TemplatesFolderName)
+	templatesFolder := filepath.Join(metaDataFolder, TemplatesFolderName)
 
 	return &Config{
 		baseFolder:      baseFolder,
@@ -275,7 +298,7 @@ func local(baseFolder string) *Config {
 
 func global(baseFolder string) *Config {
 	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
-	templatesFolder := filepath.Join(baseFolder, TemplatesFolderName)
+	templatesFolder := filepath.Join(metaDataFolder, TemplatesFolderName)
 
 	return &Config{
 		baseFolder:      baseFolder,

@@ -69,7 +69,10 @@ func main() {
 	}
 
 	init := func(repositoryPath string) {
-		config.Initialize(repositoryPath)
+		_, err := config.Initialize(repositoryPath)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	parseCommandLineArguments(os.Args, func(commandName, repositoryPath string) (commandWasFound bool) {
