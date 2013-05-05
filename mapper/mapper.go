@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
+	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/view"
 )
 
@@ -24,13 +25,13 @@ func Map(item *repository.Item, pathProvider *path.Provider) view.Model {
 	}
 
 	switch itemType := parsedItem.MetaData.ItemType; itemType {
-	case parser.DocumentItemType:
+	case types.DocumentItemType:
 		return createDocumentMapperFunc(parsedItem, pathProvider)
 
-	case parser.MessageItemType:
+	case types.MessageItemType:
 		return createMessageMapperFunc(parsedItem, pathProvider)
 
-	case parser.RepositoryItemType, parser.CollectionItemType:
+	case types.RepositoryItemType, types.CollectionItemType:
 		return createCollectionMapperFunc(parsedItem, pathProvider)
 
 	default:

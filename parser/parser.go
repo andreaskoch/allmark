@@ -8,20 +8,12 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark/repository"
+	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/util"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-)
-
-const (
-	UnknownItemType      = "unknown"
-	DocumentItemType     = "document"
-	PresentationItemType = "presentation"
-	CollectionItemType   = "collection"
-	MessageItemType      = "message"
-	RepositoryItemType   = "repository"
 )
 
 var (
@@ -112,7 +104,7 @@ func parsePhysical(item *repository.Item) (*ParsedItem, error) {
 
 	// parse the content
 	switch itemType := result.MetaData.ItemType; itemType {
-	case DocumentItemType, CollectionItemType, RepositoryItemType:
+	case types.DocumentItemType, types.CollectionItemType, types.RepositoryItemType:
 		{
 			if success, err := parseDocumentLikeItem(result, lines); success {
 				return result, nil
@@ -120,7 +112,7 @@ func parsePhysical(item *repository.Item) (*ParsedItem, error) {
 				return nil, err
 			}
 		}
-	case MessageItemType:
+	case types.MessageItemType:
 		{
 			if success, err := parseMessage(result, lines); success {
 				return result, nil
@@ -192,7 +184,7 @@ func getNextLinenumber(lineNumber int, lines []string) int {
 func getItemTypeFromFilename(filenameOrPath string) string {
 
 	if !markdown.IsMarkdownFile(filenameOrPath) {
-		return UnknownItemType // abort if file does not have a markdown extension
+		return types.UnknownItemType // abort if file does not have a markdown extension
 	}
 
 	extension := filepath.Ext(filenameOrPath)
@@ -200,24 +192,24 @@ func getItemTypeFromFilename(filenameOrPath string) string {
 	filename := filenameWithExtension[0:(strings.LastIndex(filenameWithExtension, extension))]
 
 	switch strings.ToLower(filename) {
-	case DocumentItemType:
-		return DocumentItemType
+	case types.DocumentItemType:
+		return types.DocumentItemType
 
-	case PresentationItemType:
-		return PresentationItemType
+	case types.PresentationItemType:
+		return types.PresentationItemType
 
-	case CollectionItemType:
-		return CollectionItemType
+	case types.CollectionItemType:
+		return types.CollectionItemType
 
-	case MessageItemType:
-		return MessageItemType
+	case types.MessageItemType:
+		return types.MessageItemType
 
-	case RepositoryItemType:
-		return RepositoryItemType
+	case types.RepositoryItemType:
+		return types.RepositoryItemType
 
 	default:
-		return DocumentItemType
+		return types.DocumentItemType
 	}
 
-	return UnknownItemType
+	return types.UnknownItemType
 }

@@ -6,14 +6,18 @@ package templates
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/types"
 	"strings"
 	"text/template"
 )
 
 const (
+	// Template placholders
 	ChildTemplatePlaceholder = "@childtemplate"
-	MasterTemplateName       = "master"
-	ErrorTemplateName        = "error"
+
+	// Template names
+	MasterTemplateName = "master"
+	ErrorTemplateName  = "error"
 )
 
 type Provider struct {
@@ -30,10 +34,10 @@ func NewProvider(templateFolder string) *Provider {
 	templates[MasterTemplateName] = NewTemplate(templateFolder, MasterTemplateName, masterTemplate)
 	templates[ErrorTemplateName] = NewTemplate(templateFolder, ErrorTemplateName, errorTemplate)
 
-	templates["document"] = NewTemplate(templateFolder, "document", documentTemplate)
-	templates["message"] = NewTemplate(templateFolder, "message", messageTemplate)
-	templates["collection"] = NewTemplate(templateFolder, "collection", collectionTemplate)
-	templates["repository"] = NewTemplate(templateFolder, "repository", repositoryTemplate)
+	templates[types.DocumentItemType] = NewTemplate(templateFolder, types.DocumentItemType, documentTemplate)
+	templates[types.MessageItemType] = NewTemplate(templateFolder, types.MessageItemType, messageTemplate)
+	templates[types.CollectionItemType] = NewTemplate(templateFolder, types.CollectionItemType, collectionTemplate)
+	templates[types.RepositoryItemType] = NewTemplate(templateFolder, types.RepositoryItemType, repositoryTemplate)
 
 	return &Provider{
 		folder:    templateFolder,

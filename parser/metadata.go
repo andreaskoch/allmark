@@ -7,6 +7,7 @@ package parser
 import (
 	"github.com/andreaskoch/allmark/date"
 	"github.com/andreaskoch/allmark/repository"
+	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/util"
 	"strings"
 	"time"
@@ -29,7 +30,7 @@ func newMetaData(item *repository.Item) (MetaData, error) {
 	}
 
 	metaData := MetaData{
-		ItemType: RepositoryItemType,
+		ItemType: types.RepositoryItemType,
 		Date:     date,
 	}
 

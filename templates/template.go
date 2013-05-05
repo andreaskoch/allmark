@@ -7,6 +7,7 @@ package templates
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/util"
+	"github.com/andreaskoch/allmark/watcher"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,7 +23,15 @@ func NewTemplate(templateFolder string, name string, text string) *Template {
 	templateFilename := name + TemplateFileExtension
 	templateFilePath := filepath.Join(templateFolder, templateFilename)
 
+	// create a file change handler
+	changeHandler, err := watcher.NewChangeHandler(templateFilePath)
+	if err != nil {
+		panic(fmt.Sprintf("Could not create a change handler for template %q.\nError: %s\n", templateFilePath, err))
+	}
+
 	return &Template{
+		ChangeHandler: changeHandler,
+
 		name: name,
 		text: text,
 		path: templateFilePath,
@@ -30,6 +39,8 @@ func NewTemplate(templateFolder string, name string, text string) *Template {
 }
 
 type Template struct {
+	*watcher.ChangeHandler
+
 	name string
 	text string
 	path string
