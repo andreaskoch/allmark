@@ -18,6 +18,9 @@ var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Requested route %q\n", requestedPath)
 
+	// make sure the request body is closed
+	defer r.Body.Close()
+
 	filePath, ok := routes[requestedPath]
 	if !ok {
 
