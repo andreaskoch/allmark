@@ -4,16 +4,12 @@
 
 package server
 
-import (
-	"fmt"
-)
-
 type hub struct {
 	// Registered connections.
 	connections map[*connection]bool
 
 	// Inbound messages from the connections.
-	broadcast chan string
+	broadcast chan Message
 
 	// Register requests from the connections.
 	register chan *connection
@@ -23,7 +19,7 @@ type hub struct {
 }
 
 var h = hub{
-	broadcast:   make(chan string),
+	broadcast:   make(chan Message),
 	register:    make(chan *connection),
 	unregister:  make(chan *connection),
 	connections: make(map[*connection]bool),
@@ -34,7 +30,6 @@ func (h *hub) run() {
 		select {
 		case c := <-h.register:
 			{
-				fmt.Printf("Registering %q\n", c.ws.LocalAddr())
 				h.connections[c] = true
 			}
 		case c := <-h.unregister:

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/util"
+	"github.com/andreaskoch/allmark/view"
 	"github.com/andreaskoch/allmark/watcher"
 	"path/filepath"
 )
@@ -18,6 +19,8 @@ const (
 
 type Item struct {
 	*watcher.ChangeHandler
+
+	ViewModel view.Model
 
 	Files      *FileIndex
 	childItems []*Item

@@ -6,7 +6,6 @@ package server
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"fmt"
 )
 
 type connection struct {
@@ -14,13 +13,13 @@ type connection struct {
 	ws *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	send chan string
+	send chan Message
 }
 
 func (c *connection) reader() {
 	for {
-		var message string
-		err := websocket.Message.Receive(c.ws, &message)
+		var message Message
+		err := websocket.JSON.Receive(c.ws, &message)
 		if err != nil {
 			break
 		}
@@ -31,8 +30,7 @@ func (c *connection) reader() {
 
 func (c *connection) writer() {
 	for message := range c.send {
-		fmt.Println("Sending message " + message)
-		err := websocket.Message.Send(c.ws, message)
+		err := websocket.JSON.Send(c.ws, message)
 		if err != nil {
 			break
 		}
@@ -41,7 +39,7 @@ func (c *connection) writer() {
 }
 
 func wsHandler(ws *websocket.Conn) {
-	c := &connection{send: make(chan string, 256), ws: ws}
+	c := &connection{send: make(chan Message, 256), ws: ws}
 	h.register <- c
 	defer func() { h.unregister <- c }()
 	go c.writer()

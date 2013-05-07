@@ -114,10 +114,12 @@ func (server *Server) registerItem(item *repository.Item) {
 	// attach change listener
 	item.OnChange("Update routing table on change", func(event *watcher.WatchEvent) {
 
-		fmt.Println("broadcast")
-		h.broadcast <- "dsa"
-
+		// re-register item on change
 		server.registerItem(item)
+
+		// send update event to connected browsers
+		h.broadcast <- UpdateMessage(item.ViewModel)
+
 	})
 
 	// get the item route and

@@ -26,16 +26,20 @@ func Map(item *repository.Item, pathProvider *path.Provider) view.Model {
 
 	switch itemType := parsedItem.MetaData.ItemType; itemType {
 	case types.DocumentItemType:
-		return createDocumentMapperFunc(parsedItem, pathProvider)
+		item.ViewModel = createDocumentMapperFunc(parsedItem, pathProvider)
+		return item.ViewModel
 
 	case types.MessageItemType:
-		return createMessageMapperFunc(parsedItem, pathProvider)
+		item.ViewModel = createMessageMapperFunc(parsedItem, pathProvider)
+		return item.ViewModel
 
 	case types.RepositoryItemType, types.CollectionItemType:
-		return createCollectionMapperFunc(parsedItem, pathProvider)
+		item.ViewModel = createCollectionMapperFunc(parsedItem, pathProvider)
+		return item.ViewModel
 
 	default:
-		return view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType), pathProvider.GetWebRoute(item))
+		item.ViewModel = view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType), pathProvider.GetWebRoute(item))
+		return item.ViewModel
 	}
 
 	panic("Unreachable")
