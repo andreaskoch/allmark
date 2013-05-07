@@ -25,6 +25,27 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 %s
 </article>
 
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+<script type="text/Javascript">
+    $(function() { 
+	    var conn;
+	 
+	    if (window["WebSocket"]) {
+	        conn = new WebSocket("ws://localhost:8080/ws");
+
+	        conn.onclose = function(evt) {
+	            console.log("Connection closed.")
+	        }
+
+	        conn.onmessage = function(evt) {
+	            console.log(evt)
+	        }
+	    } else {
+	        console.log("Your browser does not support WebSockets.")
+	    }
+    });
+</script>
+
 </body>
 </html>`, ChildTemplatePlaceholder)
 

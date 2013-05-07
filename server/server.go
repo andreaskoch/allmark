@@ -5,6 +5,7 @@
 package server
 
 import (
+	"code.google.com/p/go.net/websocket"
 	"fmt"
 	"github.com/andreaskoch/allmark/config"
 	"github.com/andreaskoch/allmark/path"
@@ -28,8 +29,9 @@ var (
 const (
 
 	// Dynamic Routes
-	ItemHandlerRoute  = "/"
-	DebugHandlerRoute = "/debug/index"
+	ItemHandlerRoute      = "/"
+	DebugHandlerRoute     = "/debug/index"
+	WebSocketHandlerRoute = "/ws"
 
 	// Static Routes
 	ThemeFolderRoute = "/theme/"
@@ -60,9 +62,13 @@ func (server *Server) Serve() {
 	// Initialize the routing table
 	server.initializeRoutes(index)
 
+	// start the websocket hub
+	go h.run()
+
 	// register handlers
 	http.HandleFunc(ItemHandlerRoute, itemHandler)
 	http.HandleFunc(DebugHandlerRoute, indexDebugger)
+	http.Handle(WebSocketHandlerRoute, websocket.Handler(wsHandler))
 
 	// serve theme files
 	if themeFolder := server.config.ThemeFolder(); util.DirectoryExists(themeFolder) {
@@ -107,6 +113,10 @@ func (server *Server) registerItem(item *repository.Item) {
 
 	// attach change listener
 	item.OnChange("Update routing table on change", func(event *watcher.WatchEvent) {
+
+		fmt.Println("broadcast")
+		h.broadcast <- "dsa"
+
 		server.registerItem(item)
 	})
 
