@@ -9,20 +9,19 @@ import (
 )
 
 type Model struct {
-	Path        string
+	Route       string
 	Title       string
 	Description string
 	Content     string
 	LanguageTag string
 	Type        string
 	Date        string
-	Entries     []Model
 }
 
 func Error(msg string, path string) Model {
 	return Model{
 		Title:   fmt.Sprintf("Error: %s", msg),
-		Path:    path,
+		Route:   path,
 		Content: msg,
 		Type:    "error",
 	}

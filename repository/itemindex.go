@@ -18,26 +18,26 @@ type ItemIndex struct {
 	items []*Item
 }
 
-func NewItemIndex(path string) (*ItemIndex, error) {
+func NewItemIndex(indexPath string) (*ItemIndex, error) {
 
 	// check if path exists
-	if !util.PathExists(path) {
-		return nil, fmt.Errorf("The path %q does not exist.", path)
+	if !util.PathExists(indexPath) {
+		return nil, fmt.Errorf("The path %q does not exist.", indexPath)
 	}
 
-	if isReservedDirectory(path) {
-		return nil, fmt.Errorf("The path %q is using a reserved name and cannot be an index.", path)
+	if isReservedDirectory(indexPath) {
+		return nil, fmt.Errorf("The path %q is using a reserved name and cannot be an index.", indexPath)
 	}
 
 	// check if the path is a directory
-	if isDirectory, _ := util.IsDirectory(path); !isDirectory {
-		path = filepath.Dir(path)
+	if isDirectory, _ := util.IsDirectory(indexPath); !isDirectory {
+		indexPath = filepath.Dir(indexPath)
 	}
 
 	// create the index
 	index := &ItemIndex{
-		path:  path,
-		items: findAllItems(path),
+		path:  indexPath,
+		items: findAllItems(indexPath),
 	}
 
 	return index, nil
@@ -77,6 +77,10 @@ func findAllItems(itemDirectory string) []*Item {
 		return nil
 	}
 
+	// create a path provider
+	parentDir := filepath.Dir(itemDirectory)
+	pathProvider := path.NewProvider(parentDir, true)
+
 	// item search
 	directoryContainsItem := false
 	for _, element := range directoryEntries {
@@ -93,7 +97,7 @@ func findAllItems(itemDirectory string) []*Item {
 		childs := getChildItems(itemDirectory)
 
 		// create item
-		item, err := NewItem(itemPath, childs)
+		item, err := NewItem(itemPath, childs, pathProvider)
 		if err != nil {
 			fmt.Printf("Skipping item: %s\n", err)
 			continue
@@ -110,7 +114,7 @@ func findAllItems(itemDirectory string) []*Item {
 	// search in sub directories if there is no item in the current folder
 	if !directoryContainsItem {
 
-		if virtualItem, err := NewVirtualItem(itemDirectory, getChildItems(itemDirectory)); err == nil {
+		if virtualItem, err := NewVirtualItem(itemDirectory, getChildItems(itemDirectory), pathProvider); err == nil {
 			items = append(items, virtualItem)
 		} else {
 			fmt.Println(err)

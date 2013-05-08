@@ -7,7 +7,6 @@ package mapper
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/parser"
-	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/view"
 	"regexp"
 	"time"
@@ -16,10 +15,10 @@ import (
 // Pattern which matches all HTML/XML tags
 var HtmlTagPattern = regexp.MustCompile(`\<[^\>]*\>`)
 
-func createMessageMapperFunc(parsedItem *parser.ParsedItem, pathProvider *path.Provider) view.Model {
+func createMessageMapperFunc(parsedItem *parser.ParsedItem) view.Model {
 
 	return view.Model{
-		Path:        pathProvider.GetWebRoute(parsedItem),
+		Route:       parsedItem.PathProvider().GetWebRoute(parsedItem),
 		Title:       getTitle(parsedItem),
 		Description: getDescription(parsedItem),
 		Content:     parsedItem.ConvertedContent,

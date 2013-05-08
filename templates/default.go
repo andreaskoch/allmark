@@ -72,9 +72,9 @@ const repositoryTemplate = `
 
 <section>
 <ul>
-{{range .Entries}}
+{{range .Childs}}
 <li>
-	<a href="{{.Path}}">{{.Title}}</a>
+	<a href="{{.Route}}">{{.Title}}</a>
 	<p>{{.Description}}</p>
 </li>
 {{end}}
@@ -100,9 +100,9 @@ const collectionTemplate = `
 <section class="collection">
 <h1>Documents</h2>
 <ol>
-{{range .Entries}}
+{{range .Childs}}
 <li>
-	<h2><a href="{{.Path}}" title="{{.Description}}">{{.Title}}</a></h2>
+	<h2><a href="{{.Route}}" title="{{.Description}}">{{.Title}}</a></h2>
 	<p>{{.Description}}</p>
 </li>
 {{end}}

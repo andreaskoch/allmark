@@ -86,8 +86,11 @@ func (provider *Provider) GetRelativePath(filepath string) string {
 }
 
 func (provider *Provider) GetItemRoute(pather Pather) string {
+
 	absoluteTargetFilesystemPath := provider.GetRenderTargetPath(pather)
-	return provider.GetRouteFromFilepath(absoluteTargetFilesystemPath)
+	itemRoute := provider.GetRouteFromFilepath(absoluteTargetFilesystemPath)
+
+	return itemRoute
 }
 
 func (provider *Provider) GetFileRoute(pather Pather) string {
@@ -96,6 +99,7 @@ func (provider *Provider) GetFileRoute(pather Pather) string {
 }
 
 func (provider *Provider) GetRouteFromFilepath(path string) string {
+
 	relativeFilepath := provider.GetRelativePath(path)
 
 	// remove temp dir

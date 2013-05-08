@@ -12,7 +12,6 @@ import (
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/templates"
-	"github.com/andreaskoch/allmark/view"
 	"github.com/andreaskoch/allmark/watcher"
 	"os"
 	"text/template"
@@ -90,7 +89,7 @@ func (renderer *Renderer) Execute() *repository.ItemIndex {
 
 func (renderer *Renderer) attachChangeListener(item *repository.Item) {
 
-	for _, child := range item.Childs() {
+	for _, child := range item.Childs {
 
 		// aggregate child events
 		child.OnChange("Throw Item Events on Child Item change", func(event *watcher.WatchEvent) {
@@ -110,27 +109,27 @@ func (renderer *Renderer) attachChangeListener(item *repository.Item) {
 func (renderer *Renderer) renderItem(item *repository.Item) {
 
 	// render childs first
-	for _, child := range item.Childs() {
+	for _, child := range item.Childs {
 		renderer.renderItem(child) // recurse
 	}
 
 	// create the viewmodel
-	viewModel := mapper.Map(item, renderer.pathProvider)
+	mapper.Map(item)
 
 	// get a template
-	if template, err := renderer.templateProvider.GetTemplate(viewModel.Type); err == nil {
+	if template, err := renderer.templateProvider.GetTemplate(item.Type); err == nil {
 
 		// render the template
 		targetPath := renderer.pathProvider.GetRenderTargetPath(item)
-		renderer.writeOutput(viewModel, template, targetPath)
+		renderer.writeOutput(item, template, targetPath)
 
 	} else {
-		fmt.Fprintf(os.Stderr, "No template for item of type %q.", viewModel.Type)
+		fmt.Fprintf(os.Stderr, "No template for item of type %q.", item.Type)
 	}
 
 }
 
-func (renderer *Renderer) writeOutput(viewModel view.Model, template *template.Template, targetPath string) {
+func (renderer *Renderer) writeOutput(item *repository.Item, template *template.Template, targetPath string) {
 	file, err := os.Create(targetPath)
 	if err != nil {
 		fmt.Errorf("%s", err)
@@ -143,5 +142,5 @@ func (renderer *Renderer) writeOutput(viewModel view.Model, template *template.T
 		file.Close()
 	}()
 
-	template.Execute(writer, viewModel)
+	template.Execute(writer, item)
 }

@@ -107,7 +107,7 @@ func (server *Server) initializeRoutes(index *repository.ItemIndex) {
 func (server *Server) registerItem(item *repository.Item) {
 
 	// recurse for child items
-	for _, child := range item.Childs() {
+	for _, child := range item.Childs {
 		server.registerItem(child)
 	}
 
@@ -118,7 +118,7 @@ func (server *Server) registerItem(item *repository.Item) {
 		server.registerItem(item)
 
 		// send update event to connected browsers
-		h.broadcast <- UpdateMessage(item.ViewModel)
+		h.broadcast <- UpdateMessage(item.Model)
 
 	})
 

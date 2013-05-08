@@ -6,14 +6,13 @@ package mapper
 
 import (
 	"github.com/andreaskoch/allmark/parser"
-	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/view"
 )
 
-func createDocumentMapperFunc(parsedItem *parser.ParsedItem, pathProvider *path.Provider) view.Model {
+func createDocumentMapperFunc(parsedItem *parser.ParsedItem) view.Model {
 
 	return view.Model{
-		Path:        pathProvider.GetWebRoute(parsedItem),
+		Route:       parsedItem.PathProvider().GetWebRoute(parsedItem),
 		Title:       parsedItem.Title,
 		Description: parsedItem.Description,
 		Content:     parsedItem.ConvertedContent,
