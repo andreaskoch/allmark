@@ -2,17 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package themes
-
-var defaultTheme Theme
-
-func init() {
-
-	defaultTheme = Theme{
-		Files: []*ThemeFile{
-			&ThemeFile{
-				Filename: "screen.css",
-				Content: `html {
+html {
     font-size: 100%;
     overflow-y: scroll;
     -webkit-text-size-adjust: 100%;
@@ -379,8 +369,4 @@ td {
     h2, h3 {
         page-break-after: avoid;
     };
-}`,
-			},
-		},
-	}
 }

@@ -9,9 +9,6 @@ import (
 	"github.com/andreaskoch/allmark/config"
 	"github.com/andreaskoch/allmark/templates"
 	"github.com/andreaskoch/allmark/themes"
-	"github.com/andreaskoch/allmark/util"
-	"os"
-	"path/filepath"
 )
 
 func Initialize(baseFolder string) (success bool, err error) {
@@ -43,20 +40,7 @@ func Initialize(baseFolder string) (success bool, err error) {
 }
 
 func createTheme(baseFolder string) (success bool, err error) {
-	if !util.CreateDirectory(baseFolder) {
-		return false, fmt.Errorf("Unable to create theme folder %q.", baseFolder)
-	}
-
-	themeFile := filepath.Join(baseFolder, "screen.css")
-	file, err := os.Create(themeFile)
-	if err != nil {
-		return false, fmt.Errorf("Unable to create theme file %q.", themeFile)
-	}
-
-	defer file.Close()
-	file.WriteString(themes.GetTheme())
-
-	return true, nil
+	return themes.GetTheme().StoreOnDisc(baseFolder)
 }
 
 func createTemplates(baseFolder string) (success bool, err error) {
