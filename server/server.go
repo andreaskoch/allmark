@@ -17,6 +17,8 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 )
 
@@ -149,4 +151,23 @@ func (server *Server) registerRoute(pather path.Pather) {
 	}
 
 	routes[route] = filePath
+}
+
+func openUrlInBrowser(url string) {
+	var err error
+
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command(`C:\Windows\System32\rundll32.exe`, "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		log.Print("unsupported platform")
+	}
+
+	if err != nil {
+		panic(err)
+	}
 }
