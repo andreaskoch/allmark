@@ -9,12 +9,14 @@ import (
 )
 
 type Message struct {
-	Name      string `json:"name"`
-	ViewModel view.Model
+	Route     string     `json:"route"`
+	Name      string     `json:"name"`
+	ViewModel view.Model `json:"model"`
 }
 
 func UpdateMessage(viewModel view.Model) Message {
 	return Message{
+		Route:     viewModel.Route,
 		Name:      "update",
 		ViewModel: viewModel,
 	}

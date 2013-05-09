@@ -6,10 +6,12 @@ package server
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"fmt"
 )
 
 type connection struct {
+	// The associated route.
+	Route string
+
 	// The websocket connection.
 	ws *websocket.Conn
 
@@ -24,8 +26,10 @@ func (c *connection) reader() {
 		if err != nil {
 			break
 		}
+
 		h.broadcast <- message
 	}
+
 	c.ws.Close()
 }
 
@@ -36,21 +40,6 @@ func (c *connection) writer() {
 			break
 		}
 	}
+
 	c.ws.Close()
-}
-
-func wsHandler(ws *websocket.Conn) {
-	fmt.Printf("%#v\n", ws.Request())
-
-	c := &connection{send: make(chan Message, 256), ws: ws}
-
-	h.register <- c
-
-	defer func() {
-		h.unregister <- c
-	}()
-
-	go c.writer()
-
-	c.reader()
 }

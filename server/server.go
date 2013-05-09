@@ -70,7 +70,7 @@ func (server *Server) Serve() {
 	// register handlers
 	http.HandleFunc(ItemHandlerRoute, itemHandler)
 	http.HandleFunc(DebugHandlerRoute, indexDebugger)
-	http.Handle(WebSocketHandlerRoute, websocket.Handler(wsHandler))
+	http.Handle(WebSocketHandlerRoute, websocket.Handler(webSocketHandler))
 
 	// serve theme files
 	if themeFolder := server.config.ThemeFolder(); util.DirectoryExists(themeFolder) {
