@@ -5,10 +5,11 @@
 package themes
 
 func GetTheme() *Theme {
-	return &defaultTheme
+	return defaultTheme
 }
 
 type Theme struct {
+	Name  string
 	Files []*ThemeFile
 }
 
