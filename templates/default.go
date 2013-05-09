@@ -28,26 +28,32 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
 <script type="text/Javascript">
 	$(function() { 
-		var conn;
+		var socket;
 
 		if (window["WebSocket"]) {
-			conn = new WebSocket("ws://localhost:8080/ws");
+			routeParameter = "route=" + document.location.pathname;
+			host = document.location.host;
+			webSocketHandler = "/ws";
+			websocketUrl = "ws://" + host + webSocketHandler + "?" + routeParameter;
 
-			conn.onclose = function(evt) {
-				console.log("Connection closed.")
-			}
+			socket = new WebSocket(websocketUrl);
 
-			conn.onmessage = function(evt) {
+			socket.onclose = function(evt) {
+				console.log("Connection closed.");
+			};
+
+			socket.onmessage = function(evt) {
 				if (typeof(evt) !== 'object' || typeof(evt.data) !== 'string') {
-					console.log("Invalid data from server.")
-					return
+					console.log("Invalid data from server.");
+					return;
 				}
 
 				message = JSON.parse(evt.data);
 				console.log(message);
-			}
+			};
+
 		} else {
-			console.log("Your browser does not support WebSockets.")
+			console.log("Your browser does not support WebSockets.");
 		}
 	});
 </script>

@@ -18,6 +18,18 @@ type hub struct {
 	unregister chan *connection
 }
 
+func (hub *hub) ConnectionsByRoute(route string) []*connection {
+	connectionsByRoute := make([]*connection, 0)
+
+	for c := range h.connections {
+		if c.Route == route {
+			connectionsByRoute = append(connectionsByRoute, c)
+		}
+	}
+
+	return connectionsByRoute
+}
+
 var h = hub{
 	broadcast:   make(chan Message),
 	register:    make(chan *connection),
@@ -41,7 +53,7 @@ func (h *hub) run() {
 		case m := <-h.broadcast:
 			{
 
-				for c := range h.connections {
+				for _, c := range h.ConnectionsByRoute(m.Route) {
 					select {
 					case c.send <- m:
 					default:
