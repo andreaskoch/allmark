@@ -37,7 +37,7 @@ func NewItemIndex(indexPath string) (*ItemIndex, error) {
 	// create the index
 	index := &ItemIndex{
 		path:  indexPath,
-		items: findAllItems(indexPath),
+		items: findAllItems(0, indexPath),
 	}
 
 	return index, nil
@@ -67,7 +67,7 @@ func (itemIndex *ItemIndex) Add(item *Item) {
 	itemIndex.items = append(itemIndex.items, item)
 }
 
-func findAllItems(itemDirectory string) []*Item {
+func findAllItems(level int, itemDirectory string) []*Item {
 
 	items := make([]*Item, 0)
 
@@ -78,8 +78,12 @@ func findAllItems(itemDirectory string) []*Item {
 	}
 
 	// create a path provider
-	parentDir := filepath.Dir(itemDirectory)
-	pathProvider := path.NewProvider(parentDir, true)
+	pathProviderDirectory := itemDirectory
+	if level > 0 {
+		pathProviderDirectory = filepath.Dir(itemDirectory)
+	}
+
+	pathProvider := path.NewProvider(pathProviderDirectory, false)
 
 	// item search
 	directoryContainsItem := false
@@ -94,7 +98,7 @@ func findAllItems(itemDirectory string) []*Item {
 		}
 
 		// search for child items
-		childs := getChildItems(itemDirectory)
+		childs := getChildItems((level + 1), itemDirectory)
 
 		// create item
 		item, err := NewItem(itemPath, childs, pathProvider)
@@ -114,7 +118,7 @@ func findAllItems(itemDirectory string) []*Item {
 	// search in sub directories if there is no item in the current folder
 	if !directoryContainsItem {
 
-		if virtualItem, err := NewVirtualItem(itemDirectory, getChildItems(itemDirectory), pathProvider); err == nil {
+		if virtualItem, err := NewVirtualItem(itemDirectory, getChildItems((level+1), itemDirectory), pathProvider); err == nil {
 			items = append(items, virtualItem)
 		} else {
 			fmt.Println(err)
@@ -125,7 +129,7 @@ func findAllItems(itemDirectory string) []*Item {
 	return items
 }
 
-func getChildItems(itemDirectory string) []*Item {
+func getChildItems(level int, itemDirectory string) []*Item {
 
 	childItems := make([]*Item, 0)
 
@@ -141,7 +145,7 @@ func getChildItems(itemDirectory string) []*Item {
 			continue // skip reserved directories
 		}
 
-		childsInPath := findAllItems(childItemDirectory)
+		childsInPath := findAllItems(level, childItemDirectory)
 		childItems = append(childItems, childsInPath...)
 
 	}
