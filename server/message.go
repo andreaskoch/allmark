@@ -16,7 +16,7 @@ type Message struct {
 
 func UpdateMessage(viewModel view.Model) Message {
 	return Message{
-		Route:     viewModel.Route,
+		Route:     viewModel.AbsoluteRoute,
 		Name:      "update",
 		ViewModel: viewModel,
 	}

@@ -15,16 +15,17 @@ import (
 // Pattern which matches all HTML/XML tags
 var HtmlTagPattern = regexp.MustCompile(`\<[^\>]*\>`)
 
-func createMessageMapperFunc(parsedItem *parser.ParsedItem) view.Model {
+func createMessageMapperFunc(parsedItem *parser.ParsedItem, relativPath, absolutePath string) view.Model {
 
 	return view.Model{
-		Route:       parsedItem.PathProvider().GetWebRoute(parsedItem),
-		Title:       getTitle(parsedItem),
-		Description: getDescription(parsedItem),
-		Content:     parsedItem.ConvertedContent,
-		LanguageTag: getTwoLetterLanguageCode(parsedItem.MetaData.Language),
-		Date:        formatDate(parsedItem.MetaData.Date),
-		Type:        parsedItem.MetaData.ItemType,
+		RelativeRoute: relativPath,
+		AbsoluteRoute: absolutePath,
+		Title:         getTitle(parsedItem),
+		Description:   getDescription(parsedItem),
+		Content:       parsedItem.ConvertedContent,
+		LanguageTag:   getTwoLetterLanguageCode(parsedItem.MetaData.Language),
+		Date:          formatDate(parsedItem.MetaData.Date),
+		Type:          parsedItem.MetaData.ItemType,
 	}
 
 }

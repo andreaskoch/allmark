@@ -27,34 +27,85 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
 <script type="text/Javascript">
-	$(function() { 
-		var socket;
+	$(function() {
 
-		if (window["WebSocket"]) {
-			routeParameter = "route=" + document.location.pathname;
+		// check if websockets are supported
+		if (!window["WebSocket"]) {
+			console.log("Your browser does not support WebSockets.");
+			return;
+		}
+
+		/**
+		 * Get the currently opened web route
+		 * @return string The currently opened web route (e.g. "/documents/Sample Document/index.html")
+		 */
+		var getCurrentRoute = function() {
+			var url = document.location.pathname;
+			return url.replace(/^\/+/, "");
+		};
+
+		/**
+		 * Get the Url for the web socket connection
+		 * @return string The url for the web socket connection (e.g. "ws://example.com:8080/ws")
+		 */
+		var getWebSocketUrl = function() {
+			routeParameter = "route=" + getCurrentRoute();
 			host = document.location.host;
 			webSocketHandler = "/ws";
 			websocketUrl = "ws://" + host + webSocketHandler + "?" + routeParameter;
+			return websocketUrl;			
+		};
 
-			socket = new WebSocket(websocketUrl);
+		var connection = new WebSocket(getWebSocketUrl());
 
-			socket.onclose = function(evt) {
-				console.log("Connection closed.");
-			};
+		connection.onclose = function(evt) {
+			console.log("Connection closed.");
+		};
 
-			socket.onmessage = function(evt) {
-				if (typeof(evt) !== 'object' || typeof(evt.data) !== 'string') {
-					console.log("Invalid data from server.");
-					return;
-				}
+		connection.onopen = function() {
+			console.log("Connection established.")
+		};
 
-				message = JSON.parse(evt.data);
-				console.log(message);
-			};
+		connection.onmessage = function(evt) {
 
-		} else {
-			console.log("Your browser does not support WebSockets.");
-		}
+			// validate event data
+			if (typeof(evt) !== 'object' || typeof(evt.data) !== 'string') {
+				console.log("Invalid data from server.");
+				return;
+			}
+
+			// unwrap the message
+			message = JSON.parse(evt.data);
+
+			// check if all required fields are present
+			if (typeof(message) !== 'object' || typeof(message.route) !== 'string' || typeof(message.model) !== 'object') {
+				console.log("Invalid response format.", message);
+				return;
+			}
+
+			// check if update is applicable for the current route
+			if (message.route !== getCurrentRoute()) {
+				return;
+			}
+
+			// check the model structure
+			var model = message.model;
+			if (typeof(model.content) !== 'string' || typeof(model.description) !== 'string' || typeof(model.title) !== 'string') {
+				console.log("Cannot update the view with the given model object. Missing some required fields.", model);
+				return;
+			}
+
+			// update the title
+			$('title').text(model.title);
+			$('.title').text(model.title);
+
+			// update the description
+			$('.description').html(model.description);
+
+			// update the content
+			$('.content').html(model.content);
+
+		};
 	});
 </script>
 
@@ -63,24 +114,24 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 const repositoryTemplate = `
 <header>
-<h1>
+<h1 class="title">
 {{.Title}}
 </h1>
 </header>
 
-<section>
+<section class="description">
 {{.Description}}
 </section>
 
-<section>
+<section class="content">
 {{.Content}}
 </section>
 
 <section>
-<ul>
+<ul class="childs">
 {{range .Childs}}
 <li>
-	<a href="{{.Route}}">{{.Title}}</a>
+	<a href="{{.RelativeRoute}}">{{.Title}}</a>
 	<p>{{.Description}}</p>
 </li>
 {{end}}
@@ -90,25 +141,25 @@ const repositoryTemplate = `
 
 const collectionTemplate = `
 <header>
-<h1>
+<h1 class="title">
 {{.Title}}
 </h1>
 </header>
 
-<section>
+<section class="description">
 {{.Description}}
 </section>
 
-<section>
+<section class="content">
 {{.Content}}
 </section>
 
 <section class="collection">
 <h1>Documents</h2>
-<ol>
+<ol class="childs">
 {{range .Childs}}
 <li>
-	<h2><a href="{{.Route}}" title="{{.Description}}">{{.Title}}</a></h2>
+	<h2><a href="{{.RelativeRoute}}" title="{{.Description}}">{{.Title}}</a></h2>
 	<p>{{.Description}}</p>
 </li>
 {{end}}
@@ -118,42 +169,42 @@ const collectionTemplate = `
 
 const documentTemplate = `
 <header>
-<h1>
+<h1 class="title">
 {{.Title}}
 </h1>
 </header>
 
-<section>
+<section class="description">
 {{.Description}}
 </section>
 
-<section>
+<section class="content">
 {{.Content}}
 </section>
 `
 
 const messageTemplate = `
-<section>
+<section class="content">
 {{.Content}}
 </section>
 
-<section>
+<section class="description">
 {{.Description}}
 </section>
 `
 
 const errorTemplate = `
 <header>
-<h1>
+<h1 class="title">
 {{.Title}}
 </h1>
 </header>
 
-<section>
+<section class="description">
 {{.Description}}
 </section>
 
-<section>
+<section class="content">
 {{.Content}}
 </section>
 `

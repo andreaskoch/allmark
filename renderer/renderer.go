@@ -114,7 +114,7 @@ func (renderer *Renderer) renderItem(item *repository.Item) {
 	}
 
 	// create the viewmodel
-	mapper.Map(item)
+	mapper.Map(item, renderer.pathProvider)
 
 	// get a template
 	if template, err := renderer.templateProvider.GetTemplate(item.Type); err == nil {

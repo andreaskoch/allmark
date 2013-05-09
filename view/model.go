@@ -9,20 +9,22 @@ import (
 )
 
 type Model struct {
-	Route       string
-	Title       string
-	Description string
-	Content     string
-	LanguageTag string
-	Type        string
-	Date        string
+	AbsoluteRoute string `json:"absoluteRoute"`
+	RelativeRoute string `json:"relativeRoute"`
+	Title         string `json:"title"`
+	Description   string `json:"description"`
+	Content       string `json:"content"`
+	LanguageTag   string `json:"languageTag"`
+	Type          string `json:"type"`
+	Date          string `json:"date"`
 }
 
-func Error(msg string, path string) Model {
+func Error(msg, relativPath, absolutePath string) Model {
 	return Model{
-		Title:   fmt.Sprintf("Error: %s", msg),
-		Route:   path,
-		Content: msg,
-		Type:    "error",
+		Title:         fmt.Sprintf("Error: %s", msg),
+		RelativeRoute: relativPath,
+		AbsoluteRoute: absolutePath,
+		Content:       msg,
+		Type:          "error",
 	}
 }

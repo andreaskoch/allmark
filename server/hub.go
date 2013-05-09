@@ -4,6 +4,11 @@
 
 package server
 
+import (
+	"fmt"
+	"strings"
+)
+
 type hub struct {
 	// Registered connections.
 	connections map[*connection]bool
@@ -22,7 +27,9 @@ func (hub *hub) ConnectionsByRoute(route string) []*connection {
 	connectionsByRoute := make([]*connection, 0)
 
 	for c := range h.connections {
-		if c.Route == route {
+		if strings.HasSuffix(c.Route, route) {
+			fmt.Println(c.Route)
+			fmt.Println(route)
 			connectionsByRoute = append(connectionsByRoute, c)
 		}
 	}
@@ -42,6 +49,7 @@ func (h *hub) run() {
 		select {
 		case c := <-h.register:
 			{
+				fmt.Printf("Registering connection for route %q\n", c.Route)
 				h.connections[c] = true
 			}
 		case c := <-h.unregister:
@@ -54,6 +62,9 @@ func (h *hub) run() {
 			{
 
 				for _, c := range h.ConnectionsByRoute(m.Route) {
+
+					fmt.Printf("Sending out an update for route %q\n", c.Route)
+
 					select {
 					case c.send <- m:
 					default:
