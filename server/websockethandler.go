@@ -7,6 +7,7 @@ package server
 import (
 	"code.google.com/p/go.net/websocket"
 	"fmt"
+	"github.com/andreaskoch/allmark/path"
 	"net/url"
 )
 
@@ -35,6 +36,9 @@ func webSocketHandler(ws *websocket.Conn) {
 		return
 
 	}
+
+	// strip leading slashes
+	routeParam = path.StripLeadingUrlDirectorySeperator(routeParam)
 
 	// create a new connection
 	c := &connection{
