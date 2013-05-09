@@ -6,6 +6,7 @@ package server
 
 import (
 	"code.google.com/p/go.net/websocket"
+	"fmt"
 )
 
 type connection struct {
@@ -39,9 +40,17 @@ func (c *connection) writer() {
 }
 
 func wsHandler(ws *websocket.Conn) {
+	fmt.Printf("%#v\n", ws.Request())
+
 	c := &connection{send: make(chan Message, 256), ws: ws}
+
 	h.register <- c
-	defer func() { h.unregister <- c }()
+
+	defer func() {
+		h.unregister <- c
+	}()
+
 	go c.writer()
+
 	c.reader()
 }
