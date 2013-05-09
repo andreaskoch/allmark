@@ -78,7 +78,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 			message = JSON.parse(evt.data);
 
 			// check if all required fields are present
-			if (typeof(message) !== 'object' || typeof(message.route) !== 'string' || typeof(message.model) !== 'object') {
+			if (message === null || typeof(message) !== 'object' || typeof(message.route) !== 'string' || message.model === null || typeof(message.model) !== 'object') {
 				console.log("Invalid response format.", message);
 				return;
 			}
@@ -96,14 +96,63 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 			}
 
 			// update the title
-			$('title').text(model.title);
-			$('.title').text(model.title);
+			$('title').html(model.title);
+			$('.title').html(model.title);
 
 			// update the description
 			$('.description').html(model.description);
 
 			// update the content
 			$('.content').html(model.content);
+
+			// update sub entries (if available)
+			if (model.subEntries === null || typeof(model.subEntries) !== 'object') {
+				return;
+			}
+
+			var entries = model.subEntries;
+			var existingEntries = $(".subentries>.subentry");
+			var numberOfExistingEntries = existingEntries.length;
+			var numberOfNewEntries = entries.length;
+
+			var fallbackEntryTemplate = "<li><a href=\"#\" class=\"subentry-title subentry-link\"></a><p class=\"subentry-description\"></p></li>";
+
+			for (var i = 0; i < numberOfNewEntries; i++) {
+				var index = i + 1;
+				var newEntry = entries[i];
+
+				// get the item to update
+				var entryToUpdate;
+				if (index <= numberOfExistingEntries) {
+
+					// use an existing item
+					entryToUpdate = existingEntries[i];
+
+				} else {
+
+					// create a new item
+					var entryTemplate = fallbackEntryTemplate;
+					if (numberOfExistingEntries > 0) {
+
+						// use the first entry for the template
+						entryTemplate = existingEntries[0].html();
+
+					}
+
+					// append the template
+					entryToUpdate = $(entryTemplate);
+					$(".subentries").append(entryToUpdate);
+				}
+
+				// update the title text
+				$(entryToUpdate).find(".subentry-link:first").html(newEntry.title);
+
+				// update the title link
+				$(entryToUpdate).find(".subentry-link:first").attr("href", newEntry.relativeRoute);
+
+				// update the description
+				$(entryToUpdate).find(".subentry-description:first").html(newEntry.description);
+			}
 
 		};
 	});
@@ -128,11 +177,11 @@ const repositoryTemplate = `
 </section>
 
 <section>
-<ul class="childs">
+<ul class="subentries">
 {{range .Childs}}
-<li>
-	<a href="{{.RelativeRoute}}">{{.Title}}</a>
-	<p>{{.Description}}</p>
+<li class="subentry">
+	<a href="{{.RelativeRoute}}" class="subentry-title subentry-link">{{.Title}}</a>
+	<p class="subentry-description">{{.Description}}</p>
 </li>
 {{end}}
 </ul>
@@ -156,11 +205,11 @@ const collectionTemplate = `
 
 <section class="collection">
 <h1>Documents</h2>
-<ol class="childs">
+<ol class="subentries">
 {{range .Childs}}
-<li>
-	<h2><a href="{{.RelativeRoute}}" title="{{.Description}}">{{.Title}}</a></h2>
-	<p>{{.Description}}</p>
+<li class="subentry">
+	<a href="{{.RelativeRoute}}" class="subentry-title subentry-link">{{.Title}}</a>
+	<p class="subentry-description">{{.Description}}</p>
 </li>
 {{end}}
 </ol>

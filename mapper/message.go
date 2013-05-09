@@ -15,9 +15,9 @@ import (
 // Pattern which matches all HTML/XML tags
 var HtmlTagPattern = regexp.MustCompile(`\<[^\>]*\>`)
 
-func createMessageMapperFunc(parsedItem *parser.ParsedItem, relativPath, absolutePath string) view.Model {
+func createMessageMapperFunc(parsedItem *parser.ParsedItem, relativPath, absolutePath string) *view.Model {
 
-	return view.Model{
+	return &view.Model{
 		RelativeRoute: relativPath,
 		AbsoluteRoute: absolutePath,
 		Title:         getTitle(parsedItem),

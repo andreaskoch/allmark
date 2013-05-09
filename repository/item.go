@@ -20,7 +20,7 @@ const (
 type Item struct {
 	*watcher.ChangeHandler
 
-	view.Model
+	*view.Model
 
 	Files  *FileIndex
 	Childs []*Item

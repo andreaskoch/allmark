@@ -9,12 +9,12 @@ import (
 )
 
 type Message struct {
-	Route     string     `json:"route"`
-	Name      string     `json:"name"`
-	ViewModel view.Model `json:"model"`
+	Route     string      `json:"route"`
+	Name      string      `json:"name"`
+	ViewModel *view.Model `json:"model"`
 }
 
-func UpdateMessage(viewModel view.Model) Message {
+func UpdateMessage(viewModel *view.Model) Message {
 	return Message{
 		Route:     viewModel.AbsoluteRoute,
 		Name:      "update",

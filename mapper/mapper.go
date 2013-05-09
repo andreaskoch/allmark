@@ -7,16 +7,18 @@ package mapper
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/converter"
-	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/view"
 )
 
-type Mapper func(parsedItem *parser.ParsedItem) view.Model
+func Map(item *repository.Item, repositoryPathProvider *path.Provider) *view.Model {
 
-func Map(item *repository.Item, repositoryPathProvider *path.Provider) {
+	// map childs first
+	// for _, child := range item.Childs {
+	// 	Map(child, repositoryPathProvider) // recurse
+	// }
 
 	// paths
 	relativePath := item.PathProvider().GetWebRoute(item)
@@ -25,24 +27,40 @@ func Map(item *repository.Item, repositoryPathProvider *path.Provider) {
 	// convert the item
 	parsedItem, err := converter.Convert(item)
 	if err != nil {
-		item.Model = view.Error(fmt.Sprintf("%s", err), relativePath, absolutePath)
-		return
+		return view.Error(fmt.Sprintf("%s", err), relativePath, absolutePath)
 	}
+
+	var model *view.Model
 
 	switch itemType := parsedItem.MetaData.ItemType; itemType {
-	case types.DocumentItemType, types.RepositoryItemType, types.CollectionItemType:
-		item.Model = createDocumentMapperFunc(parsedItem, relativePath, absolutePath)
-		return
+	case types.DocumentItemType:
+		model = createDocumentMapperFunc(parsedItem, relativePath, absolutePath)
+
+	case types.RepositoryItemType, types.CollectionItemType:
+		model = createDocumentMapperFunc(parsedItem, relativePath, absolutePath)
+		model.SubEntries = getSubModels(item, repositoryPathProvider)
 
 	case types.MessageItemType:
-		item.Model = createMessageMapperFunc(parsedItem, relativePath, absolutePath)
-		return
+		model = createMessageMapperFunc(parsedItem, relativePath, absolutePath)
 
 	default:
-		item.Model = view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType), relativePath, absolutePath)
-		return
+		model = view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType), relativePath, absolutePath)
 	}
 
-	panic("Unreachable")
+	// assign the model to the item
+	item.Model = model
 
+	return model
+}
+
+func getSubModels(item *repository.Item, repositoryPathProvider *path.Provider) []*view.Model {
+
+	items := item.Childs
+	models := make([]*view.Model, 0)
+
+	for _, child := range items {
+		models = append(models, Map(child, repositoryPathProvider))
+	}
+
+	return models
 }

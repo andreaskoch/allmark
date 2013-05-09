@@ -9,9 +9,9 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func createDocumentMapperFunc(parsedItem *parser.ParsedItem, relativPath, absolutePath string) view.Model {
+func createDocumentMapperFunc(parsedItem *parser.ParsedItem, relativPath, absolutePath string) *view.Model {
 
-	return view.Model{
+	return &view.Model{
 		RelativeRoute: relativPath,
 		AbsoluteRoute: absolutePath,
 		Title:         parsedItem.Title,
