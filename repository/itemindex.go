@@ -9,11 +9,14 @@ import (
 	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/util"
+	"github.com/andreaskoch/allmark/watcher"
 	"io/ioutil"
 	"path/filepath"
 )
 
 type ItemIndex struct {
+	*watcher.ChangeHandler
+
 	path  string
 	items []*Item
 }
@@ -34,8 +37,16 @@ func NewItemIndex(indexPath string) (*ItemIndex, error) {
 		indexPath = filepath.Dir(indexPath)
 	}
 
+	// create a file change handler
+	changeHandler, err := watcher.NewChangeHandler(indexPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not create a change handler for index %q.\nError: %s\n", indexPath, err)
+	}
+
 	// create the index
 	index := &ItemIndex{
+		ChangeHandler: changeHandler,
+
 		path:  indexPath,
 		items: findAllItems(0, indexPath),
 	}
