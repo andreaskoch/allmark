@@ -43,7 +43,7 @@ func webSocketHandler(ws *websocket.Conn) {
 	// create a new connection
 	c := &connection{
 		Route: routeParam,
-		send:  make(chan Message, 256),
+		send:  make(chan Message, 10),
 		ws:    ws,
 	}
 
