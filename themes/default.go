@@ -393,7 +393,7 @@ $(function() {
      */
     var getCurrentRoute = function() {
         var url = document.location.pathname;
-        return url.replace(/^\/+/, "");
+        return decodeURI(url.replace(/^\/+/, ""));
     };
 
     /**
