@@ -33,56 +33,15 @@ type Item struct {
 	pathProvider *path.Provider
 }
 
-func NewVirtualItem(itemPath string, level int, childItems []*Item, pathProvider *path.Provider) (item *Item, err error) {
-
-	if isFile, _ := util.IsFile(itemPath); isFile {
-		return nil, fmt.Errorf("Cannot create virtual items from files (%q).", itemPath)
-	}
-
-	// create a file change handler
-	changeHandler, err := watcher.NewChangeHandler(itemPath)
-	if err != nil {
-		return nil, fmt.Errorf("Could not create a change handler for item %q.\nError: %s\n", itemPath, err)
-	}
-
-	// create the file index
-	filesDirectory := filepath.Join(itemPath, FilesDirectoryName)
-	fileIndex, err := NewFileIndex(filesDirectory)
-	if err != nil {
-		return nil, fmt.Errorf("Could not create a file index for folder %q.\nError: %s\n", filesDirectory, err)
-	}
-
-	// create the item
-	item = &Item{
-		ChangeHandler: changeHandler,
-
-		Level:  level,
-		Childs: childItems,
-		Files:  fileIndex,
-
-		pathProvider: pathProvider,
-		directory:    itemPath,
-		path:         itemPath,
-		isVirtual:    true,
-	}
-
-	// watch for changes in the file index
-	fileIndex.OnChange("Throw Item Events on File index change", func(event *watcher.WatchEvent) {
-		item.Throw(event)
-	})
-
-	return item, nil
-
-}
-
 func NewItem(itemPath string, level int, childItems []*Item, pathProvider *path.Provider) (item *Item, err error) {
 
-	if isDirectory, _ := util.IsDirectory(itemPath); isDirectory {
-		return nil, fmt.Errorf("Cannot create items from directories (%q).", itemPath)
-	}
-
-	// get the item's directory
+	isVirtualItem := false
 	itemDirectory := filepath.Dir(itemPath)
+
+	if isDirectory, _ := util.IsDirectory(itemPath); isDirectory {
+		isVirtualItem = true
+		itemDirectory = itemPath
+	}
 
 	// create a file change handler
 	changeHandler, err := watcher.NewChangeHandler(itemPath)
@@ -108,7 +67,7 @@ func NewItem(itemPath string, level int, childItems []*Item, pathProvider *path.
 		pathProvider: pathProvider,
 		directory:    itemDirectory,
 		path:         itemPath,
-		isVirtual:    false,
+		isVirtual:    isVirtualItem,
 	}
 
 	// watch for changes in the file index

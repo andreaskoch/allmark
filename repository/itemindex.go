@@ -118,7 +118,7 @@ func findAllItems(level int, itemDirectory string) []*Item {
 	// search in sub directories if there is no item in the current folder
 	if !directoryContainsItem {
 
-		if virtualItem, err := NewVirtualItem(itemDirectory, level, getChildItems((level+1), itemDirectory), pathProvider); err == nil {
+		if virtualItem, err := NewItem(itemDirectory, level, getChildItems((level+1), itemDirectory), pathProvider); err == nil {
 			items = append(items, virtualItem)
 		} else {
 			fmt.Println(err)
