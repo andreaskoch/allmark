@@ -9,6 +9,7 @@ import (
 )
 
 type Model struct {
+	Level         int      `json:"level"`
 	AbsoluteRoute string   `json:"absoluteRoute"`
 	RelativeRoute string   `json:"relativeRoute"`
 	Title         string   `json:"title"`
@@ -22,6 +23,7 @@ type Model struct {
 
 func Error(msg, relativPath, absolutePath string) *Model {
 	return &Model{
+		Level:         0,
 		Title:         fmt.Sprintf("Error: %s", msg),
 		RelativeRoute: relativPath,
 		AbsoluteRoute: absolutePath,

@@ -18,6 +18,7 @@ var HtmlTagPattern = regexp.MustCompile(`\<[^\>]*\>`)
 func createMessageMapperFunc(parsedItem *parser.ParsedItem, relativPath, absolutePath string) *view.Model {
 
 	return &view.Model{
+		Level:         parsedItem.Level,
 		RelativeRoute: relativPath,
 		AbsoluteRoute: absolutePath,
 		Title:         getTitle(parsedItem),

@@ -22,6 +22,7 @@ type Item struct {
 
 	*view.Model
 
+	Level  int
 	Files  *FileIndex
 	Childs []*Item
 
@@ -32,7 +33,7 @@ type Item struct {
 	pathProvider *path.Provider
 }
 
-func NewVirtualItem(itemPath string, childItems []*Item, pathProvider *path.Provider) (item *Item, err error) {
+func NewVirtualItem(itemPath string, level int, childItems []*Item, pathProvider *path.Provider) (item *Item, err error) {
 
 	if isFile, _ := util.IsFile(itemPath); isFile {
 		return nil, fmt.Errorf("Cannot create virtual items from files (%q).", itemPath)
@@ -54,8 +55,10 @@ func NewVirtualItem(itemPath string, childItems []*Item, pathProvider *path.Prov
 	// create the item
 	item = &Item{
 		ChangeHandler: changeHandler,
-		Childs:        childItems,
-		Files:         fileIndex,
+
+		Level:  level,
+		Childs: childItems,
+		Files:  fileIndex,
 
 		pathProvider: pathProvider,
 		directory:    itemPath,
@@ -72,7 +75,7 @@ func NewVirtualItem(itemPath string, childItems []*Item, pathProvider *path.Prov
 
 }
 
-func NewItem(itemPath string, childItems []*Item, pathProvider *path.Provider) (item *Item, err error) {
+func NewItem(itemPath string, level int, childItems []*Item, pathProvider *path.Provider) (item *Item, err error) {
 
 	if isDirectory, _ := util.IsDirectory(itemPath); isDirectory {
 		return nil, fmt.Errorf("Cannot create items from directories (%q).", itemPath)
@@ -97,8 +100,10 @@ func NewItem(itemPath string, childItems []*Item, pathProvider *path.Provider) (
 	// create the item
 	item = &Item{
 		ChangeHandler: changeHandler,
-		Childs:        childItems,
-		Files:         fileIndex,
+
+		Level:  level,
+		Childs: childItems,
+		Files:  fileIndex,
 
 		pathProvider: pathProvider,
 		directory:    itemDirectory,

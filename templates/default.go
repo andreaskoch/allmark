@@ -19,7 +19,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 	<link rel="stylesheet" type="text/css" href="/theme/screen.css">
 </head>
-<body>
+<body class="level-{{.Level}}">
 
 <article>
 %s
