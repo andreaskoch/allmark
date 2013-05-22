@@ -63,10 +63,6 @@ func (itemIndex *ItemIndex) Items() []*Item {
 	return itemIndex.items
 }
 
-func (itemIndex *ItemIndex) Add(item *Item) {
-	itemIndex.items = append(itemIndex.items, item)
-}
-
 func findAllItems(level int, itemDirectory string) []*Item {
 
 	items := make([]*Item, 0)
