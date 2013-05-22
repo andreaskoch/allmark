@@ -57,9 +57,9 @@ func (provider *Provider) GetWebRoute(pather Pather) string {
 
 	switch pathType := pather.PathType(); pathType {
 	case PatherTypeItem:
-		return provider.GetItemRoute(pather)
+		return provider.getItemRoute(pather)
 	case PatherTypeFile:
-		return provider.GetFileRoute(pather)
+		return provider.getFileRoute(pather)
 	default:
 		panic(fmt.Sprintf("Unknown pather type %q", pathType))
 	}
@@ -81,44 +81,9 @@ func (provider *Provider) GetFilepath(pather Pather) string {
 	panic("Unreachable. Unknown pather type")
 }
 
-func (provider *Provider) GetRelativePath(filepath string) string {
-	return strings.Replace(filepath, provider.basePath, "", 1)
-}
-
-func (provider *Provider) GetItemRoute(pather Pather) string {
-
-	absoluteTargetFilesystemPath := provider.GetRenderTargetPath(pather)
-	itemRoute := provider.GetRouteFromFilepath(absoluteTargetFilesystemPath)
-
-	return itemRoute
-}
-
-func (provider *Provider) GetFileRoute(pather Pather) string {
-	absoluteFilepath := provider.GetRouteFromFilepath(pather.Path())
-	return provider.GetRouteFromFilepath(absoluteFilepath)
-}
-
-func (provider *Provider) GetRouteFromFilepath(path string) string {
-
-	relativeFilepath := provider.GetRelativePath(path)
-
-	// remove temp dir
-	if provider.UseTempDir() {
-		relativeFilepath = strings.TrimPrefix(relativeFilepath, provider.TempDir())
-	}
-
-	// filepath to route
-	route := filepath.ToSlash(relativeFilepath)
-
-	// Trim leading slash
-	route = StripLeadingUrlDirectorySeperator(route)
-
-	return route
-}
-
 func (provider *Provider) GetRenderTargetPath(pather Pather) string {
 
-	itemDirectoryRelative := provider.GetRelativePath(pather.Directory())
+	itemDirectoryRelative := provider.getRelativePath(pather.Directory())
 	relativeRenderTargetPath := filepath.Join(itemDirectoryRelative, WebServerDefaultFilename)
 
 	var renderTargetPath string
@@ -136,4 +101,37 @@ func (provider *Provider) GetRenderTargetPath(pather Pather) string {
 	}
 
 	return renderTargetPath
+}
+
+func (provider *Provider) getItemRoute(pather Pather) string {
+	absoluteTargetFilesystemPath := provider.GetRenderTargetPath(pather)
+	itemRoute := provider.getRouteFromFilepath(absoluteTargetFilesystemPath)
+
+	return itemRoute
+}
+
+func (provider *Provider) getFileRoute(pather Pather) string {
+	absoluteFilepath := provider.getRouteFromFilepath(pather.Path())
+	return provider.getRouteFromFilepath(absoluteFilepath)
+}
+
+func (provider *Provider) getRouteFromFilepath(path string) string {
+	relativeFilepath := provider.getRelativePath(path)
+
+	// remove temp dir
+	if provider.UseTempDir() {
+		relativeFilepath = strings.TrimPrefix(relativeFilepath, provider.TempDir())
+	}
+
+	// filepath to route
+	route := filepath.ToSlash(relativeFilepath)
+
+	// Trim leading slash
+	route = StripLeadingUrlDirectorySeperator(route)
+
+	return route
+}
+
+func (provider *Provider) getRelativePath(filepath string) string {
+	return strings.Replace(filepath, provider.basePath, "", 1)
 }

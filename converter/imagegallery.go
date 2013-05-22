@@ -63,7 +63,7 @@ func getImageLinks(galleryTitle string, files []*repository.File, pathProvider *
 
 	for index, file := range files {
 
-		imagePath := pathProvider.GetFileRoute(file)
+		imagePath := pathProvider.GetWebRoute(file)
 		imageTitle := fmt.Sprintf("%s - %s (Image %v of %v)", galleryTitle, getFileTitle(file), index+1, numberOfFiles)
 
 		imagelinks[index] = fmt.Sprintf(`<a href="%s" title="%s"><img src="%s" /></a>`, imagePath, imageTitle, imagePath)
