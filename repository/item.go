@@ -146,27 +146,81 @@ func (item *Item) PathProvider() *path.Provider {
 	return item.pathProvider
 }
 
+func (item *Item) HasChild(itemDirectory string) bool {
+	if item.Childs == nil {
+		return false
+	}
+
+	for _, childItem := range item.Childs {
+		if childItem.Directory() == itemDirectory {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (item *Item) updateChilds() {
 
-	itemDirectory := item.Directory()
-	item.Childs = make([]*Item, 0)
+	childItemDirectories := item.getChildItemDirectories()
 
-	directoryEntries, _ := ioutil.ReadDir(itemDirectory)
+	if item.Childs == nil {
+		item.Childs = make([]*Item, 0, len(childItemDirectories))
+	}
+
+	// add new childs
+	for _, childItemDirectory := range childItemDirectories {
+
+		if item.HasChild(childItemDirectory) {
+			continue // Child already present
+		}
+
+		if child, err := NewItem(childItemDirectory, item.Level+1); err == nil {
+			item.Childs = append(item.Childs, child) // append new child
+		} else {
+			fmt.Printf("Could not create a item for folder %q. Error: %s\n", childItemDirectory, err)
+		}
+	}
+
+	// remove deleted childs
+	newChildList := make([]*Item, 0, len(childItemDirectories))
+	for _, child := range item.Childs {
+		if sliceContainsElement(childItemDirectories, child.Directory()) {
+			newChildList = append(newChildList, child)
+		}
+	}
+
+	item.Childs = newChildList
+}
+
+func (item *Item) getChildItemDirectories() []string {
+
+	directory := item.Directory()
+	directories := make([]string, 0)
+
+	directoryEntries, _ := ioutil.ReadDir(directory)
 	for _, entry := range directoryEntries {
 
 		if !entry.IsDir() {
 			continue // skip files
 		}
 
-		childItemDirectory := filepath.Join(itemDirectory, entry.Name())
-		if isReservedDirectory(childItemDirectory) {
+		childDirectory := filepath.Join(directory, entry.Name())
+		if isReservedDirectory(childDirectory) {
 			continue // skip reserved directories
 		}
 
-		if child, err := NewItem(childItemDirectory, item.Level+1); err == nil {
-			item.Childs = append(item.Childs, child)
-		} else {
-			fmt.Printf("Could not create a item for folder %q. Error: %s\n", childItemDirectory, err)
+		directories = append(directories, childDirectory)
+	}
+
+	return directories
+}
+
+func sliceContainsElement(list []string, elem string) bool {
+	for _, t := range list {
+		if t == elem {
+			return true
 		}
 	}
+	return false
 }
