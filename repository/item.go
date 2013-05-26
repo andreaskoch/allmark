@@ -80,9 +80,9 @@ func NewItem(itemPath string, level int) (item *Item, err error) {
 	pathProvider := path.NewProvider(pathProviderDirectory, false)
 
 	// create a file change handler
-	changeHandler, err := watcher.NewChangeHandler(itemDirectory)
+	changeHandler, err := watcher.NewChangeHandler(itemPath)
 	if err != nil {
-		return nil, fmt.Errorf("Could not create a change handler for item %q.\nError: %s\n", itemDirectory, err)
+		return nil, fmt.Errorf("Could not create a change handler for item %q.\nError: %s\n", itemPath, err)
 	}
 
 	// create the file index
@@ -163,7 +163,6 @@ func (item *Item) updateChilds() {
 			continue // skip reserved directories
 		}
 
-		fmt.Printf("Level %d: %s\n", item.Level, entry.Name())
 		if child, err := NewItem(childItemDirectory, item.Level+1); err == nil {
 			item.Childs = append(item.Childs, child)
 		} else {

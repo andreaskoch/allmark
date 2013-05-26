@@ -68,6 +68,7 @@ func (renderer *Renderer) attachChangeListener(item *repository.Item) {
 
 		// aggregate child events
 		child.OnChange("Throw Item Events on Child Item change", func(event *watcher.WatchEvent) {
+			fmt.Printf("Child %s changed. Parent: %s\n", child, item)
 			item.Throw(event)
 		})
 
