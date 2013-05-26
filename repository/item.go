@@ -6,10 +6,12 @@ package repository
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/util"
 	"github.com/andreaskoch/allmark/view"
 	"github.com/andreaskoch/allmark/watcher"
+	"io/ioutil"
 	"path/filepath"
 )
 
@@ -33,15 +35,49 @@ type Item struct {
 	pathProvider *path.Provider
 }
 
-func NewItem(itemPath string, level int, childItems []*Item, pathProvider *path.Provider) (item *Item, err error) {
+func NewItem(itemPath string, level int) (item *Item, err error) {
 
+	// abort if path does not exist
+	if !util.PathExists(itemPath) {
+		return nil, fmt.Errorf("The path %q does not exist.", itemPath)
+	}
+
+	// abort if path is reserved
+	if isReservedDirectory(itemPath) {
+		return nil, fmt.Errorf("The path %q is using a reserved name and cannot be an item.", itemPath)
+	}
+
+	// check if its a virtual item or a markdown item
 	isVirtualItem := false
 	itemDirectory := filepath.Dir(itemPath)
 
 	if isDirectory, _ := util.IsDirectory(itemPath); isDirectory {
-		isVirtualItem = true
-		itemDirectory = itemPath
+
+		if found, filepath := findMarkdownFileInDirectory(itemPath); found {
+
+			itemDirectory = itemPath
+			itemPath = filepath
+
+		} else {
+
+			isVirtualItem = true
+			itemDirectory = itemPath
+
+		}
+
+	} else if !markdown.IsMarkdownFile(itemPath) {
+
+		// the supplied item path does not point to a markdown file
+		return nil, fmt.Errorf("%q is not a markdown file.", itemPath)
 	}
+
+	// create a path provider
+	pathProviderDirectory := itemDirectory
+	if level > 0 {
+		pathProviderDirectory = filepath.Dir(itemDirectory)
+	}
+
+	pathProvider := path.NewProvider(pathProviderDirectory, false)
 
 	// create a file change handler
 	changeHandler, err := watcher.NewChangeHandler(itemPath)
@@ -60,15 +96,17 @@ func NewItem(itemPath string, level int, childItems []*Item, pathProvider *path.
 	item = &Item{
 		ChangeHandler: changeHandler,
 
-		Level:  level,
-		Childs: childItems,
-		Files:  fileIndex,
+		Level: level,
+		Files: fileIndex,
 
 		pathProvider: pathProvider,
 		directory:    itemDirectory,
 		path:         itemPath,
 		isVirtual:    isVirtualItem,
 	}
+
+	// find childs
+	item.updateChilds()
 
 	// watch for changes in the file index
 	fileIndex.OnChange("Throw Item Events on File index change", func(event *watcher.WatchEvent) {
@@ -100,4 +138,30 @@ func (item *Item) IsVirtual() bool {
 
 func (item *Item) PathProvider() *path.Provider {
 	return item.pathProvider
+}
+
+func (item *Item) updateChilds() {
+
+	itemDirectory := item.Directory()
+	item.Childs = make([]*Item, 0)
+
+	directoryEntries, _ := ioutil.ReadDir(itemDirectory)
+	for _, entry := range directoryEntries {
+
+		if !entry.IsDir() {
+			continue // skip files
+		}
+
+		childItemDirectory := filepath.Join(itemDirectory, entry.Name())
+		if isReservedDirectory(childItemDirectory) {
+			continue // skip reserved directories
+		}
+
+		fmt.Printf("Level %d: %s\n", item.Level, entry.Name())
+		if child, err := NewItem(childItemDirectory, item.Level+1); err == nil {
+			item.Childs = append(item.Childs, child)
+		} else {
+			fmt.Printf("Could not create a item for folder %q. Error: %s\n", childItemDirectory, err)
+		}
+	}
 }

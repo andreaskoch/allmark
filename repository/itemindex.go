@@ -6,16 +6,14 @@ package repository
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/util"
-	"io/ioutil"
 	"path/filepath"
 )
 
 type ItemIndex struct {
-	path  string
-	items []*Item
+	path string
+	root *Item
 }
 
 func NewItemIndex(indexPath string) (*ItemIndex, error) {
@@ -34,10 +32,15 @@ func NewItemIndex(indexPath string) (*ItemIndex, error) {
 		indexPath = filepath.Dir(indexPath)
 	}
 
+	rootItem, err := NewItem(indexPath, 0)
+	if err != nil {
+		return nil, err
+	}
+
 	// create the index
 	index := &ItemIndex{
-		path:  indexPath,
-		items: findAllItems(0, indexPath),
+		path: indexPath,
+		root: rootItem,
 	}
 
 	return index, nil
@@ -59,92 +62,6 @@ func (itemIndex *ItemIndex) PathType() string {
 	return path.PatherTypeIndex
 }
 
-func (itemIndex *ItemIndex) Items() []*Item {
-	return itemIndex.items
-}
-
-func findAllItems(level int, itemDirectory string) []*Item {
-
-	items := make([]*Item, 0)
-
-	directoryEntries, err := ioutil.ReadDir(itemDirectory)
-	if err != nil {
-		fmt.Printf("An error occured while indexing the directory `%v`.\nError: %v\n", itemDirectory, err)
-		return nil
-	}
-
-	// create a path provider
-	pathProviderDirectory := itemDirectory
-	if level > 0 {
-		pathProviderDirectory = filepath.Dir(itemDirectory)
-	}
-
-	pathProvider := path.NewProvider(pathProviderDirectory, false)
-
-	// item search
-	directoryContainsItem := false
-	for _, element := range directoryEntries {
-
-		itemPath := filepath.Join(itemDirectory, element.Name())
-
-		// check if the file a markdown file
-		isMarkdown := markdown.IsMarkdownFile(itemPath)
-		if !isMarkdown {
-			continue
-		}
-
-		// search for child items
-		childs := getChildItems((level + 1), itemDirectory)
-
-		// create item
-		item, err := NewItem(itemPath, level, childs, pathProvider)
-		if err != nil {
-			fmt.Printf("Skipping item: %s\n", err)
-			continue
-		}
-
-		// append item to list
-		items = append(items, item)
-
-		// item has been found
-		directoryContainsItem = true
-		break
-	}
-
-	// search in sub directories if there is no item in the current folder
-	if !directoryContainsItem {
-
-		if virtualItem, err := NewItem(itemDirectory, level, getChildItems((level+1), itemDirectory), pathProvider); err == nil {
-			items = append(items, virtualItem)
-		} else {
-			fmt.Println(err)
-		}
-
-	}
-
-	return items
-}
-
-func getChildItems(level int, itemDirectory string) []*Item {
-
-	childItems := make([]*Item, 0)
-
-	files, _ := ioutil.ReadDir(itemDirectory)
-	for _, folder := range files {
-
-		if !folder.IsDir() {
-			continue // skip files
-		}
-
-		childItemDirectory := filepath.Join(itemDirectory, folder.Name())
-		if isReservedDirectory(childItemDirectory) {
-			continue // skip reserved directories
-		}
-
-		childsInPath := findAllItems(level, childItemDirectory)
-		childItems = append(childItems, childsInPath...)
-
-	}
-
-	return childItems
+func (itemIndex *ItemIndex) Root() *Item {
+	return itemIndex.root
 }

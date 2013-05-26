@@ -43,35 +43,10 @@ func (renderer *Renderer) Execute() *repository.ItemIndex {
 		panic(fmt.Sprintf("Cannot create an item index for folder %q.\nError: %s\n", renderer.repositoryPath, err))
 	}
 
-	// get all items
-	items := index.Items()
+	root := index.Root()
+	defer renderer.attachChangeListener(root)
 
-	// create a foreach function
-	var forEachItem = func(expression func(item *repository.Item)) {
-		for _, item := range items {
-			expression(item)
-		}
-	}
-
-	// create a "attach change listener to each item" function
-	attachChangeListenerFunc := func() {
-		forEachItem(func(item *repository.Item) {
-			renderer.attachChangeListener(item)
-		})
-	}
-
-	// attach a change listeners to each item
-	defer attachChangeListenerFunc()
-
-	// create a "render each item" function
-	renderFunc := func() {
-		forEachItem(func(item *repository.Item) {
-			renderer.renderItem(item)
-		})
-	}
-
-	// render each item
-	renderFunc()
+	renderer.renderItem(root)
 
 	// re-render on template change
 	go func() {
@@ -79,7 +54,7 @@ func (renderer *Renderer) Execute() *repository.ItemIndex {
 			select {
 			case event := <-renderer.templateProvider.TemplateChanged:
 				fmt.Printf("Template %q changed. Rendering all items.\n", event.Filepath)
-				renderFunc()
+				renderer.renderItem(root)
 			}
 		}
 	}()

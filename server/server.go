@@ -100,10 +100,7 @@ func (server *Server) getHttpBinding() string {
 func (server *Server) initializeRoutes(index *repository.ItemIndex) {
 
 	routes = make(map[string]string)
-
-	for _, item := range index.Items() {
-		server.registerItem(item)
-	}
+	server.registerItem(index.Root())
 }
 
 func (server *Server) registerItem(item *repository.Item) {

@@ -6,7 +6,9 @@ package repository
 
 import (
 	"github.com/andreaskoch/allmark/config"
+	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark/util"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
 )
@@ -16,8 +18,9 @@ var (
 )
 
 func isReservedDirectory(path string) bool {
-	if isDirectory, _ := util.IsDirectory(path); !isDirectory {
-		return false
+
+	if isFile, _ := util.IsFile(path); isFile {
+		path = filepath.Dir(path)
 	}
 
 	// get the directory name
@@ -36,4 +39,25 @@ func isReservedDirectory(path string) bool {
 	}
 
 	return false
+}
+
+func findMarkdownFileInDirectory(directory string) (found bool, file string) {
+	entries, err := ioutil.ReadDir(directory)
+	if err != nil {
+		return false, ""
+	}
+
+	for _, element := range entries {
+
+		if element.IsDir() {
+			continue // skip directories
+		}
+
+		absoluteFilePath := filepath.Join(directory, element.Name())
+		if isMarkdown := markdown.IsMarkdownFile(absoluteFilePath); isMarkdown {
+			return true, absoluteFilePath
+		}
+	}
+
+	return false, ""
 }
