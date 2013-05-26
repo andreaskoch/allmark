@@ -77,6 +77,7 @@ func (renderer *Renderer) attachChangeListener(item *repository.Item) {
 
 	// attach change listener
 	item.OnChange("Render item on change", func(event *watcher.WatchEvent) {
+		fmt.Printf("Rendering item %s\n", item)
 		renderer.renderItem(item)
 	})
 }

@@ -80,9 +80,9 @@ func NewItem(itemPath string, level int) (item *Item, err error) {
 	pathProvider := path.NewProvider(pathProviderDirectory, false)
 
 	// create a file change handler
-	changeHandler, err := watcher.NewChangeHandler(itemPath)
+	changeHandler, err := watcher.NewChangeHandler(itemDirectory)
 	if err != nil {
-		return nil, fmt.Errorf("Could not create a change handler for item %q.\nError: %s\n", itemPath, err)
+		return nil, fmt.Errorf("Could not create a change handler for item %q.\nError: %s\n", itemDirectory, err)
 	}
 
 	// create the file index
@@ -108,8 +108,14 @@ func NewItem(itemPath string, level int) (item *Item, err error) {
 	// find childs
 	item.updateChilds()
 
+	item.OnChange("Reindex on change", func(event *watcher.WatchEvent) {
+		fmt.Printf("Reindexing child items %s\n", item)
+		item.updateChilds()
+	})
+
 	// watch for changes in the file index
 	fileIndex.OnChange("Throw Item Events on File index change", func(event *watcher.WatchEvent) {
+		fmt.Printf("Reindexing files %s\n", item)
 		item.Throw(event)
 	})
 
