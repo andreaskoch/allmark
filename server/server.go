@@ -100,14 +100,16 @@ func (server *Server) getHttpBinding() string {
 func (server *Server) initializeRoutes(index *repository.ItemIndex) {
 
 	routes = make(map[string]string)
+
 	server.registerItem(index.Root())
+	server.attachChangeListener(index.Root())
 }
 
-func (server *Server) registerItem(item *repository.Item) {
+func (server *Server) attachChangeListener(item *repository.Item) {
 
 	// recurse for child items
 	for _, child := range item.Childs {
-		server.registerItem(child)
+		server.attachChangeListener(child)
 	}
 
 	// attach change listener
@@ -120,6 +122,15 @@ func (server *Server) registerItem(item *repository.Item) {
 		h.broadcast <- UpdateMessage(item.Model)
 
 	})
+
+}
+
+func (server *Server) registerItem(item *repository.Item) {
+
+	// recurse for child items
+	for _, child := range item.Childs {
+		server.registerItem(child)
+	}
 
 	// get the item route and
 	// add it to the routing table
