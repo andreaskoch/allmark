@@ -27,7 +27,7 @@ func (hub *hub) ConnectionsByRoute(route string) []*connection {
 	connectionsByRoute := make([]*connection, 0)
 
 	for c := range h.connections {
-		if strings.HasSuffix(c.Route, route) {
+		if strings.HasSuffix(route, c.Route) {
 			fmt.Println(c.Route)
 			fmt.Println(route)
 			connectionsByRoute = append(connectionsByRoute, c)
@@ -61,9 +61,12 @@ func (h *hub) run() {
 		case m := <-h.broadcast:
 			{
 
-				for _, c := range h.ConnectionsByRoute(m.Route) {
+				affectedConnections := h.ConnectionsByRoute(m.Route)
+				fmt.Printf("Found %d connections that are affected by the change on route %q\n", len(affectedConnections), m.Route)
 
-					fmt.Printf("Sending out an update for route %q\n", c.Route)
+				for _, c := range affectedConnections {
+
+					fmt.Printf("Sending model %q to route %q\n", m.Route, c.Route)
 
 					select {
 					case c.send <- m:
