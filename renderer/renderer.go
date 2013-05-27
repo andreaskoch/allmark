@@ -12,7 +12,6 @@ import (
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/templates"
-	"github.com/andreaskoch/allmark/watcher"
 	"os"
 	"text/template"
 )
@@ -66,20 +65,14 @@ func (renderer *Renderer) attachChangeListener(item *repository.Item) {
 
 	for _, child := range item.Childs {
 
-		// aggregate child events
-		child.OnChange("Throw Item Events on Child Item change", func(event *watcher.WatchEvent) {
-			fmt.Printf("Child %s changed. Parent: %s\n", child, item)
-			item.Throw(event)
-		})
-
 		// recurse
 		renderer.attachChangeListener(child)
 	}
 
 	// attach change listener
-	item.OnChange("Render item on change", func(event *watcher.WatchEvent) {
-		fmt.Printf("Rendering item %s\n", item)
-		renderer.renderItem(item)
+	item.OnChange("Render item on change", func(i *repository.Item) {
+		fmt.Printf("Rendering item %s\n", i)
+		renderer.renderItem(i)
 	})
 }
 

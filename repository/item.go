@@ -12,7 +12,9 @@ import (
 	"github.com/andreaskoch/allmark/view"
 	"github.com/andreaskoch/allmark/watcher"
 	"io/ioutil"
+	"os"
 	"path/filepath"
+	"time"
 )
 
 const (
@@ -20,8 +22,6 @@ const (
 )
 
 type Item struct {
-	*watcher.ChangeHandler
-
 	*view.Model
 
 	Level  int
@@ -33,6 +33,8 @@ type Item struct {
 	isVirtual bool
 
 	pathProvider *path.Provider
+
+	changeFuncs []func(item *Item)
 }
 
 func NewItem(itemPath string, level int) (item *Item, err error) {
@@ -79,12 +81,6 @@ func NewItem(itemPath string, level int) (item *Item, err error) {
 
 	pathProvider := path.NewProvider(pathProviderDirectory, false)
 
-	// create a file change handler
-	changeHandler, err := watcher.NewChangeHandler(itemPath)
-	if err != nil {
-		return nil, fmt.Errorf("Could not create a change handler for item %q.\nError: %s\n", itemPath, err)
-	}
-
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, FilesDirectoryName)
 	fileIndex, err := NewFileIndex(filesDirectory)
@@ -94,8 +90,6 @@ func NewItem(itemPath string, level int) (item *Item, err error) {
 
 	// create the item
 	item = &Item{
-		ChangeHandler: changeHandler,
-
 		Level: level,
 		Files: fileIndex,
 
@@ -103,23 +97,42 @@ func NewItem(itemPath string, level int) (item *Item, err error) {
 		directory:    itemDirectory,
 		path:         itemPath,
 		isVirtual:    isVirtualItem,
+		changeFuncs:  make([]func(item *Item), 0),
+	}
+
+	// look for changes
+	if !isVirtualItem {
+		go func() {
+			sleepTime := time.Second * 2
+
+			for {
+				if fileInfo, err := os.Stat(itemPath); err == nil {
+					sleepTime := time.Now().Add(sleepTime * -1)
+					modTime := fileInfo.ModTime()
+					if sleepTime.Before(modTime) {
+						fmt.Println("Item was modified")
+					}
+				}
+
+				time.Sleep(sleepTime)
+			}
+		}()
 	}
 
 	// find childs
 	item.updateChilds()
 
-	item.OnChange("Reindex on change", func(event *watcher.WatchEvent) {
-		fmt.Printf("Reindexing child items %s\n", item)
-		item.updateChilds()
-	})
-
 	// watch for changes in the file index
 	fileIndex.OnChange("Throw Item Events on File index change", func(event *watcher.WatchEvent) {
 		fmt.Printf("Reindexing files %s\n", item)
-		item.Throw(event)
 	})
 
 	return item, nil
+}
+
+func (item *Item) OnChange(name string, expr func(i *Item)) {
+	fmt.Println(name)
+	item.changeFuncs = append(item.changeFuncs, expr)
 }
 
 func (item *Item) String() string {

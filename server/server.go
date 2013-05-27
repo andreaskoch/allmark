@@ -12,7 +12,6 @@ import (
 	"github.com/andreaskoch/allmark/renderer"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
-	"github.com/andreaskoch/allmark/watcher"
 	"log"
 	"math"
 	"net/http"
@@ -113,13 +112,13 @@ func (server *Server) attachChangeListener(item *repository.Item) {
 	}
 
 	// attach change listener
-	item.OnChange("Update routing table on change", func(event *watcher.WatchEvent) {
+	item.OnChange("Update routing table on change", func(i *repository.Item) {
 
 		// re-register item on change
-		server.registerItem(item)
+		server.registerItem(i)
 
 		// send update event to connected browsers
-		h.broadcast <- UpdateMessage(item.Model)
+		h.broadcast <- UpdateMessage(i.Model)
 
 	})
 
