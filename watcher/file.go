@@ -11,46 +11,81 @@ import (
 )
 
 type FileWatcher struct {
+	Modified chan bool
+	Moved    chan bool
+
+	debug   bool
 	file    string
-	stopped chan bool
+	running bool
 }
 
 func NewFileWatcher(filePath string) *FileWatcher {
 	return &FileWatcher{
-		file: filePath,
+		Modified: make(chan bool),
+		Moved:    make(chan bool),
+		debug:    true,
+		file:     filePath,
 	}
 }
 
-func (fileWatcher *FileWatcher) Start() {
+func (fileWatcher *FileWatcher) String() string {
+	return fmt.Sprintf("Filewatcher %q", fileWatcher.file)
+}
+
+func (fileWatcher *FileWatcher) Start() *FileWatcher {
+	fileWatcher.running = true
+	sleepTime := time.Second * 2
+
 	go func() {
-		running := true
-		sleepTime := time.Second * 2
 
-		for running {
-			select {
-			default:
+		for fileWatcher.running {
 
-				if fileInfo, err := os.Stat(fileWatcher.file); err == nil {
+			if fileInfo, err := os.Stat(fileWatcher.file); err == nil {
 
-					// check if file has been modified
-					sleepTime := time.Now().Add(sleepTime * -1)
-					modTime := fileInfo.ModTime()
-					if sleepTime.Before(modTime) {
-						fmt.Println("Item was modified")
-					}
+				// check if file has been modified
+				sleepTime := time.Now().Add(sleepTime * -1)
+				modTime := fileInfo.ModTime()
+				if sleepTime.Before(modTime) {
 
-				} else if os.IsNotExist(err) {
+					fileWatcher.log("Item was modified")
+					fileWatcher.Modified <- true
 
-					// file has been moved. check if it has been deleted
-					// or if it has been renamed
-					fmt.Println("Item was removed")
-					running = false
 				}
 
-				time.Sleep(sleepTime)
+			} else if os.IsNotExist(err) {
+
+				// file has been moved. check if it has been deleted
+				// or if it has been renamed
+				fileWatcher.log("Item was removed")
+				fileWatcher.Moved <- true
+
+				fileWatcher.Stop()
 			}
+
+			time.Sleep(sleepTime)
+
 		}
 
-		fmt.Println("Stopped")
+		fileWatcher.log("Stopped")
 	}()
+
+	return fileWatcher
+}
+
+func (fileWatcher *FileWatcher) Stop() *FileWatcher {
+	fileWatcher.log("Stopping")
+	fileWatcher.running = false
+	return fileWatcher
+}
+
+func (fileWatcher *FileWatcher) IsRunning() bool {
+	return fileWatcher.running
+}
+
+func (fileWatcher *FileWatcher) log(message string) *FileWatcher {
+	if fileWatcher.debug {
+		fmt.Printf("%s - %s\n", fileWatcher, message)
+	}
+
+	return fileWatcher
 }

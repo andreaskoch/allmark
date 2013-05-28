@@ -101,8 +101,17 @@ func NewItem(itemPath string, level int) (item *Item, err error) {
 	// look for changes
 	if !isVirtualItem {
 		go func() {
-			watcher.NewFileWatcher(itemPath).Start()
+			fileWatcher := watcher.NewFileWatcher(itemPath).Start()
 
+			for fileWatcher.IsRunning() {
+				select {
+				case <-fileWatcher.Modified:
+					fmt.Println("klkdlas")
+
+				case <-fileWatcher.Moved:
+					fmt.Println("öööööööö")
+				}
+			}
 		}()
 	}
 
