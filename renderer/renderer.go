@@ -43,8 +43,11 @@ func (renderer *Renderer) Execute() *repository.ItemIndex {
 	}
 
 	root := index.Root()
-	defer renderer.attachChangeListener(root)
 
+	// start a change listener
+	defer renderer.listenForChanges(root)
+
+	// start rendering the root item
 	renderer.renderItem(root)
 
 	// re-render on template change
@@ -61,19 +64,22 @@ func (renderer *Renderer) Execute() *repository.ItemIndex {
 	return index
 }
 
-func (renderer *Renderer) attachChangeListener(item *repository.Item) {
+func (renderer *Renderer) listenForChanges(item *repository.Item) {
 
 	for _, child := range item.Childs {
-
-		// recurse
-		renderer.attachChangeListener(child)
+		renderer.listenForChanges(child) // recurse
 	}
 
-	// attach change listener
-	item.OnChange("Render item on change", func(i *repository.Item) {
-		fmt.Printf("Rendering item %s\n", i)
-		renderer.renderItem(i)
-	})
+	go func() {
+		for {
+			select {
+			case <-item.Modified:
+				fmt.Printf("Rendering item %s\n", item)
+				renderer.renderItem(item)
+			}
+		}
+	}()
+
 }
 
 func (renderer *Renderer) renderItem(item *repository.Item) {
