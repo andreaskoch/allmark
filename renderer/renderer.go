@@ -43,12 +43,10 @@ func New(repositoryPath string, config *config.Config, useTempDir bool) *Rendere
 func (renderer *Renderer) Execute() {
 
 	// create an index from the repository
-	index, err := repository.NewItemIndex(renderer.repositoryPath)
+	root, err := repository.NewRoot(renderer.repositoryPath)
 	if err != nil {
-		panic(fmt.Sprintf("Cannot create an item index for folder %q.\nError: %s\n", renderer.repositoryPath, err))
+		panic(fmt.Sprintf("Cannot create an item from folder %q.\nError: %s\n", renderer.repositoryPath, err))
 	}
-
-	root := index.Root()
 
 	// start a change listener
 	defer renderer.listenForChanges(root)

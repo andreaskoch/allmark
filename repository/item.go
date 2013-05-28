@@ -38,7 +38,31 @@ type Item struct {
 	changeFuncs []func(item *Item)
 }
 
-func NewItem(itemPath string, level int) (item *Item, err error) {
+func NewRoot(indexPath string) (item *Item, err error) {
+
+	// check if path exists
+	if !util.PathExists(indexPath) {
+		return nil, fmt.Errorf("The path %q does not exist.", indexPath)
+	}
+
+	if isReservedDirectory(indexPath) {
+		return nil, fmt.Errorf("The path %q is using a reserved name and cannot be a root.", indexPath)
+	}
+
+	// check if the path is a directory
+	if isDirectory, _ := util.IsDirectory(indexPath); !isDirectory {
+		indexPath = filepath.Dir(indexPath)
+	}
+
+	rootItem, err := newItem(indexPath, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return rootItem, nil
+}
+
+func newItem(itemPath string, level int) (item *Item, err error) {
 
 	// abort if path does not exist
 	if !util.PathExists(itemPath) {
@@ -193,7 +217,7 @@ func (item *Item) updateChilds() {
 			continue // Child already present
 		}
 
-		if child, err := NewItem(childItemDirectory, item.Level+1); err == nil {
+		if child, err := newItem(childItemDirectory, item.Level+1); err == nil {
 			item.Childs = append(item.Childs, child) // append new child
 		} else {
 			fmt.Printf("Could not create a item for folder %q. Error: %s\n", childItemDirectory, err)
