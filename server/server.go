@@ -58,10 +58,10 @@ func New(repositoryPath string, config *config.Config, useTempDir bool) *Server 
 
 func (server *Server) Serve() {
 
-	index := server.renderer.Execute()
+	server.renderer.Execute()
 
 	// Initialize the routing table
-	server.initializeRoutes(index)
+	server.initializeRoutes()
 
 	// start the websocket hub
 	go h.run()
@@ -96,31 +96,22 @@ func (server *Server) getHttpBinding() string {
 	return fmt.Sprintf(":%v", port)
 }
 
-func (server *Server) initializeRoutes(index *repository.ItemIndex) {
+func (server *Server) initializeRoutes() {
 
 	routes = make(map[string]string)
 
-	server.registerItem(index.Root())
-	server.attachChangeListener(index.Root())
-}
+	go func() {
 
-func (server *Server) attachChangeListener(item *repository.Item) {
-
-	// recurse for child items
-	for _, child := range item.Childs {
-		server.attachChangeListener(child)
-	}
-
-	// attach change listener
-	item.OnChange("Update routing table on change", func(i *repository.Item) {
-
-		// re-register item on change
-		server.registerItem(i)
-
-		// send update event to connected browsers
-		h.broadcast <- UpdateMessage(i.Model)
-
-	})
+		for {
+			select {
+			case item := <-server.renderer.Rendered:
+				if item != nil {
+					fmt.Printf("Registering item %s\n", item)
+					server.registerItem(item)
+				}
+			}
+		}
+	}()
 
 }
 

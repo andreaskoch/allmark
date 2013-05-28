@@ -17,6 +17,8 @@ import (
 )
 
 type Renderer struct {
+	Rendered chan *repository.Item
+
 	repositoryPath   string
 	pathProvider     *path.Provider
 	templateProvider *templates.Provider
@@ -26,6 +28,8 @@ type Renderer struct {
 func New(repositoryPath string, config *config.Config, useTempDir bool) *Renderer {
 
 	return &Renderer{
+		Rendered: make(chan *repository.Item),
+
 		repositoryPath:   repositoryPath,
 		pathProvider:     path.NewProvider(repositoryPath, useTempDir),
 		templateProvider: templates.NewProvider(config.TemplatesFolder()),
@@ -34,7 +38,7 @@ func New(repositoryPath string, config *config.Config, useTempDir bool) *Rendere
 
 }
 
-func (renderer *Renderer) Execute() *repository.ItemIndex {
+func (renderer *Renderer) Execute() {
 
 	// create an index from the repository
 	index, err := repository.NewItemIndex(renderer.repositoryPath)
@@ -61,7 +65,7 @@ func (renderer *Renderer) Execute() *repository.ItemIndex {
 		}
 	}()
 
-	return index
+	fmt.Println("nix")
 }
 
 func (renderer *Renderer) listenForChanges(item *repository.Item) {
@@ -99,8 +103,15 @@ func (renderer *Renderer) renderItem(item *repository.Item) {
 		targetPath := renderer.pathProvider.GetRenderTargetPath(item)
 		renderer.writeOutput(item, template, targetPath)
 
+		// pass along
+		go func() {
+			renderer.Rendered <- item
+		}()
+
 	} else {
+
 		fmt.Fprintf(os.Stderr, "No template for item of type %q.", item.Type)
+
 	}
 
 }
