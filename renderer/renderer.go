@@ -18,6 +18,7 @@ import (
 
 type Renderer struct {
 	Rendered chan *repository.Item
+	Removed  chan *repository.Item
 
 	repositoryPath   string
 	pathProvider     *path.Provider
@@ -29,6 +30,7 @@ func New(repositoryPath string, config *config.Config, useTempDir bool) *Rendere
 
 	return &Renderer{
 		Rendered: make(chan *repository.Item),
+		Removed:  make(chan *repository.Item),
 
 		repositoryPath:   repositoryPath,
 		pathProvider:     path.NewProvider(repositoryPath, useTempDir),
@@ -79,8 +81,30 @@ func (renderer *Renderer) listenForChanges(item *repository.Item) {
 			case <-item.Modified:
 				fmt.Printf("Rendering item %s\n", item)
 				renderer.renderItem(item)
+
+			case <-item.Moved:
+				fmt.Printf("Item %s has moved", item)
+				renderer.removeItem(item)
 			}
 		}
+	}()
+
+}
+
+func (renderer *Renderer) removeItem(item *repository.Item) {
+
+	// remove all childs first
+	for _, child := range item.Childs {
+		renderer.removeItem(child) // recurse
+	}
+
+	targetPath := renderer.pathProvider.GetRenderTargetPath(item)
+
+	go func() {
+		//os.Remove(targetPath)
+		fmt.Printf("Removing %q\n", targetPath)
+
+		renderer.Removed <- item
 	}()
 
 }

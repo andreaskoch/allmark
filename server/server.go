@@ -111,10 +111,31 @@ func (server *Server) listenForChanges() {
 					// send update event to connected browsers
 					h.broadcast <- UpdateMessage(item.Model)
 				}
+			case item := <-server.renderer.Removed:
+				if item != nil {
+					// un-register the item
+					server.unregisterItem(item)
+				}
 			}
 		}
 	}()
 
+}
+
+func (server *Server) unregisterItem(item *repository.Item) {
+
+	// recurse for child items
+	for _, child := range item.Childs {
+		server.unregisterItem(child)
+	}
+
+	// unregister the item
+	server.unregisterRoute(item)
+
+	// unregister all item files
+	for _, file := range item.Files.Items() {
+		server.unregisterRoute(file)
+	}
 }
 
 func (server *Server) registerItem(item *repository.Item) {
@@ -138,7 +159,7 @@ func (server *Server) registerItem(item *repository.Item) {
 func (server *Server) registerRoute(pather path.Pather) {
 
 	if pather == nil {
-		log.Printf("Cannot add a route for an uninitialized item %q.\n", pather.Path())
+		log.Println("Cannot add a route for an uninitialized item.")
 		return
 	}
 
@@ -151,6 +172,17 @@ func (server *Server) registerRoute(pather path.Pather) {
 	}
 
 	routes[route] = filePath
+}
+
+func (server *Server) unregisterRoute(pather path.Pather) {
+
+	if pather == nil {
+		log.Println("Cannot unregister a route for an uninitialized item.")
+		return
+	}
+
+	route := server.pathProvider.GetWebRoute(pather)
+	delete(routes, route)
 }
 
 func openUrlInBrowser(url string) {
