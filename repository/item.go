@@ -22,6 +22,9 @@ const (
 type Item struct {
 	*view.Model
 
+	Modified chan bool
+	Moved    chan bool
+
 	Level  int
 	Files  *FileIndex
 	Childs []*Item
@@ -88,6 +91,9 @@ func NewItem(itemPath string, level int) (item *Item, err error) {
 
 	// create the item
 	item = &Item{
+		Modified: make(chan bool),
+		Moved:    make(chan bool),
+
 		Level: level,
 		Files: fileIndex,
 
@@ -104,13 +110,17 @@ func NewItem(itemPath string, level int) (item *Item, err error) {
 			fileWatcher := watcher.NewFileWatcher(itemPath).Start()
 
 			for fileWatcher.IsRunning() {
+
 				select {
 				case <-fileWatcher.Modified:
-					fmt.Println("klkdlas")
+
+					item.Modified <- true
 
 				case <-fileWatcher.Moved:
-					fmt.Println("öööööööö")
+
+					item.Moved <- true
 				}
+
 			}
 		}()
 	}
