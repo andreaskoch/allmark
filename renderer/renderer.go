@@ -65,7 +65,6 @@ func (renderer *Renderer) Execute() {
 		}
 	}()
 
-	fmt.Println("nix")
 }
 
 func (renderer *Renderer) listenForChanges(item *repository.Item) {
