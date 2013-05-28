@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	routes map[string]string
+	routes = make(map[string]string)
 
 	useTempDir = true
 )
@@ -58,10 +58,11 @@ func New(repositoryPath string, config *config.Config, useTempDir bool) *Server 
 
 func (server *Server) Serve() {
 
+	// start the renderer
 	server.renderer.Execute()
 
-	// Initialize the routing table
-	server.initializeRoutes()
+	// start a change listener
+	server.listenForChanges()
 
 	// start the websocket hub
 	go h.run()
@@ -96,9 +97,7 @@ func (server *Server) getHttpBinding() string {
 	return fmt.Sprintf(":%v", port)
 }
 
-func (server *Server) initializeRoutes() {
-
-	routes = make(map[string]string)
+func (server *Server) listenForChanges() {
 
 	go func() {
 
@@ -106,8 +105,11 @@ func (server *Server) initializeRoutes() {
 			select {
 			case item := <-server.renderer.Rendered:
 				if item != nil {
-					fmt.Printf("Registering item %s\n", item)
+					// register the item
 					server.registerItem(item)
+
+					// send update event to connected browsers
+					h.broadcast <- UpdateMessage(item.Model)
 				}
 			}
 		}
