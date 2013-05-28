@@ -12,9 +12,7 @@ import (
 	"github.com/andreaskoch/allmark/view"
 	"github.com/andreaskoch/allmark/watcher"
 	"io/ioutil"
-	"os"
 	"path/filepath"
-	"time"
 )
 
 const (
@@ -103,19 +101,8 @@ func NewItem(itemPath string, level int) (item *Item, err error) {
 	// look for changes
 	if !isVirtualItem {
 		go func() {
-			sleepTime := time.Second * 2
+			watcher.NewFileWatcher(itemPath).Start()
 
-			for {
-				if fileInfo, err := os.Stat(itemPath); err == nil {
-					sleepTime := time.Now().Add(sleepTime * -1)
-					modTime := fileInfo.ModTime()
-					if sleepTime.Before(modTime) {
-						fmt.Println("Item was modified")
-					}
-				}
-
-				time.Sleep(sleepTime)
-			}
 		}()
 	}
 
@@ -131,7 +118,6 @@ func NewItem(itemPath string, level int) (item *Item, err error) {
 }
 
 func (item *Item) OnChange(name string, expr func(i *Item)) {
-	fmt.Println(name)
 	item.changeFuncs = append(item.changeFuncs, expr)
 }
 
