@@ -49,24 +49,17 @@ func (h *hub) run() {
 		select {
 		case c := <-h.register:
 			{
-				fmt.Printf("Registering connection for route %q\n", c.Route)
 				h.connections[c] = true
 			}
 		case c := <-h.unregister:
 			{
-
 				delete(h.connections, c)
 				close(c.send)
 			}
 		case m := <-h.broadcast:
 			{
-
 				affectedConnections := h.ConnectionsByRoute(m.Route)
-				fmt.Printf("Found %d connections that are affected by the change on route %q\n", len(affectedConnections), m.Route)
-
 				for _, c := range affectedConnections {
-
-					fmt.Printf("Sending model %q to route %q\n", m.Route, c.Route)
 
 					select {
 					case c.send <- m:
