@@ -408,105 +408,125 @@ $(function() {
         return websocketUrl;            
     };
 
-    var connection = new WebSocket(getWebSocketUrl());
+    /**
+     * Connect to the server
+     * @param string webSocketUrl The url of the web-socket to connect to
+     */
+    var connect = function(webSocketUrl) {
+        var reconnectionTimeInSeconds = 3;
+        var connection = new WebSocket(webSocketUrl);
 
-    connection.onclose = function(evt) {
-        console.log("Connection closed.");
-    };
+        connection.onclose = function(evt) {
+            console.log("Connection closed. Trying to reconnect in " + reconnectionTimeInSeconds + " seconds.");
 
-    connection.onopen = function() {
-        console.log("Connection established.")
-    };
+            setTimeout(function() {
 
-    connection.onmessage = function(evt) {
+                console.log("Reconnecting");
+                connect(webSocketUrl);
 
-        // validate event data
-        if (typeof(evt) !== 'object' || typeof(evt.data) !== 'string') {
-            console.log("Invalid data from server.");
-            return;
-        }
+            }, (reconnectionTimeInSeconds * 1000));
+        };
 
-        // unwrap the message
-        message = JSON.parse(evt.data);
+        connection.onopen = function() {
+            console.log("Connection established.")
+        };
 
-        // check if all required fields are present
-        if (message === null || typeof(message) !== 'object' || typeof(message.route) !== 'string' || message.model === null || typeof(message.model) !== 'object') {
-            console.log("Invalid response format.", message);
-            return;
-        }
+        connection.onmessage = function(evt) {
 
-        // check if update is applicable for the current route
-        if (message.route !== getCurrentRoute()) {
-            return;
-        }
-
-        // check the model structure
-        var model = message.model;
-        if (typeof(model.content) !== 'string' || typeof(model.description) !== 'string' || typeof(model.title) !== 'string') {
-            console.log("Cannot update the view with the given model object. Missing some required fields.", model);
-            return;
-        }
-
-        // update the title
-        $('title').html(model.title);
-        $('.title').html(model.title);
-
-        // update the description
-        $('.description').html(model.description);
-
-        // update the content
-        $('.content').html(model.content);
-
-        // update sub entries (if available)
-        if (model.subEntries === null || typeof(model.subEntries) !== 'object') {
-            return;
-        }
-
-        var entries = model.subEntries;
-        var existingEntries = $(".subentries>.subentry");
-        var numberOfExistingEntries = existingEntries.length;
-        var numberOfNewEntries = entries.length;
-
-        var fallbackEntryTemplate = "<li><a href=\"#\" class=\"subentry-title subentry-link\"></a><p class=\"subentry-description\"></p></li>";
-
-        for (var i = 0; i < numberOfNewEntries; i++) {
-            var index = i + 1;
-            var newEntry = entries[i];
-
-            // get the item to update
-            var entryToUpdate;
-            if (index <= numberOfExistingEntries) {
-
-                // use an existing item
-                entryToUpdate = existingEntries[i];
-
-            } else {
-
-                // create a new item
-                var entryTemplate = fallbackEntryTemplate;
-                if (numberOfExistingEntries > 0) {
-
-                    // use the first entry for the template
-                    entryTemplate = existingEntries[0].html();
-
-                }
-
-                // append the template
-                entryToUpdate = $(entryTemplate);
-                $(".subentries").append(entryToUpdate);
+            // validate event data
+            if (typeof(evt) !== 'object' || typeof(evt.data) !== 'string') {
+                console.log("Invalid data from server.");
+                return;
             }
 
-            // update the title text
-            $(entryToUpdate).find(".subentry-link:first").html(newEntry.title);
+            // unwrap the message
+            message = JSON.parse(evt.data);
 
-            // update the title link
-            $(entryToUpdate).find(".subentry-link:first").attr("href", newEntry.relativeRoute);
+            // check if all required fields are present
+            if (message === null || typeof(message) !== 'object' || typeof(message.route) !== 'string' || message.model === null || typeof(message.model) !== 'object') {
+                console.log("Invalid response format.", message);
+                return;
+            }
+
+            // check if update is applicable for the current route
+            if (message.route !== getCurrentRoute()) {
+                console.log("no match", message);
+                return;
+            }
+
+            console.log("match", message);
+
+            // check the model structure
+            var model = message.model;
+            if (typeof(model.content) !== 'string' || typeof(model.description) !== 'string' || typeof(model.title) !== 'string') {
+                console.log("Cannot update the view with the given model object. Missing some required fields.", model);
+                return;
+            }
+
+            // update the title
+            $('title').html(model.title);
+            $('.title').html(model.title);
 
             // update the description
-            $(entryToUpdate).find(".subentry-description:first").html(newEntry.description);
-        }
+            $('.description').html(model.description);
 
+            // update the content
+            $('.content').html(model.content);
+
+            // update sub entries (if available)
+            if (model.subEntries === null || typeof(model.subEntries) !== 'object') {
+                return;
+            }
+
+            var entries = model.subEntries;
+            var existingEntries = $(".subentries>.subentry");
+            var numberOfExistingEntries = existingEntries.length;
+            var numberOfNewEntries = entries.length;
+
+            var fallbackEntryTemplate = "<li><a href=\"#\" class=\"subentry-title subentry-link\"></a><p class=\"subentry-description\"></p></li>";
+
+            for (var i = 0; i < numberOfNewEntries; i++) {
+                var index = i + 1;
+                var newEntry = entries[i];
+
+                // get the item to update
+                var entryToUpdate;
+                if (index <= numberOfExistingEntries) {
+
+                    // use an existing item
+                    entryToUpdate = existingEntries[i];
+
+                } else {
+
+                    // create a new item
+                    var entryTemplate = fallbackEntryTemplate;
+                    if (numberOfExistingEntries > 0) {
+
+                        // use the first entry for the template
+                        entryTemplate = existingEntries[0].html();
+
+                    }
+
+                    // append the template
+                    entryToUpdate = $(entryTemplate);
+                    $(".subentries").append(entryToUpdate);
+                }
+
+                // update the title text
+                $(entryToUpdate).find(".subentry-link:first").html(newEntry.title);
+
+                // update the title link
+                $(entryToUpdate).find(".subentry-link:first").attr("href", newEntry.relativeRoute);
+
+                // update the description
+                $(entryToUpdate).find(".subentry-description:first").html(newEntry.description);
+            }
+
+        };
     };
+
+    // establish the connection
+    connect(getWebSocketUrl());
 });`
 
 	defaultTheme = &Theme{
