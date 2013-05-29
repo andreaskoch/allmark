@@ -23,23 +23,45 @@ func NewTemplate(templateFolder string, name string, text string) *Template {
 	templateFilename := name + TemplateFileExtension
 	templateFilePath := filepath.Join(templateFolder, templateFilename)
 
-	// create a file change handler
-	changeHandler, err := watcher.NewChangeHandler(templateFilePath)
-	if err != nil {
-		panic(fmt.Sprintf("Could not create a change handler for template %q.\nError: %s\n", templateFilePath, err))
-	}
-
-	return &Template{
-		ChangeHandler: changeHandler,
+	// create a new template
+	template := &Template{
+		Modified: make(chan bool),
+		Moved:    make(chan bool),
 
 		name: name,
 		text: text,
 		path: templateFilePath,
 	}
+
+	// look for changes
+	go func() {
+		fileWatcher := watcher.NewFileWatcher(template.path).Start()
+
+		for fileWatcher.IsRunning() {
+
+			select {
+			case <-fileWatcher.Modified:
+
+				go func() {
+					template.Modified <- true
+				}()
+
+			case <-fileWatcher.Moved:
+
+				go func() {
+					template.Moved <- true
+				}()
+			}
+
+		}
+	}()
+
+	return template
 }
 
 type Template struct {
-	*watcher.ChangeHandler
+	Modified chan bool
+	Moved    chan bool
 
 	name string
 	text string

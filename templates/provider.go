@@ -7,7 +7,6 @@ package templates
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/types"
-	"github.com/andreaskoch/allmark/watcher"
 	"strings"
 	"text/template"
 )
@@ -22,7 +21,8 @@ const (
 )
 
 type Provider struct {
-	TemplateChanged chan *watcher.WatchEvent
+	Modified chan bool
+	Moved    chan bool
 
 	folder    string
 	templates map[string]*Template
@@ -44,7 +44,8 @@ func NewProvider(templateFolder string) *Provider {
 
 	// create the provider
 	provider := &Provider{
-		TemplateChanged: make(chan *watcher.WatchEvent, 1),
+		Modified: make(chan bool),
+		Moved:    make(chan bool),
 
 		folder:    templateFolder,
 		templates: templates,
@@ -52,16 +53,21 @@ func NewProvider(templateFolder string) *Provider {
 	}
 
 	// watch for changes
-	for _, template := range provider.templates {
-		template.OnChange(fmt.Sprintf("Template %q changed.", template.Name()), func(event *watcher.WatchEvent) {
+	go func() {
+		for _, template := range provider.templates {
+			for {
+				select {
+				case <-template.Modified:
+					provider.ClearCache()
+					provider.Modified <- true
 
-			// clear the template cache
-			provider.ClearCache()
-
-			// send out a "template-changed" event
-			provider.TemplateChanged <- event
-		})
-	}
+				case <-template.Moved:
+					provider.ClearCache()
+					provider.Moved <- true
+				}
+			}
+		}
+	}()
 
 	return provider
 }

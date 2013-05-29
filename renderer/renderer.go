@@ -58,8 +58,8 @@ func (renderer *Renderer) Execute() {
 	go func() {
 		for {
 			select {
-			case event := <-renderer.templateProvider.TemplateChanged:
-				fmt.Printf("Template %q changed. Rendering all items.\n", event.Filepath)
+			case <-renderer.templateProvider.Modified:
+				fmt.Println("Templates changed. Rendering all items.\n")
 				renderer.renderItem(root)
 			}
 		}
