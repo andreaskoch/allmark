@@ -128,7 +128,10 @@ func newItem(itemPath string, level int) (item *Item, err error) {
 		changeFuncs:  make([]func(item *Item), 0),
 	}
 
-	// look for changes
+	// find childs
+	item.updateChilds()
+
+	// look for item changes
 	if !isVirtualItem {
 		go func() {
 			fileWatcher := watcher.NewFileWatcher(itemPath).Start()
@@ -149,13 +152,17 @@ func newItem(itemPath string, level int) (item *Item, err error) {
 		}()
 	}
 
-	// find childs
-	item.updateChilds()
+	// look for file changes
+	go func() {
+		for {
+			select {
+			case <-item.Files.Changed:
+				fmt.Println("Item changed because files changed")
+				item.Modified <- true
 
-	// watch for changes in the file index
-	fileIndex.OnChange("Throw Item Events on File index change", func(event *watcher.WatchEvent) {
-		fmt.Printf("Reindexing files %s\n", item)
-	})
+			}
+		}
+	}()
 
 	return item, nil
 }
@@ -227,7 +234,7 @@ func (item *Item) updateChilds() {
 	// remove deleted childs
 	newChildList := make([]*Item, 0, len(childItemDirectories))
 	for _, child := range item.Childs {
-		if sliceContainsElement(childItemDirectories, child.Directory()) {
+		if util.SliceContainsElement(childItemDirectories, child.Directory()) {
 			newChildList = append(newChildList, child)
 		}
 	}
@@ -256,13 +263,4 @@ func (item *Item) getChildItemDirectories() []string {
 	}
 
 	return directories
-}
-
-func sliceContainsElement(list []string, elem string) bool {
-	for _, t := range list {
-		if t == elem {
-			return true
-		}
-	}
-	return false
 }

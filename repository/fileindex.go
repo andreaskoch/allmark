@@ -20,34 +20,40 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 		return files
 	}
 
-	// create a file change handler
-	changeHandler, err := watcher.NewChangeHandler(directory)
-	if err != nil {
-		return nil, fmt.Errorf("Could not create a change handler for folder %q.\nError: %s\n", directory, err)
-	}
-
 	fileIndex := &FileIndex{
-		ChangeHandler: changeHandler,
-		Items:         getFilesFunc,
+		Items: getFilesFunc,
 
 		path: directory,
 	}
 
-	fileIndex.OnChange("Reindex files on change", func(event *watcher.WatchEvent) {
-		fmt.Println("Reindexing")
-		files := getFiles(directory)
+	go func() {
+		folderWatcher := watcher.NewFolderWatcher(directory).Start()
 
-		fileIndex.Items = func() []*File {
-			return files
+		for folderWatcher.IsRunning() {
+
+			select {
+			case <-folderWatcher.Change:
+				fmt.Println("Reindexing")
+				files := getFiles(directory)
+
+				fileIndex.Items = func() []*File {
+					return files
+				}
+
+				go func() {
+					fileIndex.Changed <- true
+				}()
+			}
+
 		}
-	})
+	}()
 
 	return fileIndex, nil
 }
 
 type FileIndex struct {
-	*watcher.ChangeHandler
-	Items func() []*File
+	Changed chan bool
+	Items   func() []*File
 
 	path string
 }

@@ -12,3 +12,12 @@ func GetLastElement(array []string) string {
 
 	return array[len(array)-1]
 }
+
+func SliceContainsElement(list []string, elem string) bool {
+	for _, t := range list {
+		if t == elem {
+			return true
+		}
+	}
+	return false
+}
