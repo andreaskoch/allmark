@@ -15,16 +15,14 @@ import (
 
 func NewFileIndex(directory string) (*FileIndex, error) {
 
-	files := getFiles(directory)
-	getFilesFunc := func() []*File {
-		return files
-	}
-
+	// creata a new files index
 	fileIndex := &FileIndex{
-		Items: getFilesFunc,
-
-		path: directory,
+		Changed: make(chan bool),
+		path:    directory,
 	}
+
+	// find all files
+	fileIndex.update()
 
 	go func() {
 		folderWatcher := watcher.NewFolderWatcher(directory).Start()
@@ -33,12 +31,8 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 
 			select {
 			case <-folderWatcher.Change:
-				fmt.Println("Reindexing")
-				files := getFiles(directory)
-
-				fileIndex.Items = func() []*File {
-					return files
-				}
+				fmt.Printf("Reindexing %q\n", directory)
+				fileIndex.update()
 
 				go func() {
 					fileIndex.Changed <- true
@@ -53,9 +47,9 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 
 type FileIndex struct {
 	Changed chan bool
-	Items   func() []*File
 
-	path string
+	files []*File
+	path  string
 }
 
 func (fileIndex *FileIndex) String() string {
@@ -72,6 +66,14 @@ func (fileIndex *FileIndex) Directory() string {
 
 func (fileIndex *FileIndex) PathType() string {
 	return p.PatherTypeIndex
+}
+
+func (fileIndex *FileIndex) Items() []*File {
+	return fileIndex.files
+}
+
+func (fileIndex *FileIndex) update() {
+	fileIndex.files = getFiles(fileIndex.Directory())
 }
 
 func (fileIndex *FileIndex) GetFilesByPath(path string, condition func(pather p.Pather) bool) []*File {

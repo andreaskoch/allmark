@@ -106,7 +106,9 @@ func (folderWatcher *FolderWatcher) Start() *FolderWatcher {
 			if len(newItems) > 0 || len(movedItems) > 0 {
 
 				// send out change
-				folderWatcher.Change <- newFolderChange(newItems, movedItems)
+				go func() {
+					folderWatcher.Change <- newFolderChange(newItems, movedItems)
+				}()
 			}
 
 		}
