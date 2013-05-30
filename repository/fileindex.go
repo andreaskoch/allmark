@@ -45,11 +45,13 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 					fileIndex.Changed <- true
 				}()
 			case <-folderWatcher.Stopped:
+				fmt.Printf("Stopped %q\n", directory)
 				break
 			}
 		}
 
 		go func() {
+			fmt.Printf("Send delete %q\n", directory)
 			fileIndex.Deleted <- true
 		}()
 	}()

@@ -56,7 +56,8 @@ type FolderWatcher struct {
 
 func NewFolderWatcher(folderPath string, recurse bool, skipFile func(path string) bool) *FolderWatcher {
 	return &FolderWatcher{
-		Change: make(chan *FolderChange),
+		Change:  make(chan *FolderChange),
+		Stopped: make(chan bool),
 
 		recurse:  recurse,
 		skipFile: skipFile,
