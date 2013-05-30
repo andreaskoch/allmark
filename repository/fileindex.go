@@ -9,12 +9,11 @@ import (
 	p "github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/watcher"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 )
 
-func skipFiles(fi os.FileInfo) bool {
+func skipFiles(path string) bool {
 	return false
 }
 
@@ -29,8 +28,9 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 	// find all files
 	fileIndex.update()
 
+	// look for changes in the index directory
 	go func() {
-		folderWatcher := watcher.NewFolderWatcher(directory, false, skipFiles).Start()
+		folderWatcher := watcher.NewFolderWatcher(directory, true, skipFiles).Start()
 
 		for folderWatcher.IsRunning() {
 

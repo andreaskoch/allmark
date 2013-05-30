@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark/util"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"time"
 )
@@ -47,14 +46,14 @@ type FolderWatcher struct {
 	Change chan *FolderChange
 
 	recurse  bool
-	skipFile func(fi os.FileInfo) bool
+	skipFile func(path string) bool
 
 	debug   bool
 	folder  string
 	running bool
 }
 
-func NewFolderWatcher(folderPath string, recurse bool, skipFile func(fi os.FileInfo) bool) *FolderWatcher {
+func NewFolderWatcher(folderPath string, recurse bool, skipFile func(path string) bool) *FolderWatcher {
 	return &FolderWatcher{
 		Change: make(chan *FolderChange),
 
@@ -144,7 +143,7 @@ func (folderWatcher *FolderWatcher) log(message string) *FolderWatcher {
 	return folderWatcher
 }
 
-func getFolderEntries(directory string, recurse bool, skipFile func(fi os.FileInfo) bool) []string {
+func getFolderEntries(directory string, recurse bool, skipFile func(path string) bool) []string {
 
 	// the return array
 	entries := make([]string, 0)
@@ -157,19 +156,19 @@ func getFolderEntries(directory string, recurse bool, skipFile func(fi os.FileIn
 
 	for _, entry := range directoryEntries {
 
+		// get the full path
+		subEntryPath := filepath.Join(directory, entry.Name())
+
 		// check if the enty shall be ignored
-		if skipFile(entry) {
+		if skipFile(subEntryPath) {
 			continue
 		}
 
-		// get the full path
-		subEntry := filepath.Join(directory, entry.Name())
-
 		// recurse or append
 		if recurse && entry.IsDir() {
-			entries = append(entries, getFolderEntries(subEntry, recurse, skipFile)...) // recurse
+			entries = append(entries, getFolderEntries(subEntryPath, recurse, skipFile)...) // recurse
 		} else {
-			entries = append(entries, subEntry) // append entry
+			entries = append(entries, subEntryPath) // append entry
 		}
 
 	}

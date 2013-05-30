@@ -54,6 +54,7 @@ func NewRoot(indexPath string) (item *Item, err error) {
 		indexPath = filepath.Dir(indexPath)
 	}
 
+	// create a new item
 	rootItem, err := newItem(indexPath, 0)
 	if err != nil {
 		return nil, err
@@ -151,6 +152,29 @@ func newItem(itemPath string, level int) (item *Item, err error) {
 			}
 		}()
 	}
+
+	// look for changes in the item directory
+	go func() {
+		var skipFunc = func(path string) bool {
+			return isReservedDirectory(path)
+		}
+
+		folderWatcher := watcher.NewFolderWatcher(itemDirectory, false, skipFunc).Start()
+
+		for folderWatcher.IsRunning() {
+
+			select {
+			case <-folderWatcher.Change:
+				fmt.Printf("Updating the child items of item %q\n", item)
+				item.updateChilds()
+
+				go func() {
+					item.Modified <- true
+				}()
+			}
+
+		}
+	}()
 
 	// look for file changes
 	go func() {
