@@ -478,48 +478,53 @@ $(function() {
                 return;
             }
 
+            /**
+             * Update an existing item list entry
+             * @param Element entryToUpdate The node which shall be updated
+             * @param Object model The model containing values to use for the update
+             */
+            var updateEntry = function(entryToUpdate, model) {
+                // update the title text
+                $(entryToUpdate).find(".subentry-link:first").html(model.title);
+
+                // update the title link
+                $(entryToUpdate).find(".subentry-link:first").attr("href", model.relativeRoute);
+
+                // update the description
+                $(entryToUpdate).find(".subentry-description:first").html(model.description);                
+            };
+
             var entries = model.subEntries;
             var existingEntries = $(".subentries>.subentry");
             var numberOfExistingEntries = existingEntries.length;
             var numberOfNewEntries = entries.length;
 
-            var fallbackEntryTemplate = "<li><a href=\"#\" class=\"subentry-title subentry-link\"></a><p class=\"subentry-description\"></p></li>";
+            var entryTemplate = "<li class=\"subentry\"><a href=\"#\" class=\"subentry-title subentry-link\"></a><p class=\"subentry-description\"></p></li>";
 
+            if (numberOfExistingEntries > numberOfNewEntries) {
+
+                for (var x = (numberOfNewEntries-1); x < numberOfNewEntries; x++) {
+                    $(existingEntries[x]).remove();
+                }
+
+            }
+
+            // update or add
             for (var i = 0; i < numberOfNewEntries; i++) {
                 var index = i + 1;
                 var newEntry = entries[i];
 
                 // get the item to update
-                var entryToUpdate;
                 if (index <= numberOfExistingEntries) {
 
-                    // use an existing item
-                    entryToUpdate = existingEntries[i];
+                    // update the existing entry
+                    updateEntry(existingEntries[i], newEntry);
 
                 } else {
 
-                    // create a new item
-                    var entryTemplate = fallbackEntryTemplate;
-                    if (numberOfExistingEntries > 0) {
-
-                        // use the first entry for the template
-                        entryTemplate = existingEntries[0].html();
-
-                    }
-
-                    // append the template
-                    entryToUpdate = $(entryTemplate);
-                    $(".subentries").append(entryToUpdate);
+                    // append and update a new entry
+                    updateEntry($(".subentries").append(entryTemplate).find(".subentry:last"), newEntry);
                 }
-
-                // update the title text
-                $(entryToUpdate).find(".subentry-link:first").html(newEntry.title);
-
-                // update the title link
-                $(entryToUpdate).find(".subentry-link:first").attr("href", newEntry.relativeRoute);
-
-                // update the description
-                $(entryToUpdate).find(".subentry-description:first").html(newEntry.description);
             }
 
         };
