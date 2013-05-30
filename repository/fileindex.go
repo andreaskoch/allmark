@@ -22,7 +22,7 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 	// creata a new files index
 	fileIndex := &FileIndex{
 		Changed: make(chan bool),
-		Deleted: make(chan bool),
+		Stopped: make(chan bool),
 
 		path: directory,
 	}
@@ -51,8 +51,8 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 		}
 
 		go func() {
-			fmt.Printf("Send delete %q\n", directory)
-			fileIndex.Deleted <- true
+			fmt.Printf("Send stop %q\n", directory)
+			fileIndex.Stopped <- true
 		}()
 	}()
 
@@ -61,7 +61,7 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 
 type FileIndex struct {
 	Changed chan bool
-	Deleted chan bool
+	Stopped chan bool
 
 	files []*File
 	path  string

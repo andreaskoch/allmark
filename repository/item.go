@@ -171,8 +171,8 @@ func newItem(itemPath string, level int, newItem chan *Item, deletedItem chan *I
 			case <-item.Files.Changed:
 				fmt.Printf("Files of item %q changed\n", item)
 				item.Modified <- true
-			case <-item.Files.Deleted:
-				fmt.Println("äädädäsadäää")
+			case <-item.Files.Stopped:
+				fmt.Printf("File index watcher for item %q was stopped\n", item)
 				break
 			}
 		}
