@@ -23,7 +23,7 @@ func NewFileWatcher(filePath string) *FileWatcher {
 	return &FileWatcher{
 		Modified: make(chan bool),
 		Moved:    make(chan bool),
-		debug:    false,
+		debug:    true,
 		file:     filePath,
 	}
 }

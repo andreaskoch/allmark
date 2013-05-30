@@ -43,7 +43,8 @@ func (folderChange *FolderChange) Moved() []string {
 }
 
 type FolderWatcher struct {
-	Change chan *FolderChange
+	Change  chan *FolderChange
+	Stopped chan bool
 
 	recurse  bool
 	skipFile func(path string) bool
@@ -60,8 +61,9 @@ func NewFolderWatcher(folderPath string, recurse bool, skipFile func(path string
 		recurse:  recurse,
 		skipFile: skipFile,
 
-		debug:  false,
-		folder: folderPath,
+		debug:   true,
+		folder:  folderPath,
+		running: false,
 	}
 }
 
@@ -77,12 +79,19 @@ func (folderWatcher *FolderWatcher) Start() *FolderWatcher {
 
 		// get existing entries
 		directory := folderWatcher.folder
-		existingEntries := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
+		existingEntries, err := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
+		if err != nil {
+			folderWatcher.running = false
+		}
 
-		for folderWatcher.running {
+		for folderWatcher.IsRunning() {
 
 			// get new entries
-			newEntries := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
+			newEntries, err := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
+			if err != nil {
+				folderWatcher.running = false
+				break
+			}
 
 			// check for new items
 			newItems := make([]string, 0)
@@ -119,6 +128,10 @@ func (folderWatcher *FolderWatcher) Start() *FolderWatcher {
 
 		}
 
+		folderWatcher.running = false
+		go func() {
+			folderWatcher.Stopped <- true
+		}()
 		folderWatcher.log("Stopped")
 	}()
 
@@ -143,7 +156,7 @@ func (folderWatcher *FolderWatcher) log(message string) *FolderWatcher {
 	return folderWatcher
 }
 
-func getFolderEntries(directory string, recurse bool, skipFile func(path string) bool) []string {
+func getFolderEntries(directory string, recurse bool, skipFile func(path string) bool) ([]string, error) {
 
 	// the return array
 	entries := make([]string, 0)
@@ -151,7 +164,7 @@ func getFolderEntries(directory string, recurse bool, skipFile func(path string)
 	// read the entries of the specified directory
 	directoryEntries, err := ioutil.ReadDir(directory)
 	if err != nil {
-		return entries
+		return nil, err
 	}
 
 	for _, entry := range directoryEntries {
@@ -166,12 +179,15 @@ func getFolderEntries(directory string, recurse bool, skipFile func(path string)
 
 		// recurse or append
 		if recurse && entry.IsDir() {
-			entries = append(entries, getFolderEntries(subEntryPath, recurse, skipFile)...) // recurse
+			// recurse
+			if subFolderEntries, err := getFolderEntries(subEntryPath, recurse, skipFile); err != nil {
+				entries = append(entries, subFolderEntries...)
+			}
 		} else {
 			entries = append(entries, subEntryPath) // append entry
 		}
 
 	}
 
-	return entries
+	return entries, nil
 }

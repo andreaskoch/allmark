@@ -20,6 +20,7 @@ type Renderer struct {
 	Rendered chan *repository.Item
 	Removed  chan *repository.Item
 
+	indexer          *repository.Indexer
 	repositoryPath   string
 	pathProvider     *path.Provider
 	templateProvider *templates.Provider
@@ -28,10 +29,17 @@ type Renderer struct {
 
 func New(repositoryPath string, config *config.Config, useTempDir bool) *Renderer {
 
+	// create an index from the repository
+	indexer, err := repository.New(repositoryPath, config, useTempDir)
+	if err != nil {
+		panic(fmt.Sprintf("Cannot create an item from folder %q.\nError: %s\n", repositoryPath, err))
+	}
+
 	return &Renderer{
 		Rendered: make(chan *repository.Item),
 		Removed:  make(chan *repository.Item),
 
+		indexer:          indexer,
 		repositoryPath:   repositoryPath,
 		pathProvider:     path.NewProvider(repositoryPath, useTempDir),
 		templateProvider: templates.NewProvider(config.TemplatesFolder()),
@@ -42,22 +50,27 @@ func New(repositoryPath string, config *config.Config, useTempDir bool) *Rendere
 
 func (renderer *Renderer) Execute() {
 
-	// create an index from the repository
-	root, err := repository.NewRoot(renderer.repositoryPath)
-	if err != nil {
-		panic(fmt.Sprintf("Cannot create an item from folder %q.\nError: %s\n", renderer.repositoryPath, err))
-	}
+	// start the indexer
+	renderer.indexer.Execute()
 
-	// start rendering the root item
-	renderer.renderItem(root)
-
-	// re-render on template change
+	// render new items as they come in
 	go func() {
 		for {
 			select {
-			case <-renderer.templateProvider.Modified:
-				fmt.Printf("Rendering root item %q.\n", root)
-				renderer.renderItem(root)
+			case item := <-renderer.indexer.New:
+
+				// render the items
+				fmt.Printf("Rendering item %q\n", item)
+				renderer.renderItem(item)
+
+				// attach change listeners
+				renderer.listenForChanges(item)
+
+			case item := <-renderer.indexer.Deleted:
+
+				// remove the item
+				fmt.Printf("Removing item %q\n", item)
+				renderer.removeItem(item)
 			}
 		}
 	}()
@@ -65,11 +78,6 @@ func (renderer *Renderer) Execute() {
 }
 
 func (renderer *Renderer) listenForChanges(item *repository.Item) {
-
-	for _, child := range item.Childs {
-		renderer.listenForChanges(child) // recurse
-	}
-
 	go func() {
 		for {
 			select {
@@ -83,15 +91,9 @@ func (renderer *Renderer) listenForChanges(item *repository.Item) {
 			}
 		}
 	}()
-
 }
 
 func (renderer *Renderer) removeItem(item *repository.Item) {
-
-	// remove all childs first
-	for _, child := range item.Childs {
-		renderer.removeItem(child) // recurse
-	}
 
 	targetPath := renderer.pathProvider.GetRenderTargetPath(item)
 
@@ -105,14 +107,6 @@ func (renderer *Renderer) removeItem(item *repository.Item) {
 }
 
 func (renderer *Renderer) renderItem(item *repository.Item) {
-
-	// start a change listener
-	defer renderer.listenForChanges(item)
-
-	// render childs first
-	for _, child := range item.Childs {
-		renderer.renderItem(child) // recurse
-	}
 
 	// create the viewmodel
 	mapper.Map(item, renderer.pathProvider)

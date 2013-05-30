@@ -22,7 +22,9 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 	// creata a new files index
 	fileIndex := &FileIndex{
 		Changed: make(chan bool),
-		path:    directory,
+		Deleted: make(chan bool),
+
+		path: directory,
 	}
 
 	// find all files
@@ -42,9 +44,14 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 				go func() {
 					fileIndex.Changed <- true
 				}()
+			case <-folderWatcher.Stopped:
+				break
 			}
-
 		}
+
+		go func() {
+			fileIndex.Deleted <- true
+		}()
 	}()
 
 	return fileIndex, nil
@@ -52,6 +59,7 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 
 type FileIndex struct {
 	Changed chan bool
+	Deleted chan bool
 
 	files []*File
 	path  string

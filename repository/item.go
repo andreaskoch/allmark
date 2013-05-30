@@ -13,6 +13,7 @@ import (
 	"github.com/andreaskoch/allmark/watcher"
 	"io/ioutil"
 	"path/filepath"
+	"time"
 )
 
 const (
@@ -29,6 +30,9 @@ type Item struct {
 	Files  *FileIndex
 	Childs []*Item
 
+	newChild     chan *Item
+	deletedChild chan *Item
+
 	directory string
 	path      string
 	isVirtual bool
@@ -38,32 +42,7 @@ type Item struct {
 	changeFuncs []func(item *Item)
 }
 
-func NewRoot(indexPath string) (item *Item, err error) {
-
-	// check if path exists
-	if !util.PathExists(indexPath) {
-		return nil, fmt.Errorf("The path %q does not exist.", indexPath)
-	}
-
-	if isReservedDirectory(indexPath) {
-		return nil, fmt.Errorf("The path %q is using a reserved name and cannot be a root.", indexPath)
-	}
-
-	// check if the path is a directory
-	if isDirectory, _ := util.IsDirectory(indexPath); !isDirectory {
-		indexPath = filepath.Dir(indexPath)
-	}
-
-	// create a new item
-	rootItem, err := newItem(indexPath, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	return rootItem, nil
-}
-
-func newItem(itemPath string, level int) (item *Item, err error) {
+func newItem(itemPath string, level int, newItem chan *Item, deletedItem chan *Item) (item *Item, err error) {
 
 	// abort if path does not exist
 	if !util.PathExists(itemPath) {
@@ -116,11 +95,15 @@ func newItem(itemPath string, level int) (item *Item, err error) {
 
 	// create the item
 	item = &Item{
+
 		Modified: make(chan bool),
 		Moved:    make(chan bool),
 
 		Level: level,
 		Files: fileIndex,
+
+		newChild:     newItem,
+		deletedChild: deletedItem,
 
 		pathProvider: pathProvider,
 		directory:    itemDirectory,
@@ -158,7 +141,9 @@ func newItem(itemPath string, level int) (item *Item, err error) {
 	// look for changes in the item directory
 	go func() {
 		var skipFunc = func(path string) bool {
-			return isReservedDirectory(path)
+			isItem := path == item.path
+			isReserved := isReservedDirectory(path)
+			return isItem || isReserved
 		}
 
 		folderWatcher := watcher.NewFolderWatcher(itemDirectory, false, skipFunc).Start()
@@ -171,6 +156,7 @@ func newItem(itemPath string, level int) (item *Item, err error) {
 				item.updateChilds()
 
 				go func() {
+					time.Sleep(time.Second * 3)
 					item.Modified <- true
 				}()
 			}
@@ -185,9 +171,13 @@ func newItem(itemPath string, level int) (item *Item, err error) {
 			case <-item.Files.Changed:
 				fmt.Printf("Files of item %q changed\n", item)
 				item.Modified <- true
-
+			case <-item.Files.Deleted:
+				fmt.Println("äädädäsadäää")
+				break
 			}
 		}
+
+		fmt.Println("File watcher stopped")
 	}()
 
 	return item, nil
@@ -239,6 +229,7 @@ func (item *Item) updateChilds() {
 
 	childItemDirectories := item.getChildItemDirectories()
 
+	// check if the child list needs initialization
 	if item.Childs == nil {
 		item.Childs = make([]*Item, 0, len(childItemDirectories))
 	}
@@ -250,8 +241,15 @@ func (item *Item) updateChilds() {
 			continue // Child already present
 		}
 
-		if child, err := newItem(childItemDirectory, item.Level+1); err == nil {
+		if child, err := newItem(childItemDirectory, item.Level+1, item.newChild, item.deletedChild); err == nil {
+
+			// inform others about the new child
+			go func() {
+				item.newChild <- child
+			}()
+
 			item.Childs = append(item.Childs, child) // append new child
+
 		} else {
 			fmt.Printf("Could not create a item for folder %q. Error: %s\n", childItemDirectory, err)
 		}
@@ -260,11 +258,24 @@ func (item *Item) updateChilds() {
 	// remove deleted childs
 	newChildList := make([]*Item, 0, len(childItemDirectories))
 	for _, child := range item.Childs {
+
 		if util.SliceContainsElement(childItemDirectories, child.Directory()) {
+
 			newChildList = append(newChildList, child)
+
+		} else {
+
+			// Todo: stop all go routines on this child
+
+			// inform others about the removed child
+			go func() {
+				item.deletedChild <- child
+			}()
+
 		}
 	}
 
+	// assign new child list
 	item.Childs = newChildList
 }
 
@@ -285,6 +296,7 @@ func (item *Item) getChildItemDirectories() []string {
 			continue // skip reserved directories
 		}
 
+		// append directory
 		directories = append(directories, childDirectory)
 	}
 
