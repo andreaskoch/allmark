@@ -40,6 +40,12 @@ func webSocketHandler(ws *websocket.Conn) {
 	// strip leading slashes
 	routeParam = path.StripLeadingUrlDirectorySeperator(routeParam)
 
+	// check if the route exists
+	if _, ok := routes[routeParam]; !ok {
+		fmt.Printf("Cannot establish a web socket. There is no item for route %q\n", routeParam)
+		return
+	}
+
 	// create a new connection
 	c := &connection{
 		Route: routeParam,

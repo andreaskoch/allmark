@@ -23,7 +23,7 @@ func NewFileWatcher(filePath string) *FileWatcher {
 	return &FileWatcher{
 		Modified: make(chan bool),
 		Moved:    make(chan bool),
-		debug:    true,
+		debug:    false,
 		file:     filePath,
 	}
 }
@@ -47,18 +47,22 @@ func (fileWatcher *FileWatcher) Start() *FileWatcher {
 				modTime := fileInfo.ModTime()
 				if sleepTime.Before(modTime) {
 
+					// send out the notification
 					fileWatcher.log("Item was modified")
-					fileWatcher.Modified <- true
-
+					go func() {
+						fileWatcher.Modified <- true
+					}()
 				}
 
 			} else if os.IsNotExist(err) {
 
-				// file has been moved. check if it has been deleted
-				// or if it has been renamed
+				// send out the notification
 				fileWatcher.log("Item was removed")
-				fileWatcher.Moved <- true
+				go func() {
+					fileWatcher.Moved <- true
+				}()
 
+				// stop this file watcher
 				fileWatcher.Stop()
 			}
 

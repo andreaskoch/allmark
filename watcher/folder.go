@@ -57,10 +57,10 @@ func NewFolderWatcher(folderPath string, recurse bool, skipFile func(path string
 	return &FolderWatcher{
 		Change: make(chan *FolderChange),
 
-		recurse:  true,
+		recurse:  recurse,
 		skipFile: skipFile,
 
-		debug:  true,
+		debug:  false,
 		folder: folderPath,
 	}
 }
@@ -80,9 +80,6 @@ func (folderWatcher *FolderWatcher) Start() *FolderWatcher {
 		existingEntries := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
 
 		for folderWatcher.running {
-
-			// sleep
-			time.Sleep(sleepTime)
 
 			// get new entries
 			newEntries := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
@@ -107,6 +104,9 @@ func (folderWatcher *FolderWatcher) Start() *FolderWatcher {
 
 			// assign the new list
 			existingEntries = newEntries
+
+			// sleep
+			time.Sleep(sleepTime)
 
 			// check if something happened
 			if len(newItems) > 0 || len(movedItems) > 0 {

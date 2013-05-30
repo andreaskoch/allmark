@@ -142,10 +142,12 @@ func newItem(itemPath string, level int) (item *Item, err error) {
 				select {
 				case <-fileWatcher.Modified:
 
+					fmt.Printf("Item %q has been modified\n", item)
 					item.Modified <- true
 
 				case <-fileWatcher.Moved:
 
+					fmt.Printf("Item %q has been moved\n", item)
 					item.Moved <- true
 				}
 
@@ -165,7 +167,7 @@ func newItem(itemPath string, level int) (item *Item, err error) {
 
 			select {
 			case <-folderWatcher.Change:
-				fmt.Printf("Updating the child items of item %q\n", item)
+				fmt.Printf("Updating the childs of item %q\n", item)
 				item.updateChilds()
 
 				go func() {
@@ -181,7 +183,7 @@ func newItem(itemPath string, level int) (item *Item, err error) {
 		for {
 			select {
 			case <-item.Files.Changed:
-				fmt.Println("Item changed because files changed")
+				fmt.Printf("Files of item %q changed\n", item)
 				item.Modified <- true
 
 			}
@@ -196,7 +198,7 @@ func (item *Item) OnChange(name string, expr func(i *Item)) {
 }
 
 func (item *Item) String() string {
-	return fmt.Sprintf("%s", item.path)
+	return fmt.Sprintf("%s", item.PathProvider().GetWebRoute(item))
 }
 
 func (item *Item) Path() string {

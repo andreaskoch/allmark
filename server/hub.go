@@ -5,7 +5,6 @@
 package server
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -28,8 +27,6 @@ func (hub *hub) ConnectionsByRoute(route string) []*connection {
 
 	for c := range h.connections {
 		if strings.HasSuffix(route, c.Route) {
-			fmt.Println(c.Route)
-			fmt.Println(route)
 			connectionsByRoute = append(connectionsByRoute, c)
 		}
 	}

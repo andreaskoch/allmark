@@ -48,9 +48,6 @@ func (renderer *Renderer) Execute() {
 		panic(fmt.Sprintf("Cannot create an item from folder %q.\nError: %s\n", renderer.repositoryPath, err))
 	}
 
-	// start a change listener
-	defer renderer.listenForChanges(root)
-
 	// start rendering the root item
 	renderer.renderItem(root)
 
@@ -59,7 +56,7 @@ func (renderer *Renderer) Execute() {
 		for {
 			select {
 			case <-renderer.templateProvider.Modified:
-				fmt.Println("Templates changed. Rendering all items.\n")
+				fmt.Printf("Rendering root item %q.\n", root)
 				renderer.renderItem(root)
 			}
 		}
@@ -77,11 +74,11 @@ func (renderer *Renderer) listenForChanges(item *repository.Item) {
 		for {
 			select {
 			case <-item.Modified:
-				fmt.Printf("Rendering item %s\n", item)
+				fmt.Printf("Rendering item %q\n", item)
 				renderer.renderItem(item)
 
 			case <-item.Moved:
-				fmt.Printf("Item %s has moved", item)
+				fmt.Printf("Removing item %q\n", item)
 				renderer.removeItem(item)
 			}
 		}
@@ -99,8 +96,8 @@ func (renderer *Renderer) removeItem(item *repository.Item) {
 	targetPath := renderer.pathProvider.GetRenderTargetPath(item)
 
 	go func() {
-		//os.Remove(targetPath)
 		fmt.Printf("Removing %q\n", targetPath)
+		os.Remove(targetPath)
 
 		renderer.Removed <- item
 	}()
@@ -108,6 +105,9 @@ func (renderer *Renderer) removeItem(item *repository.Item) {
 }
 
 func (renderer *Renderer) renderItem(item *repository.Item) {
+
+	// start a change listener
+	defer renderer.listenForChanges(item)
 
 	// render childs first
 	for _, child := range item.Childs {

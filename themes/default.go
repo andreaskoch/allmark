@@ -450,11 +450,8 @@ $(function() {
 
             // check if update is applicable for the current route
             if (message.route !== getCurrentRoute()) {
-                console.log("no match", message);
                 return;
             }
-
-            console.log("match", message);
 
             // check the model structure
             var model = message.model;
