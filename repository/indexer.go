@@ -54,7 +54,7 @@ func New(indexPath string, config *config.Config, useTempDir bool) (*Indexer, er
 func (indexer *Indexer) Execute() {
 
 	// create a new item
-	rootItem, err := newItem(indexer.indexPath, 0, indexer.New, indexer.Deleted)
+	rootItem, err := newItem(nil, indexer.indexPath, 0, indexer.New, indexer.Deleted)
 	if err != nil {
 		panic(err)
 	}

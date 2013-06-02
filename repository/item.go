@@ -28,6 +28,7 @@ type Item struct {
 
 	Level  int
 	Files  *FileIndex
+	Parent *Item
 	Childs []*Item
 
 	newChild     chan *Item
@@ -42,7 +43,7 @@ type Item struct {
 	changeFuncs []func(item *Item)
 }
 
-func newItem(itemPath string, level int, newItem chan *Item, deletedItem chan *Item) (item *Item, err error) {
+func newItem(parent *Item, itemPath string, level int, newItem chan *Item, deletedItem chan *Item) (item *Item, err error) {
 
 	// abort if path does not exist
 	if !util.PathExists(itemPath) {
@@ -99,6 +100,7 @@ func newItem(itemPath string, level int, newItem chan *Item, deletedItem chan *I
 		Modified: make(chan bool),
 		Moved:    make(chan bool),
 
+		Parent: parent,
 		Level: level,
 		Files: fileIndex,
 
@@ -127,6 +129,11 @@ func newItem(itemPath string, level int, newItem chan *Item, deletedItem chan *I
 
 					fmt.Printf("Item %q has been modified\n", item)
 					item.Modified <- true
+
+					// update parent
+					if item.Parent != nil {
+						item.Parent.Modified <- true
+					}
 
 				case <-fileWatcher.Moved:
 
@@ -241,7 +248,7 @@ func (item *Item) updateChilds() {
 			continue // Child already present
 		}
 
-		if child, err := newItem(childItemDirectory, item.Level+1, item.newChild, item.deletedChild); err == nil {
+		if child, err := newItem(item, childItemDirectory, item.Level+1, item.newChild, item.deletedChild); err == nil {
 
 			// inform others about the new child
 			go func() {
