@@ -239,6 +239,14 @@ td {
     margin-left: 0;
 }
 
+.filelinks>h1 {
+    font-size: 1.2em;
+}
+
+.filelinks ol {
+    margin-left: 0;
+}
+
 .collection>h1 {
     font-size: 1.2em;
 }

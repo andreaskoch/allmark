@@ -22,6 +22,10 @@ func toHtml(item *repository.Item, rawLines []string) string {
 	galleryRenderer := newImageGalleryRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
 	rawMarkdownContent = galleryRenderer(rawMarkdownContent)
 
+	// file links
+	fileLinksRenderer := newFileLinksRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
+	rawMarkdownContent = fileLinksRenderer(rawMarkdownContent)
+
 	// tables
 	tableRenderer := newTableRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
 	rawMarkdownContent = tableRenderer(rawMarkdownContent)
