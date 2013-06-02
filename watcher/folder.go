@@ -62,9 +62,8 @@ func NewFolderWatcher(folderPath string, recurse bool, skipFile func(path string
 		recurse:  recurse,
 		skipFile: skipFile,
 
-		debug:   true,
+		debug:   false,
 		folder:  folderPath,
-		running: false,
 	}
 }
 
