@@ -29,13 +29,13 @@ func New(indexPath string, config *config.Config, useTempDir bool) (*Indexer, er
 		return nil, fmt.Errorf("The path %q does not exist.", indexPath)
 	}
 
-	if isReservedDirectory(indexPath) {
-		return nil, fmt.Errorf("The path %q is using a reserved name and cannot be a root.", indexPath)
-	}
-
 	// check if the path is a directory
 	if isDirectory, _ := util.IsDirectory(indexPath); !isDirectory {
 		indexPath = filepath.Dir(indexPath)
+	}
+
+	if isReservedDirectory(indexPath) {
+		return nil, fmt.Errorf("The path %q is using a reserved name and cannot be a root.", indexPath)
 	}
 
 	// create a new indexer

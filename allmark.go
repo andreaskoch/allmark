@@ -13,6 +13,7 @@ import (
 	"github.com/andreaskoch/allmark/server"
 	"github.com/andreaskoch/allmark/util"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -110,6 +111,10 @@ func parseCommandLineArguments(args []string, commandHandler func(commandName, r
 
 		// use supplied repository path
 		repositoryPath = args[2]
+
+		if isFile, _ := util.IsFile(repositoryPath); isFile {
+			repositoryPath = filepath.Dir(repositoryPath)
+		}
 
 	} else {
 
