@@ -109,7 +109,7 @@ func (renderer *Renderer) removeItem(item *repository.Item) {
 func (renderer *Renderer) renderItem(item *repository.Item) {
 
 	// create the viewmodel
-	mapper.Map(item, renderer.pathProvider)
+	mapper.Map(item)
 
 	// get a template
 	if template, err := renderer.templateProvider.GetTemplate(item.Type); err == nil {

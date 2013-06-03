@@ -7,22 +7,16 @@ package mapper
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/converter"
-	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/view"
 )
 
-func Map(item *repository.Item, repositoryPathProvider *path.Provider) *view.Model {
-
-	// map childs first
-	// for _, child := range item.Childs {
-	// 	Map(child, repositoryPathProvider) // recurse
-	// }
+func Map(item *repository.Item) *view.Model {
 
 	// paths
 	relativePath := item.RelativePathProvider().GetWebRoute(item)
-	absolutePath := repositoryPathProvider.GetWebRoute(item)
+	absolutePath := item.RootPathProvider().GetWebRoute(item)
 
 	// convert the item
 	parsedItem, err := converter.Convert(item)
@@ -38,7 +32,7 @@ func Map(item *repository.Item, repositoryPathProvider *path.Provider) *view.Mod
 
 	case types.RepositoryItemType, types.CollectionItemType:
 		model = createDocumentMapperFunc(parsedItem, relativePath, absolutePath)
-		model.SubEntries = getSubModels(item, repositoryPathProvider)
+		model.SubEntries = getSubModels(item)
 
 	case types.MessageItemType:
 		model = createMessageMapperFunc(parsedItem, relativePath, absolutePath)
@@ -53,13 +47,13 @@ func Map(item *repository.Item, repositoryPathProvider *path.Provider) *view.Mod
 	return model
 }
 
-func getSubModels(item *repository.Item, repositoryPathProvider *path.Provider) []*view.Model {
+func getSubModels(item *repository.Item) []*view.Model {
 
 	items := item.Childs
 	models := make([]*view.Model, 0)
 
 	for _, child := range items {
-		models = append(models, Map(child, repositoryPathProvider))
+		models = append(models, Map(child))
 	}
 
 	return models
