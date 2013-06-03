@@ -62,8 +62,8 @@ func NewFolderWatcher(folderPath string, recurse bool, skipFile func(path string
 		recurse:  recurse,
 		skipFile: skipFile,
 
-		debug:   false,
-		folder:  folderPath,
+		debug:  false,
+		folder: folderPath,
 	}
 }
 
@@ -79,19 +79,12 @@ func (folderWatcher *FolderWatcher) Start() *FolderWatcher {
 
 		// get existing entries
 		directory := folderWatcher.folder
-		existingEntries, err := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
-		if err != nil {
-			folderWatcher.running = false
-		}
+		existingEntries := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
 
 		for folderWatcher.IsRunning() {
 
 			// get new entries
-			newEntries, err := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
-			if err != nil {
-				folderWatcher.running = false
-				break
-			}
+			newEntries := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
 
 			// check for new items
 			newItems := make([]string, 0)
@@ -128,10 +121,10 @@ func (folderWatcher *FolderWatcher) Start() *FolderWatcher {
 
 		}
 
-		folderWatcher.running = false
 		go func() {
 			folderWatcher.Stopped <- true
 		}()
+
 		folderWatcher.log("Stopped")
 	}()
 
@@ -156,7 +149,7 @@ func (folderWatcher *FolderWatcher) log(message string) *FolderWatcher {
 	return folderWatcher
 }
 
-func getFolderEntries(directory string, recurse bool, skipFile func(path string) bool) ([]string, error) {
+func getFolderEntries(directory string, recurse bool, skipFile func(path string) bool) []string {
 
 	// the return array
 	entries := make([]string, 0)
@@ -164,7 +157,7 @@ func getFolderEntries(directory string, recurse bool, skipFile func(path string)
 	// read the entries of the specified directory
 	directoryEntries, err := ioutil.ReadDir(directory)
 	if err != nil {
-		return nil, err
+		return entries
 	}
 
 	for _, entry := range directoryEntries {
@@ -179,15 +172,18 @@ func getFolderEntries(directory string, recurse bool, skipFile func(path string)
 
 		// recurse or append
 		if recurse && entry.IsDir() {
+
 			// recurse
-			if subFolderEntries, err := getFolderEntries(subEntryPath, recurse, skipFile); err != nil {
-				entries = append(entries, subFolderEntries...)
-			}
+			subFolderEntries := getFolderEntries(subEntryPath, recurse, skipFile)
+			entries = append(entries, subFolderEntries...)
+
 		} else {
-			entries = append(entries, subEntryPath) // append entry
+
+			// append entry
+			entries = append(entries, subEntryPath)
 		}
 
 	}
 
-	return entries, nil
+	return entries
 }

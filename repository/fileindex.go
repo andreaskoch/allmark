@@ -87,10 +87,6 @@ func (fileIndex *FileIndex) Items() []*File {
 	return fileIndex.files
 }
 
-func (fileIndex *FileIndex) update() {
-	fileIndex.files = getFiles(fileIndex.Directory())
-}
-
 func (fileIndex *FileIndex) GetFilesByPath(path string, condition func(pather p.Pather) bool) []*File {
 
 	// normalize path
@@ -121,6 +117,10 @@ func (fileIndex *FileIndex) GetFilesByPath(path string, condition func(pather p.
 	}
 
 	return matchingFiles
+}
+
+func (fileIndex *FileIndex) update() {
+	fileIndex.files = getFiles(fileIndex.Directory())
 }
 
 func getFiles(directory string) []*File {

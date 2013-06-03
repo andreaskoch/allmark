@@ -101,8 +101,8 @@ func newItem(parent *Item, itemPath string, level int, newItem chan *Item, delet
 		Moved:    make(chan bool),
 
 		Parent: parent,
-		Level: level,
-		Files: fileIndex,
+		Level:  level,
+		Files:  fileIndex,
 
 		newChild:     newItem,
 		deletedChild: deletedItem,
@@ -183,8 +183,6 @@ func newItem(parent *Item, itemPath string, level int, newItem chan *Item, delet
 				break
 			}
 		}
-
-		fmt.Println("File watcher stopped")
 	}()
 
 	return item, nil
