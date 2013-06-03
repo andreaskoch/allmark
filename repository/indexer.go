@@ -16,10 +16,10 @@ type Indexer struct {
 	New     chan *Item
 	Deleted chan *Item
 
-	root         *Item
-	indexPath    string
-	pathProvider *path.Provider
-	config       *config.Config
+	root                 *Item
+	indexPath            string
+	relativePathProvider *path.Provider
+	config               *config.Config
 }
 
 func New(indexPath string, config *config.Config, useTempDir bool) (*Indexer, error) {
@@ -43,18 +43,22 @@ func New(indexPath string, config *config.Config, useTempDir bool) (*Indexer, er
 		New:     make(chan *Item),
 		Deleted: make(chan *Item),
 
-		indexPath:    indexPath,
-		pathProvider: path.NewProvider(indexPath, useTempDir),
-		config:       config,
+		indexPath:            indexPath,
+		relativePathProvider: path.NewProvider(indexPath, useTempDir),
+		config:               config,
 	}
 
 	return indexer, nil
 }
 
+func (indexer *Indexer) RelativePathProvider() *path.Provider {
+	return indexer.relativePathProvider
+}
+
 func (indexer *Indexer) Execute() {
 
 	// create a new item
-	rootItem, err := newItem(nil, indexer.indexPath, 0, indexer.New, indexer.Deleted)
+	rootItem, err := newItem(indexer.RelativePathProvider(), nil, indexer.indexPath, 0, indexer.New, indexer.Deleted)
 	if err != nil {
 		panic(err)
 	}

@@ -21,7 +21,7 @@ func Map(item *repository.Item, repositoryPathProvider *path.Provider) *view.Mod
 	// }
 
 	// paths
-	relativePath := item.PathProvider().GetWebRoute(item)
+	relativePath := item.RelativePathProvider().GetWebRoute(item)
 	absolutePath := repositoryPathProvider.GetWebRoute(item)
 
 	// convert the item

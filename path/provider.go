@@ -45,6 +45,14 @@ type Provider struct {
 	useTempDir bool
 }
 
+func (provider *Provider) New(basePath string) *Provider {
+	return NewProvider(basePath, provider.UseTempDir())
+}
+
+func (provider *Provider) BasePath() string {
+	return provider.basePath
+}
+
 func (provider *Provider) UseTempDir() bool {
 	return provider.useTempDir
 }
@@ -58,7 +66,7 @@ func (provider *Provider) GetWebRoute(pather Pather) string {
 	switch pathType := pather.PathType(); pathType {
 	case PatherTypeItem:
 		return provider.getItemRoute(pather)
-	case PatherTypeFile:
+	case PatherTypeFile, PatherTypeIndex:
 		return provider.getFileRoute(pather)
 	default:
 		panic(fmt.Sprintf("Unknown pather type %q", pathType))

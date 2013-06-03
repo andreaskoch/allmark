@@ -12,20 +12,25 @@ import (
 
 type File struct {
 	path string
+
+	rootPathProvider     *path.Provider
+	relativePathProvider *path.Provider
 }
 
-func NewFile(path string) (*File, error) {
+func newFile(rootPathProvider *path.Provider, path string) (*File, error) {
 
 	// create the file
 	file := &File{
 		path: path,
+
+		rootPathProvider: rootPathProvider,
 	}
 
 	return file, nil
 }
 
 func (file *File) String() string {
-	return fmt.Sprintf("%s", file.path)
+	return fmt.Sprintf("%s", file.RootPathProvider().GetWebRoute(file))
 }
 
 func (file *File) Path() string {
@@ -38,4 +43,8 @@ func (file *File) PathType() string {
 
 func (file *File) Directory() string {
 	return filepath.Dir(file.Path())
+}
+
+func (file *File) RootPathProvider() *path.Provider {
+	return file.rootPathProvider
 }

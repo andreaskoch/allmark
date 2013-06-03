@@ -38,12 +38,13 @@ type Item struct {
 	path      string
 	isVirtual bool
 
-	pathProvider *path.Provider
+	rootPathProvider     *path.Provider
+	relativePathProvider *path.Provider
 
 	changeFuncs []func(item *Item)
 }
 
-func newItem(parent *Item, itemPath string, level int, newItem chan *Item, deletedItem chan *Item) (item *Item, err error) {
+func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, level int, newItem chan *Item, deletedItem chan *Item) (*Item, error) {
 
 	// abort if path does not exist
 	if !util.PathExists(itemPath) {
@@ -85,17 +86,17 @@ func newItem(parent *Item, itemPath string, level int, newItem chan *Item, delet
 		pathProviderDirectory = filepath.Dir(itemDirectory)
 	}
 
-	pathProvider := path.NewProvider(pathProviderDirectory, false)
+	relativePathProvider := rootPathProvider.New(pathProviderDirectory)
 
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, FilesDirectoryName)
-	fileIndex, err := NewFileIndex(filesDirectory)
+	fileIndex, err := newFileIndex(rootPathProvider, filesDirectory)
 	if err != nil {
 		return nil, fmt.Errorf("Could not create a file index for folder %q.\nError: %s\n", filesDirectory, err)
 	}
 
 	// create the item
-	item = &Item{
+	item := &Item{
 
 		Modified: make(chan bool),
 		Moved:    make(chan bool),
@@ -107,11 +108,13 @@ func newItem(parent *Item, itemPath string, level int, newItem chan *Item, delet
 		newChild:     newItem,
 		deletedChild: deletedItem,
 
-		pathProvider: pathProvider,
-		directory:    itemDirectory,
-		path:         itemPath,
-		isVirtual:    isVirtualItem,
-		changeFuncs:  make([]func(item *Item), 0),
+		rootPathProvider:     rootPathProvider,
+		relativePathProvider: relativePathProvider,
+
+		directory:   itemDirectory,
+		path:        itemPath,
+		isVirtual:   isVirtualItem,
+		changeFuncs: make([]func(item *Item), 0),
 	}
 
 	// find childs
@@ -193,7 +196,7 @@ func (item *Item) OnChange(name string, expr func(i *Item)) {
 }
 
 func (item *Item) String() string {
-	return fmt.Sprintf("%s", item.PathProvider().GetWebRoute(item))
+	return fmt.Sprintf("%s", item.RootPathProvider().GetWebRoute(item))
 }
 
 func (item *Item) Path() string {
@@ -212,8 +215,12 @@ func (item *Item) IsVirtual() bool {
 	return item.isVirtual
 }
 
-func (item *Item) PathProvider() *path.Provider {
-	return item.pathProvider
+func (item *Item) RootPathProvider() *path.Provider {
+	return item.rootPathProvider
+}
+
+func (item *Item) RelativePathProvider() *path.Provider {
+	return item.relativePathProvider
 }
 
 func (item *Item) HasChild(itemDirectory string) bool {
@@ -246,7 +253,7 @@ func (item *Item) updateChilds() {
 			continue // Child already present
 		}
 
-		if child, err := newItem(item, childItemDirectory, item.Level+1, item.newChild, item.deletedChild); err == nil {
+		if child, err := newItem(item.RootPathProvider(), item, childItemDirectory, item.Level+1, item.newChild, item.deletedChild); err == nil {
 
 			// inform others about the new child
 			go func() {

@@ -39,7 +39,7 @@ func renderImageGallery(markdown string, fileIndex *repository.FileIndex, pathPr
 		path := strings.TrimSpace(matches[2])
 
 		// create image gallery code
-		files := fileIndex.GetFilesByPath(path, isImageFile)
+		files := fileIndex.FilesByPath(path, isImageFile)
 
 		imageLinks := getImageLinks(galleryTitle, files, pathProvider)
 		imageGalleryCode := fmt.Sprintf(`<section class="imagegallery">

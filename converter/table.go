@@ -43,7 +43,7 @@ func renderTable(markdown string, fileIndex *repository.FileIndex, pathProvider 
 		path := strings.TrimSpace(matches[2])
 
 		// create image gallery code
-		files := fileIndex.GetFilesByPath(path, isCSVFile)
+		files := fileIndex.FilesByPath(path, isCSVFile)
 
 		if len(files) == 0 {
 			// file not found remove entry

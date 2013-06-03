@@ -39,7 +39,7 @@ func renderFileLinks(markdown string, fileIndex *repository.FileIndex, pathProvi
 		path := strings.TrimSpace(matches[2])
 
 		// create link list code
-		files := fileIndex.GetFilesByPath(path, allFiles)
+		files := fileIndex.FilesByPath(path, allFiles)
 
 		fileLinks := getFileLinks(title, files, pathProvider)
 		fileLinksCode := fmt.Sprintf(`<section class="filelinks">

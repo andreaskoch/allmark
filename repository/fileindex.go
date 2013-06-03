@@ -17,12 +17,18 @@ func skipFiles(path string) bool {
 	return false
 }
 
-func NewFileIndex(directory string) (*FileIndex, error) {
+func newFileIndex(rootPathProvider *p.Provider, directory string) (*FileIndex, error) {
+
+	// create a relative path provider
+	relativePathProvider := rootPathProvider.New(directory)
 
 	// creata a new files index
 	fileIndex := &FileIndex{
 		Changed: make(chan bool),
 		Stopped: make(chan bool),
+
+		rootPathProvider:     rootPathProvider,
+		relativePathProvider: relativePathProvider,
 
 		path: directory,
 	}
@@ -38,20 +44,20 @@ func NewFileIndex(directory string) (*FileIndex, error) {
 
 			select {
 			case <-folderWatcher.Change:
-				fmt.Printf("Reindexing %q\n", directory)
+				fmt.Printf("Reindexing %q\n", fileIndex)
 				fileIndex.update()
 
 				go func() {
 					fileIndex.Changed <- true
 				}()
 			case <-folderWatcher.Stopped:
-				fmt.Printf("Stopped %q\n", directory)
+				fmt.Printf("Stopped %q\n", fileIndex)
 				break
 			}
 		}
 
 		go func() {
-			fmt.Printf("Send stop %q\n", directory)
+			fmt.Printf("Send stop %q\n", fileIndex)
 			fileIndex.Stopped <- true
 		}()
 	}()
@@ -63,12 +69,15 @@ type FileIndex struct {
 	Changed chan bool
 	Stopped chan bool
 
+	rootPathProvider     *p.Provider
+	relativePathProvider *p.Provider
+
 	files []*File
 	path  string
 }
 
 func (fileIndex *FileIndex) String() string {
-	return fmt.Sprintf("%s", fileIndex.path)
+	return fmt.Sprintf("%s", fileIndex.RootPathProvider().GetWebRoute(fileIndex))
 }
 
 func (fileIndex *FileIndex) Path() string {
@@ -87,7 +96,15 @@ func (fileIndex *FileIndex) Items() []*File {
 	return fileIndex.files
 }
 
-func (fileIndex *FileIndex) GetFilesByPath(path string, condition func(pather p.Pather) bool) []*File {
+func (fileIndex *FileIndex) RootPathProvider() *p.Provider {
+	return fileIndex.rootPathProvider
+}
+
+func (fileIndex *FileIndex) RelativePathProvider() *p.Provider {
+	return fileIndex.relativePathProvider
+}
+
+func (fileIndex *FileIndex) FilesByPath(path string, condition func(pather p.Pather) bool) []*File {
 
 	// normalize path
 	path = strings.Replace(path, p.UrlDirectorySeperator, p.FilesystemDirectorySeperator, -1)
@@ -120,10 +137,10 @@ func (fileIndex *FileIndex) GetFilesByPath(path string, condition func(pather p.
 }
 
 func (fileIndex *FileIndex) update() {
-	fileIndex.files = getFiles(fileIndex.Directory())
+	fileIndex.files = getFiles(fileIndex.RootPathProvider(), fileIndex.Directory())
 }
 
-func getFiles(directory string) []*File {
+func getFiles(rootPathProvider *p.Provider, directory string) []*File {
 
 	files := make([]*File, 0)
 
@@ -137,13 +154,13 @@ func getFiles(directory string) []*File {
 		// recurse
 		if directoryEntry.IsDir() {
 			subDirectory := filepath.Join(directory, directoryEntry.Name())
-			files = append(files, getFiles(subDirectory)...)
+			files = append(files, getFiles(rootPathProvider, subDirectory)...)
 			continue
 		}
 
 		// append new file
 		filePath := filepath.Join(directory, directoryEntry.Name())
-		file, err := NewFile(filePath)
+		file, err := newFile(rootPathProvider, filePath)
 		if err != nil {
 			fmt.Printf("Unable to add file %q to index.\nError: %s\n", filePath, err)
 		}
