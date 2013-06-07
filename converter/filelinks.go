@@ -75,10 +75,3 @@ func getFileLinks(title string, files []*repository.File, pathProvider *path.Pro
 
 	return fileLinks
 }
-
-func getLinkTextFromFilePath(filePath string) string {
-	withoutFilesDirectory := strings.TrimPrefix(filePath, repository.FilesDirectoryName)
-	withoutLeadingSlash := path.StripLeadingUrlDirectorySeperator(withoutFilesDirectory)
-
-	return withoutLeadingSlash
-}

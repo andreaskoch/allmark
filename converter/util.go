@@ -4,8 +4,9 @@
 
 package converter
 
-import(
+import (
 	"github.com/andreaskoch/allmark/path"
+	"github.com/andreaskoch/allmark/repository"
 	"path/filepath"
 	"strings"
 )
@@ -34,4 +35,11 @@ func isImageFile(pather path.Pather) bool {
 
 func allFiles(pather path.Pather) bool {
 	return true
+}
+
+func getLinkTextFromFilePath(filePath string) string {
+	withoutFilesDirectory := strings.TrimPrefix(filePath, repository.FilesDirectoryName)
+	withoutLeadingSlash := path.StripLeadingUrlDirectorySeperator(withoutFilesDirectory)
+
+	return withoutLeadingSlash
 }

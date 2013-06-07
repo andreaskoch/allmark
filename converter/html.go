@@ -30,6 +30,10 @@ func toHtml(item *repository.Item, rawLines []string) string {
 	tableRenderer := newTableRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
 	rawMarkdownContent = tableRenderer(rawMarkdownContent)
 
+	// pdf
+	pdfRenderer := newPDFRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
+	rawMarkdownContent = pdfRenderer(rawMarkdownContent)
+
 	// markdown to html
 	html := markdown.ToHtml(rawMarkdownContent)
 

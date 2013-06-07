@@ -127,7 +127,7 @@ func (fileIndex *FileIndex) FilesByPath(path string, condition func(pather p.Pat
 		}
 
 		relativeFilePath := filePath[len(indexPath):]
-		fileMatchesPath := strings.HasPrefix(relativeFilePath, path)
+		fileMatchesPath := strings.HasPrefix(strings.ToLower(relativeFilePath), strings.ToLower(path))
 		if fileMatchesPath && condition(file) {
 			matchingFiles = append(matchingFiles, file)
 		}
