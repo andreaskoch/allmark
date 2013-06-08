@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	// !imagegallery[*description text*](*folder path*)
-	imageGalleryPattern = regexp.MustCompile(`!imagegallery\[([^\]]+)\]\(([^)]+)\)`)
+	// imagegallery: [*description text*](*folder path*)
+	imageGalleryPattern = regexp.MustCompile(`imagegallery: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
 func newImageGalleryRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {

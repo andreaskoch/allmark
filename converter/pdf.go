@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	// !pdf[*description text*](*some pdf file*)
-	pdfPattern = regexp.MustCompile(`!pdf\[([^\]]+)\]\(([^)]+)\)`)
+	// pdf: [*description text*](*some pdf file*)
+	pdfPattern = regexp.MustCompile(`pdf: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
 func newPDFRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {

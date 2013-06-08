@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	// !filelinks[*description text*](*folder path*)
-	fileLinksPattern = regexp.MustCompile(`!filelinks\[([^\]]+)\]\(([^)]+)\)`)
+	// files: [*description text*](*folder path*)
+	fileLinksPattern = regexp.MustCompile(`files: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
 func newFileLinksRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {

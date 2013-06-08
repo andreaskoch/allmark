@@ -26,9 +26,9 @@ func toHtml(item *repository.Item, rawLines []string) string {
 	fileLinksRenderer := newFileLinksRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
 	rawMarkdownContent = fileLinksRenderer(rawMarkdownContent)
 
-	// tables
-	tableRenderer := newTableRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
-	rawMarkdownContent = tableRenderer(rawMarkdownContent)
+	// csv files
+	csvRenderer := newCSVRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
+	rawMarkdownContent = csvRenderer(rawMarkdownContent)
 
 	// pdf
 	pdfRenderer := newPDFRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)

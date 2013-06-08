@@ -18,17 +18,17 @@ import (
 )
 
 var (
-	// !csv[*description text*](*file path*)
-	tablePattern = regexp.MustCompile(`!csv\[([^\]]+)\]\(([^)]+)\)`)
+	// csv: [*description text*](*file path*)
+	tablePattern = regexp.MustCompile(`csv: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func newTableRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {
+func newCSVRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {
 	return func(text string) string {
-		return renderTable(markdown, fileIndex, pathProvider)
+		return renderCSV(markdown, fileIndex, pathProvider)
 	}
 }
 
-func renderTable(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
+func renderCSV(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
 
 	for {
 
