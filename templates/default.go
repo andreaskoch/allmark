@@ -18,6 +18,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<meta name="DC.date" content="{{.Date}}">
 
 	<link rel="stylesheet" type="text/css" href="/theme/screen.css">
+	<link rel="stylesheet" type="text/css" href="/theme/print.css" media="print">
 </head>
 <body class="level-{{.Level}}">
 
@@ -25,8 +26,11 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 %s
 </article>
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
-<script src="/theme/autoupdate.js"></script>
+<script type="text/javascript" src="/theme/jquery.js"></script>
+<script type="text/javascript" src="/theme/pdf.js"></script>
+<script type="text/javascript" src="/theme/autoupdate.js"></script>
+<script type="text/javascript" src="/theme/pdf-preview.js"></script>
+
 </body>
 </html>`, ChildTemplatePlaceholder)
 

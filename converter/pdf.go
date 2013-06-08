@@ -50,24 +50,12 @@ func renderPDF(markdown string, fileIndex *repository.FileIndex, pathProvider *p
 		// create the pdf viewer code
 		pdfFile := files[0]
 		filePath := pathProvider.GetWebRoute(pdfFile)
-		fileTitle := fmt.Sprintf("%s - %s", title, getFileTitle(pdfFile))
+		fileTitle := fmt.Sprintf("PDF: %s - %s", title, getFileTitle(pdfFile))
 
-		fileLinksCode := fmt.Sprintf(`<section class="pdf" title="%s" data-pdf="%s">
+		fileLinksCode := fmt.Sprintf(`<section class="pdf">
 				<h1>%s</h1>
-
-				<nav>
-					<button class="prev">Previous</button>
-    				<button class="next">Next</button>
-
-    				<div class="pager">
-    					Page: <span class="pager-current-page"></span> / <span class="pager-total-pagecount"></span>
-    				</div>
-				</nav>
-
-				<div class="pdf-viewer">
-					<canvas></canvas>
-				</div>
-			</section>`, fileTitle, filePath, title)
+				<a href="%s" target="_blank" title="%s">%s</a>
+			</section>`, title, filePath, fileTitle, filePath)
 
 		// replace markdown with link list
 		markdown = strings.Replace(markdown, originalText, fileLinksCode, 1)
