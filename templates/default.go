@@ -10,8 +10,8 @@ import (
 
 var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <html lang="{{.LanguageTag}}">
-<meta charset="utf-8">
 <head>
+	<meta charset="utf-8">
 	<title>{{.Title}}</title>
 
 	<link rel="schema.DC" href="http://purl.org/dc/terms/">

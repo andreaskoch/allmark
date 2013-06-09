@@ -8,7 +8,9 @@ import (
 	"fmt"
 	pather "github.com/andreaskoch/allmark/path"
 	"io/ioutil"
+	"mime"
 	"net/http"
+	"path/filepath"
 	"strings"
 )
 
@@ -39,6 +41,11 @@ var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 		error404Handler(w, r)
 		return
 	}
+
+	extension := filepath.Ext(filePath)
+	contentType := mime.TypeByExtension(extension)
+	fmt.Println(contentType)
+	w.Header().Set("Content-Type", contentType)
 
 	fmt.Fprintf(w, "%s", data)
 }

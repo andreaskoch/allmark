@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
+	"mime"
 	"regexp"
 	"strings"
 )
@@ -65,9 +66,9 @@ func getVideoRenderer(title, path string, fileIndex *repository.FileIndex, pathP
 	}
 
 	// html5 video file
-	if isVideoFile := isVideoFileLink(path); isVideoFile {
+	if isVideoFile, mimeType := isVideoFileLink(path); isVideoFile {
 		return func() string {
-			return renderVideoFileLink(title, path)
+			return renderVideoFileLink(title, path, mimeType)
 		}
 	}
 
@@ -95,27 +96,28 @@ func renderYouTubeVideo(title, videoId string) string {
 	</section>`, title, videoId, title, videoId, videoId)
 }
 
-func renderVideoFileLink(title, link string) string {
+func renderVideoFileLink(title, link, mimetype string) string {
 	return fmt.Sprintf(`<section class="video video-file">
 		<h1>Video: %s</h1>
 		<p>
 			<a href="%s" target="_blank" title="%s">%s</a>
 		</p>
 		<video width="560" height="315" controls>
-			<source src="%s" type="video/mp4">
+			<source src="%s" type="%s">
 		</video>
-	</section>`, title, link, title, link, link)
+	</section>`, title, link, title, link, link, mimetype)
 }
 
-func isVideoFileLink(link string) bool {
+func isVideoFileLink(link string) (isVideoFile bool, mimeType string) {
 	normalizedLink := strings.ToLower(link)
 	fileExtension := normalizedLink[strings.LastIndex(normalizedLink, "."):]
+	mimeType = mime.TypeByExtension(fileExtension)
 
 	switch fileExtension {
-	case ".mp4", ".ogg", "webm":
-		return true
+	case ".mp4", ".ogg", ".ogv", ".webm", ".3gp":
+		return true, mimeType
 	default:
-		return false
+		return false, ""
 	}
 
 	panic("Unreachable")
