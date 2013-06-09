@@ -34,6 +34,10 @@ func toHtml(item *repository.Item, rawLines []string) string {
 	pdfRenderer := newPDFRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
 	rawMarkdownContent = pdfRenderer(rawMarkdownContent)
 
+	// video
+	videoRenderer := newVideoRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
+	rawMarkdownContent = videoRenderer(rawMarkdownContent)
+
 	// markdown to html
 	html := markdown.ToHtml(rawMarkdownContent)
 
