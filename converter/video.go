@@ -20,6 +20,9 @@ var (
 
 	// youtube video link pattern
 	youTubeVideoPattern = regexp.MustCompile(`http[s]?://www\.youtube\.com/watch\?v=([^&]+)`)
+
+	// vimeo video link pattern
+	vimeoVideoPattern = regexp.MustCompile(`http[s]?://vimeo\.com/([\d]+)`)
 )
 
 func newVideoRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {
@@ -59,9 +62,16 @@ func renderVideo(markdown string, fileIndex *repository.FileIndex, pathProvider 
 func getVideoRenderer(title, path string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func() string {
 
 	// youtube
-	if isYouTube, youTubeVideoId := isYouTubeLink(path); isYouTube {
+	if isYouTube, videoId := isYouTubeLink(path); isYouTube {
 		return func() string {
-			return renderYouTubeVideo(title, youTubeVideoId)
+			return renderYouTubeVideo(title, videoId)
+		}
+	}
+
+	// vimeo
+	if isVimeo, videoId := isVimeoLink(path); isVimeo {
+		return func() string {
+			return renderVimeoVideo(title, videoId)
 		}
 	}
 
@@ -87,25 +97,31 @@ func isYouTubeLink(link string) (isYouTubeLink bool, videoId string) {
 }
 
 func renderYouTubeVideo(title, videoId string) string {
-	return fmt.Sprintf(`<section class="video video-youtube">
+	return fmt.Sprintf(`<section class="video video-external video-youtube">
 		<h1>YouTube Video: %s</h1>
 		<p>
-			<a href="http://www.youtube.com/watch?%s" target="_blank" title="%s">http://www.youtube.com/watch?%s</a>
+			<a href="http://www.youtube.com/watch?v=%s" target="_blank" title="%s">http://www.youtube.com/watch?v=%s</a>
 		</p>
 		<iframe width="560" height="315" src="http://www.youtube.com/embed/%s" frameborder="0" allowfullscreen></iframe>
 	</section>`, title, videoId, title, videoId, videoId)
 }
 
-func renderVideoFileLink(title, link, mimetype string) string {
-	return fmt.Sprintf(`<section class="video video-file">
-		<h1>Video: %s</h1>
+func isVimeoLink(link string) (isVimeoLink bool, videoId string) {
+	if found, matches := util.IsMatch(link, vimeoVideoPattern); found && len(matches) == 2 {
+		return true, matches[1]
+	}
+
+	return false, ""
+}
+
+func renderVimeoVideo(title, videoId string) string {
+	return fmt.Sprintf(`<section class="video video-external video-vimeo">
+		<h1>vimeo Video: %s</h1>
 		<p>
-			<a href="%s" target="_blank" title="%s">%s</a>
+			<a href="https://vimeo.com/%s" target="_blank" title="%s">https://vimeo.com/%s</a>
 		</p>
-		<video width="560" height="315" controls>
-			<source src="%s" type="%s">
-		</video>
-	</section>`, title, link, title, link, link, mimetype)
+		<iframe src="http://player.vimeo.com/video/%s" width="560" height="315" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+	</section>`, title, videoId, title, videoId, videoId)
 }
 
 func isVideoFileLink(link string) (isVideoFile bool, mimeType string) {
@@ -121,4 +137,16 @@ func isVideoFileLink(link string) (isVideoFile bool, mimeType string) {
 	}
 
 	panic("Unreachable")
+}
+
+func renderVideoFileLink(title, link, mimetype string) string {
+	return fmt.Sprintf(`<section class="video video-file">
+		<h1>Video: %s</h1>
+		<p>
+			<a href="%s" target="_blank" title="%s">%s</a>
+		</p>
+		<video width="560" height="315" controls>
+			<source src="%s" type="%s">
+		</video>
+	</section>`, title, link, title, link, link, mimetype)
 }
