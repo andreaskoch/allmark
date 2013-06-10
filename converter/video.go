@@ -98,12 +98,9 @@ func isYouTubeLink(link string) (isYouTubeLink bool, videoId string) {
 
 func renderYouTubeVideo(title, videoId string) string {
 	return fmt.Sprintf(`<section class="video video-external video-youtube">
-		<h1>YouTube Video: %s</h1>
-		<p>
-			<a href="http://www.youtube.com/watch?v=%s" target="_blank" title="%s">http://www.youtube.com/watch?v=%s</a>
-		</p>
+		<h1><a href="http://www.youtube.com/watch?v=%s" target="_blank" title="%s">%s</a></h1>
 		<iframe width="560" height="315" src="http://www.youtube.com/embed/%s" frameborder="0" allowfullscreen></iframe>
-	</section>`, title, videoId, title, videoId, videoId)
+	</section>`, videoId, title, title, videoId)
 }
 
 func isVimeoLink(link string) (isVimeoLink bool, videoId string) {
@@ -116,12 +113,9 @@ func isVimeoLink(link string) (isVimeoLink bool, videoId string) {
 
 func renderVimeoVideo(title, videoId string) string {
 	return fmt.Sprintf(`<section class="video video-external video-vimeo">
-		<h1>vimeo Video: %s</h1>
-		<p>
-			<a href="https://vimeo.com/%s" target="_blank" title="%s">https://vimeo.com/%s</a>
-		</p>
+		<h1><a href="https://vimeo.com/%s" target="_blank" title="%s">%s</a></h1>
 		<iframe src="http://player.vimeo.com/video/%s" width="560" height="315" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-	</section>`, title, videoId, title, videoId, videoId)
+	</section>`, videoId, title, title, videoId)
 }
 
 func isVideoFileLink(link string) (isVideoFile bool, mimeType string) {
@@ -141,12 +135,9 @@ func isVideoFileLink(link string) (isVideoFile bool, mimeType string) {
 
 func renderVideoFileLink(title, link, mimetype string) string {
 	return fmt.Sprintf(`<section class="video video-file">
-		<h1>Video: %s</h1>
-		<p>
-			<a href="%s" target="_blank" title="%s">%s</a>
-		</p>
+		<h1><a href="%s" target="_blank" title="%s">%s</a></h1>
 		<video width="560" height="315" controls>
 			<source src="%s" type="%s">
 		</video>
-	</section>`, title, link, title, link, link, mimetype)
+	</section>`, link, title, title, link, mimetype)
 }

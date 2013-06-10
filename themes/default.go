@@ -328,6 +328,10 @@ td {
     float: none;
 }
 
+.video h1 {
+    font-size: 1.2em;
+}
+
 @media only screen and (min-width: 480px) {
     body {
         font-size: 14px;
@@ -351,7 +355,7 @@ td {
 
 	const printCss = `
 * {
-    background: transparent !important;
+    background: #FFFFFF !important;
     color: black !important;
     filter: none !important;
     -ms-filter: none !important;
@@ -365,7 +369,8 @@ body {
 }
 
 a, a:visited {
-    text-decoration: underline;
+    font-weight: normal;
+    text-decoration: none;
 }
 
 hr {
@@ -375,11 +380,15 @@ hr {
 }
 
 a[href]:after {
-    content: " (" attr(href) ")";
+    content: " <" attr(href) ">";
+}
+
+a[text^="http"]:after {
+    content: "";
 }
 
 abbr[title]:after {
-    content: " (" attr(title) ")";
+    content: " <" attr(title) ">";
 }
 
 .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after {
@@ -392,7 +401,7 @@ pre, blockquote {
     page-break-inside: avoid;
 }
 
-tr, img {
+ol, ul, tr, img {
     page-break-inside: avoid;
 }
 
@@ -427,6 +436,14 @@ h2, h3 {
 
 .pdf .previewarea {
     overflow: visible;
+}
+
+.video video {
+    display: none;
+}
+
+.video iframe {
+    display: none;
 }
 `
 
