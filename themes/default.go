@@ -332,6 +332,10 @@ td {
     font-size: 1.2em;
 }
 
+.audio h1 {
+    font-size: 1.2em;
+}
+
 @media only screen and (min-width: 480px) {
     body {
         font-size: 14px;
@@ -443,6 +447,10 @@ h2, h3 {
 }
 
 .video iframe {
+    display: none;
+}
+
+.audio audio {
     display: none;
 }
 `

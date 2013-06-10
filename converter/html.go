@@ -38,6 +38,10 @@ func toHtml(item *repository.Item, rawLines []string) string {
 	videoRenderer := newVideoRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
 	rawMarkdownContent = videoRenderer(rawMarkdownContent)
 
+	// audio
+	audioRenderer := newAudioRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
+	rawMarkdownContent = audioRenderer(rawMarkdownContent)
+
 	// markdown to html
 	html := markdown.ToHtml(rawMarkdownContent)
 
