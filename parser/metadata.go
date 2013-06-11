@@ -112,9 +112,7 @@ func locateMetaData(lines []string) (Match, []string) {
 	// Find the last horizontal rule in the document
 	lastFoundHorizontalRulePosition := -1
 	for lineNumber, line := range lines {
-
-		lineMatchesHorizontalRulePattern := HorizontalRulePattern.MatchString(line)
-		if lineMatchesHorizontalRulePattern {
+		if hrFound, _ := util.IsMatch(line, HorizontalRulePattern); hrFound {
 			lastFoundHorizontalRulePosition = lineNumber
 		}
 

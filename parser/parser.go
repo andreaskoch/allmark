@@ -32,7 +32,7 @@ var (
 	HorizontalRulePattern = regexp.MustCompile(`^-{2,}`)
 
 	// Lines with a "key: value" syntax
-	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*(\pL.+)$`)
+	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*(\pN.+)$`)
 )
 
 type ParsedItem struct {
