@@ -23,16 +23,16 @@ var (
 
 	// Lines which a start with a hash, followed by zero or more
 	// white space characters, followed by text.
-	TitlePattern = regexp.MustCompile(`^#\s*(\w.+)`)
+	TitlePattern = regexp.MustCompile(`^#\s*(\pL.+)`)
 
 	// Lines which start with text
-	DescriptionPattern = regexp.MustCompile(`^\w.+`)
+	DescriptionPattern = regexp.MustCompile(`^\pL.+`)
 
 	// Lines which nothing but dashes
 	HorizontalRulePattern = regexp.MustCompile(`^-{2,}`)
 
 	// Lines with a "key: value" syntax
-	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*(\w.+)$`)
+	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*(\pL.+)$`)
 )
 
 type ParsedItem struct {
