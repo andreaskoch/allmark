@@ -44,7 +44,6 @@ var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 
 	extension := filepath.Ext(filePath)
 	contentType := mime.TypeByExtension(extension)
-	fmt.Println(contentType)
 	w.Header().Set("Content-Type", contentType)
 
 	fmt.Fprintf(w, "%s", data)
