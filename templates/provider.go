@@ -22,7 +22,6 @@ const (
 
 type Provider struct {
 	Modified chan bool
-	Moved    chan bool
 
 	folder    string
 	templates map[string]*Template
@@ -32,20 +31,20 @@ type Provider struct {
 func NewProvider(templateFolder string) *Provider {
 
 	// intialize the templates
+	templateModified := make(chan bool)
 	templates := make(map[string]*Template)
 
-	templates[MasterTemplateName] = NewTemplate(templateFolder, MasterTemplateName, masterTemplate)
-	templates[ErrorTemplateName] = NewTemplate(templateFolder, ErrorTemplateName, errorTemplate)
+	templates[MasterTemplateName] = NewTemplate(templateFolder, MasterTemplateName, masterTemplate, templateModified)
+	templates[ErrorTemplateName] = NewTemplate(templateFolder, ErrorTemplateName, errorTemplate, templateModified)
 
-	templates[types.DocumentItemType] = NewTemplate(templateFolder, types.DocumentItemType, documentTemplate)
-	templates[types.MessageItemType] = NewTemplate(templateFolder, types.MessageItemType, messageTemplate)
-	templates[types.CollectionItemType] = NewTemplate(templateFolder, types.CollectionItemType, collectionTemplate)
-	templates[types.RepositoryItemType] = NewTemplate(templateFolder, types.RepositoryItemType, repositoryTemplate)
+	templates[types.DocumentItemType] = NewTemplate(templateFolder, types.DocumentItemType, documentTemplate, templateModified)
+	templates[types.MessageItemType] = NewTemplate(templateFolder, types.MessageItemType, messageTemplate, templateModified)
+	templates[types.CollectionItemType] = NewTemplate(templateFolder, types.CollectionItemType, collectionTemplate, templateModified)
+	templates[types.RepositoryItemType] = NewTemplate(templateFolder, types.RepositoryItemType, repositoryTemplate, templateModified)
 
 	// create the provider
 	provider := &Provider{
 		Modified: make(chan bool),
-		Moved:    make(chan bool),
 
 		folder:    templateFolder,
 		templates: templates,
@@ -54,17 +53,13 @@ func NewProvider(templateFolder string) *Provider {
 
 	// watch for changes
 	go func() {
-		for _, template := range provider.templates {
-			for {
-				select {
-				case <-template.Modified:
-					provider.ClearCache()
+		for {
+			select {
+			case <-templateModified:
+				provider.ClearCache()
+				go func() {
 					provider.Modified <- true
-
-				case <-template.Moved:
-					provider.ClearCache()
-					provider.Moved <- true
-				}
+				}()
 			}
 		}
 	}()

@@ -51,6 +51,10 @@ func New(indexPath string, config *config.Config, useTempDir bool) (*Indexer, er
 	return indexer, nil
 }
 
+func (indexer *Indexer) Root() *Item {
+	return indexer.root
+}
+
 func (indexer *Indexer) RelativePathProvider() *path.Provider {
 	return indexer.relativePathProvider
 }

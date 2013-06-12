@@ -17,7 +17,7 @@ const (
 	TemplateFileExtension = ".gohtml"
 )
 
-func NewTemplate(templateFolder string, name string, text string) *Template {
+func NewTemplate(templateFolder, name, text string, modified chan bool) *Template {
 
 	// assemble the file path
 	templateFilename := name + TemplateFileExtension
@@ -42,14 +42,18 @@ func NewTemplate(templateFolder string, name string, text string) *Template {
 			select {
 			case <-fileWatcher.Modified:
 
+				fmt.Printf("Template %q changed.\n", templateFilePath)
+
 				go func() {
-					template.Modified <- true
+					modified <- true
 				}()
 
 			case <-fileWatcher.Moved:
 
+				fmt.Printf("Template %q moved.\n", templateFilePath)
+
 				go func() {
-					template.Moved <- true
+					modified <- true
 				}()
 			}
 

@@ -16,8 +16,6 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"os/exec"
-	"runtime"
 	"strings"
 )
 

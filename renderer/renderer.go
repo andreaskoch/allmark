@@ -75,6 +75,20 @@ func (renderer *Renderer) Execute() {
 		}
 	}()
 
+	// re-render on template change
+	go func() {
+		for {
+			select {
+			case <-renderer.templateProvider.Modified:
+
+				// modified
+				fmt.Println("A template changed. Rendering all items.")
+				renderer.renderRecursive(renderer.indexer.Root())
+
+			}
+		}
+	}()
+
 }
 
 func (renderer *Renderer) listenForChanges(item *repository.Item) {
@@ -103,7 +117,14 @@ func (renderer *Renderer) removeItem(item *repository.Item) {
 
 		renderer.Removed <- item
 	}()
+}
 
+func (renderer *Renderer) renderRecursive(item *repository.Item) {
+	for _, child := range item.Childs {
+		renderer.renderRecursive(child)
+	}
+
+	renderer.renderItem(item)
 }
 
 func (renderer *Renderer) renderItem(item *repository.Item) {
