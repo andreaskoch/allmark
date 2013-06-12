@@ -32,6 +32,10 @@ func (fileWatcher *FileWatcher) String() string {
 	return fmt.Sprintf("Filewatcher %q", fileWatcher.file)
 }
 
+func (fileWatcher *FileWatcher) SetFile(filePath string) {
+	fileWatcher.file = filePath
+}
+
 func (fileWatcher *FileWatcher) Start() *FileWatcher {
 	fileWatcher.running = true
 	sleepTime := time.Second * 2

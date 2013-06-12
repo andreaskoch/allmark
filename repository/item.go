@@ -120,32 +120,9 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 	// find childs
 	item.updateChilds()
 
-	// look for item changes
-	if !isVirtualItem {
-		go func() {
-			fileWatcher := watcher.NewFileWatcher(itemPath).Start()
-
-			for fileWatcher.IsRunning() {
-
-				select {
-				case <-fileWatcher.Modified:
-
-					fmt.Printf("Item %q has been modified\n", item)
-					item.Modified <- true
-
-					// update parent
-					if item.Parent != nil {
-						item.Parent.Modified <- true
-					}
-
-				case <-fileWatcher.Moved:
-
-					fmt.Printf("Item %q has been moved\n", item)
-					item.Moved <- true
-				}
-
-			}
-		}()
+	// look for changes to the markdown file (if the item is not virtual)
+	if item.isVirtual {
+		item.startFileWatcher()
 	}
 
 	// look for changes in the item directory
@@ -162,6 +139,19 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 
 			select {
 			case <-folderWatcher.Change:
+
+				if item.isVirtual {
+					if found, filepath := findMarkdownFileInDirectory(itemDirectory); found {
+
+						fmt.Printf("Converting the virtual item %q into a physical item\n", item)
+
+						// make the item physical
+						item.path = filepath
+						item.isVirtual = false
+						item.startFileWatcher()
+					}
+				}
+
 				fmt.Printf("Updating the childs of item %q\n", item)
 				item.updateChilds()
 
@@ -193,6 +183,40 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 
 func (item *Item) OnChange(name string, expr func(i *Item)) {
 	item.changeFuncs = append(item.changeFuncs, expr)
+}
+
+func (item *Item) startFileWatcher() (started bool, itemWatcher *watcher.FileWatcher) {
+	if isFile, _ := util.IsFile(item.path); !isFile {
+		return false, nil
+	}
+
+	fileWatcher := watcher.NewFileWatcher(item.path).Start()
+
+	go func() {
+
+		for fileWatcher.IsRunning() {
+
+			select {
+			case <-fileWatcher.Modified:
+
+				fmt.Printf("Item %q has been modified\n", item)
+				item.Modified <- true
+
+				// update parent
+				if item.Parent != nil {
+					item.Parent.Modified <- true
+				}
+
+			case <-fileWatcher.Moved:
+
+				fmt.Printf("Item %q has been moved\n", item)
+				item.Moved <- true
+			}
+
+		}
+	}()
+
+	return true, fileWatcher
 }
 
 func (item *Item) String() string {
