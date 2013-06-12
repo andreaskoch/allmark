@@ -366,7 +366,9 @@ td {
 }
 
 body {
-    font-size: 12pt;
+    font: normal 18px/30px "Georgia Pro",georgia,serif;
+    text-rendering: optimizeLegibility;
+    cursor: default;
     max-width: 100%;
     width: 100%
     outline: none;
@@ -401,8 +403,9 @@ abbr[title]:after {
 
 pre, blockquote {
     border: 1px solid #999;
-    padding-right: 1em;
+    padding: 1em;
     page-break-inside: avoid;
+    white-space: pre-wrap;
 }
 
 ol, ul, tr, img {
@@ -413,20 +416,13 @@ img {
     max-width: 95% !important;
 }
 
-@page :left {
-    margin: 15mm 20mm 15mm 10mm;
-}
-
-@page :right {
-    margin: 15mm 10mm 15mm 20mm;
-}
-
 p, h2, h3 {
     orphans: 3;
     widows: 3;
 }
 
-h2, h3 {
+h2, h3, h4, h5, h6 {
+    font-family: "Franklin ITC Pro Bold",sans-serif !important;
     page-break-after: avoid;
 }
 

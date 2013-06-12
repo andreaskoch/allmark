@@ -17,7 +17,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<link rel="schema.DC" href="http://purl.org/dc/terms/">
 	<meta name="DC.date" content="{{.Date}}">
 
-	<link rel="stylesheet" type="text/css" href="/theme/screen.css">
+	<link rel="stylesheet" type="text/css" href="/theme/screen.css" media="screen">
 	<link rel="stylesheet" type="text/css" href="/theme/print.css" media="print">
 </head>
 <body class="level-{{.Level}}">
