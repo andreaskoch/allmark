@@ -488,11 +488,13 @@ if(x.isFunction(n))while(r=o[i++])"+"===r[0]?(r=r.slice(1)||"*",(e[r]=e[r]||[]).
             // create meta data elements
             var pagerContainer = $('<div>', { 'class': 'entry pager'}).html('<div class="display"><span class="label">Page:</span> <span class="pager-current-page"></span> <span class="separator">of</span> <span class="pager-total-pagecount"></span></div> <div class="controls"><button title="Show previous page" class="prev">&larr;</button><button title="Show next page" class="next">&rarr;</button></div>');
             var zoomControlContainer = $('<div>', { 'class': 'entry zoomlevel'}).html('<div class="display"><span class="label">Zoom:</span> <span class="zoomlevel-current"></span></div> <div class="controls"><button title="Click to zoom out. Or double-click the document area while holden the <ctl>-key." class="zoom-out">-</button><button title="Click to zoom in. Or double-click the document area." class="zoom-in">+</button></div>');
+            var snapshotControlContainer = $('<div>', { 'class': 'entry snapshot'}).html('<a href="" class="open-new-window" title="Click to create a snapshot of the current view">Snapshot</a>');
             var downloadContainer = $('<div>', { 'class': 'entry download'}).html('<a href="' + pdfFilePath +  ' " title="Click to download the pdf: ' + pdfFilePath + '" target="_blank"><span>Download</span></a>');
             
             var metaDataContainer = $('<nav>', { 'class': 'metadata'});
             metaDataContainer.append(pagerContainer);
             metaDataContainer.append(zoomControlContainer);
+            metaDataContainer.append(snapshotControlContainer);
             metaDataContainer.append(downloadContainer);
 
             $(this).append(metaDataContainer);
@@ -542,7 +544,18 @@ if(x.isFunction(n))while(r=o[i++])"+"===r[0]?(r=r.slice(1)||"*",(e[r]=e[r]||[]).
 
                 // abort: pager elements missing
                 return;
-            }       
+            }
+
+            // snapshow: controls
+            var snapshotButton = $(snapshotControlContainer).find(".open-new-window:first").first();
+            if (snapshotButton.length !== 1) {
+
+                // restore previous state
+                $(metaDataContainer).remove();
+
+                // abort: snapshot controls missing
+                return;
+            }
 
             // create preview area
             var canvasElement = $('<canvas>');
@@ -792,7 +805,11 @@ if(x.isFunction(n))while(r=o[i++])"+"===r[0]?(r=r.slice(1)||"*",(e[r]=e[r]||[]).
             // attach zoom-in event
             $(zoomOutButton).click(function() {
                 zoomOut();
-            });     
+            });
+
+            $(snapshotButton).click(function() {
+                window.open(canvas.toDataURL('image/png'));
+            });
 
             // Asynchronously download PDF as an ArrayBuffer
             PDFJS.getDocument(pdfFilePath).then(function(doc) {
@@ -816,7 +833,7 @@ if(x.isFunction(n))while(r=o[i++])"+"===r[0]?(r=r.slice(1)||"*",(e[r]=e[r]||[]).
         );
     }
 
-})();   
+})();
 `
 
 	const autoupdateJs = `
