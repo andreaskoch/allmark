@@ -121,7 +121,7 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 	item.updateChilds()
 
 	// look for changes to the markdown file (if the item is not virtual)
-	if item.isVirtual {
+	if !item.isVirtual {
 		item.startFileWatcher()
 	}
 
