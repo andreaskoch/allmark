@@ -6,11 +6,9 @@ package server
 
 import (
 	"fmt"
-	pather "github.com/andreaskoch/allmark/path"
-	"io/ioutil"
-	"mime"
+	"github.com/andreaskoch/allmark/path"
 	"net/http"
-	"path/filepath"
+	"os"
 	"strings"
 )
 
@@ -36,34 +34,38 @@ var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := ioutil.ReadFile(filePath)
+	file, err := os.Open(filePath)
 	if err != nil {
 		error404Handler(w, r)
 		return
 	}
 
-	extension := filepath.Ext(filePath)
-	contentType := mime.TypeByExtension(extension)
-	w.Header().Set("Content-Type", contentType)
+	defer file.Close()
 
-	fmt.Fprintf(w, "%s", data)
+	fileInfo, err := file.Stat()
+	if err != nil {
+		error404Handler(w, r)
+		return
+	}
+
+	http.ServeContent(w, r, filePath, fileInfo.ModTime(), file)
 }
 
 func getFallbackRoute(requestedPath string) (fallbackRoute string, found bool) {
 
-	requestedPath = pather.StripLeadingUrlDirectorySeperator(requestedPath)
+	requestedPath = path.StripLeadingUrlDirectorySeperator(requestedPath)
 
 	if len(requestedPath) == 0 {
-		fmt.Printf("Fallback for %q is %q\n", requestedPath, pather.WebServerDefaultFilename)
-		return pather.WebServerDefaultFilename, true
+		fmt.Printf("Fallback for %q is %q\n", requestedPath, path.WebServerDefaultFilename)
+		return path.WebServerDefaultFilename, true
 	}
 
-	if strings.HasSuffix(requestedPath, pather.WebServerDefaultFilename) {
+	if strings.HasSuffix(requestedPath, path.WebServerDefaultFilename) {
 		fmt.Printf("No fallback found for %q\n", requestedPath)
 		return "", false
 	}
 
-	route := pather.CombineUrlComponents(requestedPath, pather.WebServerDefaultFilename)
+	route := path.CombineUrlComponents(requestedPath, path.WebServerDefaultFilename)
 	if _, ok := routes[route]; ok {
 		fmt.Printf("Fallback for %q is %q\n", requestedPath, route)
 		return route, true
