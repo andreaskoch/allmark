@@ -1034,30 +1034,13 @@ autoupdate.start();
 	defaultTheme = &Theme{
 		Name: "default",
 		Files: []*ThemeFile{
-			&ThemeFile{
-				Filename: "screen.css",
-				Content:  screenCss,
-			},
-			&ThemeFile{
-				Filename: "print.css",
-				Content:  printCss,
-			},
-			&ThemeFile{
-				Filename: "jquery.js",
-				Content:  jqueryJs,
-			},
-			&ThemeFile{
-				Filename: "autoupdate.js",
-				Content:  autoupdateJs,
-			},
-			&ThemeFile{
-				Filename: "pdf.js",
-				Content:  pdfJs,
-			},
-			&ThemeFile{
-				Filename: "pdf-preview.js",
-				Content:  pdfPreviewJs,
-			},
+			newFileFromText("screen.css", screenCss),
+			newFileFromText("print.css", printCss),
+			newFileFromText("jquery.js", jqueryJs),
+			newFileFromText("autoupdate.js", autoupdateJs),
+			newFileFromText("pdf.js", pdfJs),
+			newFileFromText("pdf-preview.js", pdfPreviewJs),
+			newFileFromBase64("favicon.ico", faviconIco),
 		},
 	}
 }

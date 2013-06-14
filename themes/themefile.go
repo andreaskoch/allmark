@@ -5,15 +5,36 @@
 package themes
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/andreaskoch/allmark/util"
-	"os"
+	"io/ioutil"
 	"path/filepath"
 )
 
+func newFileFromText(filename, text string) *ThemeFile {
+	return &ThemeFile{
+		path: filename,
+		data: []byte(text),
+	}
+}
+
+func newFileFromBase64(filename, base64Text string) *ThemeFile {
+
+	data, err := base64.StdEncoding.DecodeString(base64Text)
+	if err != nil {
+		panic(err)
+	}
+
+	return &ThemeFile{
+		path: filename,
+		data: data,
+	}
+}
+
 type ThemeFile struct {
-	Filename string
-	Content  string
+	path string
+	data []byte
 }
 
 func (themeFile *ThemeFile) StoreOnDisc(baseFolder string) (success bool, err error) {
@@ -21,15 +42,10 @@ func (themeFile *ThemeFile) StoreOnDisc(baseFolder string) (success bool, err er
 		return false, fmt.Errorf("Unable to create theme folder %q.", baseFolder)
 	}
 
-	filePath := filepath.Join(baseFolder, themeFile.Filename)
-	file, err := os.Create(filePath)
-	if err != nil {
-		return false, fmt.Errorf("Unable to create theme file %q in folder %q.", themeFile.Filename, baseFolder)
+	filePath := filepath.Join(baseFolder, themeFile.path)
+	if err := ioutil.WriteFile(filePath, themeFile.data, 0600); err != nil {
+		return false, fmt.Errorf("Unable to create theme file %q in folder %q.", themeFile.path, baseFolder)
 	}
-
-	defer file.Close()
-
-	file.WriteString(themeFile.Content)
 
 	return true, nil
 }
