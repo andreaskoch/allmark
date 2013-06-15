@@ -336,6 +336,38 @@ td {
     font-size: 1.2em;
 }
 
+.presentation nav {
+    margin: 35px 0 15px 0;
+    width: 100%;
+    text-align: center;
+}
+
+.presentation nav .nav-element {
+}
+
+.presentation nav .controls {
+    float: left;
+}
+
+.presentation nav .pager {
+    display: inline;
+    cursor: default;
+}
+
+.presentation nav .jumper {
+    float: right;
+}
+
+.presentation .content {
+    clear: left;
+}
+
+.presentation .slide {
+    float: none;
+    box-shadow: 0 0 10px #000000;
+    padding: 10px;
+}
+
 @media only screen and (min-width: 480px) {
     body {
         font-size: 14px;
@@ -1040,6 +1072,9 @@ autoupdate.start();
 			newFileFromText("autoupdate.js", autoupdateJs),
 			newFileFromText("pdf.js", pdfJs),
 			newFileFromText("pdf-preview.js", pdfPreviewJs),
+			newFileFromText("modernizr.js", modernizr),
+			newFileFromText("deck.js", deckJs),
+			newFileFromText("deck.css", deckCss),
 			newFileFromBase64("favicon.ico", faviconIco),
 		},
 	}

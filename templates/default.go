@@ -19,19 +19,36 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 	<link rel="shortcut icon" href="/theme/favicon.ico" />
 
-	<link rel="stylesheet" type="text/css" href="/theme/screen.css" media="screen">
-	<link rel="stylesheet" type="text/css" href="/theme/print.css" media="print">
+	<link rel="stylesheet" href="/theme/deck.css">
+	<link rel="stylesheet" href="/theme/screen.css" media="screen">
+	<link rel="stylesheet" href="/theme/print.css" media="print">
+
+	<script src="/theme/modernizr.js"></script>
 </head>
-<body class="level-{{.Level}}">
+<body class="{{.Type}} level-{{.Level}}">
 
 <article>
 %s
 </article>
 
-<script type="text/javascript" src="/theme/jquery.js"></script>
-<script type="text/javascript" src="/theme/pdf.js"></script>
-<script type="text/javascript" src="/theme/autoupdate.js"></script>
-<script type="text/javascript" src="/theme/pdf-preview.js"></script>
+<script src="/theme/jquery.js"></script>
+<script src="/theme/autoupdate.js"></script>
+<script src="/theme/pdf.js"></script>
+<script src="/theme/pdf-preview.js"></script>
+<script src="/theme/deck.js"></script>
+<script>
+$(function() {
+	$.deck('.slide', {
+		selectors: {
+			container: 'body > article > .content'
+		},
+		
+		keys: {
+			goto: -1
+		}
+	});
+});
+</script>
 
 </body>
 </html>`, ChildTemplatePlaceholder)
@@ -143,7 +160,27 @@ const presentationTemplate = `
 {{.Description}}
 </section>
 
+<nav>
+	<div class="nav-element pager deck-status">
+		<span class="deck-status-current"></span> /	<span class="deck-status-total"></span>
+	</div>
+
+	<div class="nav-element controls">
+		<button class="deck-prev-link" title="Previous">&#8592;</button>
+		<button href="#" class="deck-next-link" title="Next">&#8594;</button>
+	</div>
+
+	<div class="nav-element jumper">
+		<form action="." method="get" class="goto-form">
+			<label for="goto-slide">Go to slide:</label>
+			<input type="text" name="slidenum" id="goto-slide" list="goto-datalist">
+			<datalist id="goto-datalist"></datalist>
+			<input type="submit" value="Go">
+		</form>
+	</div>
+</nav>
+	
 <section class="content">
-{{.Content}}
+	{{.Content}}
 </section>
 `
