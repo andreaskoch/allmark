@@ -112,6 +112,14 @@ func parsePhysical(item *repository.Item) (*ParsedItem, error) {
 				return nil, err
 			}
 		}
+	case types.PresentationItemType:
+		{
+			if success, err := parsePresentation(result, lines); success {
+				return result, nil
+			} else {
+				return nil, err
+			}
+		}
 	case types.MessageItemType:
 		{
 			if success, err := parseMessage(result, lines); success {
@@ -129,6 +137,20 @@ func parsePhysical(item *repository.Item) (*ParsedItem, error) {
 
 // Parse an item with a title, description and content
 func parseDocumentLikeItem(parserParsedItem *ParsedItem, lines []string) (sucess bool, err error) {
+
+	// title
+	parserParsedItem.Title, lines = getMatchingValue(lines, TitlePattern)
+
+	// description
+	parserParsedItem.Description, lines = getMatchingValue(lines, DescriptionPattern)
+
+	// raw markdown content
+	parserParsedItem.RawContent = lines
+
+	return true, nil
+}
+
+func parsePresentation(parserParsedItem *ParsedItem, lines []string) (sucess bool, err error) {
 
 	// title
 	parserParsedItem.Title, lines = getMatchingValue(lines, TitlePattern)

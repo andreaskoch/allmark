@@ -27,15 +27,15 @@ func Map(item *repository.Item) *view.Model {
 	var model *view.Model
 
 	switch itemType := parsedItem.MetaData.ItemType; itemType {
-	case types.DocumentItemType:
+	case types.DocumentItemType, types.MessageItemType:
 		model = createDocumentMapperFunc(parsedItem, relativePath, absolutePath)
+
+	case types.PresentationItemType:
+		model = createPresentationMapperFunc(parsedItem, relativePath, absolutePath)
 
 	case types.RepositoryItemType, types.CollectionItemType:
 		model = createDocumentMapperFunc(parsedItem, relativePath, absolutePath)
 		model.SubEntries = getSubModels(item)
-
-	case types.MessageItemType:
-		model = createMessageMapperFunc(parsedItem, relativePath, absolutePath)
 
 	default:
 		model = view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType), relativePath, absolutePath)

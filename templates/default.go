@@ -132,3 +132,18 @@ const errorTemplate = `
 {{.Content}}
 </section>
 `
+const presentationTemplate = `
+<header>
+<h1 class="title">
+{{.Title}}
+</h1>
+</header>
+
+<section class="description">
+{{.Description}}
+</section>
+
+<section class="content">
+{{.Content}}
+</section>
+`

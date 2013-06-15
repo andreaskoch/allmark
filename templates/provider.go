@@ -41,6 +41,7 @@ func NewProvider(templateFolder string) *Provider {
 	templates[types.MessageItemType] = NewTemplate(templateFolder, types.MessageItemType, messageTemplate, templateModified)
 	templates[types.CollectionItemType] = NewTemplate(templateFolder, types.CollectionItemType, collectionTemplate, templateModified)
 	templates[types.RepositoryItemType] = NewTemplate(templateFolder, types.RepositoryItemType, repositoryTemplate, templateModified)
+	templates[types.PresentationItemType] = NewTemplate(templateFolder, types.PresentationItemType, presentationTemplate, templateModified)
 
 	// create the provider
 	provider := &Provider{
