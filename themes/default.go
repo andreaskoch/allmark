@@ -1034,13 +1034,27 @@ autoupdate.start();
 	defaultTheme = &Theme{
 		Name: "default",
 		Files: []*ThemeFile{
+
+			// styles
 			newFileFromText("screen.css", screenCss),
 			newFileFromText("print.css", printCss),
+
+			// javascript libraries
 			newFileFromText("jquery.js", jqueryJs),
+
+			// web socket auto update
 			newFileFromText("autoupdate.js", autoupdateJs),
+
+			// pdf preview
 			newFileFromText("pdf.js", pdfJs),
 			newFileFromText("pdf-preview.js", pdfPreviewJs),
+
+			// favicon
 			newFileFromBase64("favicon.ico", faviconIco),
+
+			// google prettify
+			newFileFromBase64("codehighlighting/highlight.js", highlightJs),
+			newFileFromBase64("codehighlighting/highlight.css", highlightCss),
 		},
 	}
 }

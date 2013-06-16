@@ -19,8 +19,9 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 	<link rel="shortcut icon" href="/theme/favicon.ico" />
 
-	<link rel="stylesheet" type="text/css" href="/theme/screen.css" media="screen">
-	<link rel="stylesheet" type="text/css" href="/theme/print.css" media="print">
+	<link rel="stylesheet" href="/theme/screen.css" media="screen">
+	<link rel="stylesheet" href="/theme/print.css" media="print">
+	<link rel="stylesheet" href="/theme/codehighlighting/highlight.css">
 </head>
 <body class="level-{{.Level}}">
 
@@ -28,10 +29,12 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 %s
 </article>
 
-<script type="text/javascript" src="/theme/jquery.js"></script>
-<script type="text/javascript" src="/theme/pdf.js"></script>
-<script type="text/javascript" src="/theme/autoupdate.js"></script>
-<script type="text/javascript" src="/theme/pdf-preview.js"></script>
+<script src="/theme/jquery.js"></script>
+<script src="/theme/pdf.js"></script>
+<script src="/theme/autoupdate.js"></script>
+<script src="/theme/pdf-preview.js"></script>
+<script src="/theme/codehighlighting/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
 
 </body>
 </html>`, ChildTemplatePlaceholder)
