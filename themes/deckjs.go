@@ -1192,6 +1192,7 @@ This module adds a (current)/(total) style status indicator to the deck.
 })(jQuery, 'deck');
 `
 const deckCss = `
+
 body.deck-container {
   overflow-y: auto;
   position: static;
@@ -1493,107 +1494,6 @@ body.deck-container {
   visibility: visible;
 }
 
-@media screen and (max-device-width: 480px) {
-  /* html { -webkit-text-size-adjust:none; -ms-text-size-adjust:none; } */
-}
-@media print {
-  * {
-    background: transparent !important;
-    color: black !important;
-    text-shadow: none !important;
-    filter: none !important;
-    -ms-filter: none !important;
-    -webkit-box-reflect: none !important;
-    -moz-box-reflect: none !important;
-    -webkit-box-shadow: none !important;
-    -moz-box-shadow: none !important;
-    box-shadow: none !important;
-  }
-  * :before, * :after {
-    display: none !important;
-  }
-
-  a, a:visited {
-    color: #444 !important;
-    text-decoration: underline;
-  }
-
-  a[href]:after {
-    content: " (" attr(href) ")";
-  }
-
-  abbr[title]:after {
-    content: " (" attr(title) ")";
-  }
-
-  .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after {
-    content: "";
-  }
-
-  pre, blockquote {
-    border: 1px solid #999;
-    page-break-inside: avoid;
-  }
-
-  thead {
-    display: table-header-group;
-  }
-
-  tr, img {
-    page-break-inside: avoid;
-  }
-
-  @page {
-    margin: 0.5cm;
-}
-
-  p, h2, h3 {
-    orphans: 3;
-    widows: 3;
-  }
-
-  h2, h3 {
-    page-break-after: avoid;
-  }
-
-  .slide {
-    position: static !important;
-    visibility: visible !important;
-    display: block !important;
-    -webkit-transform: none !important;
-    -moz-transform: none !important;
-    -o-transform: none !important;
-    -ms-transform: none !important;
-    transform: none !important;
-    opacity: 1 !important;
-  }
-
-  h1, .vcenter {
-    -webkit-transform: none !important;
-    -moz-transform: none !important;
-    -o-transform: none !important;
-    -ms-transform: none !important;
-    transform: none !important;
-    padding: 0 !important;
-    position: static !important;
-  }
-
-  .deck-container > .slide {
-    page-break-after: always;
-  }
-
-  .deck-container {
-    width: 100% !important;
-    height: auto !important;
-    padding: 0 !important;
-    display: block !important;
-  }
-
-  script {
-    display: none;
-  }
-}
-
 .deck-container .goto-form {
   position: absolute;
   z-index: 3;
@@ -1630,12 +1530,6 @@ body.deck-container {
   height: 1.4375em;
 }
 
-@media print {
-  .goto-form, #goto-slide {
-    display: none !important;
-  }
-}
-
 .deck-container .deck-permalink {
   display: none;
   position: absolute;
@@ -1668,26 +1562,7 @@ body.deck-container {
   overflow: hidden;
   padding: 0 0.5%;
 }
-.csstransforms .deck-menu > .slide {
-  -webkit-transform: scale(0.22) !important;
-  -moz-transform: scale(0.22) !important;
-  -o-transform: scale(0.22) !important;
-  -ms-transform: scale(0.22) !important;
-  transform: scale(0.22) !important;
-  -webkit-transform-origin: 0 0;
-  -moz-transform-origin: 0 0;
-  -o-transform-origin: 0 0;
-  -ms-transform-origin: 0 0;
-  transform-origin: 0 0;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  padding: 0 48px;
-  margin: 12px;
-}
+
 .deck-menu iframe, .deck-menu img, .deck-menu video {
   max-width: 100%;
 }
@@ -1736,12 +1611,6 @@ body.deck-container {
   display: none;
 }
 
-@media print {
-  .deck-prev-link, .deck-next-link {
-    display: none !important;
-  }
-}
-
 .deck-container .deck-status {
   position: absolute;
   bottom: 10px;
@@ -1753,11 +1622,5 @@ body.deck-container {
 
 body.deck-container .deck-status {
   position: fixed;
-}
-
-@media print {
-  .deck-status {
-    display: none;
-  }
 }
 `

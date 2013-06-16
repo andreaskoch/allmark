@@ -499,6 +499,10 @@ h2, h3, h4, h5, h6 {
 .audio audio {
     display: none;
 }
+
+.presentation nav {
+    display: none;
+}
 `
 
 	const jqueryJs = `

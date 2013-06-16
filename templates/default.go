@@ -19,10 +19,10 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 	<link rel="shortcut icon" href="/theme/favicon.ico" />
 
-	<link rel="stylesheet" href="/theme/deck.css">
+	<link rel="stylesheet" href="/theme/deck.css" media="screen">
 	<link rel="stylesheet" href="/theme/screen.css" media="screen">
 	<link rel="stylesheet" href="/theme/print.css" media="print">
-	<link rel="stylesheet" href="/theme/codehighlighting/highlight.css">
+	<link rel="stylesheet" href="/theme/codehighlighting/highlight.css" media="screen, print">
 
 	<script src="/theme/modernizr.js"></script>
 </head>
