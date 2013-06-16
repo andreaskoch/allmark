@@ -44,7 +44,7 @@ $(function() {
 		},
 		
 		keys: {
-			goto: -1
+			goto: 71 // 'g'
 		}
 	});
 });
