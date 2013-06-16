@@ -9,6 +9,7 @@ var defaultTheme *Theme
 func init() {
 
 	const screenCss = `
+
 html {
     font-size: 100%;
     overflow-y: scroll;
@@ -337,12 +338,10 @@ td {
 }
 
 .presentation nav {
-    margin: 35px 0 15px 0;
+    float: left;
+    margin: 25px 0 15px 0;
     width: 100%;
     text-align: center;
-}
-
-.presentation nav .nav-element {
 }
 
 .presentation nav .controls {
@@ -366,6 +365,26 @@ td {
     float: none;
     box-shadow: 0 0 10px #000000;
     padding: 10px;
+}
+
+@media only screen and (max-width: 480px) {
+    body {
+        font-size: 12px;
+        width: 95%;
+    }
+
+    .presentation nav {
+        margin: 25px 0 15px 0;
+        width: 100%;
+    }    
+
+    .presentation nav .pager {
+        float: right;
+    }    
+
+    .presentation nav .jumper {
+        display: none;
+    }    
 }
 
 @media only screen and (min-width: 480px) {
