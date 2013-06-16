@@ -22,6 +22,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<link rel="stylesheet" href="/theme/deck.css">
 	<link rel="stylesheet" href="/theme/screen.css" media="screen">
 	<link rel="stylesheet" href="/theme/print.css" media="print">
+	<link rel="stylesheet" href="/theme/codehighlighting/highlight.css">
 
 	<script src="/theme/modernizr.js"></script>
 </head>
@@ -35,6 +36,8 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <script src="/theme/autoupdate.js"></script>
 <script src="/theme/pdf.js"></script>
 <script src="/theme/pdf-preview.js"></script>
+<script src="/theme/codehighlighting/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
 <script src="/theme/deck.js"></script>
 <script>
 $(function() {
@@ -179,8 +182,8 @@ const presentationTemplate = `
 		</form>
 	</div>
 </nav>
-	
+
 <section class="content">
-	{{.Content}}
+{{.Content}}
 </section>
 `

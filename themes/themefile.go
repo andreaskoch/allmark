@@ -39,10 +39,16 @@ type ThemeFile struct {
 
 func (themeFile *ThemeFile) StoreOnDisc(baseFolder string) (success bool, err error) {
 	if !util.CreateDirectory(baseFolder) {
-		return false, fmt.Errorf("Unable to create theme folder %q.", baseFolder)
+		return false, fmt.Errorf("Unable to create the base folder for the themes: %q", baseFolder)
 	}
 
 	filePath := filepath.Join(baseFolder, themeFile.path)
+	directory := filepath.Dir(filePath)
+
+	if !util.CreateDirectory(directory) {
+		return false, fmt.Errorf("Unable to create folder %q for theme file %q.", directory, filePath)
+	}
+
 	if err := ioutil.WriteFile(filePath, themeFile.data, 0600); err != nil {
 		return false, fmt.Errorf("Unable to create theme file %q in folder %q.", themeFile.path, baseFolder)
 	}

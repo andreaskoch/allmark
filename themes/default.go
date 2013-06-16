@@ -9,7 +9,6 @@ var defaultTheme *Theme
 func init() {
 
 	const screenCss = `
-
 html {
     font-size: 100%;
     overflow-y: scroll;
@@ -1085,16 +1084,32 @@ autoupdate.start();
 	defaultTheme = &Theme{
 		Name: "default",
 		Files: []*ThemeFile{
+
+			// styles
 			newFileFromText("screen.css", screenCss),
 			newFileFromText("print.css", printCss),
+
+			// javascript libraries
+			newFileFromText("modernizr.js", modernizr),
 			newFileFromText("jquery.js", jqueryJs),
+
+			// web socket auto update
 			newFileFromText("autoupdate.js", autoupdateJs),
+
+			// pdf preview
 			newFileFromText("pdf.js", pdfJs),
 			newFileFromText("pdf-preview.js", pdfPreviewJs),
-			newFileFromText("modernizr.js", modernizr),
+
+			// favicon
+			newFileFromBase64("favicon.ico", faviconIco),
+
+			// presentations
 			newFileFromText("deck.js", deckJs),
 			newFileFromText("deck.css", deckCss),
-			newFileFromBase64("favicon.ico", faviconIco),
+
+			// code highlighting
+			newFileFromBase64("codehighlighting/highlight.js", highlightJs),
+			newFileFromBase64("codehighlighting/highlight.css", highlightCss),
 		},
 	}
 }
