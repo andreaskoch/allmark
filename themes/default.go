@@ -100,6 +100,7 @@ h4,h5,h6 {
 
 h1 {
     font-size: 2.5em;
+    margin: 0 0 15px 0;
 }
 
 h2 {
@@ -230,6 +231,30 @@ td {
     vertical-align: top;
 }
 
+article>.description {
+    font-size: 1.2em;
+}
+
+.subentries {
+    list-style: none;
+    padding: 5px 0 5px 0;
+    margin: 0 0 0 15px;
+    border-top:1px dashed #000;
+    border-bottom:1px dashed #000;
+}
+
+.subentries>.subentry {
+    margin: 0 0 15px 0;
+}
+
+.subentries>.subentry:nth-child(odd) {
+    background-color:#eee;
+}
+
+.subentries>.subentry:nth-child(even) {
+    background-color:transparent;
+}
+
 .imagegallery>h1 {
     font-size: 1.2em;
 }
@@ -249,23 +274,6 @@ td {
 
 .collection>h1 {
     font-size: 1.2em;
-}
-
-.collection>ol {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 0 15px;
-}
-
-.collection>ol>li {
-    display: block;
-    margin: 0 0 15px 0;
-}
-
-.collection>ol>li>h2 {
-    font-size: 1.0em;
-    font-weight: bold;
-    margin: 0;
 }
 
 .csv
@@ -304,7 +312,7 @@ td {
     max-height: 80%;
 }
 
-.pdf h1 {
+.pdf>h1 {
     font-size: 1.2em;
 }
 
@@ -328,11 +336,11 @@ td {
     float: none;
 }
 
-.video h1 {
+.video>h1 {
     font-size: 1.2em;
 }
 
-.audio h1 {
+.audio>h1 {
     font-size: 1.2em;
 }
 
