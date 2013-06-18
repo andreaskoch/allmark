@@ -276,17 +276,26 @@ article>.description {
     font-size: 1.2em;
 }
 
-.csv
+.csv {
+    margin: 20px 0 0 20px;
+    overflow: auto;
+}
+
+.csv>h1 {
+    font-size: 1.2em;
+}
+
+.csv>table
 {
     font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
     font-size: 1.0em;
-    margin: 45px;
+    margin: 10px 45px 10px 45px;
     text-align: left;
     border-collapse: collapse;
     border: 1px solid #69c;
 }
 
-.csv thead
+.csv>table thead
 {
     padding: 12px 17px 12px 17px;
     font-weight: normal;
@@ -295,13 +304,13 @@ article>.description {
     border-bottom: 1px dashed #69c;
 }
 
-.csv td
+.csv>table td
 {
     padding: 7px 17px 7px 17px;
     color: #669;
 }
 
-.csv tbody tr:hover td
+.csv>table tbody tr:hover td
 {
     color: #339;
     background: #d0dafd;

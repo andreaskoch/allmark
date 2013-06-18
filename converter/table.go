@@ -52,7 +52,9 @@ func renderCSV(markdown string, fileIndex *repository.FileIndex, pathProvider *p
 			continue
 		}
 
-		tableData, err := readCSV(files[0].Path())
+		matchedFile := files[0]
+		realFilePath := matchedFile.Path()
+		tableData, err := readCSV(realFilePath)
 		if err != nil {
 			// file not found remove entry
 			msg := fmt.Sprintf("<!-- Cannot read csv file %q (Error: %s) -->", path, err)
@@ -60,8 +62,11 @@ func renderCSV(markdown string, fileIndex *repository.FileIndex, pathProvider *p
 			continue
 		}
 
-		tableCode := fmt.Sprintf(`<table class="csv" summary="%s">
-		`, title)
+		relativeFilePath := pathProvider.GetWebRoute(matchedFile)
+		tableCode := fmt.Sprintf(`<section class="csv">
+			<h1><a href="%s" target="_blank">%s</a></h1>
+			<table>
+		`, relativeFilePath, title)
 
 		for rowNumber := range tableData {
 			row := tableData[rowNumber]
@@ -89,7 +94,8 @@ func renderCSV(markdown string, fileIndex *repository.FileIndex, pathProvider *p
 		}
 
 		tableCode += `</tbody>
-			</table>`
+			</table>
+		</section>`
 
 		// replace markdown with image gallery
 		markdown = strings.Replace(markdown, originalText, tableCode, 1)
