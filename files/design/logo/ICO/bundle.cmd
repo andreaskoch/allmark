@@ -1,0 +1,1 @@
+icobundl -o allmark.ico allmark-16x16.ico allmark-32x32.ico allmark-48x48.ico allmark-64x64.ico
