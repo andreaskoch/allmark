@@ -40,8 +40,6 @@ type Item struct {
 
 	rootPathProvider     *path.Provider
 	relativePathProvider *path.Provider
-
-	changeFuncs []func(item *Item)
 }
 
 func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, level int, newItem chan *Item, deletedItem chan *Item) (*Item, error) {
@@ -111,10 +109,9 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 		rootPathProvider:     rootPathProvider,
 		relativePathProvider: relativePathProvider,
 
-		directory:   itemDirectory,
-		path:        itemPath,
-		isVirtual:   isVirtualItem,
-		changeFuncs: make([]func(item *Item), 0),
+		directory: itemDirectory,
+		path:      itemPath,
+		isVirtual: isVirtualItem,
 	}
 
 	// find childs
@@ -179,10 +176,6 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 	}()
 
 	return item, nil
-}
-
-func (item *Item) OnChange(name string, expr func(i *Item)) {
-	item.changeFuncs = append(item.changeFuncs, expr)
 }
 
 func (item *Item) startFileWatcher() (started bool, itemWatcher *watcher.FileWatcher) {
