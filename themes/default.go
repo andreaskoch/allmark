@@ -28,6 +28,28 @@ body {
     outline: 1300px solid #FAFAFA;
 }
 
+body>nav {
+    font-size: 0.8em;
+}
+
+body>nav>ul.breadcrumb {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+body>nav>ul.breadcrumb>li {
+    display: inline;
+}
+
+body>nav>ul.breadcrumb>li:after {
+    content: ">";
+}
+
+body>nav>ul.breadcrumb>li:last-child:after {
+    content: "";
+}
+
 a {
     color: #0645ad;
     text-decoration: none;
@@ -439,6 +461,10 @@ body {
     max-width: 100%;
     width: 100%
     outline: none;
+}
+
+body>nav {
+    display: none;
 }
 
 a, a:visited {
