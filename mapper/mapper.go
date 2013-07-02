@@ -18,7 +18,7 @@ func Map(item *repository.Item) *view.Model {
 	relativePath := item.RelativePathProvider().GetWebRoute(item)
 	absolutePath := item.RootPathProvider().GetWebRoute(item)
 
-	// convert the item
+	// parse the item
 	parsedItem, err := converter.Convert(item)
 	if err != nil {
 		return view.Error(fmt.Sprintf("%s", err), relativePath, absolutePath)
@@ -26,6 +26,7 @@ func Map(item *repository.Item) *view.Model {
 
 	var model *view.Model
 
+	// map the parsed item to the view model depending on the item type
 	switch itemType := parsedItem.MetaData.ItemType; itemType {
 	case types.DocumentItemType, types.MessageItemType:
 		model = createDocumentMapperFunc(parsedItem, relativePath, absolutePath)
@@ -43,6 +44,9 @@ func Map(item *repository.Item) *view.Model {
 
 	// assign the model to the item
 	item.Model = model
+
+	// attach the navigation
+	model.Navigation = getNavigation(item)
 
 	return model
 }

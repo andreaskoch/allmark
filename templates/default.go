@@ -28,6 +28,16 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 </head>
 <body class="{{.Type}} level-{{.Level}}">
 
+<nav>
+	<ul>
+	{{range .Navigation.Entries}}
+	<li>
+		<a href="{{.Path}}">{{.Title}}</a>
+	</li>
+	{{end}}
+	</ul>
+</nav>
+
 <article>
 %s
 </article>
