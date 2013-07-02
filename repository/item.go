@@ -31,6 +31,7 @@ type Item struct {
 	Parent *Item
 	Childs []*Item
 
+	ChildsReady  chan bool
 	newChild     chan *Item
 	deletedChild chan *Item
 
@@ -96,8 +97,9 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 	// create the item
 	item := &Item{
 
-		Modified: make(chan bool),
-		Moved:    make(chan bool),
+		ChildsReady: make(chan bool),
+		Modified:    make(chan bool),
+		Moved:       make(chan bool),
 
 		Parent: parent,
 		Level:  level,
@@ -305,6 +307,10 @@ func (item *Item) updateChilds() {
 	}
 
 	// assign new child list
+	go func() {
+		item.ChildsReady <- true
+	}()
+
 	item.Childs = newChildList
 }
 

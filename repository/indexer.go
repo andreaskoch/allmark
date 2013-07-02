@@ -70,6 +70,13 @@ func (indexer *Indexer) Execute() {
 	indexer.root = rootItem
 
 	go func() {
-		indexer.New <- rootItem
+		for {
+			select {
+			case <-rootItem.ChildsReady:
+				go func() {
+					indexer.New <- rootItem
+				}()
+			}
+		}
 	}()
 }
