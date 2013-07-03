@@ -6,19 +6,12 @@ package mapper
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark/converter"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/view"
 )
 
 func Map(item *repository.Item) *view.Model {
-
-	// parse the item
-	_, err := converter.Convert(item)
-	if err != nil {
-		return view.Error(fmt.Sprintf("%s", err), item.RelativePath, item.AbsolutePath)
-	}
 
 	var model *view.Model
 

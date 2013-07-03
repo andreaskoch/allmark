@@ -8,7 +8,9 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/andreaskoch/allmark/config"
+	"github.com/andreaskoch/allmark/converter"
 	"github.com/andreaskoch/allmark/mapper"
+	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/templates"
@@ -146,6 +148,12 @@ func (renderer *Renderer) renderRecursive(item *repository.Item) {
 }
 
 func (renderer *Renderer) renderItem(item *repository.Item) {
+
+	// parse the item
+	parser.Parse(item)
+
+	// convert the item
+	converter.Convert(item)
 
 	// create the viewmodel
 	mapper.Map(item)
