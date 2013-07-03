@@ -2,6 +2,7 @@ package converter
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/converter/html"
 	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/repository"
 )
@@ -29,7 +30,7 @@ func convertPhysicalItem(item *repository.Item) (*repository.Item, error) {
 	}
 
 	// convert content
-	toHtml(item, item.RawContent)
+	html.ToHtml(item, item.RawContent)
 
 	return item, nil
 }

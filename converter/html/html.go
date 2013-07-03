@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package converter
+package html
 
 import (
 	"github.com/andreaskoch/allmark/markdown"
@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func toHtml(item *repository.Item, rawLines []string) *repository.Item {
+func ToHtml(item *repository.Item, rawLines []string) *repository.Item {
 
 	// create context
 	fileIndex := item.Files
