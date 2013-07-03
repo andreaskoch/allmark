@@ -18,13 +18,12 @@ var (
 	fileLinksPattern = regexp.MustCompile(`files: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func newFileLinksRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {
-	return func(text string) string {
-		return renderFileLinks(markdown, fileIndex, pathProvider)
-	}
+func renderFileLinks(item *repository.Item) *repository.Item {
+	item.ConvertedContent = convertFileLinksMarkdownExtension(item.ConvertedContent, item.Files, item.RelativePathProvider())
+	return item
 }
 
-func renderFileLinks(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
+func convertFileLinksMarkdownExtension(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
 
 	for {
 

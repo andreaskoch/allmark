@@ -30,7 +30,7 @@ func convertPhysicalItem(item *repository.Item) (*repository.Item, error) {
 	}
 
 	// convert content
-	html.ToHtml(item, item.RawContent)
+	html.ToHtml(item)
 
 	return item, nil
 }

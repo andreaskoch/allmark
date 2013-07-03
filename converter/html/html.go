@@ -5,46 +5,25 @@
 package html
 
 import (
-	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark/repository"
 	"strings"
 )
 
-func ToHtml(item *repository.Item, rawLines []string) *repository.Item {
+func ToHtml(item *repository.Item) *repository.Item {
 
-	// create context
-	fileIndex := item.Files
-	repositoryPathProvider := item.RelativePathProvider()
-	rawMarkdownContent := strings.TrimSpace(strings.Join(rawLines, "\n"))
+	// assign the raw markdown content for the add-ins to work on
+	item.ConvertedContent = strings.TrimSpace(strings.Join(item.RawContent, "\n"))
 
-	// image gallery
-	galleryRenderer := newImageGalleryRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
-	rawMarkdownContent = galleryRenderer(rawMarkdownContent)
+	// render markdown extensions
+	renderImageGalleries(item)
+	renderFileLinks(item)
+	renderCSVTables(item)
+	renderPDFs(item)
+	renderVideos(item)
+	renderAudio(item)
 
-	// file links
-	fileLinksRenderer := newFileLinksRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
-	rawMarkdownContent = fileLinksRenderer(rawMarkdownContent)
-
-	// csv files
-	csvRenderer := newCSVRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
-	rawMarkdownContent = csvRenderer(rawMarkdownContent)
-
-	// pdf
-	pdfRenderer := newPDFRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
-	rawMarkdownContent = pdfRenderer(rawMarkdownContent)
-
-	// video
-	videoRenderer := newVideoRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
-	rawMarkdownContent = videoRenderer(rawMarkdownContent)
-
-	// audio
-	audioRenderer := newAudioRenderer(rawMarkdownContent, fileIndex, repositoryPathProvider)
-	rawMarkdownContent = audioRenderer(rawMarkdownContent)
-
-	// markdown to html
-	html := markdown.ToHtml(rawMarkdownContent)
-
-	item.ConvertedContent = html
+	// render markdown
+	renderMarkdown(item)
 
 	return item
 }

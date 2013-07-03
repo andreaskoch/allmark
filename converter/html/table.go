@@ -22,13 +22,12 @@ var (
 	tablePattern = regexp.MustCompile(`csv: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func newCSVRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {
-	return func(text string) string {
-		return renderCSV(markdown, fileIndex, pathProvider)
-	}
+func renderCSVTables(item *repository.Item) *repository.Item {
+	item.ConvertedContent = convertCSVMarkdownExtension(item.ConvertedContent, item.Files, item.RelativePathProvider())
+	return item
 }
 
-func renderCSV(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
+func convertCSVMarkdownExtension(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
 
 	for {
 

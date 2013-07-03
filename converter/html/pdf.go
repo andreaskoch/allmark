@@ -19,13 +19,12 @@ var (
 	pdfPattern = regexp.MustCompile(`pdf: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func newPDFRenderer(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) func(text string) string {
-	return func(text string) string {
-		return renderPDF(markdown, fileIndex, pathProvider)
-	}
+func renderPDFs(item *repository.Item) *repository.Item {
+	item.ConvertedContent = convertPdfMarkdownExtension(item.ConvertedContent, item.Files, item.RelativePathProvider())
+	return item
 }
 
-func renderPDF(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
+func convertPdfMarkdownExtension(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
 
 	for {
 
