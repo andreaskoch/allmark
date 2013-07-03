@@ -6,7 +6,6 @@ package html
 
 import (
 	"github.com/andreaskoch/allmark/markdown"
-	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"strings"
 )
@@ -15,7 +14,7 @@ func ToHtml(item *repository.Item, rawLines []string) *repository.Item {
 
 	// create context
 	fileIndex := item.Files
-	repositoryPathProvider := path.NewProvider(item.Directory(), false)
+	repositoryPathProvider := item.RelativePathProvider()
 	rawMarkdownContent := strings.TrimSpace(strings.Join(rawLines, "\n"))
 
 	// image gallery
