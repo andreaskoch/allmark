@@ -69,7 +69,7 @@ func (indexer *Indexer) Execute() {
 			select {
 			case <-rootItem.ChildsReady:
 				go func() {
-					//indexer.New <- rootItem
+					indexer.New <- rootItem
 					indexer.RootIsReady <- rootItem
 				}()
 			}

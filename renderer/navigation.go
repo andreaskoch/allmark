@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mapper
+package renderer
 
 import (
 	"fmt"
@@ -10,8 +10,8 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func getNavigation(item *repository.Item) *view.Navigation {
-	return &view.Navigation{
+func attachNavigation(item *repository.Item) {
+	item.Model.Navigation = &view.Navigation{
 		Entries: getNavigationEntries(item),
 	}
 }

@@ -64,8 +64,8 @@ func (renderer *Renderer) Execute() {
 			case item := <-renderer.indexer.New:
 
 				// render the items
-				fmt.Printf("Rendering item %q\n", item)
-				renderer.renderItem(item)
+				fmt.Printf("Preparing item %q\n", item)
+				renderer.prepareItem(item)
 
 				// attach change listeners
 				renderer.listenForChanges(item)
@@ -117,6 +117,7 @@ func (renderer *Renderer) listenForChanges(item *repository.Item) {
 			select {
 			case <-item.Modified:
 				fmt.Printf("Rendering item %q\n", item)
+				renderer.prepareItem(item)
 				renderer.renderItem(item)
 
 			case <-item.Moved:
@@ -147,8 +148,7 @@ func (renderer *Renderer) renderRecursive(item *repository.Item) {
 	renderer.renderItem(item)
 }
 
-func (renderer *Renderer) renderItem(item *repository.Item) {
-
+func (renderer *Renderer) prepareItem(item *repository.Item) {
 	// parse the item
 	parser.Parse(item)
 
@@ -157,6 +157,11 @@ func (renderer *Renderer) renderItem(item *repository.Item) {
 
 	// create the viewmodel
 	mapper.Map(item)
+}
+
+func (renderer *Renderer) renderItem(item *repository.Item) {
+
+	attachNavigation(item)
 
 	// get a template
 	if template, err := renderer.templateProvider.GetTemplate(item.Type); err == nil {
