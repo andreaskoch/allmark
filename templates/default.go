@@ -28,6 +28,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 </head>
 <body class="{{.Type}} level-{{.Level}}">
 
+{{ if .Navigation}}
 <nav>
 	<ul class="breadcrumb">
 	{{range .Navigation.Entries}}
@@ -37,6 +38,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	{{end}}
 	</ul>
 </nav>
+{{end}}
 
 <article>
 %s

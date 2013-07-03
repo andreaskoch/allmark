@@ -13,10 +13,10 @@ import (
 )
 
 type Indexer struct {
-	New     chan *Item
-	Deleted chan *Item
+	RootIsReady chan *Item
+	New         chan *Item
+	Deleted     chan *Item
 
-	root                 *Item
 	indexPath            string
 	relativePathProvider *path.Provider
 	config               *config.Config
@@ -40,8 +40,9 @@ func New(indexPath string, config *config.Config, useTempDir bool) (*Indexer, er
 
 	// create a new indexer
 	indexer := &Indexer{
-		New:     make(chan *Item),
-		Deleted: make(chan *Item),
+		RootIsReady: make(chan *Item),
+		New:         make(chan *Item),
+		Deleted:     make(chan *Item),
 
 		indexPath:            indexPath,
 		relativePathProvider: path.NewProvider(indexPath, useTempDir),
@@ -49,10 +50,6 @@ func New(indexPath string, config *config.Config, useTempDir bool) (*Indexer, er
 	}
 
 	return indexer, nil
-}
-
-func (indexer *Indexer) Root() *Item {
-	return indexer.root
 }
 
 func (indexer *Indexer) RelativePathProvider() *path.Provider {
@@ -67,14 +64,13 @@ func (indexer *Indexer) Execute() {
 		panic(err)
 	}
 
-	indexer.root = rootItem
-
 	go func() {
 		for {
 			select {
 			case <-rootItem.ChildsReady:
 				go func() {
-					indexer.New <- rootItem
+					//indexer.New <- rootItem
+					indexer.RootIsReady <- rootItem
 				}()
 			}
 		}

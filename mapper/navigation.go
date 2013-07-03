@@ -5,6 +5,7 @@
 package mapper
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/view"
 )
@@ -20,6 +21,7 @@ func getNavigationEntries(item *repository.Item) []*view.NavigationEntry {
 
 	// abort if item or model is nil
 	if item == nil || item.Model == nil {
+		fmt.Println("model is nil")
 		return navigationEntries
 	}
 

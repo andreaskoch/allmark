@@ -5,22 +5,22 @@
 package mapper
 
 import (
-	"github.com/andreaskoch/allmark/parser"
+	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/view"
 )
 
-func createDocumentMapperFunc(parsedItem *parser.ParsedItem, relativPath, absolutePath string) *view.Model {
+func createDocumentMapperFunc(item *repository.Item) *view.Model {
 
 	return &view.Model{
-		Level:         parsedItem.Level,
-		RelativeRoute: relativPath,
-		AbsoluteRoute: absolutePath,
-		Title:         parsedItem.Title,
-		Description:   parsedItem.Description,
-		Content:       parsedItem.ConvertedContent,
-		LanguageTag:   getTwoLetterLanguageCode(parsedItem.MetaData.Language),
-		Date:          formatDate(parsedItem.MetaData.Date),
-		Type:          parsedItem.MetaData.ItemType,
+		Level:         item.Level,
+		RelativeRoute: item.RelativePath,
+		AbsoluteRoute: item.AbsolutePath,
+		Title:         item.Title,
+		Description:   item.Description,
+		Content:       item.ConvertedContent,
+		LanguageTag:   getTwoLetterLanguageCode(item.MetaData.Language),
+		Date:          formatDate(item.MetaData.Date),
+		Type:          item.MetaData.ItemType,
 	}
 
 }

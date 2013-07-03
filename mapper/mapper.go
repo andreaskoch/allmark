@@ -14,39 +14,32 @@ import (
 
 func Map(item *repository.Item) *view.Model {
 
-	// paths
-	relativePath := item.RelativePathProvider().GetWebRoute(item)
-	absolutePath := item.RootPathProvider().GetWebRoute(item)
-
 	// parse the item
-	parsedItem, err := converter.Convert(item)
+	_, err := converter.Convert(item)
 	if err != nil {
-		return view.Error(fmt.Sprintf("%s", err), relativePath, absolutePath)
+		return view.Error(fmt.Sprintf("%s", err), item.RelativePath, item.AbsolutePath)
 	}
 
 	var model *view.Model
 
 	// map the parsed item to the view model depending on the item type
-	switch itemType := parsedItem.MetaData.ItemType; itemType {
+	switch itemType := item.MetaData.ItemType; itemType {
 	case types.DocumentItemType, types.MessageItemType:
-		model = createDocumentMapperFunc(parsedItem, relativePath, absolutePath)
+		model = createDocumentMapperFunc(item)
 
 	case types.PresentationItemType:
-		model = createPresentationMapperFunc(parsedItem, relativePath, absolutePath)
+		model = createPresentationMapperFunc(item)
 
 	case types.RepositoryItemType, types.CollectionItemType:
-		model = createDocumentMapperFunc(parsedItem, relativePath, absolutePath)
+		model = createDocumentMapperFunc(item)
 		model.SubEntries = getSubModels(item)
 
 	default:
-		model = view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType), relativePath, absolutePath)
+		model = view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType), item.RelativePath, item.AbsolutePath)
 	}
 
 	// assign the model to the item
 	item.Model = model
-
-	// attach the navigation
-	model.Navigation = getNavigation(item)
 
 	return model
 }

@@ -31,6 +31,15 @@ type Item struct {
 	Parent *Item
 	Childs []*Item
 
+	Title            string
+	Description      string
+	RawContent       []string
+	ConvertedContent string
+	MetaData         MetaData
+
+	AbsolutePath string
+	RelativePath string
+
 	ChildsReady  chan bool
 	newChild     chan *Item
 	deletedChild chan *Item
@@ -116,6 +125,10 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 		isVirtual: isVirtualItem,
 	}
 
+	// assign paths
+	item.RelativePath = item.RelativePathProvider().GetWebRoute(item)
+	item.AbsolutePath = item.RootPathProvider().GetWebRoute(item)
+
 	// find childs
 	item.updateChilds()
 
@@ -196,11 +209,6 @@ func (item *Item) startFileWatcher() (started bool, itemWatcher *watcher.FileWat
 
 				fmt.Printf("Item %q has been modified\n", item)
 				item.Modified <- true
-
-				// update parent
-				if item.Parent != nil {
-					item.Parent.Modified <- true
-				}
 
 			case <-fileWatcher.Moved:
 

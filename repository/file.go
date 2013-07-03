@@ -15,16 +15,28 @@ type File struct {
 
 	rootPathProvider     *path.Provider
 	relativePathProvider *path.Provider
+
+	AbsolutePath string
+	RelativePath string
 }
 
 func newFile(rootPathProvider *path.Provider, path string) (*File, error) {
+
+	// create a path provider
+	directory := filepath.Dir(path)
+	relativePathProvider := rootPathProvider.New(directory)
 
 	// create the file
 	file := &File{
 		path: path,
 
-		rootPathProvider: rootPathProvider,
+		relativePathProvider: relativePathProvider,
+		rootPathProvider:     rootPathProvider,
 	}
+
+	// assign paths
+	file.RelativePath = relativePathProvider.GetWebRoute(file)
+	file.AbsolutePath = rootPathProvider.GetWebRoute(file)
 
 	return file, nil
 }

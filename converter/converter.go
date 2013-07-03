@@ -6,7 +6,7 @@ import (
 	"github.com/andreaskoch/allmark/repository"
 )
 
-func Convert(item *repository.Item) (*parser.ParsedItem, error) {
+func Convert(item *repository.Item) (*repository.Item, error) {
 
 	if item.IsVirtual() {
 
@@ -16,20 +16,20 @@ func Convert(item *repository.Item) (*parser.ParsedItem, error) {
 	return convertPhysicalItem(item)
 }
 
-func convertVirtualItem(item *repository.Item) (*parser.ParsedItem, error) {
+func convertVirtualItem(item *repository.Item) (*repository.Item, error) {
 	return parser.Parse(item)
 }
 
-func convertPhysicalItem(item *repository.Item) (*parser.ParsedItem, error) {
+func convertPhysicalItem(item *repository.Item) (*repository.Item, error) {
 
 	// parse
-	parsedItem, err := parser.Parse(item)
+	_, err := parser.Parse(item)
 	if err != nil {
 		return nil, fmt.Errorf("%s", err)
 	}
 
 	// convert content
-	parsedItem.ConvertedContent = toHtml(item, parsedItem.RawContent)
+	toHtml(item, item.RawContent)
 
-	return parsedItem, nil
+	return item, nil
 }

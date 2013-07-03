@@ -35,18 +35,7 @@ var (
 	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*([\pL\pN\p{Latin}]+.+)$`)
 )
 
-type ParsedItem struct {
-	*repository.Item
-
-	Title       string
-	Description string
-	RawContent  []string
-	MetaData    MetaData
-
-	ConvertedContent string
-}
-
-func Parse(item *repository.Item) (*ParsedItem, error) {
+func Parse(item *repository.Item) (*repository.Item, error) {
 	if item.IsVirtual() {
 		return parseVirtual(item)
 	}
@@ -54,30 +43,28 @@ func Parse(item *repository.Item) (*ParsedItem, error) {
 	return parsePhysical(item)
 }
 
-func parseVirtual(item *repository.Item) (*ParsedItem, error) {
+func parseVirtual(item *repository.Item) (*repository.Item, error) {
 
 	if item == nil {
 		return nil, fmt.Errorf("Cannot create meta data from nil.")
 	}
 
+	// get the item title
 	title := filepath.Base(item.Directory())
 
+	// create the meta data
 	metaData, err := newMetaData(item)
 	if err != nil {
 		return nil, err
 	}
 
-	result := &ParsedItem{
-		Item: item,
+	item.Title = title
+	item.MetaData = metaData
 
-		Title:    title,
-		MetaData: metaData,
-	}
-
-	return result, nil
+	return item, nil
 }
 
-func parsePhysical(item *repository.Item) (*ParsedItem, error) {
+func parsePhysical(item *repository.Item) (*repository.Item, error) {
 
 	// open the file
 	file, err := os.Open(item.Path())
@@ -90,40 +77,35 @@ func parsePhysical(item *repository.Item) (*ParsedItem, error) {
 	// get the raw lines
 	lines := util.GetLines(file)
 
-	// create a result
-	result := &ParsedItem{
-		Item: item,
-	}
-
 	// parse the meta data
 	fallbackItemTypeFunc := func() string {
 		return getItemTypeFromFilename(item.Path())
 	}
 
-	result.MetaData, lines = parseMetaData(item, lines, fallbackItemTypeFunc)
+	item.MetaData, lines = parseMetaData(item, lines, fallbackItemTypeFunc)
 
 	// parse the content
-	switch itemType := result.MetaData.ItemType; itemType {
+	switch itemType := item.MetaData.ItemType; itemType {
 	case types.DocumentItemType, types.CollectionItemType, types.RepositoryItemType:
 		{
-			if success, err := parseDocumentLikeItem(result, lines); success {
-				return result, nil
+			if success, err := parseDocumentLikeItem(item, lines); success {
+				return item, nil
 			} else {
 				return nil, err
 			}
 		}
 	case types.PresentationItemType:
 		{
-			if success, err := parsePresentation(result, lines); success {
-				return result, nil
+			if success, err := parsePresentation(item, lines); success {
+				return item, nil
 			} else {
 				return nil, err
 			}
 		}
 	case types.MessageItemType:
 		{
-			if success, err := parseMessage(result, lines); success {
-				return result, nil
+			if success, err := parseMessage(item, lines); success {
+				return item, nil
 			} else {
 				return nil, err
 			}
@@ -136,38 +118,38 @@ func parsePhysical(item *repository.Item) (*ParsedItem, error) {
 }
 
 // Parse an item with a title, description and content
-func parseDocumentLikeItem(parserParsedItem *ParsedItem, lines []string) (sucess bool, err error) {
+func parseDocumentLikeItem(item *repository.Item, lines []string) (sucess bool, err error) {
 
 	// title
-	parserParsedItem.Title, lines = getMatchingValue(lines, TitlePattern)
+	item.Title, lines = getMatchingValue(lines, TitlePattern)
 
 	// description
-	parserParsedItem.Description, lines = getMatchingValue(lines, DescriptionPattern)
+	item.Description, lines = getMatchingValue(lines, DescriptionPattern)
 
 	// raw markdown content
-	parserParsedItem.RawContent = lines
+	item.RawContent = lines
 
 	return true, nil
 }
 
-func parsePresentation(parserParsedItem *ParsedItem, lines []string) (sucess bool, err error) {
+func parsePresentation(item *repository.Item, lines []string) (sucess bool, err error) {
 
 	// title
-	parserParsedItem.Title, lines = getMatchingValue(lines, TitlePattern)
+	item.Title, lines = getMatchingValue(lines, TitlePattern)
 
 	// description
-	parserParsedItem.Description, lines = getMatchingValue(lines, DescriptionPattern)
+	item.Description, lines = getMatchingValue(lines, DescriptionPattern)
 
 	// raw markdown content
-	parserParsedItem.RawContent = lines
+	item.RawContent = lines
 
 	return true, nil
 }
 
-func parseMessage(parserParsedItem *ParsedItem, lines []string) (sucess bool, err error) {
+func parseMessage(item *repository.Item, lines []string) (sucess bool, err error) {
 
 	// raw markdown content
-	parserParsedItem.RawContent = lines
+	item.RawContent = lines
 
 	return true, nil
 }

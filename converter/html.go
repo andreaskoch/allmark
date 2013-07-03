@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func toHtml(item *repository.Item, rawLines []string) string {
+func toHtml(item *repository.Item, rawLines []string) *repository.Item {
 
 	// create context
 	fileIndex := item.Files
@@ -45,5 +45,7 @@ func toHtml(item *repository.Item, rawLines []string) string {
 	// markdown to html
 	html := markdown.ToHtml(rawMarkdownContent)
 
-	return html
+	item.ConvertedContent = html
+
+	return item
 }

@@ -20,6 +20,8 @@ type Renderer struct {
 	Rendered chan *repository.Item
 	Removed  chan *repository.Item
 
+	root *repository.Item
+
 	indexer          *repository.Indexer
 	repositoryPath   string
 	pathProvider     *path.Provider
@@ -75,15 +77,31 @@ func (renderer *Renderer) Execute() {
 		}
 	}()
 
+	go func() {
+		for {
+			select {
+			case root := <-renderer.indexer.RootIsReady:
+
+				// save the root item
+				renderer.root = root
+
+				// render all items from the top
+				fmt.Println("Root is ready. Rendering all items.")
+				renderer.renderRecursive(root)
+			}
+		}
+	}()
+
 	// re-render on template change
 	go func() {
 		for {
 			select {
 			case <-renderer.templateProvider.Modified:
 
-				// modified
-				fmt.Println("A template changed. Rendering all items.")
-				renderer.renderRecursive(renderer.indexer.Root())
+				if renderer.root != nil {
+					fmt.Println("A template changed. Rendering all items.")
+					renderer.renderRecursive(renderer.root)
+				}
 
 			}
 		}

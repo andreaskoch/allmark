@@ -6,7 +6,7 @@ package mapper
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark/parser"
+	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/view"
 	"regexp"
 	"time"
@@ -15,30 +15,30 @@ import (
 // Pattern which matches all HTML/XML tags
 var HtmlTagPattern = regexp.MustCompile(`\<[^\>]*\>`)
 
-func createMessageMapperFunc(parsedItem *parser.ParsedItem, relativPath, absolutePath string) *view.Model {
+func createMessageMapperFunc(item *repository.Item) *view.Model {
 
 	return &view.Model{
-		Level:         parsedItem.Level,
-		RelativeRoute: relativPath,
-		AbsoluteRoute: absolutePath,
-		Title:         getTitle(parsedItem),
-		Description:   getDescription(parsedItem),
-		Content:       parsedItem.ConvertedContent,
-		LanguageTag:   getTwoLetterLanguageCode(parsedItem.MetaData.Language),
-		Date:          formatDate(parsedItem.MetaData.Date),
-		Type:          parsedItem.MetaData.ItemType,
+		Level:         item.Level,
+		RelativeRoute: item.RelativePath,
+		AbsoluteRoute: item.AbsolutePath,
+		Title:         getTitle(item),
+		Description:   getDescription(item),
+		Content:       item.ConvertedContent,
+		LanguageTag:   getTwoLetterLanguageCode(item.MetaData.Language),
+		Date:          formatDate(item.MetaData.Date),
+		Type:          item.MetaData.ItemType,
 	}
 
 }
 
-func getDescription(parsedItem *parser.ParsedItem) string {
-	return parsedItem.MetaData.Date.Format(time.RFC850)
+func getDescription(item *repository.Item) string {
+	return item.MetaData.Date.Format(time.RFC850)
 }
 
-func getTitle(parsedItem *parser.ParsedItem) string {
-	text := HtmlTagPattern.ReplaceAllString(parsedItem.ConvertedContent, "")
+func getTitle(item *repository.Item) string {
+	text := HtmlTagPattern.ReplaceAllString(item.ConvertedContent, "")
 	excerpt := getTextExcerpt(text, 30)
-	time := parsedItem.MetaData.Date.Format(time.RFC850)
+	time := item.MetaData.Date.Format(time.RFC850)
 
 	return fmt.Sprintf("%s: %s", time, excerpt)
 }

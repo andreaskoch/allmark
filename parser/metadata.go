@@ -15,21 +15,14 @@ import (
 
 var minDate time.Time
 
-type MetaData struct {
-	Language string
-	Date     time.Time
-	Tags     []string
-	ItemType string
-}
-
-func newMetaData(item *repository.Item) (MetaData, error) {
+func newMetaData(item *repository.Item) (repository.MetaData, error) {
 
 	date, err := getItemModificationTime(item)
 	if err != nil {
-		return MetaData{}, err
+		return repository.MetaData{}, err
 	}
 
-	metaData := MetaData{
+	metaData := repository.MetaData{
 		ItemType: types.RepositoryItemType,
 		Date:     date,
 	}
@@ -37,9 +30,9 @@ func newMetaData(item *repository.Item) (MetaData, error) {
 	return metaData, nil
 }
 
-func parseMetaData(item *repository.Item, lines []string, getFallbackItemType func() string) (MetaData, []string) {
+func parseMetaData(item *repository.Item, lines []string, getFallbackItemType func() string) (repository.MetaData, []string) {
 
-	metaData := MetaData{}
+	metaData := repository.MetaData{}
 
 	// apply fallback item type
 	metaData.ItemType = getFallbackItemType()
