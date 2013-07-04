@@ -67,7 +67,7 @@ func (renderer *Renderer) Execute() {
 
 				// render the items
 				fmt.Printf("Preparing %q\n", item)
-				renderer.parse(item)
+				prepare(item)
 
 				// attach change listeners
 				renderer.listenForChanges(item)
@@ -119,12 +119,10 @@ func (renderer *Renderer) listenForChanges(item *repository.Item) {
 			select {
 			case <-item.Modified:
 				fmt.Printf("Rendering %q\n", item)
-				renderer.parse(item)
 				renderer.render(item)
 
 				if parent := item.Parent; parent != nil {
 					fmt.Printf("Rendering parent %q\n", parent)
-					renderer.parse(parent)
 					renderer.render(parent)
 				}
 
@@ -148,17 +146,6 @@ func (renderer *Renderer) removeItem(item *repository.Item) {
 	}()
 }
 
-func (renderer *Renderer) parse(item *repository.Item) {
-	// parse the item
-	parser.Parse(item)
-
-	// convert the item
-	converter.Convert(item)
-
-	// create the viewmodel
-	mapper.Map(item)
-}
-
 func (renderer *Renderer) renderRecursive(item *repository.Item) {
 	for _, child := range item.Childs {
 		renderer.renderRecursive(child)
@@ -169,6 +156,9 @@ func (renderer *Renderer) renderRecursive(item *repository.Item) {
 
 func (renderer *Renderer) render(item *repository.Item) {
 
+	// prepare the item
+	prepare(item)
+
 	// render the navigation
 	attachNavigation(item)
 
@@ -177,7 +167,7 @@ func (renderer *Renderer) render(item *repository.Item) {
 
 		// render the template
 		targetPath := renderer.pathProvider.GetRenderTargetPath(item)
-		renderer.writeRenderedTemplateToDisc(item, template, targetPath)
+		writeRenderedTemplateToDisc(item, template, targetPath)
 
 		// pass along
 		go func() {
@@ -192,7 +182,18 @@ func (renderer *Renderer) render(item *repository.Item) {
 
 }
 
-func (renderer *Renderer) writeRenderedTemplateToDisc(item *repository.Item, template *template.Template, targetPath string) {
+func prepare(item *repository.Item) {
+	// parse the item
+	parser.Parse(item)
+
+	// convert the item
+	converter.Convert(item)
+
+	// create the viewmodel
+	mapper.Map(item)
+}
+
+func writeRenderedTemplateToDisc(item *repository.Item, template *template.Template, targetPath string) {
 	file, err := os.Create(targetPath)
 	if err != nil {
 		fmt.Errorf("%s", err)
