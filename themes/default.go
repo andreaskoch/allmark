@@ -261,8 +261,6 @@ article>.description {
     list-style: none;
     padding: 5px 0 5px 0;
     margin: 0 0 0 15px;
-    border-top:1px dashed #000;
-    border-bottom:1px dashed #000;
 }
 
 .subentries>.subentry {
