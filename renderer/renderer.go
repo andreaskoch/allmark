@@ -18,8 +18,6 @@ import (
 	"text/template"
 )
 
-// todo: render parent when child changed
-
 type Renderer struct {
 	Rendered chan *repository.Item
 	Removed  chan *repository.Item
