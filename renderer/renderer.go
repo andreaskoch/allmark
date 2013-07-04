@@ -24,6 +24,7 @@ type Renderer struct {
 
 	root *repository.Item
 
+	rootIsReady      bool
 	indexer          *repository.Indexer
 	repositoryPath   string
 	pathProvider     *path.Provider
@@ -43,6 +44,7 @@ func New(repositoryPath string, config *config.Config, useTempDir bool) *Rendere
 		Rendered: make(chan *repository.Item),
 		Removed:  make(chan *repository.Item),
 
+		rootIsReady:      false,
 		indexer:          indexer,
 		repositoryPath:   repositoryPath,
 		pathProvider:     path.NewProvider(repositoryPath, useTempDir),
@@ -64,8 +66,13 @@ func (renderer *Renderer) Execute() {
 			case item := <-renderer.indexer.New:
 
 				// render the items
-				fmt.Printf("Preparing %q\n", item)
-				prepare(item)
+				if !renderer.rootIsReady {
+					fmt.Printf("Preparing %q\n", item)
+					prepare(item)
+				} else {
+					fmt.Printf("Rendering %q\n", item)
+					renderer.render(item)
+				}
 
 				// attach change listeners
 				renderer.listenForChanges(item)
@@ -86,6 +93,9 @@ func (renderer *Renderer) Execute() {
 
 				// save the root item
 				renderer.root = root
+
+				// set the root is ready flag
+				renderer.rootIsReady = true
 
 				// render all items from the top
 				fmt.Println("Root is ready. Rendering all items.")
