@@ -26,7 +26,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 	<script src="/theme/modernizr.js"></script>
 </head>
-<body class="{{.Type}} level-{{.Level}}">
+<body>
 
 {{ if .Navigation}}
 <nav>
@@ -40,7 +40,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 </nav>
 {{end}}
 
-<article>
+<article class="{{.Type}} level-{{.Level}}">
 %s
 </article>
 
