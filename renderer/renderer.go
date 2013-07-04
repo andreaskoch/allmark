@@ -18,6 +18,8 @@ import (
 	"text/template"
 )
 
+// todo: render parent when child changed
+
 type Renderer struct {
 	Rendered chan *repository.Item
 	Removed  chan *repository.Item
@@ -64,8 +66,8 @@ func (renderer *Renderer) Execute() {
 			case item := <-renderer.indexer.New:
 
 				// render the items
-				fmt.Printf("Preparing item %q\n", item)
-				renderer.prepareItem(item)
+				fmt.Printf("Preparing %q\n", item)
+				renderer.parse(item)
 
 				// attach change listeners
 				renderer.listenForChanges(item)
@@ -73,7 +75,7 @@ func (renderer *Renderer) Execute() {
 			case item := <-renderer.indexer.Deleted:
 
 				// remove the item
-				fmt.Printf("Removing item %q\n", item)
+				fmt.Printf("Removing %q\n", item)
 				renderer.removeItem(item)
 			}
 		}
@@ -116,12 +118,18 @@ func (renderer *Renderer) listenForChanges(item *repository.Item) {
 		for {
 			select {
 			case <-item.Modified:
-				fmt.Printf("Rendering item %q\n", item)
-				renderer.prepareItem(item)
-				renderer.renderItem(item)
+				fmt.Printf("Rendering %q\n", item)
+				renderer.parse(item)
+				renderer.render(item)
+
+				if parent := item.Parent; parent != nil {
+					fmt.Printf("Rendering parent %q\n", parent)
+					renderer.parse(parent)
+					renderer.render(parent)
+				}
 
 			case <-item.Moved:
-				fmt.Printf("Removing item %q\n", item)
+				fmt.Printf("Removing %q\n", item)
 				renderer.removeItem(item)
 			}
 		}
@@ -140,15 +148,7 @@ func (renderer *Renderer) removeItem(item *repository.Item) {
 	}()
 }
 
-func (renderer *Renderer) renderRecursive(item *repository.Item) {
-	for _, child := range item.Childs {
-		renderer.renderRecursive(child)
-	}
-
-	renderer.renderItem(item)
-}
-
-func (renderer *Renderer) prepareItem(item *repository.Item) {
+func (renderer *Renderer) parse(item *repository.Item) {
 	// parse the item
 	parser.Parse(item)
 
@@ -159,8 +159,17 @@ func (renderer *Renderer) prepareItem(item *repository.Item) {
 	mapper.Map(item)
 }
 
-func (renderer *Renderer) renderItem(item *repository.Item) {
+func (renderer *Renderer) renderRecursive(item *repository.Item) {
+	for _, child := range item.Childs {
+		renderer.renderRecursive(child)
+	}
 
+	renderer.render(item)
+}
+
+func (renderer *Renderer) render(item *repository.Item) {
+
+	// render the navigation
 	attachNavigation(item)
 
 	// get a template
@@ -168,7 +177,7 @@ func (renderer *Renderer) renderItem(item *repository.Item) {
 
 		// render the template
 		targetPath := renderer.pathProvider.GetRenderTargetPath(item)
-		renderer.writeOutput(item, template, targetPath)
+		renderer.writeRenderedTemplateToDisc(item, template, targetPath)
 
 		// pass along
 		go func() {
@@ -183,7 +192,7 @@ func (renderer *Renderer) renderItem(item *repository.Item) {
 
 }
 
-func (renderer *Renderer) writeOutput(item *repository.Item, template *template.Template, targetPath string) {
+func (renderer *Renderer) writeRenderedTemplateToDisc(item *repository.Item, template *template.Template, targetPath string) {
 	file, err := os.Create(targetPath)
 	if err != nil {
 		fmt.Errorf("%s", err)
