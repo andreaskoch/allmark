@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package themes
+package themefiles
 
-const deckJs = `
+const DeckJs = `
 /*!
 Deck JS - deck.core
 Copyright (c) 2011 Caleb Troughton
@@ -1191,7 +1191,7 @@ This module adds a (current)/(total) style status indicator to the deck.
 	.bind('deck.change', updateCurrent);
 })(jQuery, 'deck');
 `
-const deckCss = `
+const DeckCss = `
 
 body.deck-container {
   overflow-y: auto;
