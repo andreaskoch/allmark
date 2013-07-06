@@ -6,6 +6,7 @@ package themefiles
 
 const ScreenCss = `
 html {
+    height: 100%;
     font-size: 100%;
     overflow-y: scroll;
     -webkit-text-size-adjust: 100%;
@@ -19,6 +20,7 @@ body {
     line-height: 1.5em;
     background: #fefefe;
     width: 75%;
+    height: 100%;
     margin: 10px auto;
     padding: 1em;
     outline: 1300px solid #FAFAFA;
@@ -397,6 +399,30 @@ article>.description {
     float: none;
     box-shadow: 0 0 10px #000000;
     padding: 10px;
+}
+
+@media only screen and (max-height: 500px) {
+    .presentation .slide {
+        min-height: 220px;
+    }
+}
+
+@media only screen and (min-height: 500px) {
+    .presentation .slide {
+        min-height: 320px;
+    }
+}
+
+@media only screen and (min-height: 600px) {
+    .presentation .slide {
+        min-height: 420px;
+    }
+}
+
+@media only screen and (min-height: 768px) {
+    .presentation .slide {
+        min-height: 520px;
+    }
 }
 
 @media only screen and (max-width: 480px) {
