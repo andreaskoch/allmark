@@ -6,7 +6,7 @@ package themefiles
 
 const ScreenCss = `
 html {
-    height: 100%;
+    min-height: 100%;
     font-size: 100%;
     overflow-y: scroll;
     -webkit-text-size-adjust: 100%;
@@ -20,7 +20,7 @@ body {
     line-height: 1.5em;
     background: #fefefe;
     width: 75%;
-    height: 100%;
+    min-height: 100%;
     margin: 10px auto;
     padding: 1em;
     outline: 1300px solid #FAFAFA;
