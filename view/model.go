@@ -19,7 +19,7 @@ type Model struct {
 	Type          string      `json:"type"`
 	Date          string      `json:"date"`
 	SubEntries    []*Model    `json:"subEntries"`
-	Navigation    *Navigation `json:"navigation"`
+	BreadCrumbNavigation     *BreadCrumbNavigation `json:"breadcrumb"`
 }
 
 func Error(msg, relativPath, absolutePath string) *Model {

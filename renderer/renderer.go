@@ -168,7 +168,7 @@ func (renderer *Renderer) render(item *repository.Item) {
 	prepare(item)
 
 	// render the navigation
-	attachNavigation(item)
+	attachBreadCrumbNavigation(item)
 
 	// get a template
 	if template, err := renderer.templateProvider.GetTemplate(item.Type); err == nil {

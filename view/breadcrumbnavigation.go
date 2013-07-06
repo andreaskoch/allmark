@@ -4,15 +4,15 @@
 
 package view
 
-type Navigation struct {
-	Entries []*NavigationEntry
+type BreadCrumbNavigation struct {
+	Entries []*BreadCrumb
 }
 
-func (navigation *Navigation) IsAvailable() bool {
+func (navigation *BreadCrumbNavigation) IsAvailable() bool {
 	return len(navigation.Entries) > 0
 }
 
-type NavigationEntry struct {
+type BreadCrumb struct {
 	Level int
 	Title string
 	Path  string
