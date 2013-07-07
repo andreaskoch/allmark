@@ -4,16 +4,15 @@
 
 package view
 
-type BreadcrumbNavigation struct {
-	Entries []*Breadcrumb
+type ToplevelNavigation struct {
+	Entries []*TopLevelEntry
 }
 
-func (navigation *BreadcrumbNavigation) IsAvailable() bool {
+func (navigation *ToplevelNavigation) IsAvailable() bool {
 	return len(navigation.Entries) > 0
 }
 
-type Breadcrumb struct {
-	Level int
+type TopLevelEntry struct {
 	Title string
 	Path  string
 }

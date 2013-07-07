@@ -9,17 +9,18 @@ import (
 )
 
 type Model struct {
-	Level         int         `json:"level"`
-	AbsoluteRoute string      `json:"absoluteRoute"`
-	RelativeRoute string      `json:"relativeRoute"`
-	Title         string      `json:"title"`
-	Description   string      `json:"description"`
-	Content       string      `json:"content"`
-	LanguageTag   string      `json:"languageTag"`
-	Type          string      `json:"type"`
-	Date          string      `json:"date"`
-	SubEntries    []*Model    `json:"subEntries"`
-	BreadCrumbNavigation     *BreadCrumbNavigation `json:"breadcrumb"`
+	Level                int                   `json:"level"`
+	AbsoluteRoute        string                `json:"absoluteRoute"`
+	RelativeRoute        string                `json:"relativeRoute"`
+	Title                string                `json:"title"`
+	Description          string                `json:"description"`
+	Content              string                `json:"content"`
+	LanguageTag          string                `json:"languageTag"`
+	Type                 string                `json:"type"`
+	Date                 string                `json:"date"`
+	SubEntries           []*Model              `json:"subEntries"`
+	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelnavigation"`
+	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbnavigation"`
 }
 
 func Error(msg, relativPath, absolutePath string) *Model {

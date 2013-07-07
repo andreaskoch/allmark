@@ -10,14 +10,14 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func attachBreadCrumbNavigation(item *repository.Item) {
-	item.Model.BreadCrumbNavigation = &view.BreadCrumbNavigation{
-		Entries: getBreadCrumbNavigationEntries(item),
+func attachBreadcrumbNavigation(item *repository.Item) {
+	item.Model.BreadcrumbNavigation = &view.BreadcrumbNavigation{
+		Entries: getBreadcrumbNavigationEntries(item),
 	}
 }
 
-func getBreadCrumbNavigationEntries(item *repository.Item) []*view.BreadCrumb {
-	navigationEntries := make([]*view.BreadCrumb, 0)
+func getBreadcrumbNavigationEntries(item *repository.Item) []*view.Breadcrumb {
+	navigationEntries := make([]*view.Breadcrumb, 0)
 
 	// abort if item or model is nil
 	if item == nil || item.Model == nil {
@@ -27,14 +27,14 @@ func getBreadCrumbNavigationEntries(item *repository.Item) []*view.BreadCrumb {
 
 	// recurse
 	if item.Parent != nil {
-		navigationEntries = append(navigationEntries, getBreadCrumbNavigationEntries(item.Parent)...)
+		navigationEntries = append(navigationEntries, getBreadcrumbNavigationEntries(item.Parent)...)
 	}
 
 	// route := item.RootPathProvider().GetWebRoute(item)
 	model := item.Model
 
 	// append a new navigation entry and return it
-	return append(navigationEntries, &view.BreadCrumb{
+	return append(navigationEntries, &view.Breadcrumb{
 		Level: item.Level,
 		Title: model.Title,
 		Path:  "/" + model.AbsoluteRoute,
