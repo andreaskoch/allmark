@@ -167,8 +167,11 @@ func (renderer *Renderer) render(item *repository.Item) {
 	// prepare the item
 	prepare(item)
 
-	// render the navigation
+	// render the bread crumb navigation
 	attachBreadcrumbNavigation(item)
+
+	// render the top-level navigation
+	attachToplevelNavigation(renderer.root, item)
 
 	// get a template
 	if template, err := renderer.templateProvider.GetTemplate(item.Type); err == nil {

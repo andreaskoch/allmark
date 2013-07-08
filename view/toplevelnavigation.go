@@ -5,14 +5,14 @@
 package view
 
 type ToplevelNavigation struct {
-	Entries []*TopLevelEntry
+	Entries []*ToplevelEntry
 }
 
 func (navigation *ToplevelNavigation) IsAvailable() bool {
 	return len(navigation.Entries) > 0
 }
 
-type TopLevelEntry struct {
+type ToplevelEntry struct {
 	Title string
 	Path  string
 }

@@ -28,16 +28,30 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 </head>
 <body>
 
-{{ if .BreadCrumbNavigation}}
+{{ if .BreadcrumbNavigation}}
 <nav>
 	<ul class="breadcrumb">
-	{{range .BreadCrumbNavigation.Entries}}
+	{{range .BreadcrumbNavigation.Entries}}
 	<li>
 		<a href="{{.Path}}">{{.Title}}</a>
 	</li>
 	{{end}}
 	</ul>
 </nav>
+{{end}}
+
+{{ if .ToplevelNavigation}}
+<nav>
+	<ul class="toplevel">
+	{{range .ToplevelNavigation.Entries}}
+	<li>
+		<a href="{{.Path}}">{{.Title}}</a>
+	</li>
+	{{end}}
+	</ul>
+</nav>
+{{else}}
+No navigation
 {{end}}
 
 <article class="{{.Type}} level-{{.Level}}">
