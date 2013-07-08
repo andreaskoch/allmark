@@ -34,31 +34,33 @@ func NewTemplate(templateFolder, name, text string, modified chan bool) *Templat
 	}
 
 	// look for changes
-	go func() {
-		fileWatcher := watcher.NewFileWatcher(template.path).Start()
+	if util.FileExists(templateFilePath) {
+		go func() {
+			fileWatcher := watcher.NewFileWatcher(template.path).Start()
 
-		for fileWatcher.IsRunning() {
+			for fileWatcher.IsRunning() {
 
-			select {
-			case <-fileWatcher.Modified:
+				select {
+				case <-fileWatcher.Modified:
 
-				fmt.Printf("Template %q changed.\n", templateFilePath)
+					fmt.Printf("Template %q changed.\n", templateFilePath)
 
-				go func() {
-					modified <- true
-				}()
+					go func() {
+						modified <- true
+					}()
 
-			case <-fileWatcher.Moved:
+				case <-fileWatcher.Moved:
 
-				fmt.Printf("Template %q moved.\n", templateFilePath)
+					fmt.Printf("Template %q moved.\n", templateFilePath)
 
-				go func() {
-					modified <- true
-				}()
+					go func() {
+						modified <- true
+					}()
+				}
+
 			}
-
-		}
-	}()
+		}()
+	}
 
 	return template
 }
