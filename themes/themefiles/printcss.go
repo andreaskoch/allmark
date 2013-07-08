@@ -21,7 +21,11 @@ body {
     outline: none;
 }
 
-body>nav {
+body>nav.toplevel {
+    display: none;
+}
+
+body>nav.breadcrumb {
     display: none;
 }
 

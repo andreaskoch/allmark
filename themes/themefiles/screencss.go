@@ -21,30 +21,55 @@ body {
     background: #fefefe;
     width: 75%;
     min-height: 100%;
-    margin: 10px auto;
-    padding: 1em;
+    margin: 0px auto 10px auto;
+    padding: 0 1em;
     outline: 1300px solid #FAFAFA;
 }
 
-body>nav {
-    font-size: 0.8em;
+body>nav.toplevel {
+    text-align: right;
+    font-size: 1.2em;
+    margin: 0 0 15px 0;
+    padding: 0;
 }
 
-body>nav>ul.breadcrumb {
+body>nav.toplevel>ul {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-body>nav>ul.breadcrumb>li {
+body>nav.toplevel>ul>li {
+    display: inline;
+    border-left: 1px solid black;
+    border-bottom: 1px solid black;
+    margin: 0;
+    padding: 2px 10px;
+}
+
+body>nav.toplevel>ul>li:last-child {
+    border-right: 1px solid black;
+}
+
+body>nav.breadcrumb {
+    font-size: 0.8em;
+}
+
+body>nav.breadcrumb>ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+body>nav.breadcrumb>ul>li {
     display: inline;
 }
 
-body>nav>ul.breadcrumb>li:after {
+body>nav.breadcrumb>ul>li:after {
     content: ">";
 }
 
-body>nav>ul.breadcrumb>li:last-child:after {
+body>nav.breadcrumb>ul>li:last-child:after {
     content: "";
 }
 
