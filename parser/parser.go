@@ -86,17 +86,9 @@ func parsePhysical(item *repository.Item) (*repository.Item, error) {
 
 	// parse the content
 	switch itemType := item.MetaData.ItemType; itemType {
-	case types.DocumentItemType, types.CollectionItemType, types.RepositoryItemType:
+	case types.DocumentItemType, types.CollectionItemType, types.RepositoryItemType, types.PresentationItemType:
 		{
 			if success, err := parseDocumentLikeItem(item, lines); success {
-				return item, nil
-			} else {
-				return nil, err
-			}
-		}
-	case types.PresentationItemType:
-		{
-			if success, err := parsePresentation(item, lines); success {
 				return item, nil
 			} else {
 				return nil, err
@@ -121,24 +113,10 @@ func parsePhysical(item *repository.Item) (*repository.Item, error) {
 func parseDocumentLikeItem(item *repository.Item, lines []string) (sucess bool, err error) {
 
 	// title
-	item.Title, lines = getMatchingValue(lines, TitlePattern)
+	item.Title, lines = getTitle(lines)
 
 	// description
-	item.Description, lines = getMatchingValue(lines, DescriptionPattern)
-
-	// raw markdown content
-	item.RawContent = lines
-
-	return true, nil
-}
-
-func parsePresentation(item *repository.Item, lines []string) (sucess bool, err error) {
-
-	// title
-	item.Title, lines = getMatchingValue(lines, TitlePattern)
-
-	// description
-	item.Description, lines = getMatchingValue(lines, DescriptionPattern)
+	item.Description, lines = getDescription(lines)
 
 	// raw markdown content
 	item.RawContent = lines
@@ -173,6 +151,25 @@ func getMatchingValue(lines []string, matchPattern *regexp.Regexp) (string, []st
 	}
 
 	return "", lines
+}
+
+func getTitle(lines []string) (title string, remainingLines []string) {
+	title, remainingLines = getMatchingValue(lines, TitlePattern)
+
+	// cleanup the title
+	title = strings.TrimSpace(title)
+	title = strings.TrimSuffix(title, "#")
+
+	return title, remainingLines
+}
+
+func getDescription(lines []string) (description string, remainingLines []string) {
+	description, remainingLines = getMatchingValue(lines, DescriptionPattern)
+
+	// cleanup the description
+	description = strings.TrimSpace(description)
+
+	return description, remainingLines
 }
 
 func getNextLinenumber(lineNumber int, lines []string) int {
