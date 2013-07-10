@@ -28,7 +28,7 @@ body {
 
 body>nav.toplevel {
     text-align: right;
-    font-size: 1.2em;
+    font-size: 1.1em;
     margin: 0 0 15px 0;
     padding: 0;
     clear: both;
@@ -42,7 +42,7 @@ body>nav.toplevel>ul {
 
 body>nav.toplevel>ul>li {
     display: inline-block;
-    border: 1px solid black;
+    border: 1px solid #000000;
     background-color: #FFFFFF;
     margin: -1px -5px 0 -2px;
     padding: 0px 10px;
@@ -50,8 +50,17 @@ body>nav.toplevel>ul>li {
 }
 
 body>nav.toplevel>ul>li:last-child {
-    border-right: 1px solid black;
+    border-right: 1px solid #000000;
     clear: both;
+}
+
+body>nav.toplevel>ul>li>a {
+    font-family: "Helvetia", "Verdana", "Sans-Serif";
+    color: #000000;
+}
+
+body>nav.toplevel>ul>li>a:hover {
+    color: #06e;
 }
 
 body>nav.breadcrumb {
@@ -69,11 +78,15 @@ body>nav.breadcrumb>ul>li {
 }
 
 body>nav.breadcrumb>ul>li:after {
-    content: ">";
+    content: "»";
 }
 
 body>nav.breadcrumb>ul>li:last-child:after {
     content: "";
+}
+
+body>nav.breadcrumb>ul>li>a {
+    font-family: "Helvetia", "Verdana", "Sans-Serif";
 }
 
 a {
