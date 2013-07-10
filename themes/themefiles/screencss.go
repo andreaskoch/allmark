@@ -42,9 +42,9 @@ body>nav.toplevel>ul {
 
 body>nav.toplevel>ul>li {
     display: inline-block;
-    border-left: 1px solid black;
-    border-bottom: 1px solid black;
-    margin: 0 -5px 0 0;
+    border: 1px solid black;
+    background-color: #FFFFFF;
+    margin: -1px -5px 0 -2px;
     padding: 0px 10px;
     white-space: nowrap;
 }
