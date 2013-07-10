@@ -31,6 +31,7 @@ body>nav.toplevel {
     font-size: 1.2em;
     margin: 0 0 15px 0;
     padding: 0;
+    clear: both;
 }
 
 body>nav.toplevel>ul {
@@ -40,15 +41,17 @@ body>nav.toplevel>ul {
 }
 
 body>nav.toplevel>ul>li {
-    display: inline;
+    display: inline-block;
     border-left: 1px solid black;
     border-bottom: 1px solid black;
-    margin: 0;
-    padding: 2px 10px;
+    margin: 0 -5px 0 0;
+    padding: 0px 10px;
+    white-space: nowrap;
 }
 
 body>nav.toplevel>ul>li:last-child {
     border-right: 1px solid black;
+    clear: both;
 }
 
 body>nav.breadcrumb {
