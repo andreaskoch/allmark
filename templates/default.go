@@ -63,19 +63,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <script src="/theme/codehighlighting/highlight.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 <script src="/theme/deck.js"></script>
-<script>
-$(function() {
-	$.deck('.slide', {
-		selectors: {
-			container: 'body > article > .content'
-		},
-		
-		keys: {
-			goto: 71 // 'g'
-		}
-	});
-});
-</script>
+<script src="/theme/presentation.js"></script>
 
 </body>
 </html>`, ChildTemplatePlaceholder)

@@ -36,6 +36,7 @@ func init() {
 			// presentations
 			newFileFromText("deck.js", themefiles.DeckJs),
 			newFileFromText("deck.css", themefiles.DeckCss),
+			newFileFromText("presentation.js", themefiles.PresentationJs),
 
 			// code highlighting
 			newFileFromBase64("codehighlighting/highlight.js", themefiles.HighlightJs),
