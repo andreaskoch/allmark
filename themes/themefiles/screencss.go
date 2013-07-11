@@ -443,24 +443,40 @@ article>.description {
 }
 
 @media only screen and (max-height: 500px) {
+    body>article {
+        min-height: 300px;
+    }
+
     .presentation .slide {
         min-height: 220px;
     }
 }
 
 @media only screen and (min-height: 500px) {
+    body>article {
+        min-height: 500px;
+    }
+
     .presentation .slide {
         min-height: 320px;
     }
 }
 
 @media only screen and (min-height: 600px) {
+    body>article {
+        min-height: 600px;
+    }
+
     .presentation .slide {
         min-height: 420px;
     }
 }
 
 @media only screen and (min-height: 768px) {
+    body>article {
+        min-height: 768px;
+    }
+
     .presentation .slide {
         min-height: 520px;
     }
