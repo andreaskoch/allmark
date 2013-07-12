@@ -50,6 +50,7 @@ type Item struct {
 
 	rootPathProvider     *path.Provider
 	relativePathProvider *path.Provider
+	filePathProvider     *path.Provider
 }
 
 func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, level int, newItem chan *Item, deletedItem chan *Item) (*Item, error) {
@@ -88,13 +89,16 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 		return nil, fmt.Errorf("%q is not a markdown file.", itemPath)
 	}
 
-	// create a path provider
+	// create a relative path provider
 	pathProviderDirectory := itemDirectory
 	if level > 0 {
 		pathProviderDirectory = filepath.Dir(itemDirectory)
 	}
 
 	relativePathProvider := rootPathProvider.New(pathProviderDirectory)
+
+	// create a file path provider
+	filePathProvider := rootPathProvider.New(itemDirectory)
 
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, FilesDirectoryName)
@@ -119,6 +123,7 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 
 		rootPathProvider:     rootPathProvider,
 		relativePathProvider: relativePathProvider,
+		filePathProvider:     filePathProvider,
 
 		directory: itemDirectory,
 		path:      itemPath,
@@ -248,6 +253,10 @@ func (item *Item) RootPathProvider() *path.Provider {
 
 func (item *Item) RelativePathProvider() *path.Provider {
 	return item.relativePathProvider
+}
+
+func (item *Item) FilePathProvider() *path.Provider {
+	return item.filePathProvider
 }
 
 func (item *Item) HasChild(itemDirectory string) bool {

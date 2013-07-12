@@ -20,7 +20,7 @@ var (
 )
 
 func renderPDFs(item *repository.Item) *repository.Item {
-	item.ConvertedContent = convertPdfMarkdownExtension(item.ConvertedContent, item.Files, item.RelativePathProvider())
+	item.ConvertedContent = convertPdfMarkdownExtension(item.ConvertedContent, item.Files, item.FilePathProvider())
 	return item
 }
 

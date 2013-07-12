@@ -20,7 +20,7 @@ var (
 )
 
 func renderAudio(item *repository.Item) *repository.Item {
-	item.ConvertedContent = convertAudioMarkdownExtension(item.ConvertedContent, item.Files, item.RelativePathProvider())
+	item.ConvertedContent = convertAudioMarkdownExtension(item.ConvertedContent, item.Files, item.FilePathProvider())
 	return item
 }
 

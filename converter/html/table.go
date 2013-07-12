@@ -23,7 +23,7 @@ var (
 )
 
 func renderCSVTables(item *repository.Item) *repository.Item {
-	item.ConvertedContent = convertCSVMarkdownExtension(item.ConvertedContent, item.Files, item.RelativePathProvider())
+	item.ConvertedContent = convertCSVMarkdownExtension(item.ConvertedContent, item.Files, item.FilePathProvider())
 	return item
 }
 

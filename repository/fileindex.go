@@ -20,7 +20,7 @@ func skipFiles(path string) bool {
 func newFileIndex(rootPathProvider *p.Provider, directory string) (*FileIndex, error) {
 
 	// create a relative path provider
-	relativePathProvider := rootPathProvider.New(directory)
+	relativePathProvider := rootPathProvider.New(filepath.Dir(directory))
 
 	// creata a new files index
 	fileIndex := &FileIndex{

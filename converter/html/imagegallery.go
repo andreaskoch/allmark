@@ -19,7 +19,7 @@ var (
 )
 
 func renderImageGalleries(item *repository.Item) *repository.Item {
-	item.ConvertedContent = convertImageGalleryMarkdownExtension(item.ConvertedContent, item.Files, item.RelativePathProvider())
+	item.ConvertedContent = convertImageGalleryMarkdownExtension(item.ConvertedContent, item.Files, item.FilePathProvider())
 	return item
 }
 

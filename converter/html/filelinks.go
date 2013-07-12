@@ -19,7 +19,7 @@ var (
 )
 
 func renderFileLinks(item *repository.Item) *repository.Item {
-	item.ConvertedContent = convertFileLinksMarkdownExtension(item.ConvertedContent, item.Files, item.RelativePathProvider())
+	item.ConvertedContent = convertFileLinksMarkdownExtension(item.ConvertedContent, item.Files, item.FilePathProvider())
 	return item
 }
 

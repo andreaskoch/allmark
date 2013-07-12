@@ -26,7 +26,7 @@ var (
 )
 
 func renderVideos(item *repository.Item) *repository.Item {
-	item.ConvertedContent = convertVideoMarkdownExtension(item.ConvertedContent, item.Files, item.RelativePathProvider())
+	item.ConvertedContent = convertVideoMarkdownExtension(item.ConvertedContent, item.Files, item.FilePathProvider())
 	return item
 }
 
