@@ -296,13 +296,6 @@ article>.description {
     font-size: 1.2em;
 }
 
-.childs {
-}
-
-.childs>h1 {
-    font-size: 1.2em;
-}
-
 .childs>.list {
     list-style: none;
     padding: 5px 0 5px 0;
