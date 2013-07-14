@@ -11,18 +11,18 @@ import (
 
 var xmlSitemapHandler = func(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Fprint(w, `<?xml version="1.0" encoding="UTF-8"?>`)
-	fmt.Fprint(w, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
+	fmt.Fprintln(w, `<?xml version="1.0" encoding="UTF-8"?>`)
+	fmt.Fprintln(w, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
 
 	for route, item := range items {
 		location := fmt.Sprintf(`http://%s/%s`, r.Host, route)
 		lastMod := item.Date
 
-		fmt.Fprint(w, `<url>`)
-		fmt.Fprintf(w, `<loc>%s</loc>`, location)
-		fmt.Fprintf(w, `<lastmod>%s</lastmod>`, lastMod)
-		fmt.Fprint(w, `</url>`)
+		fmt.Fprintln(w, `<url>`)
+		fmt.Fprintln(w, fmt.Sprintf(`<loc>%s</loc>`, location))
+		fmt.Fprintln(w, fmt.Sprintf(`<lastmod>%s</lastmod>`, lastMod))
+		fmt.Fprintln(w, `</url>`)
 	}
 
-	fmt.Fprint(w, `</urlset>`)
+	fmt.Fprintln(w, `</urlset>`)
 }

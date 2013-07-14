@@ -31,6 +31,7 @@ const (
 	// Dynamic Routes
 	ItemHandlerRoute       = "/"
 	XmlSitemapHandlerRoute = "/sitemap.xml"
+	RobotsTxtHandlerRoute  = "/robots.txt"
 	DebugHandlerRoute      = "/debug/index"
 	WebSocketHandlerRoute  = "/ws"
 
@@ -70,6 +71,7 @@ func (server *Server) Serve() {
 	// register handlers
 	http.HandleFunc(ItemHandlerRoute, itemHandler)
 	http.HandleFunc(XmlSitemapHandlerRoute, xmlSitemapHandler)
+	http.HandleFunc(RobotsTxtHandlerRoute, robotsTxtHandler)
 	http.HandleFunc(DebugHandlerRoute, indexDebugger)
 	http.Handle(WebSocketHandlerRoute, websocket.Handler(webSocketHandler))
 
