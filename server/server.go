@@ -20,6 +20,7 @@ import (
 )
 
 var (
+	items  = make(map[string]*repository.Item)
 	routes = make(map[string]string)
 
 	useTempDir = true
@@ -28,9 +29,10 @@ var (
 const (
 
 	// Dynamic Routes
-	ItemHandlerRoute      = "/"
-	DebugHandlerRoute     = "/debug/index"
-	WebSocketHandlerRoute = "/ws"
+	ItemHandlerRoute       = "/"
+	XmlSitemapHandlerRoute = "/sitemap.xml"
+	DebugHandlerRoute      = "/debug/index"
+	WebSocketHandlerRoute  = "/ws"
 
 	// Static Routes
 	ThemeFolderRoute = "/theme/"
@@ -67,6 +69,7 @@ func (server *Server) Serve() {
 
 	// register handlers
 	http.HandleFunc(ItemHandlerRoute, itemHandler)
+	http.HandleFunc(XmlSitemapHandlerRoute, xmlSitemapHandler)
 	http.HandleFunc(DebugHandlerRoute, indexDebugger)
 	http.Handle(WebSocketHandlerRoute, websocket.Handler(webSocketHandler))
 
@@ -127,6 +130,10 @@ func (server *Server) unregisterItem(item *repository.Item) {
 		server.unregisterItem(child)
 	}
 
+	// add item to list
+	itemRoute := server.pathProvider.GetWebRoute(item)
+	delete(items, itemRoute)
+
 	// unregister the item
 	server.unregisterRoute(item)
 
@@ -142,6 +149,10 @@ func (server *Server) registerItem(item *repository.Item) {
 	for _, child := range item.Childs {
 		server.registerItem(child)
 	}
+
+	// add item to list
+	itemRoute := server.pathProvider.GetWebRoute(item)
+	items[itemRoute] = item
 
 	// get the item route and
 	// add it to the routing table
