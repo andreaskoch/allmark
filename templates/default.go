@@ -83,40 +83,12 @@ const repositoryTemplate = `
 {{.Content}}
 </section>
 
-<section>
-<ul class="subentries">
+<section class="childs">
+<ol class="list">
 {{range .Childs}}
-<li class="subentry">
-	<a href="{{.RelativeRoute}}" class="subentry-title subentry-link">{{.Title}}</a>
-	<p class="subentry-description">{{.Description}}</p>
-</li>
-{{end}}
-</ul>
-</section>
-`
-
-const collectionTemplate = `
-<header>
-<h1 class="title">
-{{.Title}}
-</h1>
-</header>
-
-<section class="description">
-{{.Description}}
-</section>
-
-<section class="content">
-{{.Content}}
-</section>
-
-<section class="collection">
-<h1>Documents</h2>
-<ol class="subentries">
-{{range .Childs}}
-<li class="subentry">
-	<a href="{{.RelativeRoute}}" class="subentry-title subentry-link">{{.Title}}</a>
-	<p class="subentry-description">{{.Description}}</p>
+<li class="child">
+	<a href="{{.RelativeRoute}}" class="child-title child-link">{{.Title}}</a>
+	<p class="child-description">{{.Description}}</p>
 </li>
 {{end}}
 </ol>
@@ -136,6 +108,17 @@ const documentTemplate = `
 
 <section class="content">
 {{.Content}}
+</section>
+
+<section class="childs">
+<ol class="list">
+{{range .Childs}}
+<li class="child">
+	<a href="{{.RelativeRoute}}" class="child-title child-link">{{.Title}}</a>
+	<p class="child-description">{{.Description}}</p>
+</li>
+{{end}}
+</ol>
 </section>
 `
 

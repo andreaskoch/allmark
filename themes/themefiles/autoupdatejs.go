@@ -108,8 +108,8 @@ var Autoupdate = (function () {
             // update the content
             $('.content').html(model.content);
 
-            // update sub entries (if available)
-            if (model.subEntries === null || typeof(model.subEntries) !== 'object') {
+            // update childs (if available)
+            if (model.childs === null || typeof(model.childs) !== 'object') {
 
                 // execute the on change callbacks
                 executeOnChangeCallbacks();
@@ -124,21 +124,21 @@ var Autoupdate = (function () {
              */
             var updateEntry = function(entryToUpdate, model) {
                 // update the title text
-                $(entryToUpdate).find(".subentry-link:first").html(model.title);
+                $(entryToUpdate).find(".child-link:first").html(model.title);
 
                 // update the title link
-                $(entryToUpdate).find(".subentry-link:first").attr("href", model.relativeRoute);
+                $(entryToUpdate).find(".child-link:first").attr("href", model.relativeRoute);
 
                 // update the description
-                $(entryToUpdate).find(".subentry-description:first").html(model.description);                
+                $(entryToUpdate).find(".child-description:first").html(model.description);                
             };
 
-            var entries = model.subEntries;
-            var existingEntries = $(".subentries>.subentry");
+            var entries = model.childs;
+            var existingEntries = $(".childs>.list>.child");
             var numberOfExistingEntries = existingEntries.length;
             var numberOfNewEntries = entries.length;
 
-            var entryTemplate = "<li class=\"subentry\"><a href=\"#\" class=\"subentry-title subentry-link\"></a><p class=\"subentry-description\"></p></li>";
+            var entryTemplate = "<li class=\"child\"><a href=\"#\" class=\"child-title child-link\"></a><p class=\"child-description\"></p></li>";
 
             if (numberOfExistingEntries > numberOfNewEntries) {
 
@@ -162,7 +162,7 @@ var Autoupdate = (function () {
                 } else {
 
                     // append and update a new entry
-                    updateEntry($(".subentries").append(entryTemplate).find(".subentry:last"), newEntry);
+                    updateEntry($(".childs>.list").append(entryTemplate).find(".child:last"), newEntry);
                 }
             }
 

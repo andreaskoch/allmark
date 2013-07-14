@@ -9,7 +9,6 @@ const (
 	UnknownItemType      = "unknown"
 	DocumentItemType     = "document"
 	PresentationItemType = "presentation"
-	CollectionItemType   = "collection"
 	MessageItemType      = "message"
 	RepositoryItemType   = "repository"
 )

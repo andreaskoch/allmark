@@ -86,7 +86,7 @@ func parsePhysical(item *repository.Item) (*repository.Item, error) {
 
 	// parse the content
 	switch itemType := item.MetaData.ItemType; itemType {
-	case types.DocumentItemType, types.CollectionItemType, types.RepositoryItemType, types.PresentationItemType:
+	case types.RepositoryItemType, types.DocumentItemType, types.PresentationItemType:
 		{
 			if success, err := parseDocumentLikeItem(item, lines); success {
 				return item, nil
@@ -198,9 +198,6 @@ func getItemTypeFromFilename(filenameOrPath string) string {
 
 	case types.PresentationItemType:
 		return types.PresentationItemType
-
-	case types.CollectionItemType:
-		return types.CollectionItemType
 
 	case types.MessageItemType:
 		return types.MessageItemType

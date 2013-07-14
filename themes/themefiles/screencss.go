@@ -296,21 +296,28 @@ article>.description {
     font-size: 1.2em;
 }
 
-.subentries {
-    list-style: none;
-    padding: 5px 0 5px 0;
-    margin: 0 0 0 15px;
+.childs {
 }
 
-.subentries>.subentry {
+.childs>h1 {
+    font-size: 1.2em;
+}
+
+.childs>.list {
+    list-style: none;
+    padding: 5px 0 5px 0;
+    margin: 0 0 0 15px;    
+}
+
+.childs>.list>.child {
     margin: 0 0 15px 0;
 }
 
-.subentries>.subentry:nth-child(odd) {
+.childs>.list>.child:nth-child(odd) {
     background-color:#eee;
 }
 
-.subentries>.subentry:nth-child(even) {
+.childs>.list>.child:nth-child(even) {
     background-color:transparent;
 }
 
@@ -329,10 +336,6 @@ article>.description {
 
 .filelinks ol {
     margin-left: 0;
-}
-
-.collection>h1 {
-    font-size: 1.2em;
 }
 
 .csv {

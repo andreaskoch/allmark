@@ -18,7 +18,7 @@ type Model struct {
 	LanguageTag          string                `json:"languageTag"`
 	Type                 string                `json:"type"`
 	Date                 string                `json:"date"`
-	SubEntries           []*Model              `json:"subEntries"`
+	Childs               []*Model              `json:"childs"`
 	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
 	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
 }

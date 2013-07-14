@@ -17,15 +17,12 @@ func Map(item *repository.Item) *view.Model {
 
 	// map the parsed item to the view model depending on the item type
 	switch itemType := item.MetaData.ItemType; itemType {
-	case types.DocumentItemType, types.MessageItemType:
-		model = createDocumentMapperFunc(item)
-
 	case types.PresentationItemType:
 		model = createPresentationMapperFunc(item)
 
-	case types.RepositoryItemType, types.CollectionItemType:
+	case types.RepositoryItemType, types.DocumentItemType, types.MessageItemType:
 		model = createDocumentMapperFunc(item)
-		model.SubEntries = getSubModels(item)
+		model.Childs = getSubModels(item)
 
 	default:
 		model = view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType), item.RelativePath, item.AbsolutePath)
