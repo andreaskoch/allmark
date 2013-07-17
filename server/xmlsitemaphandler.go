@@ -15,7 +15,8 @@ var xmlSitemapHandler = func(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, `<?xml version="1.0" encoding="UTF-8"?>`)
 	fmt.Fprintln(w, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
 
-	for route, item := range items {
+	for _, item := range items {
+		route := item.AbsoluteRoute
 		location := fmt.Sprintf(`http://%s/%s`, r.Host, util.EncodeUrl(route))
 		lastMod := item.Date
 

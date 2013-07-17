@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	items  = make(map[string]*repository.Item)
+	items  = make([]*repository.Item, 0)
 	routes = make(map[string]string)
 
 	useTempDir = true
@@ -133,8 +133,14 @@ func (server *Server) unregisterItem(item *repository.Item) {
 	}
 
 	// add item to list
-	itemRoute := server.pathProvider.GetWebRoute(item)
-	delete(items, itemRoute)
+	newItemList := make([]*repository.Item, 0)
+	for _, entry := range items {
+		if entry.String() != item.String() {
+			newItemList = append(newItemList, entry)
+		}
+	}
+
+	items = newItemList
 
 	// unregister the item
 	server.unregisterRoute(item)
@@ -153,8 +159,7 @@ func (server *Server) registerItem(item *repository.Item) {
 	}
 
 	// add item to list
-	itemRoute := server.pathProvider.GetWebRoute(item)
-	items[itemRoute] = item
+	items = append(items, item)
 
 	// get the item route and
 	// add it to the routing table
