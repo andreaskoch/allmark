@@ -7,6 +7,7 @@ package server
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/path"
+	"github.com/andreaskoch/allmark/util"
 	"net/http"
 	"os"
 	"strings"
@@ -15,6 +16,7 @@ import (
 var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 	requestedPath := r.URL.Path
 	requestedPath = strings.TrimLeft(requestedPath, "/")
+	requestedPath = util.EncodeUrl(requestedPath)
 
 	fmt.Printf("Requested route %q\n", requestedPath)
 

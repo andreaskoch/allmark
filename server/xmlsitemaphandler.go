@@ -6,7 +6,6 @@ package server
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark/util"
 	"net/http"
 )
 
@@ -17,7 +16,7 @@ var xmlSitemapHandler = func(w http.ResponseWriter, r *http.Request) {
 
 	for _, item := range items {
 		route := item.AbsoluteRoute
-		location := fmt.Sprintf(`http://%s/%s`, r.Host, util.EncodeUrl(route))
+		location := fmt.Sprintf(`http://%s/%s`, r.Host, route)
 		lastMod := item.Date
 
 		fmt.Fprintln(w, `<url>`)

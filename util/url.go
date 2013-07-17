@@ -5,14 +5,37 @@
 package util
 
 import (
-	"net/url"
+	"strings"
 )
 
-func EncodeUrl(rawurl string) string {
-	url, err := url.Parse(rawurl)
-	if err != nil {
-		panic(err)
-	}
+func EncodeUrl(rawUrl string) string {
+	rawUrl = strings.Replace(rawUrl, "%", "%25", -1)
+	rawUrl = strings.Replace(rawUrl, " ", "%20", -1)
+	rawUrl = strings.Replace(rawUrl, "#", "%23", -1)
+	rawUrl = strings.Replace(rawUrl, "$", "%24", -1)
+	rawUrl = strings.Replace(rawUrl, "&", "%26", -1)
+	rawUrl = strings.Replace(rawUrl, "+", "%2B", -1)
+	rawUrl = strings.Replace(rawUrl, ",", "%2C", -1)
+	rawUrl = strings.Replace(rawUrl, ":", "%3A", -1)
+	rawUrl = strings.Replace(rawUrl, ";", "%3B", -1)
+	rawUrl = strings.Replace(rawUrl, "=", "%3D", -1)
+	rawUrl = strings.Replace(rawUrl, "?", "%3F", -1)
+	rawUrl = strings.Replace(rawUrl, "@", "%40", -1)
+	return rawUrl
+}
 
-	return url.String()
+func DecodeUrl(encodedUrl string) string {
+	encodedUrl = strings.Replace(encodedUrl, "%25", "%", -1)
+	encodedUrl = strings.Replace(encodedUrl, "%20", " ", -1)
+	encodedUrl = strings.Replace(encodedUrl, "%23", "#", -1)
+	encodedUrl = strings.Replace(encodedUrl, "%24", "$", -1)
+	encodedUrl = strings.Replace(encodedUrl, "%26", "&", -1)
+	encodedUrl = strings.Replace(encodedUrl, "%2B", "+", -1)
+	encodedUrl = strings.Replace(encodedUrl, "%2C", ",", -1)
+	encodedUrl = strings.Replace(encodedUrl, "%3A", ":", -1)
+	encodedUrl = strings.Replace(encodedUrl, "%3B", ";", -1)
+	encodedUrl = strings.Replace(encodedUrl, "%3D", "=", -1)
+	encodedUrl = strings.Replace(encodedUrl, "%3F", "?", -1)
+	encodedUrl = strings.Replace(encodedUrl, "%40", "@", -1)
+	return encodedUrl
 }
