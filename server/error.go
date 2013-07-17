@@ -8,6 +8,4 @@ import (
 	"net/http"
 )
 
-var error404Handler = func(w http.ResponseWriter, r *http.Request) {
-	http.NotFound(w, r)
-}
+var error404Handler func(w http.ResponseWriter, r *http.Request)

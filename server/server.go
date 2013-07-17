@@ -62,6 +62,12 @@ func (server *Server) Serve() {
 	// start the renderer
 	server.renderer.Execute()
 
+	// initialize the 404 handler
+	error404Handler = func(w http.ResponseWriter, r *http.Request) {
+		requestedPath := getRequestedPathFromRequest(r)
+		server.renderer.GetError404Page(w, requestedPath)
+	}
+
 	// start a change listener
 	server.listenForChanges()
 

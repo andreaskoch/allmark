@@ -14,6 +14,8 @@ import (
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/templates"
+	"github.com/andreaskoch/allmark/view"
+	"io"
 	"os"
 	"text/template"
 )
@@ -121,6 +123,21 @@ func (renderer *Renderer) Execute() {
 
 }
 
+func (renderer *Renderer) GetError404Page(writer io.Writer, requestPath string) {
+	// get a template
+	templateType := templates.ErrorTemplateName
+	if template, err := renderer.templateProvider.GetTemplate(templateType); err == nil {
+
+		// render the template
+		writeTemplate(view.Error("Page not found", requestPath, requestPath), template, writer)
+
+	} else {
+
+		fmt.Fprintf(os.Stderr, "No template of type %s found.", templateType)
+
+	}
+}
+
 func (renderer *Renderer) listenForChanges(item *repository.Item) {
 	go func() {
 		for {
@@ -176,9 +193,17 @@ func (renderer *Renderer) render(item *repository.Item) {
 	// get a template
 	if template, err := renderer.templateProvider.GetTemplate(item.Type); err == nil {
 
-		// render the template
+		// open the target file
 		targetPath := renderer.pathProvider.GetRenderTargetPath(item)
-		writeRenderedTemplateToDisc(item, template, targetPath)
+		file, err := os.Create(targetPath)
+		if err != nil {
+			fmt.Errorf("%s", err)
+		}
+
+		writer := bufio.NewWriter(file)
+
+		// render the template
+		writeTemplate(item.Model, template, writer)
 
 		// pass along
 		go func() {
@@ -204,18 +229,6 @@ func prepare(item *repository.Item) {
 	mapper.Map(item)
 }
 
-func writeRenderedTemplateToDisc(item *repository.Item, template *template.Template, targetPath string) {
-	file, err := os.Create(targetPath)
-	if err != nil {
-		fmt.Errorf("%s", err)
-	}
-
-	writer := bufio.NewWriter(file)
-
-	defer func() {
-		writer.Flush()
-		file.Close()
-	}()
-
-	template.Execute(writer, item)
+func writeTemplate(model *view.Model, template *template.Template, writer io.Writer) {
+	template.Execute(writer, model)
 }

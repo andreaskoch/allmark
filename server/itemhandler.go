@@ -13,11 +13,15 @@ import (
 	"strings"
 )
 
-var itemHandler = func(w http.ResponseWriter, r *http.Request) {
+func getRequestedPathFromRequest(r *http.Request) string {
 	requestedPath := r.URL.Path
 	requestedPath = strings.TrimLeft(requestedPath, "/")
 	requestedPath = util.EncodeUrl(requestedPath)
+	return requestedPath
+}
 
+var itemHandler = func(w http.ResponseWriter, r *http.Request) {
+	requestedPath := getRequestedPathFromRequest(r)
 	fmt.Printf("Requested route %q\n", requestedPath)
 
 	// make sure the request body is closed
