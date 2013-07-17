@@ -124,7 +124,6 @@ func (renderer *Renderer) Execute() {
 }
 
 func (renderer *Renderer) GetError404Page(writer io.Writer, requestPath string) {
-	// get a template
 	templateType := templates.ErrorTemplateName
 	if template, err := renderer.templateProvider.GetTemplate(templateType); err == nil {
 
@@ -201,6 +200,10 @@ func (renderer *Renderer) render(item *repository.Item) {
 		}
 
 		writer := bufio.NewWriter(file)
+
+		defer func() {
+			writer.Flush()
+		}()
 
 		// render the template
 		writeTemplate(item.Model, template, writer)
