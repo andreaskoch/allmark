@@ -65,9 +65,9 @@ func (provider *Provider) GetWebRoute(pather Pather) string {
 
 	switch pathType := pather.PathType(); pathType {
 	case PatherTypeItem:
-		return provider.getItemRoute(pather)
+		return replaceSpecialUrlCharacters(provider.getItemRoute(pather))
 	case PatherTypeFile, PatherTypeIndex:
-		return provider.getFileRoute(pather)
+		return replaceSpecialUrlCharacters(provider.getFileRoute(pather))
 	default:
 		panic(fmt.Sprintf("Unknown pather type %q", pathType))
 	}
@@ -142,4 +142,9 @@ func (provider *Provider) getRouteFromFilepath(path string) string {
 
 func (provider *Provider) getRelativePath(filepath string) string {
 	return strings.Replace(filepath, provider.basePath, "", 1)
+}
+
+func replaceSpecialUrlCharacters(url string) string {
+	url = strings.Replace(url, "&", "&amp;", -1)
+	return url
 }
