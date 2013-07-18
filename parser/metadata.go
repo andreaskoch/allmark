@@ -23,7 +23,7 @@ func newMetaData(item *repository.Item) (repository.MetaData, error) {
 	}
 
 	metaData := repository.MetaData{
-		ItemType: types.RepositoryItemType,
+		ItemType: types.DocumentItemType,
 		Date:     date,
 	}
 
