@@ -43,6 +43,10 @@ func Parse(item *repository.Item) (*repository.Item, error) {
 	return parsePhysical(item)
 }
 
+func getFallbackTitle(item *repository.Item) string {
+	return filepath.Base(item.Directory())
+}
+
 func parseVirtual(item *repository.Item) (*repository.Item, error) {
 
 	if item == nil {
@@ -50,7 +54,7 @@ func parseVirtual(item *repository.Item) (*repository.Item, error) {
 	}
 
 	// get the item title
-	title := filepath.Base(item.Directory())
+	title := getFallbackTitle(item)
 
 	// create the meta data
 	metaData, err := newMetaData(item)
@@ -114,6 +118,9 @@ func parseDocumentLikeItem(item *repository.Item, lines []string) (sucess bool, 
 
 	// title
 	item.Title, lines = getTitle(lines)
+	if item.Title == "" {
+		item.Title = getFallbackTitle(item)
+	}
 
 	// description
 	item.Description, lines = getDescription(lines)
