@@ -7,18 +7,10 @@ package server
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/path"
-	"github.com/andreaskoch/allmark/util"
 	"net/http"
 	"os"
 	"strings"
 )
-
-func getRequestedPathFromRequest(r *http.Request) string {
-	requestedPath := r.URL.Path
-	requestedPath = strings.TrimLeft(requestedPath, "/")
-	requestedPath = util.EncodeUrl(requestedPath)
-	return requestedPath
-}
 
 var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 	requestedPath := getRequestedPathFromRequest(r)
@@ -27,11 +19,15 @@ var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 	// make sure the request body is closed
 	defer r.Body.Close()
 
-	filePath, ok := routes[requestedPath]
+	// check if the route is registered
+	normalizedRequestPath := normalizeRoute(requestedPath)
+	route, ok := routes[normalizedRequestPath]
 	if !ok {
 
 		// check for fallbacks before returning a 404
-		if fallbackRoute, fallbackRouteFound := getFallbackRoute(requestedPath); fallbackRouteFound {
+		if fallbackRoute, fallbackRouteFound := getFallbackRoute(normalizedRequestPath); fallbackRouteFound {
+
+			// redirect to the fallback route
 			redirect(w, r, fallbackRoute)
 			return
 		}
@@ -40,7 +36,19 @@ var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := os.Open(filePath)
+	// check the casing
+	if requestedPath != route.Original() {
+
+		fmt.Println("Requested path", requestedPath)
+		fmt.Println("Original path", route.Original())
+
+		// redirect to the route with the correct casing
+		redirect(w, r, route.Original())
+		return
+	}
+
+	// open the file
+	file, err := os.Open(route.Filepath())
 	if err != nil {
 		error404Handler(w, r)
 		return
@@ -48,13 +56,15 @@ var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 
 	defer file.Close()
 
+	// get the file info
 	fileInfo, err := file.Stat()
 	if err != nil {
 		error404Handler(w, r)
 		return
 	}
 
-	http.ServeContent(w, r, filePath, fileInfo.ModTime(), file)
+	// serve the file
+	http.ServeContent(w, r, route.Filepath(), fileInfo.ModTime(), file)
 }
 
 func getFallbackRoute(requestedPath string) (fallbackRoute string, found bool) {

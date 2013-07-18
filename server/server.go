@@ -21,7 +21,7 @@ import (
 
 var (
 	items  = make([]*repository.Item, 0)
-	routes = make(map[string]string)
+	routes = make(map[string]*Route)
 
 	useTempDir = true
 
@@ -191,15 +191,13 @@ func (server *Server) registerRoute(pather path.Pather) {
 		return
 	}
 
-	route := server.pathProvider.GetWebRoute(pather)
-	filePath := server.pathProvider.GetFilepath(pather)
-
-	if strings.TrimSpace(route) == "" {
-		log.Println("Cannot add an empty route to the routing table.")
+	route, err := server.getRoute(pather)
+	if err != nil {
+		log.Println("Route could not be registered. Error: %s", err)
 		return
 	}
 
-	routes[route] = filePath
+	routes[route.String()] = route
 }
 
 func (server *Server) unregisterRoute(pather path.Pather) {
@@ -209,6 +207,28 @@ func (server *Server) unregisterRoute(pather path.Pather) {
 		return
 	}
 
+	route, err := server.getRoute(pather)
+	if err != nil {
+		log.Println("Route could not be un-registered. Error: %s", err)
+		return
+	}
+
+	delete(routes, route.String())
+}
+
+func (server *Server) getRoute(pather path.Pather) (*Route, error) {
 	route := server.pathProvider.GetWebRoute(pather)
-	delete(routes, route)
+	filepath := server.pathProvider.GetFilepath(pather)
+	return newRoute(route, filepath)
+}
+
+func getRequestedPathFromRequest(r *http.Request) string {
+	requestedPath := r.URL.Path
+	requestedPath = strings.TrimLeft(requestedPath, "/")
+	requestedPath = util.EncodeUrl(requestedPath)
+	return requestedPath
+}
+
+func normalizeRoute(route string) string {
+	return strings.ToLower(route)
 }
