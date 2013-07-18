@@ -25,7 +25,7 @@ func Map(item *repository.Item) *view.Model {
 		model.Childs = getSubModels(item)
 
 	default:
-		model = view.Error(fmt.Sprintf("There is no mapper available for items of type %q", itemType), item.RelativePath, item.AbsolutePath)
+		model = view.Error("Item type not recognized", fmt.Sprintf("There is no mapper available for items of type %q", itemType), item.RelativePath, item.AbsolutePath)
 	}
 
 	// assign the model to the item
