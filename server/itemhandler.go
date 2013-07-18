@@ -59,24 +59,26 @@ var itemHandler = func(w http.ResponseWriter, r *http.Request) {
 
 func getFallbackRoute(requestedPath string) (fallbackRoute string, found bool) {
 
-	requestedPath = path.StripLeadingUrlDirectorySeperator(requestedPath)
-
-	if len(requestedPath) == 0 {
+	// empty path
+	if len(path.StripLeadingUrlDirectorySeperator(requestedPath)) == 0 {
 		fmt.Printf("Fallback for %q is %q\n", requestedPath, path.WebServerDefaultFilename)
 		return path.WebServerDefaultFilename, true
 	}
 
+	// index.html has already been requested
 	if strings.HasSuffix(requestedPath, path.WebServerDefaultFilename) {
 		fmt.Printf("No fallback found for %q\n", requestedPath)
 		return "", false
 	}
 
+	// try to add index.html
 	route := path.CombineUrlComponents(requestedPath, path.WebServerDefaultFilename)
 	if _, ok := routes[route]; ok {
 		fmt.Printf("Fallback for %q is %q\n", requestedPath, route)
 		return route, true
 	}
 
+	// no route found
 	fmt.Printf("No fallback found for %q\n", requestedPath)
 	return "", false
 }
