@@ -123,12 +123,23 @@ func (renderer *Renderer) Execute() {
 
 }
 
-func (renderer *Renderer) GetError404Page(writer io.Writer, requestPath string) {
+func (renderer *Renderer) Error404(writer io.Writer) {
 	templateType := templates.ErrorTemplateName
 	if template, err := renderer.templateProvider.GetTemplate(templateType); err == nil {
 
+		// create a error view model
+		title := "Not found"
+		content := fmt.Sprintf("The requested item was not found.")
+		errorModel := view.Error(title, content, renderer.root.RelativePath, renderer.root.AbsolutePath)
+
+		// attach the toplevel navigation
+		errorModel.ToplevelNavigation = renderer.root.ToplevelNavigation
+
+		// attach the bread crumb navigation
+		errorModel.BreadcrumbNavigation = renderer.root.BreadcrumbNavigation
+
 		// render the template
-		writeTemplate(view.Error("Page not found", requestPath, requestPath), template, writer)
+		writeTemplate(errorModel, template, writer)
 
 	} else {
 

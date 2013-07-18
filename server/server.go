@@ -24,6 +24,8 @@ var (
 	routes = make(map[string]string)
 
 	useTempDir = true
+
+	error404Handler func(w http.ResponseWriter, r *http.Request)
 )
 
 const (
@@ -65,14 +67,11 @@ func (server *Server) Serve() {
 	// initialize the 404 handler
 	error404Handler = func(w http.ResponseWriter, r *http.Request) {
 
-		// get the requested url
-		requestedPath := getRequestedPathFromRequest(r)
-
 		// set 404 status code
 		w.WriteHeader(http.StatusNotFound)
 
 		// write 404 page
-		server.renderer.GetError404Page(w, requestedPath)
+		server.renderer.Error404(w)
 	}
 
 	// start a change listener

@@ -4,10 +4,6 @@
 
 package view
 
-import (
-	"fmt"
-)
-
 type Model struct {
 	Level                int                   `json:"level"`
 	AbsoluteRoute        string                `json:"absoluteRoute"`
@@ -23,13 +19,13 @@ type Model struct {
 	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
 }
 
-func Error(msg, relativPath, absolutePath string) *Model {
+func Error(title, content, relativPath, absolutePath string) *Model {
 	return &Model{
 		Level:         0,
-		Title:         fmt.Sprintf("Error: %s", msg),
+		Title:         title,
 		RelativeRoute: relativPath,
 		AbsoluteRoute: absolutePath,
-		Content:       msg,
+		Content:       content,
 		Type:          "error",
 	}
 }
