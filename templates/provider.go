@@ -16,8 +16,10 @@ const (
 	ChildTemplatePlaceholder = "@childtemplate"
 
 	// Template names
-	MasterTemplateName = "master"
-	ErrorTemplateName  = "error"
+	MasterTemplateName         = "master"
+	ErrorTemplateName          = "error"
+	SitemapTemplateName        = "sitemap"
+	SitemapContentTemplateName = "sitemapcontent"
 )
 
 type Provider struct {
@@ -36,6 +38,8 @@ func NewProvider(templateFolder string) *Provider {
 
 	templates[MasterTemplateName] = NewTemplate(templateFolder, MasterTemplateName, masterTemplate, templateModified)
 	templates[ErrorTemplateName] = NewTemplate(templateFolder, ErrorTemplateName, errorTemplate, templateModified)
+	templates[SitemapTemplateName] = NewTemplate(templateFolder, SitemapTemplateName, sitemapTemplate, templateModified)
+	templates[SitemapContentTemplateName] = NewTemplate(templateFolder, SitemapContentTemplateName, sitemapContentTemplate, templateModified)
 
 	templates[types.DocumentItemType] = NewTemplate(templateFolder, types.DocumentItemType, documentTemplate, templateModified)
 	templates[types.MessageItemType] = NewTemplate(templateFolder, types.MessageItemType, messageTemplate, templateModified)
@@ -67,7 +71,7 @@ func NewProvider(templateFolder string) *Provider {
 	return provider
 }
 
-func (provider *Provider) GetTemplate(itemType string) (*template.Template, error) {
+func (provider *Provider) GetTemplate(itemType string, includeMaster bool) (*template.Template, error) {
 
 	// get template from cache
 	if template, ok := provider.cache[itemType]; ok {
@@ -75,7 +79,7 @@ func (provider *Provider) GetTemplate(itemType string) (*template.Template, erro
 	}
 
 	// assemble to the template
-	templateText, err := provider.getTemplateText(itemType)
+	templateText, err := provider.getTemplateText(itemType, includeMaster)
 	if err != nil {
 		return nil, err
 	}
@@ -108,18 +112,22 @@ func (provider *Provider) ClearCache() {
 	provider.cache = make(map[string]*template.Template)
 }
 
-func (provider *Provider) getTemplateText(childTemplateName string) (string, error) {
-
-	// get the master template
-	masterTemplate := provider.getTemplate(MasterTemplateName)
-	if masterTemplate == nil {
-		return "", fmt.Errorf("Master template not found.")
-	}
+func (provider *Provider) getTemplateText(childTemplateName string, includeMaster bool) (string, error) {
 
 	// get the child template
 	childTemplate := provider.getTemplate(childTemplateName)
 	if childTemplate == nil {
 		return "", fmt.Errorf("Child template %q not found.", childTemplateName)
+	}
+
+	if !includeMaster {
+		return childTemplate.Text(), nil
+	}
+
+	// get the master template
+	masterTemplate := provider.getTemplate(MasterTemplateName)
+	if masterTemplate == nil {
+		return "", fmt.Errorf("Master template not found.")
 	}
 
 	// merge master and child template

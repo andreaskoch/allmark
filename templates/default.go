@@ -122,31 +122,6 @@ const documentTemplate = `
 </section>
 `
 
-const messageTemplate = `
-<section class="content">
-{{.Content}}
-</section>
-
-<section class="description">
-{{.Description}}
-</section>
-`
-
-const errorTemplate = `
-<header>
-<h1 class="title">
-{{.Title}}
-</h1>
-</header>
-
-<section class="description">
-{{.Description}}
-</section>
-
-<section class="content">
-{{.Content}}
-</section>
-`
 const presentationTemplate = `
 <header>
 <h1 class="title">
@@ -180,5 +155,58 @@ const presentationTemplate = `
 
 <section class="content">
 {{.Content}}
+</section>
+`
+
+const messageTemplate = `
+<section class="content">
+{{.Content}}
+</section>
+
+<section class="description">
+{{.Description}}
+</section>
+`
+
+const errorTemplate = `
+<header>
+<h1 class="title">
+{{.Title}}
+</h1>
+</header>
+
+<section class="description">
+{{.Description}}
+</section>
+
+<section class="content">
+{{.Content}}
+</section>
+`
+
+var sitemapContentTemplate = fmt.Sprintf(`
+<li>
+	<a href="{{.AbsoluteRoute}}" title="{{.Description}}">{{.Title}}</a>
+	
+	<ol>
+	%s
+	</ol>
+</li>`, ChildTemplatePlaceholder)
+
+const sitemapTemplate = `
+<header>
+<h1 class="title">
+{{.Title}}
+</h1>
+</header>
+
+<section class="description">
+{{.Description}}
+</section>
+
+<section class="content">
+<ol>
+{{.Content}}
+</ol>
 </section>
 `

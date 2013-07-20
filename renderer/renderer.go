@@ -6,6 +6,7 @@ package renderer
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark/config"
 	"github.com/andreaskoch/allmark/converter"
@@ -17,6 +18,7 @@ import (
 	"github.com/andreaskoch/allmark/view"
 	"io"
 	"os"
+	"strings"
 	"text/template"
 )
 
@@ -124,28 +126,89 @@ func (renderer *Renderer) Execute() {
 }
 
 func (renderer *Renderer) Error404(writer io.Writer) {
+
+	// get the 404 page template
 	templateType := templates.ErrorTemplateName
-	if template, err := renderer.templateProvider.GetTemplate(templateType); err == nil {
+	template, err := renderer.templateProvider.GetTemplate(templateType, true)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "No template of type %s found.", templateType)
+		return
+	}
 
-		// create a error view model
-		title := "Not found"
-		content := fmt.Sprintf("The requested item was not found.")
-		errorModel := view.Error(title, content, renderer.root.RelativePath, renderer.root.AbsolutePath)
+	// create a error view model
+	title := "Not found"
+	content := fmt.Sprintf("The requested item was not found.")
+	errorModel := view.Error(title, content, renderer.root.RelativePath, renderer.root.AbsolutePath)
 
-		// attach the toplevel navigation
-		errorModel.ToplevelNavigation = renderer.root.ToplevelNavigation
+	// attach the toplevel navigation
+	errorModel.ToplevelNavigation = renderer.root.ToplevelNavigation
 
-		// attach the bread crumb navigation
-		errorModel.BreadcrumbNavigation = renderer.root.BreadcrumbNavigation
+	// attach the bread crumb navigation
+	errorModel.BreadcrumbNavigation = renderer.root.BreadcrumbNavigation
 
-		// render the template
-		writeTemplate(errorModel, template, writer)
+	// render the template
+	writeTemplate(errorModel, template, writer)
+}
+
+func (renderer *Renderer) Sitemap(writer io.Writer) {
+
+	if renderer.root == nil {
+		fmt.Println("The root is not ready yet.")
+		return
+	}
+
+	// get the sitemap content template
+	sitemapContentTemplate, err := renderer.templateProvider.GetTemplate(templates.SitemapContentTemplateName, false)
+	if err != nil {
+		return
+	}
+
+	// get the sitemap template
+	sitemapTemplate, err := renderer.templateProvider.GetTemplate(templates.SitemapTemplateName, true)
+	if err != nil {
+		return
+	}
+
+	// render the sitemap content
+	sitemapContentModel := mapper.MapSitemap(renderer.root)
+	sitemapContent := renderer.renderSitemapEntry(sitemapContentTemplate, sitemapContentModel)
+
+	sitemapPageModel := view.Model{
+		Title:       "Sitemap",
+		Description: "Description",
+		Content:     sitemapContent,
+	}
+
+	writeTemplate(sitemapPageModel, sitemapTemplate, writer)
+}
+
+func (renderer *Renderer) renderSitemapEntry(templ *template.Template, sitemapModel *view.Sitemap) string {
+
+	// render
+	buffer := new(bytes.Buffer)
+	writeTemplate(sitemapModel, templ, buffer)
+
+	// get the produced html code
+	rootCode := buffer.String()
+
+	if len(sitemapModel.Childs) > 0 {
+
+		childCode := ""
+		for _, child := range sitemapModel.Childs {
+			childCode += "\n" + renderer.renderSitemapEntry(templ, child)
+		}
+
+		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, childCode, 1)
 
 	} else {
 
-		fmt.Fprintf(os.Stderr, "No template of type %s found.", templateType)
+		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, "", 1)
 
 	}
+
+	fmt.Println(rootCode)
+
+	return rootCode
 }
 
 func (renderer *Renderer) listenForChanges(item *repository.Item) {
@@ -201,7 +264,7 @@ func (renderer *Renderer) render(item *repository.Item) {
 	attachToplevelNavigation(renderer.root, item)
 
 	// get a template
-	if template, err := renderer.templateProvider.GetTemplate(item.Type); err == nil {
+	if template, err := renderer.templateProvider.GetTemplate(item.Type, true); err == nil {
 
 		// open the target file
 		targetPath := renderer.pathProvider.GetRenderTargetPath(item)
@@ -240,9 +303,13 @@ func prepare(item *repository.Item) {
 	converter.Convert(item)
 
 	// create the viewmodel
-	mapper.Map(item)
+	mapper.MapItem(item)
 }
 
-func writeTemplate(model *view.Model, template *template.Template, writer io.Writer) {
-	template.Execute(writer, model)
+func writeTemplate(model interface{}, template *template.Template, writer io.Writer) {
+	err := template.Execute(writer, model)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(2)
+	}
 }

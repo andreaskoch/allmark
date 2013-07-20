@@ -11,7 +11,7 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func Map(item *repository.Item) *view.Model {
+func MapItem(item *repository.Item) *view.Model {
 
 	var model *view.Model
 
@@ -40,7 +40,7 @@ func getSubModels(item *repository.Item) []*view.Model {
 	models := make([]*view.Model, 0)
 
 	for _, child := range items {
-		models = append(models, Map(child))
+		models = append(models, MapItem(child))
 	}
 
 	return models

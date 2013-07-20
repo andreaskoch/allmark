@@ -26,12 +26,14 @@ var (
 	useTempDir = true
 
 	error404Handler func(w http.ResponseWriter, r *http.Request)
+	sitemapHandler  func(w http.ResponseWriter, r *http.Request)
 )
 
 const (
 
 	// Dynamic Routes
 	ItemHandlerRoute       = "/"
+	SitemapHandlerRoute    = "/sitemap.html"
 	XmlSitemapHandlerRoute = "/sitemap.xml"
 	RobotsTxtHandlerRoute  = "/robots.txt"
 	DebugHandlerRoute      = "/debug/index"
@@ -74,6 +76,13 @@ func (server *Server) Serve() {
 		server.renderer.Error404(w)
 	}
 
+	// initialize the sitemap handler
+	sitemapHandler = func(w http.ResponseWriter, r *http.Request) {
+
+		// write 404 page
+		server.renderer.Sitemap(w)
+	}
+
 	// start a change listener
 	server.listenForChanges()
 
@@ -82,6 +91,7 @@ func (server *Server) Serve() {
 
 	// register handlers
 	http.HandleFunc(ItemHandlerRoute, itemHandler)
+	http.HandleFunc(SitemapHandlerRoute, sitemapHandler)
 	http.HandleFunc(XmlSitemapHandlerRoute, xmlSitemapHandler)
 	http.HandleFunc(RobotsTxtHandlerRoute, robotsTxtHandler)
 	http.HandleFunc(DebugHandlerRoute, indexDebugger)
