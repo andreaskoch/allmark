@@ -71,29 +71,12 @@ func NewProvider(templateFolder string) *Provider {
 	return provider
 }
 
-func (provider *Provider) GetTemplate(itemType string, includeMaster bool) (*template.Template, error) {
+func (provider *Provider) GetFullTemplate(templateName string) (*template.Template, error) {
+	return provider.getParsedTemplate(templateName, true)
+}
 
-	// get template from cache
-	if template, ok := provider.cache[itemType]; ok {
-		return template, nil
-	}
-
-	// assemble to the template
-	templateText, err := provider.getTemplateText(itemType, includeMaster)
-	if err != nil {
-		return nil, err
-	}
-
-	// parse the template
-	template, err := template.New(itemType).Parse(templateText)
-	if err != nil {
-		return nil, err
-	}
-
-	// add template to cache
-	provider.cache[itemType] = template
-
-	return template, nil
+func (provider *Provider) GetSubTemplate(templateName string) (*template.Template, error) {
+	return provider.getParsedTemplate(templateName, false)
 }
 
 func (provider *Provider) StoreTemplatesOnDisc() (success bool, err error) {
@@ -112,28 +95,42 @@ func (provider *Provider) ClearCache() {
 	provider.cache = make(map[string]*template.Template)
 }
 
-func (provider *Provider) getTemplateText(childTemplateName string, includeMaster bool) (string, error) {
+func (provider *Provider) getParsedTemplate(templateName string, includeMaster bool) (*template.Template, error) {
 
-	// get the child template
-	childTemplate := provider.getTemplate(childTemplateName)
+	// get template from cache
+	if template, ok := provider.cache[templateName]; ok {
+		return template, nil
+	}
+
+	// assemble to the template
+	childTemplate := provider.getTemplate(templateName)
 	if childTemplate == nil {
-		return "", fmt.Errorf("Child template %q not found.", childTemplateName)
+		return nil, fmt.Errorf("Child template %q not found.", templateName)
 	}
 
-	if !includeMaster {
-		return childTemplate.Text(), nil
+	templateText := childTemplate.Text()
+	if includeMaster {
+
+		masterTemplate := provider.getTemplate(MasterTemplateName)
+		if masterTemplate == nil {
+			return nil, fmt.Errorf("Master template not found.")
+		}
+
+		// merge master and child template
+		templateText = strings.Replace(masterTemplate.Text(), ChildTemplatePlaceholder, templateText, 1)
+
 	}
 
-	// get the master template
-	masterTemplate := provider.getTemplate(MasterTemplateName)
-	if masterTemplate == nil {
-		return "", fmt.Errorf("Master template not found.")
+	// parse the template
+	template, err := template.New(templateName).Parse(templateText)
+	if err != nil {
+		return nil, err
 	}
 
-	// merge master and child template
-	mergedTemplate := strings.Replace(masterTemplate.Text(), ChildTemplatePlaceholder, childTemplate.Text(), 1)
+	// add template to cache
+	provider.cache[templateName] = template
 
-	return mergedTemplate, nil
+	return template, nil
 }
 
 func (provider *Provider) getTemplate(templateName string) *Template {

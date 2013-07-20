@@ -24,7 +24,6 @@ func mapSitemap(item *repository.Item) *view.Sitemap {
 	// map the item
 	return &view.Sitemap{
 		AbsoluteRoute: item.AbsoluteRoute,
-		RelativeRoute: item.RelativeRoute,
 		Title:         item.Title,
 		Description:   item.Description,
 		Childs:        childs,

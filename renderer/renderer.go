@@ -129,7 +129,7 @@ func (renderer *Renderer) Error404(writer io.Writer) {
 
 	// get the 404 page template
 	templateType := templates.ErrorTemplateName
-	template, err := renderer.templateProvider.GetTemplate(templateType, true)
+	template, err := renderer.templateProvider.GetFullTemplate(templateType)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "No template of type %s found.", templateType)
 		return
@@ -158,13 +158,13 @@ func (renderer *Renderer) Sitemap(writer io.Writer) {
 	}
 
 	// get the sitemap content template
-	sitemapContentTemplate, err := renderer.templateProvider.GetTemplate(templates.SitemapContentTemplateName, false)
+	sitemapContentTemplate, err := renderer.templateProvider.GetSubTemplate(templates.SitemapContentTemplateName)
 	if err != nil {
 		return
 	}
 
 	// get the sitemap template
-	sitemapTemplate, err := renderer.templateProvider.GetTemplate(templates.SitemapTemplateName, true)
+	sitemapTemplate, err := renderer.templateProvider.GetFullTemplate(templates.SitemapTemplateName)
 	if err != nil {
 		return
 	}
@@ -174,9 +174,12 @@ func (renderer *Renderer) Sitemap(writer io.Writer) {
 	sitemapContent := renderer.renderSitemapEntry(sitemapContentTemplate, sitemapContentModel)
 
 	sitemapPageModel := view.Model{
-		Title:       "Sitemap",
-		Description: "Description",
-		Content:     sitemapContent,
+		Title:                "Sitemap",
+		Description:          "A list of all items in this repository.",
+		Content:              sitemapContent,
+		ToplevelNavigation:   renderer.root.ToplevelNavigation,
+		BreadcrumbNavigation: renderer.root.BreadcrumbNavigation,
+		Type:                 "sitemap",
 	}
 
 	writeTemplate(sitemapPageModel, sitemapTemplate, writer)
@@ -193,6 +196,8 @@ func (renderer *Renderer) renderSitemapEntry(templ *template.Template, sitemapMo
 
 	if len(sitemapModel.Childs) > 0 {
 
+		// render all childs
+
 		childCode := ""
 		for _, child := range sitemapModel.Childs {
 			childCode += "\n" + renderer.renderSitemapEntry(templ, child)
@@ -202,11 +207,10 @@ func (renderer *Renderer) renderSitemapEntry(templ *template.Template, sitemapMo
 
 	} else {
 
+		// no childs
 		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, "", 1)
 
 	}
-
-	fmt.Println(rootCode)
 
 	return rootCode
 }
@@ -264,7 +268,7 @@ func (renderer *Renderer) render(item *repository.Item) {
 	attachToplevelNavigation(renderer.root, item)
 
 	// get a template
-	if template, err := renderer.templateProvider.GetTemplate(item.Type, true); err == nil {
+	if template, err := renderer.templateProvider.GetFullTemplate(item.Type); err == nil {
 
 		// open the target file
 		targetPath := renderer.pathProvider.GetRenderTargetPath(item)

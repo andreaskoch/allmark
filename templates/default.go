@@ -186,11 +186,13 @@ const errorTemplate = `
 
 var sitemapContentTemplate = fmt.Sprintf(`
 <li>
-	<a href="{{.AbsoluteRoute}}" title="{{.Description}}">{{.Title}}</a>
-	
+	<a href="{{.AbsoluteRoute}}" {{ if .Description }}title="{{.Description}}"{{ end }}>{{.Title}}</a>
+
+	{{ if .Childs }}	
 	<ol>
 	%s
 	</ol>
+	{{ end }}
 </li>`, ChildTemplatePlaceholder)
 
 const sitemapTemplate = `

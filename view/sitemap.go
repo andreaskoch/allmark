@@ -6,7 +6,6 @@ package view
 
 type Sitemap struct {
 	AbsoluteRoute string     `json:"absoluteRoute"`
-	RelativeRoute string     `json:"relativeRoute"`
 	Title         string     `json:"title"`
 	Description   string     `json:"description"`
 	Childs        []*Sitemap `json:"childs"`
