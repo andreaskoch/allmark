@@ -320,6 +320,10 @@ article>.description {
     font-size: 1.2em;
 }
 
+.childs {
+    margin: 25px 0 0 0;
+}
+
 .childs>.list {
     list-style: none;
     padding: 5px 0 5px 0;
