@@ -53,7 +53,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 {{end}}
 
 <article class="{{.Type}} level-{{.Level}}">
-@childtemplate
+%s
 </article>
 
 <footer>
