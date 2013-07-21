@@ -53,8 +53,16 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 {{end}}
 
 <article class="{{.Type}} level-{{.Level}}">
-%s
+@childtemplate
 </article>
+
+<footer>
+	<nav>
+		<ul>
+			<li><a href="/sitemap.html">Sitemap</a></li>
+		</ul>
+	</nav>
+</footer>
 
 <script src="/theme/jquery.js"></script>
 <script src="/theme/autoupdate.js"></script>

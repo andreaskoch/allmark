@@ -21,14 +21,6 @@ body {
     outline: none;
 }
 
-body>nav.toplevel {
-    display: none;
-}
-
-body>nav.breadcrumb {
-    display: none;
-}
-
 a, a:visited {
     font-weight: normal;
     text-decoration: none;
@@ -81,6 +73,18 @@ h2, h3, h4, h5, h6 {
     page-break-after: avoid;
 }
 
+body>nav.toplevel {
+    display: none;
+}
+
+body>nav.breadcrumb {
+    display: none;
+}
+
+body>footer {
+    display: none;
+}
+
 .pdf .metadata {
     display: none;
 }
@@ -107,5 +111,4 @@ h2, h3, h4, h5, h6 {
 
 .presentation nav {
     display: none;
-}
-`
+}`

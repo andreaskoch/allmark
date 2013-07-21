@@ -26,69 +26,6 @@ body {
     outline: 1300px solid #FAFAFA;
 }
 
-body>nav.toplevel {
-    text-align: right;
-    font-size: 1.1em;
-    margin: 0 0 15px 0;
-    padding: 0;
-    clear: both;
-}
-
-body>nav.toplevel>ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-body>nav.toplevel>ul>li {
-    display: inline-block;
-    border: 1px solid #000000;
-    background-color: #FFFFFF;
-    margin: -1px -5px 0 -2px;
-    padding: 0px 10px;
-    white-space: nowrap;
-}
-
-body>nav.toplevel>ul>li:last-child {
-    border-right: 1px solid #000000;
-    clear: both;
-}
-
-body>nav.toplevel>ul>li>a {
-    font-family: "Helvetia", "Verdana", "Sans-Serif";
-    color: #000000;
-}
-
-body>nav.toplevel>ul>li>a:hover {
-    color: #06e;
-}
-
-body>nav.breadcrumb {
-    font-size: 0.8em;
-}
-
-body>nav.breadcrumb>ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-body>nav.breadcrumb>ul>li {
-    display: inline;
-}
-
-body>nav.breadcrumb>ul>li:after {
-    content: "»";
-}
-
-body>nav.breadcrumb>ul>li:last-child:after {
-    content: "";
-}
-
-body>nav.breadcrumb>ul>li>a {
-    font-family: "Helvetia", "Verdana", "Sans-Serif";
-}
-
 a {
     color: #0645ad;
     text-decoration: none;
@@ -290,6 +227,89 @@ table {
 
 td {
     vertical-align: top;
+}
+
+body>footer {
+    margin: 25px 0 0 0;
+    border-top: 1px solid #eee;
+}
+
+body>footer>nav {
+    text-align: right;
+}
+
+body>footer>nav>ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+body>footer>nav>ul>li>a {
+    color: #000000;
+    font-size: 0.8em;
+}
+
+body>nav.toplevel {
+    text-align: right;
+    font-size: 1.1em;
+    margin: 0 0 15px 0;
+    padding: 0;
+    clear: both;
+}
+
+body>nav.toplevel>ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+body>nav.toplevel>ul>li {
+    display: inline-block;
+    border: 1px solid #000000;
+    background-color: #FFFFFF;
+    margin: -1px -5px 0 -2px;
+    padding: 0px 10px;
+    white-space: nowrap;
+}
+
+body>nav.toplevel>ul>li:last-child {
+    border-right: 1px solid #000000;
+    clear: both;
+}
+
+body>nav.toplevel>ul>li>a {
+    font-family: "Helvetia", "Verdana", "Sans-Serif";
+    color: #000000;
+}
+
+body>nav.toplevel>ul>li>a:hover {
+    color: #06e;
+}
+
+body>nav.breadcrumb {
+    font-size: 0.8em;
+}
+
+body>nav.breadcrumb>ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+body>nav.breadcrumb>ul>li {
+    display: inline;
+}
+
+body>nav.breadcrumb>ul>li:after {
+    content: "»";
+}
+
+body>nav.breadcrumb>ul>li:last-child:after {
+    content: "";
+}
+
+body>nav.breadcrumb>ul>li>a {
+    font-family: "Helvetia", "Verdana", "Sans-Serif";
 }
 
 article>.description {
