@@ -26,6 +26,10 @@ body {
     outline: 1300px solid #FAFAFA;
 }
 
+.cleaner {
+    clear: both;
+}
+
 a {
     color: #0645ad;
     text-decoration: none;
