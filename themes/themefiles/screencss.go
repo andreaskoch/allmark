@@ -466,6 +466,28 @@ article>.description {
     padding: 10px;
 }
 
+/* first level */
+.sitemap>.content>ol {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0 0 0;
+}
+
+/* second level */
+.sitemap>.content>ol>li>ol {
+    list-style-type: lower-alpha;
+    padding: 0 40px;
+}
+
+.sitemap>.content>ol>li>ol>li {
+    padding: 15px 0;
+}
+
+/* third, forth, n-th level */
+.sitemap>.content>ol>li>ol>li ol {
+    list-style-type: decimal;
+}
+
 @media only screen and (max-height: 500px) {
     body>article {
         min-height: 300px;
