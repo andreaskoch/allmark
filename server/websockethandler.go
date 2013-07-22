@@ -31,29 +31,30 @@ func webSocketHandler(ws *websocket.Conn) {
 	if routeParam == "" {
 
 		//  close the connection
-		fmt.Println("Cannot establish a web socket connection without a route parameter.")
 		ws.Close()
 		return
 
 	}
 
-	// strip leading slashes
-	routeParam = path.StripLeadingUrlDirectorySeperator(routeParam)
-
 	// check if the route exists
-	if _, ok := routes[routeParam]; !ok {
+	routeParam = path.StripLeadingUrlDirectorySeperator(routeParam)
+	routeParam = normalizeRoute(routeParam)
+
+	route, routeExists := routes[routeParam]
+	if !routeExists {
+		fmt.Printf("Cannot establish a web socket connection. The route %q does not exist.\n", routeParam)
 		return
 	}
 
 	// create a new connection
 	c := &connection{
-		Route: routeParam,
+		Route: route.Original(),
 		send:  make(chan Message, 10),
 		ws:    ws,
 	}
 
 	// establish connection
-	fmt.Printf("Establishing a connection for %q\n", routeParam)
+	fmt.Printf("Establishing a connection for %q\n", route.Original())
 	h.register <- c
 
 	defer func() {
