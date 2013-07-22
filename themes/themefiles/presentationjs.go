@@ -21,6 +21,7 @@ $(function() {
 		$("body>nav.breadcrumb").toggle();
 		$(".presentation>header").toggle();
 		$(".presentation>.description").toggle();
+		$("body>footer").toggle();
 	};
 
 	// render the presentation
