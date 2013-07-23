@@ -16,7 +16,7 @@ func Test_SerializeConfig_NoErrorIsReturned(t *testing.T) {
 
 	config := &Config{
 		Server: Server{
-			ThemeFolder: "/some/folder",
+			ThemeFolderName: "/some/folder",
 			Http: Http{
 				Port: 80,
 			},
@@ -41,7 +41,7 @@ func Test_SerializeConfig_JsonContainsConfigValues(t *testing.T) {
 
 	config := &Config{
 		Server: Server{
-			ThemeFolder: "/some/folder",
+			ThemeFolderName: "/some/folder",
 			Http: Http{
 				Port: 80,
 			},
@@ -57,13 +57,13 @@ func Test_SerializeConfig_JsonContainsConfigValues(t *testing.T) {
 	json := writeBuffer.String()
 
 	// assert: json contains theme folder
-	if !strings.Contains(json, config.Server.ThemeFolder) {
+	if !strings.Contains(json, config.Server.ThemeFolderName) {
 		t.Fail()
-		t.Logf("The produced json does not contain the 'ThemeFolder' value %q. The produced JSON is this: %s", config.Server.ThemeFolder, json)
+		t.Logf("The produced json does not contain the 'ThemeFolderName' value %q. The produced JSON is this: %s", config.Server.ThemeFolderName, json)
 	}
 
 	// assert: json contains http port
-	if !strings.Contains(json, config.Server.Http.Port.String()) {
+	if !strings.Contains(json, string(config.Server.Http.Port)) {
 		t.Fail()
 		t.Logf("The produced json does not contain the 'Http Port' value %q. The produced JSON is this: %s", config.Server.Http.Port, json)
 	}
@@ -75,7 +75,7 @@ func Test_SerializeConfig_JsonIsFormatted(t *testing.T) {
 
 	config := &Config{
 		Server: Server{
-			ThemeFolder: "/some/folder",
+			ThemeFolderName: "/some/folder",
 			Http: Http{
 				Port: 80,
 			},
@@ -118,7 +118,7 @@ func Test_DeserializeConfig_FullConfigString_AllFieldsAreSet(t *testing.T) {
 	// arrange
 	json := `{
 		"Server": {
-			"ThemeFolder": "/some/folder",
+			"ThemeFolderName": "/some/folder",
 			"Http": {
 				"Port": 80
 			}
@@ -132,9 +132,9 @@ func Test_DeserializeConfig_FullConfigString_AllFieldsAreSet(t *testing.T) {
 	config, _ := serializer.DeserializeConfig(jsonReader)
 
 	// assert: Theme folder
-	if config.Server.ThemeFolder == "" {
+	if config.Server.ThemeFolderName == "" {
 		t.Fail()
-		t.Logf("The deserialized config object should have the %q field properly initialized. Deserialization result: %#v", "ThemeFolder", config)
+		t.Logf("The deserialized config object should have the %q field properly initialized. Deserialization result: %#v", "ThemeFolderName", config)
 	}
 
 	// assert: http port
@@ -162,7 +162,7 @@ func Test_DeserializeConfig_ObjectWithDifferentFields_ConfigWithDefaultValuesIsR
 
 	// assert
 	emptyConfig := Config{}
-	if config.Server.ThemeFolder != emptyConfig.Server.ThemeFolder {
+	if config.Server.ThemeFolderName != emptyConfig.Server.ThemeFolderName {
 		t.Fail()
 		t.Logf("When the JSON cannot be mapped to the Config type the deserializer should return an uninitialized config object.")
 	}
