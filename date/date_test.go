@@ -6,6 +6,7 @@ package date
 
 import (
 	"testing"
+	"time"
 )
 
 func Test_ParseIso8601Date_ValidIso8601Dates_NoErrorIsReturned(t *testing.T) {
@@ -39,6 +40,7 @@ func Test_ParseIso8601Date_ValidIso8601Dates_NoErrorIsReturned(t *testing.T) {
 func Test_ParseIso8601Date_ValidIso8601Date_WithValidTime_NoErrorIsReturned(t *testing.T) {
 
 	// Arrange
+	var fallback time.Time
 	dateString := "2013-02-08 21:13"
 
 	// Act
@@ -54,6 +56,7 @@ func Test_ParseIso8601Date_ValidIso8601Date_WithValidTime_NoErrorIsReturned(t *t
 func Test_ParseIso8601Date_InvalidIso8601Dates_ErrorIsReturned(t *testing.T) {
 
 	// Arrange
+	var fallback time.Time
 	dateStrings := []string{
 		"99-02-08",
 		"1-1-1",
