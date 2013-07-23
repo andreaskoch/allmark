@@ -2,6 +2,10 @@
 
 allmark is a lightweight markdown web server for Linux, Mac OS and Windows written in go.
 
+## Build Status
+
+[![Build Status](https://travis-ci.org/andreaskoch/allmark.png)](https://travis-ci.org/andreaskoch/allmark)
+
 ## Roadmap / To Dos
 
 - Run on Raspberry Pi / WDLXTV ("Host your blog from your home")
