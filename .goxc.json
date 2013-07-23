@@ -1,0 +1,35 @@
+{
+	"TasksAppend": [],
+	"Resources": {
+		"Include": "README.md,LICENSE,files,Documentation",
+		"Exclude": "*.go"
+	},
+	"PackageVersion": "0.5.0",
+	"TaskSettings": {
+		"bintray": {
+			"downloadspage": "bintray.md",
+			"package": "allmark",
+			"repository": "utils",
+			"subject": "andreaskoch"
+		},
+		"codesign": {
+			"id": "allmark"
+		},
+		"downloads-page": {
+			"fileheader": "---\nlayout: default\ntitle: Download allmark\n---\n\nNote: please use 'go get -u github.com/andreaskoch/allmark' instead of these binaries.",
+			"filename": "index.md"
+		},
+		"pkg-build": {
+			"metadata": {
+				"description": "allmark is a lightweight markdown web server that works on all platforms (written in go).",
+				"maintainer": "Andreas Koch (https://github.com/andreaskoch)"
+			},
+			"metadata-deb": {
+				"Depends": "golang",
+				"Homepage": "https://github.com/andreaskoch/allmark"
+			}
+		}
+	},
+	"FormatVersion": "0.5",
+	"PrereleaseInfo": "dev"
+}
