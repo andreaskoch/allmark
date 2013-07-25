@@ -1,23 +1,17 @@
 {
 	"TasksAppend": [],
 	"Resources": {
-		"Include": "README.md,LICENSE,files,Documentation",
+		"Include": "README.md,LICENSE",
 		"Exclude": "*.go"
 	},
 	"PackageVersion": "0.5.0",
 	"TaskSettings": {
-		"bintray": {
-			"downloadspage": "bintray.md",
-			"package": "allmark",
-			"repository": "utils",
-			"subject": "andreaskoch"
-		},
 		"codesign": {
 			"id": "allmark"
 		},
 		"downloads-page": {
 			"fileheader": "---\nlayout: default\ntitle: Download allmark\n---\n\nNote: please use 'go get -u github.com/andreaskoch/allmark' instead of these binaries.",
-			"filename": "index.md"
+			"filename": "download.md"
 		},
 		"pkg-build": {
 			"metadata": {
