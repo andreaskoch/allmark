@@ -17,7 +17,7 @@ var Autoupdate = (function () {
      */
     var getCurrentRoute = function() {
         var url = document.location.pathname;
-        return decodeURI(url.replace(/^\/+/, ""));
+        return url.replace(/^\/+/, "");
     };
 
     /**

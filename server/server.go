@@ -240,5 +240,5 @@ func getRequestedPathFromRequest(r *http.Request) string {
 }
 
 func normalizeRoute(route string) string {
-	return strings.ToLower(route)
+	return strings.ToLower(util.DecodeUrl(route))
 }
