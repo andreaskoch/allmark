@@ -1,8 +1,8 @@
 {
 	"TasksAppend": [],
 	"Resources": {
-		"Include": "",
-		"Exclude": "LICENSE,README.md,*.go"
+		"Include": "README.md,LICENSE",
+		"Exclude": "*.go"
 	},
 	"PackageVersion": "0.5.0",
 	"TaskSettings": {
