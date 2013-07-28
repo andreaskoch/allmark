@@ -50,7 +50,7 @@ func ParseIso8601Date(value string, fallback time.Time) (time.Time, error) {
 
 	// parse day
 	dayString := dateComponents[3]
-	dayInt64, parseDayErr := strconv.ParseInt(monthString, 10, 8)
+	dayInt64, parseDayErr := strconv.ParseInt(dayString, 10, 8)
 	if parseDayErr != nil || dayInt64 < 1 || dayInt64 > 31 {
 		log.Panicf("\"%v\" is not a valid value for a day. Valid values are in the range between 1 and 31.", dayString)
 	}

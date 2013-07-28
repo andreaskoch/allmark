@@ -9,6 +9,32 @@ import (
 	"time"
 )
 
+func Test_ParseIso8601Date_ValidIso8601Date_CorrectResultIsReturned(t *testing.T) {
+
+	// Arrange
+	var fallback time.Time
+	dateString := "2013-07-26"
+	expectedResult, err := time.Parse("2006-Jan-02", "2013-Jul-26")
+	if err != nil {
+		panic(err)
+	}
+
+	// Act
+	result, err := ParseIso8601Date(dateString, fallback)
+
+	// Assert
+	if err != nil {
+		t.Fail()
+		t.Logf("Parsing the value '%v' returned an error even though no error was expected.", dateString)
+	}
+
+	if !result.Equal(expectedResult) {
+		t.Fail()
+		t.Logf("Parsing the value %q did not return the expected result %q.", result, expectedResult)
+	}
+
+}
+
 func Test_ParseIso8601Date_ValidIso8601Dates_NoErrorIsReturned(t *testing.T) {
 
 	// Arrange
