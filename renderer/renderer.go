@@ -104,6 +104,11 @@ func (renderer *Renderer) Execute() {
 
 				// render all items from the top
 				fmt.Println("Root is ready. Rendering all items.")
+
+				// Sort childs items
+				renderer.root.Sort()
+
+				// render
 				renderer.renderRecursive(root)
 			}
 		}
@@ -117,6 +122,11 @@ func (renderer *Renderer) Execute() {
 
 				if renderer.root != nil {
 					fmt.Println("A template changed. Rendering all items.")
+
+					// Sort childs items
+					renderer.root.Sort()
+
+					// render
 					renderer.renderRecursive(renderer.root)
 				}
 
