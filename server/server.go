@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	items  = make([]*repository.Item, 0)
+	items  = repository.Items{}
 	routes = make(map[string]*Route)
 
 	useTempDir = true
@@ -165,7 +165,7 @@ func (server *Server) unregisterItem(item *repository.Item) {
 	}
 
 	// add item to list
-	newItemList := make([]*repository.Item, 0)
+	newItemList := repository.Items{}
 	for _, entry := range items {
 		if entry.String() != item.String() {
 			newItemList = append(newItemList, entry)

@@ -225,7 +225,7 @@ func getItemLocation(item *repository.Item) string {
 	return location
 }
 
-func getAllItemsByDate(root *repository.Item) []*repository.Item {
+func getAllItemsByDate(root *repository.Item) repository.Items {
 	childs := getAllChilds(root)
 	sort.Sort(childs)
 	return childs

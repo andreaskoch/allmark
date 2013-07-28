@@ -29,7 +29,7 @@ type Item struct {
 	Level  int
 	Files  *FileIndex
 	Parent *Item
-	Childs []*Item
+	Childs Items
 
 	Title            string
 	Description      string
@@ -283,7 +283,7 @@ func (item *Item) updateChilds() {
 
 	// check if the child list needs initialization
 	if item.Childs == nil {
-		item.Childs = make([]*Item, 0, len(childItemDirectories))
+		item.Childs = Items{}
 	}
 
 	// add new childs
@@ -308,7 +308,7 @@ func (item *Item) updateChilds() {
 	}
 
 	// remove deleted childs
-	newChildList := make([]*Item, 0, len(childItemDirectories))
+	newChildList := Items{}
 	for _, child := range item.Childs {
 
 		if util.SliceContainsElement(childItemDirectories, child.Directory()) {
