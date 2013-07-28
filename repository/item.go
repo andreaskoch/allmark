@@ -13,7 +13,6 @@ import (
 	"github.com/andreaskoch/allmark/watcher"
 	"io/ioutil"
 	"path/filepath"
-	"sort"
 	"time"
 )
 
@@ -230,19 +229,6 @@ func (item *Item) startFileWatcher() (started bool, itemWatcher *watcher.FileWat
 
 func (item *Item) String() string {
 	return fmt.Sprintf("%s", item.RootPathProvider().GetWebRoute(item))
-}
-
-func (item *Item) Sort() {
-
-	for _, child := range item.Childs {
-		child.Sort()
-	}
-
-	sort.Sort(item.Childs)
-}
-
-func (item *Item) Less(otherItem *Item) bool {
-	return item.Directory() < otherItem.Directory()
 }
 
 func (item *Item) Path() string {

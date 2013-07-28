@@ -18,7 +18,6 @@ import (
 	"github.com/andreaskoch/allmark/view"
 	"io"
 	"os"
-	"sort"
 	"strings"
 	"text/template"
 )
@@ -105,9 +104,6 @@ func (renderer *Renderer) Execute() {
 				// render all items from the top
 				fmt.Println("Root is ready. Rendering all items.")
 
-				// Sort childs items
-				renderer.root.Sort()
-
 				// render
 				renderer.renderRecursive(root)
 			}
@@ -122,9 +118,6 @@ func (renderer *Renderer) Execute() {
 
 				if renderer.root != nil {
 					fmt.Println("A template changed. Rendering all items.")
-
-					// Sort childs items
-					renderer.root.Sort()
 
 					// render
 					renderer.renderRecursive(renderer.root)
@@ -209,16 +202,20 @@ func (renderer *Renderer) RSS(writer io.Writer) {
 	fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(renderer.root)))
 	fmt.Fprintln(writer)
 
-	childsByDate := getAllItemsByDate(renderer.root)
-	for _, item := range childsByDate {
+	renderer.root.Walk(func(i *repository.Item) {
+		// skip the root
+		if i == renderer.root {
+			return
+		}
+
 		fmt.Fprintln(writer, `<item>`)
-		fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, item.Title))
-		fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, item.Description))
-		fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(item)))
-		fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(item)))
+		fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, i.Title))
+		fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, i.Description))
+		fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(i)))
+		fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(i)))
 		fmt.Fprintln(writer, `</item>`)
 		fmt.Fprintln(writer)
-	}
+	})
 
 	fmt.Fprintln(writer, `</channel>`)
 	fmt.Fprintln(writer, `</rss>`)
@@ -233,12 +230,6 @@ func getItemLocation(item *repository.Item) string {
 	route := item.AbsoluteRoute
 	location := fmt.Sprintf(`http://%s/%s`, "example.com", route)
 	return location
-}
-
-func getAllItemsByDate(root *repository.Item) repository.Items {
-	childs := repository.GetAllChilds(root)
-	sort.Sort(childs)
-	return childs
 }
 
 func (renderer *Renderer) renderSitemapEntry(templ *template.Template, sitemapModel *view.Sitemap) string {

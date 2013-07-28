@@ -4,16 +4,36 @@
 
 package repository
 
+import (
+	"sort"
+)
+
 type Items []*Item
 
-func (items Items) Len() int {
-	return len(items)
+type By func(item1, item2 *Item) bool
+
+func (by By) Sort(items Items) {
+	sorter := &itemSorter{
+		items: items,
+		by:    by,
+	}
+
+	sort.Sort(sorter)
 }
 
-func (items Items) Less(i, j int) bool {
-	return items[i].Less(items[j])
+type itemSorter struct {
+	items Items
+	by    func(item1, item2 *Item) bool
 }
 
-func (items Items) Swap(i, j int) {
-	items[i], items[j] = items[j], items[i]
+func (sorter *itemSorter) Len() int {
+	return len(sorter.items)
+}
+
+func (sorter *itemSorter) Swap(i, j int) {
+	sorter.Swap(i, j)
+}
+
+func (sorter *itemSorter) Less(i, j int) bool {
+	return sorter.by(sorter.items[i], sorter.items[j])
 }
