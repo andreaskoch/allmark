@@ -232,7 +232,7 @@ func (item *Item) String() string {
 }
 
 func (item *Item) Less(otherItem *Item) bool {
-	return item.MetaData.Date.Before(otherItem.MetaData.Date)
+	return item.MetaData.Date.After(otherItem.MetaData.Date)
 }
 
 func (item *Item) Path() string {
