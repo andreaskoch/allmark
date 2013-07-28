@@ -27,6 +27,7 @@ var (
 
 	error404Handler func(w http.ResponseWriter, r *http.Request)
 	sitemapHandler  func(w http.ResponseWriter, r *http.Request)
+	rssHandler      func(w http.ResponseWriter, r *http.Request)
 )
 
 const (
@@ -35,6 +36,7 @@ const (
 	ItemHandlerRoute       = "/"
 	SitemapHandlerRoute    = "/sitemap.html"
 	XmlSitemapHandlerRoute = "/sitemap.xml"
+	RssHandlerRoute        = "/rss.xml"
 	RobotsTxtHandlerRoute  = "/robots.txt"
 	DebugHandlerRoute      = "/debug/index"
 	WebSocketHandlerRoute  = "/ws"
@@ -83,6 +85,13 @@ func (server *Server) Serve() {
 		server.renderer.Sitemap(w)
 	}
 
+	// initialize the RSS handler
+	rssHandler = func(w http.ResponseWriter, r *http.Request) {
+
+		// write 404 page
+		server.renderer.RSS(w)
+	}
+
 	// start a change listener
 	server.listenForChanges()
 
@@ -93,6 +102,7 @@ func (server *Server) Serve() {
 	http.HandleFunc(ItemHandlerRoute, itemHandler)
 	http.HandleFunc(SitemapHandlerRoute, sitemapHandler)
 	http.HandleFunc(XmlSitemapHandlerRoute, xmlSitemapHandler)
+	http.HandleFunc(RssHandlerRoute, rssHandler)
 	http.HandleFunc(RobotsTxtHandlerRoute, robotsTxtHandler)
 	http.HandleFunc(DebugHandlerRoute, indexDebugger)
 	http.Handle(WebSocketHandlerRoute, websocket.Handler(webSocketHandler))

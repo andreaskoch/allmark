@@ -185,6 +185,65 @@ func (renderer *Renderer) Sitemap(writer io.Writer) {
 	writeTemplate(sitemapPageModel, sitemapTemplate, writer)
 }
 
+func (renderer *Renderer) RSS(writer io.Writer) {
+
+	fmt.Fprintln(writer, `<?xml version="1.0" encoding="UTF-8"?>`)
+	fmt.Fprintln(writer, `<rss version="2.0">`)
+	fmt.Fprintln(writer, `<channel>`)
+
+	fmt.Println()
+	fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, renderer.root.Title))
+	fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, renderer.root.Description))
+	fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(renderer.root)))
+	fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(renderer.root)))
+	fmt.Println()
+
+	childsByDate := getAllItemsByDate(renderer.root)
+	for _, item := range childsByDate {
+		fmt.Fprintln(writer, `<item>`)
+		fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, item.Title))
+		fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, item.Description))
+		fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(item)))
+		fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(item)))
+		fmt.Fprintln(writer, `</item>`)
+		fmt.Println()
+	}
+
+	fmt.Fprintln(writer, `</channel>`)
+	fmt.Fprintln(writer, `</rss>`)
+
+}
+
+func getItemDate(item *repository.Item) string {
+	return item.Date
+}
+
+func getItemLocation(item *repository.Item) string {
+	route := item.AbsoluteRoute
+	location := fmt.Sprintf(`http://%s/%s`, "example.com", route)
+	return location
+}
+
+func getAllItemsByDate(root *repository.Item) []*repository.Item {
+	childs := getAllChilds(root)
+	// todo sort
+	return childs
+}
+
+func getAllChilds(root *repository.Item) []*repository.Item {
+	childs := make([]*repository.Item, 0)
+
+	for _, child := range root.Childs {
+		childs = append(childs, child)
+
+		if len(child.Childs) > 0 {
+			childs = append(childs, getAllChilds(child)...)
+		}
+	}
+
+	return childs
+}
+
 func (renderer *Renderer) renderSitemapEntry(templ *template.Template, sitemapModel *view.Sitemap) string {
 
 	// render
