@@ -192,12 +192,12 @@ func (renderer *Renderer) RSS(writer io.Writer) {
 	fmt.Fprintln(writer, `<rss version="2.0">`)
 	fmt.Fprintln(writer, `<channel>`)
 
-	fmt.Println()
+	fmt.Fprintln(writer)
 	fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, renderer.root.Title))
 	fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, renderer.root.Description))
 	fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(renderer.root)))
 	fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(renderer.root)))
-	fmt.Println()
+	fmt.Fprintln(writer)
 
 	childsByDate := getAllItemsByDate(renderer.root)
 	for _, item := range childsByDate {
@@ -207,7 +207,7 @@ func (renderer *Renderer) RSS(writer io.Writer) {
 		fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(item)))
 		fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(item)))
 		fmt.Fprintln(writer, `</item>`)
-		fmt.Println()
+		fmt.Fprintln(writer)
 	}
 
 	fmt.Fprintln(writer, `</channel>`)
