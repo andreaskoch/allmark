@@ -236,22 +236,8 @@ func getItemLocation(item *repository.Item) string {
 }
 
 func getAllItemsByDate(root *repository.Item) repository.Items {
-	childs := getAllChilds(root)
+	childs := repository.GetAllChilds(root)
 	sort.Sort(childs)
-	return childs
-}
-
-func getAllChilds(root *repository.Item) repository.Items {
-	childs := repository.Items{}
-
-	for _, child := range root.Childs {
-		childs = append(childs, child)
-
-		if len(child.Childs) > 0 {
-			childs = append(childs, getAllChilds(child)...)
-		}
-	}
-
 	return childs
 }
 

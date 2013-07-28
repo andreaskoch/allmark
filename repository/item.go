@@ -287,6 +287,13 @@ func (item *Item) HasChild(itemDirectory string) bool {
 	return false
 }
 
+func (item *Item) Walk(callback func(item *Item)) {
+	callback(item)
+	for _, child := range item.Childs {
+		child.Walk(callback)
+	}
+}
+
 func (item *Item) updateChilds() {
 
 	childItemDirectories := item.getChildItemDirectories()
@@ -367,4 +374,16 @@ func (item *Item) getChildItemDirectories() []string {
 	}
 
 	return directories
+}
+
+func GetAllChilds(root *Item) Items {
+	childs := Items{}
+
+	callback := func(i *Item) {
+		childs = append(childs, i)
+	}
+
+	root.Walk(callback)
+
+	return childs
 }
