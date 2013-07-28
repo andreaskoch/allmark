@@ -5,7 +5,6 @@
 package parser
 
 import (
-	"fmt"
 	"github.com/andreaskoch/allmark/date"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
@@ -73,9 +72,8 @@ func parseMetaData(item *repository.Item, lines []string, getFallbackItemType fu
 
 		case "date":
 			{
-
 				date, _ := date.ParseIso8601Date(value, fallbackDate)
-				fmt.Println(date)
+				metaData.Date = date
 				break
 			}
 
