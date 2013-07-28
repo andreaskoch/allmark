@@ -42,7 +42,6 @@ func webSocketHandler(ws *websocket.Conn) {
 
 	route, routeExists := routes[routeParam]
 	if !routeExists {
-		fmt.Printf("Cannot establish a web socket connection. The route %q does not exist.\n", routeParam)
 		return
 	}
 
