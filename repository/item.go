@@ -242,6 +242,12 @@ func (item *Item) Sort() {
 }
 
 func (item *Item) Less(otherItem *Item) bool {
+
+	// compare title if dates are equal
+	if item.MetaData.Date.Equal(otherItem.MetaData.Date) {
+		return item.Title < otherItem.Title
+	}
+
 	return item.MetaData.Date.After(otherItem.MetaData.Date)
 }
 
