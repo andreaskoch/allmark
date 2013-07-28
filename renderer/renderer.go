@@ -18,6 +18,7 @@ import (
 	"github.com/andreaskoch/allmark/view"
 	"io"
 	"os"
+	"sort"
 	"strings"
 	"text/template"
 )
@@ -226,12 +227,12 @@ func getItemLocation(item *repository.Item) string {
 
 func getAllItemsByDate(root *repository.Item) []*repository.Item {
 	childs := getAllChilds(root)
-	// todo sort
+	sort.Sort(childs)
 	return childs
 }
 
-func getAllChilds(root *repository.Item) []*repository.Item {
-	childs := make([]*repository.Item, 0)
+func getAllChilds(root *repository.Item) repository.Items {
+	childs := repository.Items{}
 
 	for _, child := range root.Childs {
 		childs = append(childs, child)

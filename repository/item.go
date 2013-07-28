@@ -231,6 +231,10 @@ func (item *Item) String() string {
 	return fmt.Sprintf("%s", item.RootPathProvider().GetWebRoute(item))
 }
 
+func (item *Item) Less(otherItem *Item) bool {
+	return item.MetaData.Date.Before(otherItem.MetaData.Date)
+}
+
 func (item *Item) Path() string {
 	return item.path
 }
