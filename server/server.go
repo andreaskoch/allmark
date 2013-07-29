@@ -25,9 +25,10 @@ var (
 
 	useTempDir = true
 
-	error404Handler func(w http.ResponseWriter, r *http.Request)
-	sitemapHandler  func(w http.ResponseWriter, r *http.Request)
-	rssHandler      func(w http.ResponseWriter, r *http.Request)
+	error404Handler   func(w http.ResponseWriter, r *http.Request)
+	xmlSitemapHandler func(w http.ResponseWriter, r *http.Request)
+	sitemapHandler    func(w http.ResponseWriter, r *http.Request)
+	rssHandler        func(w http.ResponseWriter, r *http.Request)
 )
 
 const (
@@ -78,17 +79,18 @@ func (server *Server) Serve() {
 		server.renderer.Error404(w)
 	}
 
+	// initialize the xml sitemap handler
+	xmlSitemapHandler = func(w http.ResponseWriter, r *http.Request) {
+		server.renderer.XMLSitemap(w)
+	}
+
 	// initialize the sitemap handler
 	sitemapHandler = func(w http.ResponseWriter, r *http.Request) {
-
-		// write 404 page
 		server.renderer.Sitemap(w)
 	}
 
 	// initialize the RSS handler
 	rssHandler = func(w http.ResponseWriter, r *http.Request) {
-
-		// write 404 page
 		server.renderer.RSS(w)
 	}
 

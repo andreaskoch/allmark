@@ -18,8 +18,24 @@ import (
 	"github.com/andreaskoch/allmark/view"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
+)
+
+var (
+
+	// sort the items by date and folder name
+	dateAndFolder = func(item1, item2 *repository.Item) bool {
+
+		if item1.MetaData.Date.Equal(item2.MetaData.Date) {
+			// ascending by directory name
+			return filepath.Base(item1.Directory()) < filepath.Base(item2.Directory())
+		}
+
+		// descending by date
+		return item1.MetaData.Date.After(item2.MetaData.Date)
+	}
 )
 
 type Renderer struct {
@@ -189,6 +205,43 @@ func (renderer *Renderer) Sitemap(writer io.Writer) {
 	writeTemplate(sitemapPageModel, sitemapTemplate, writer)
 }
 
+func (renderer *Renderer) XMLSitemap(w io.Writer) {
+
+	fmt.Fprintln(w, `<?xml version="1.0" encoding="UTF-8"?>`)
+	fmt.Fprintln(w, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
+
+	// get all child items
+	items := repository.GetAllChilds(renderer.root)
+
+	// sort the items by date and folder name
+	dateAndFolder := func(item1, item2 *repository.Item) bool {
+
+		if item1.MetaData.Date.Equal(item2.MetaData.Date) {
+			// ascending by directory name
+			return filepath.Base(item1.Directory()) < filepath.Base(item2.Directory())
+		}
+
+		// descending by date
+		return item1.MetaData.Date.After(item2.MetaData.Date)
+	}
+
+	repository.By(dateAndFolder).Sort(items)
+
+	for _, item := range items {
+		route := item.AbsoluteRoute
+		location := fmt.Sprintf(`http://%s/%s`, "example.com", route)
+		lastMod := item.Date
+
+		fmt.Fprintln(w, `<url>`)
+		fmt.Fprintln(w, fmt.Sprintf(`<loc>%s</loc>`, location))
+		fmt.Fprintln(w, fmt.Sprintf(`<lastmod>%s</lastmod>`, lastMod))
+		fmt.Fprintln(w, `</url>`)
+	}
+
+	fmt.Fprintln(w, `</urlset>`)
+
+}
+
 func (renderer *Renderer) RSS(writer io.Writer) {
 
 	fmt.Fprintln(writer, `<?xml version="1.0" encoding="UTF-8"?>`)
@@ -206,17 +259,6 @@ func (renderer *Renderer) RSS(writer io.Writer) {
 	items := repository.GetAllChilds(renderer.root)
 
 	// sort the items by date and folder name
-	dateAndFolder := func(item1, item2 *repository.Item) bool {
-
-		if item1.MetaData.Date.Equal(item2.MetaData.Date) {
-			// ascending by directory name
-			return item1.Title < item2.Title
-		}
-
-		// descending by date
-		return item1.MetaData.Date.After(item2.MetaData.Date)
-	}
-
 	repository.By(dateAndFolder).Sort(items)
 
 	for _, i := range items {
