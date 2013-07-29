@@ -31,7 +31,7 @@ func (sorter *itemSorter) Len() int {
 }
 
 func (sorter *itemSorter) Swap(i, j int) {
-	sorter.Swap(i, j)
+	sorter.items[i], sorter.items[j] = sorter.items[j], sorter.items[i]
 }
 
 func (sorter *itemSorter) Less(i, j int) bool {
