@@ -202,10 +202,28 @@ func (renderer *Renderer) RSS(writer io.Writer) {
 	fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(renderer.root)))
 	fmt.Fprintln(writer)
 
-	renderer.root.Walk(func(i *repository.Item) {
+	// get all child items
+	items := repository.GetAllChilds(renderer.root)
+
+	// sort the items by date and folder name
+	dateAndFolder := func(item1, item2 *repository.Item) bool {
+
+		if item1.MetaData.Date.Equal(item2.MetaData.Date) {
+			// ascending by directory name
+			return item1.Title < item2.Title
+		}
+
+		// descending by date
+		return item1.MetaData.Date.After(item2.MetaData.Date)
+	}
+
+	repository.By(dateAndFolder).Sort(items)
+
+	for _, i := range items {
+
 		// skip the root
 		if i == renderer.root {
-			return
+			continue
 		}
 
 		fmt.Fprintln(writer, `<item>`)
@@ -215,7 +233,7 @@ func (renderer *Renderer) RSS(writer io.Writer) {
 		fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(i)))
 		fmt.Fprintln(writer, `</item>`)
 		fmt.Fprintln(writer)
-	})
+	}
 
 	fmt.Fprintln(writer, `</channel>`)
 	fmt.Fprintln(writer, `</rss>`)
