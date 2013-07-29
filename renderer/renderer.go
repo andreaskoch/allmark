@@ -170,7 +170,7 @@ func (renderer *Renderer) Error404(writer io.Writer) {
 	writeTemplate(errorModel, template, writer)
 }
 
-func (renderer *Renderer) Sitemap(writer io.Writer) {
+func (renderer *Renderer) Sitemap(writer io.Writer, host string) {
 
 	if renderer.root == nil {
 		fmt.Println("The root is not ready yet.")
@@ -205,7 +205,7 @@ func (renderer *Renderer) Sitemap(writer io.Writer) {
 	writeTemplate(sitemapPageModel, sitemapTemplate, writer)
 }
 
-func (renderer *Renderer) XMLSitemap(w io.Writer) {
+func (renderer *Renderer) XMLSitemap(w io.Writer, host string) {
 
 	fmt.Fprintln(w, `<?xml version="1.0" encoding="UTF-8"?>`)
 	fmt.Fprintln(w, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
@@ -228,13 +228,9 @@ func (renderer *Renderer) XMLSitemap(w io.Writer) {
 	repository.By(dateAndFolder).Sort(items)
 
 	for _, item := range items {
-		route := item.AbsoluteRoute
-		location := fmt.Sprintf(`http://%s/%s`, "example.com", route)
-		lastMod := item.Date
-
 		fmt.Fprintln(w, `<url>`)
-		fmt.Fprintln(w, fmt.Sprintf(`<loc>%s</loc>`, location))
-		fmt.Fprintln(w, fmt.Sprintf(`<lastmod>%s</lastmod>`, lastMod))
+		fmt.Fprintln(w, fmt.Sprintf(`<loc>%s</loc>`, getItemLocation(host, item)))
+		fmt.Fprintln(w, fmt.Sprintf(`<lastmod>%s</lastmod>`, getItemDate(item)))
 		fmt.Fprintln(w, `</url>`)
 	}
 
@@ -242,7 +238,7 @@ func (renderer *Renderer) XMLSitemap(w io.Writer) {
 
 }
 
-func (renderer *Renderer) RSS(writer io.Writer) {
+func (renderer *Renderer) RSS(writer io.Writer, host string) {
 
 	fmt.Fprintln(writer, `<?xml version="1.0" encoding="UTF-8"?>`)
 	fmt.Fprintln(writer, `<rss version="2.0">`)
@@ -251,7 +247,7 @@ func (renderer *Renderer) RSS(writer io.Writer) {
 	fmt.Fprintln(writer)
 	fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, renderer.root.Title))
 	fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, renderer.root.Description))
-	fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(renderer.root)))
+	fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(host, renderer.root)))
 	fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(renderer.root)))
 	fmt.Fprintln(writer)
 
@@ -271,7 +267,7 @@ func (renderer *Renderer) RSS(writer io.Writer) {
 		fmt.Fprintln(writer, `<item>`)
 		fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, i.Title))
 		fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, i.Description))
-		fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(i)))
+		fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(host, i)))
 		fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(i)))
 		fmt.Fprintln(writer, `</item>`)
 		fmt.Fprintln(writer)
@@ -286,9 +282,9 @@ func getItemDate(item *repository.Item) string {
 	return item.Date
 }
 
-func getItemLocation(item *repository.Item) string {
+func getItemLocation(host string, item *repository.Item) string {
 	route := item.AbsoluteRoute
-	location := fmt.Sprintf(`http://%s/%s`, "example.com", route)
+	location := fmt.Sprintf(`http://%s/%s`, host, route)
 	return location
 }
 

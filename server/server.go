@@ -81,17 +81,17 @@ func (server *Server) Serve() {
 
 	// initialize the xml sitemap handler
 	xmlSitemapHandler = func(w http.ResponseWriter, r *http.Request) {
-		server.renderer.XMLSitemap(w)
+		server.renderer.XMLSitemap(w, getHostnameFromRequest(r))
 	}
 
 	// initialize the sitemap handler
 	sitemapHandler = func(w http.ResponseWriter, r *http.Request) {
-		server.renderer.Sitemap(w)
+		server.renderer.Sitemap(w, getHostnameFromRequest(r))
 	}
 
 	// initialize the RSS handler
 	rssHandler = func(w http.ResponseWriter, r *http.Request) {
-		server.renderer.RSS(w)
+		server.renderer.RSS(w, getHostnameFromRequest(r))
 	}
 
 	// start a change listener
@@ -249,6 +249,10 @@ func getRequestedPathFromRequest(r *http.Request) string {
 	requestedPath = strings.TrimLeft(requestedPath, "/")
 	requestedPath = util.EncodeUrl(requestedPath)
 	return requestedPath
+}
+
+func getHostnameFromRequest(r *http.Request) string {
+	return r.Host
 }
 
 func normalizeRoute(route string) string {
