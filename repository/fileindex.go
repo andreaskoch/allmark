@@ -7,7 +7,7 @@ package repository
 import (
 	"fmt"
 	p "github.com/andreaskoch/allmark/path"
-	"github.com/andreaskoch/allmark/watcher"
+	"github.com/andreaskoch/go-fswatch"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -38,7 +38,7 @@ func newFileIndex(rootPathProvider *p.Provider, directory string) (*FileIndex, e
 
 	// look for changes in the index directory
 	go func() {
-		folderWatcher := watcher.NewFolderWatcher(directory, true, skipFiles).Start()
+		folderWatcher := fswatch.NewFolderWatcher(directory, true, skipFiles).Start()
 
 		for folderWatcher.IsRunning() {
 

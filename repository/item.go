@@ -10,7 +10,7 @@ import (
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/util"
 	"github.com/andreaskoch/allmark/view"
-	"github.com/andreaskoch/allmark/watcher"
+	"github.com/andreaskoch/go-fswatch"
 	"io/ioutil"
 	"path/filepath"
 	"time"
@@ -150,7 +150,7 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 			return isItem || isReserved
 		}
 
-		folderWatcher := watcher.NewFolderWatcher(itemDirectory, false, skipFunc).Start()
+		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, false, skipFunc).Start()
 
 		for folderWatcher.IsRunning() {
 
@@ -198,12 +198,12 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 	return item, nil
 }
 
-func (item *Item) startFileWatcher() (started bool, itemWatcher *watcher.FileWatcher) {
+func (item *Item) startFileWatcher() (started bool, itemWatcher *fswatch.FileWatcher) {
 	if isFile, _ := util.IsFile(item.path); !isFile {
 		return false, nil
 	}
 
-	fileWatcher := watcher.NewFileWatcher(item.path).Start()
+	fileWatcher := fswatch.NewFileWatcher(item.path).Start()
 
 	go func() {
 

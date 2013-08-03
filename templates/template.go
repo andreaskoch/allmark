@@ -7,7 +7,7 @@ package templates
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/util"
-	"github.com/andreaskoch/allmark/watcher"
+	"github.com/andreaskoch/go-fswatch"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -36,7 +36,7 @@ func NewTemplate(templateFolder, name, text string, modified chan bool) *Templat
 	// look for changes
 	if util.FileExists(templateFilePath) {
 		go func() {
-			fileWatcher := watcher.NewFileWatcher(template.path).Start()
+			fileWatcher := fswatch.NewFileWatcher(template.path).Start()
 
 			for fileWatcher.IsRunning() {
 
