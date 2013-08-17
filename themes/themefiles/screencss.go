@@ -428,7 +428,11 @@ article>.description {
     float: none;
 }
 
-.video>h1 {
+section.video {
+    margin: 15px 0;
+}
+
+section.video>h1 {
     font-size: 1.2em;
 }
 
