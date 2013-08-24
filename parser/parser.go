@@ -6,32 +6,15 @@ package parser
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/parser/document"
+	"github.com/andreaskoch/allmark/parser/message"
+	"github.com/andreaskoch/allmark/parser/metadata"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/util"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
-)
-
-var (
-	// Lines which contain nothing but white space characters
-	// or no characters at all.
-	EmptyLinePattern = regexp.MustCompile(`^\s*$`)
-
-	// Lines which a start with a hash, followed by zero or more
-	// white space characters, followed by text.
-	TitlePattern = regexp.MustCompile(`^#\s*([\pL\pN\p{Latin}]+.+)`)
-
-	// Lines which start with text
-	DescriptionPattern = regexp.MustCompile(`^[\pL\pN\p{Latin}]+.+`)
-
-	// Lines which nothing but dashes
-	HorizontalRulePattern = regexp.MustCompile(`^-{2,}`)
-
-	// Lines with a "key: value" syntax
-	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*([\pL\pN\p{Latin}]+.+)$`)
 )
 
 func Parse(item *repository.Item) (*repository.Item, error) {
@@ -56,7 +39,7 @@ func parseVirtual(item *repository.Item) (*repository.Item, error) {
 	title := getFallbackTitle(item)
 
 	// create the meta data
-	metaData, err := newMetaData(item)
+	metaData, err := metadata.New(item)
 	if err != nil {
 		return nil, err
 	}
@@ -80,112 +63,41 @@ func parsePhysical(item *repository.Item) (*repository.Item, error) {
 	// get the raw lines
 	lines := util.GetLines(file)
 
+	// determine the fallback title
+	fallbackTitle := getFallbackTitle(item)
+
 	// parse the meta data
 	fallbackItemTypeFunc := func() string {
 		return getItemTypeFromFilename(item.Path())
 	}
 
-	item.MetaData, lines = parseMetaData(item, lines, fallbackItemTypeFunc)
+	item.MetaData, lines = metadata.Parse(item, lines, fallbackItemTypeFunc)
 
 	// parse the content
 	switch itemType := item.MetaData.ItemType; itemType {
 	case types.RepositoryItemType, types.DocumentItemType, types.PresentationItemType:
 		{
-			if success, err := parseDocumentLikeItem(item, lines); success {
+			if success, err := document.Parse(item, lines, fallbackTitle); success {
 				return item, nil
 			} else {
 				return nil, err
 			}
 		}
+
 	case types.MessageItemType:
 		{
-			if success, err := parseMessage(item, lines); success {
+			if success, err := message.Parse(item, lines); success {
 				return item, nil
 			} else {
 				return nil, err
 			}
 		}
+
 	default:
 		return nil, fmt.Errorf("Item %q (type: %s) cannot be parsed.", item.Path(), itemType)
 	}
 
 	panic("Unreachable")
-}
-
-// Parse an item with a title, description and content
-func parseDocumentLikeItem(item *repository.Item, lines []string) (sucess bool, err error) {
-
-	// title
-	item.Title, lines = getTitle(lines)
-	if item.Title == "" {
-		item.Title = getFallbackTitle(item)
-	}
-
-	// description
-	item.Description, lines = getDescription(lines)
-
-	// raw markdown content
-	item.RawContent = lines
-
-	return true, nil
-}
-
-func parseMessage(item *repository.Item, lines []string) (sucess bool, err error) {
-
-	// raw markdown content
-	item.RawContent = lines
-
-	return true, nil
-}
-
-func getMatchingValue(lines []string, matchPattern *regexp.Regexp) (string, []string) {
-
-	// In order to be the "matching value" the line must
-	// either be empty or match the supplied pattern.
-	for lineNumber, line := range lines {
-
-		lineMatchesTitlePattern, matches := util.IsMatch(line, matchPattern)
-		if lineMatchesTitlePattern {
-			nextLine := getNextLinenumber(lineNumber, lines)
-			return util.GetLastElement(matches), lines[nextLine:]
-		}
-
-		lineIsEmpty := EmptyLinePattern.MatchString(line)
-		if !lineIsEmpty {
-			break
-		}
-	}
-
-	return "", lines
-}
-
-func getTitle(lines []string) (title string, remainingLines []string) {
-	title, remainingLines = getMatchingValue(lines, TitlePattern)
-
-	// cleanup the title
-	title = strings.TrimSpace(title)
-	title = strings.TrimSuffix(title, "#")
-
-	return title, remainingLines
-}
-
-func getDescription(lines []string) (description string, remainingLines []string) {
-	description, remainingLines = getMatchingValue(lines, DescriptionPattern)
-
-	// cleanup the description
-	description = strings.TrimSpace(description)
-
-	return description, remainingLines
-}
-
-func getNextLinenumber(lineNumber int, lines []string) int {
-	nextLine := lineNumber + 1
-
-	if nextLine <= len(lines) {
-		return nextLine
-	}
-
-	return lineNumber
 }
 
 func getItemTypeFromFilename(filenameOrPath string) string {

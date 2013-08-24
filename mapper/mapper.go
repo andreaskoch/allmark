@@ -17,11 +17,9 @@ func Map(item *repository.Item) *view.Model {
 
 	// map the parsed item to the view model depending on the item type
 	switch itemType := item.MetaData.ItemType; itemType {
-	case types.PresentationItemType:
-		model = createPresentationMapperFunc(item)
 
-	case types.RepositoryItemType, types.DocumentItemType, types.MessageItemType:
-		model = createDocumentMapperFunc(item)
+	case types.PresentationItemType, types.RepositoryItemType, types.DocumentItemType, types.MessageItemType:
+		model = getModel(item)
 		model.Childs = getSubModels(item)
 
 	default:
@@ -32,6 +30,22 @@ func Map(item *repository.Item) *view.Model {
 	item.Model = model
 
 	return model
+}
+
+func getModel(item *repository.Item) *view.Model {
+
+	return &view.Model{
+		Level:         item.Level,
+		RelativeRoute: item.RelativePath,
+		AbsoluteRoute: item.AbsolutePath,
+		Title:         item.Title,
+		Description:   item.Description,
+		Content:       item.ConvertedContent,
+		LanguageTag:   getTwoLetterLanguageCode(item.MetaData.Language),
+		Date:          formatDate(item.MetaData.Date),
+		Type:          item.MetaData.ItemType,
+	}
+
 }
 
 func getSubModels(item *repository.Item) []*view.Model {

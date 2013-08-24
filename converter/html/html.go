@@ -6,6 +6,7 @@ package html
 
 import (
 	"github.com/andreaskoch/allmark/repository"
+	"github.com/andreaskoch/allmark/types"
 	"strings"
 )
 
@@ -24,6 +25,11 @@ func Convert(item *repository.Item) string {
 
 	// render markdown
 	convertedContent = renderMarkdown(item, convertedContent)
+
+	switch itemType := item.MetaData.ItemType; itemType {
+	case types.PresentationItemType:
+		convertedContent = renderPresentation(convertedContent)
+	}
 
 	return convertedContent
 }

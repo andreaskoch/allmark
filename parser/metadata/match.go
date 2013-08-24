@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package parser
+package metadata
 
 // A Match represents the result of a pattern matching
 // process on the content of an document.

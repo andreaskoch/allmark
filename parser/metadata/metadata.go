@@ -2,10 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package parser
+package metadata
 
 import (
 	"github.com/andreaskoch/allmark/date"
+	"github.com/andreaskoch/allmark/parser/pattern"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/util"
@@ -15,7 +16,7 @@ import (
 
 var minDate time.Time
 
-func newMetaData(item *repository.Item) (repository.MetaData, error) {
+func New(item *repository.Item) (repository.MetaData, error) {
 
 	date, err := getItemModificationTime(item)
 	if err != nil {
@@ -30,7 +31,7 @@ func newMetaData(item *repository.Item) (repository.MetaData, error) {
 	return metaData, nil
 }
 
-func parseMetaData(item *repository.Item, lines []string, getFallbackItemType func() string) (repository.MetaData, []string) {
+func Parse(item *repository.Item, lines []string, getFallbackItemType func() string) (repository.MetaData, []string) {
 
 	metaData := repository.MetaData{}
 
@@ -51,7 +52,7 @@ func parseMetaData(item *repository.Item, lines []string, getFallbackItemType fu
 
 	// parse the meta data
 	for _, line := range metaDataLocation.Matches {
-		isKeyValuePair, matches := util.IsMatch(line, MetaDataPattern)
+		isKeyValuePair, matches := util.IsMatch(line, pattern.MetaDataPattern)
 
 		// skip if line is not a key-value pair
 		if !isKeyValuePair {
@@ -105,7 +106,7 @@ func locateMetaData(lines []string) (Match, []string) {
 	// Find the last horizontal rule in the document
 	lastFoundHorizontalRulePosition := -1
 	for lineNumber, line := range lines {
-		if hrFound, _ := util.IsMatch(line, HorizontalRulePattern); hrFound {
+		if hrFound, _ := util.IsMatch(line, pattern.HorizontalRulePattern); hrFound {
 			lastFoundHorizontalRulePosition = lineNumber
 		}
 
@@ -131,7 +132,7 @@ func locateMetaData(lines []string) (Match, []string) {
 	// either by white space or be meta data
 	for _, line := range lines[metaDataStartLine:] {
 
-		lineMatchesMetaDataPattern := MetaDataPattern.MatchString(line)
+		lineMatchesMetaDataPattern := pattern.MetaDataPattern.MatchString(line)
 		if lineMatchesMetaDataPattern {
 
 			endLine := len(lines)
@@ -139,7 +140,7 @@ func locateMetaData(lines []string) (Match, []string) {
 
 		}
 
-		lineIsEmpty := EmptyLinePattern.MatchString(line)
+		lineIsEmpty := pattern.EmptyLinePattern.MatchString(line)
 		if !lineIsEmpty {
 			return NotFound(), lines
 		}
