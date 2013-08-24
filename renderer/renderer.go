@@ -407,10 +407,11 @@ func prepare(item *repository.Item) {
 	parser.Parse(item)
 
 	// convert the item
-	html.Convert(item)
+	converted := html.Convert(item)
+	item.ConvertedContent = converted
 
 	// create the viewmodel
-	mapper.MapItem(item)
+	mapper.Map(item)
 }
 
 func writeTemplate(model interface{}, template *template.Template, writer io.Writer) {
