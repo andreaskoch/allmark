@@ -9,21 +9,21 @@ import (
 	"strings"
 )
 
-func ToHtml(item *repository.Item) *repository.Item {
+func Convert(item *repository.Item) string {
 
 	// assign the raw markdown content for the add-ins to work on
-	item.ConvertedContent = strings.TrimSpace(strings.Join(item.RawContent, "\n"))
+	convertedContent := strings.TrimSpace(strings.Join(item.RawContent, "\n"))
 
 	// render markdown extensions
-	renderImageGalleries(item)
-	renderFileLinks(item)
-	renderCSVTables(item)
-	renderPDFs(item)
-	renderVideos(item)
-	renderAudio(item)
+	convertedContent = renderImageGalleries(item, convertedContent)
+	convertedContent = renderFileLinks(item, convertedContent)
+	convertedContent = renderCSVTables(item, convertedContent)
+	convertedContent = renderPDFs(item, convertedContent)
+	convertedContent = renderVideos(item, convertedContent)
+	convertedContent = renderAudio(item, convertedContent)
 
 	// render markdown
-	renderMarkdown(item)
+	convertedContent = renderMarkdown(item, convertedContent)
 
-	return item
+	return convertedContent
 }

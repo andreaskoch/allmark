@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark/config"
-	"github.com/andreaskoch/allmark/converter"
+	"github.com/andreaskoch/allmark/converter/html"
 	"github.com/andreaskoch/allmark/mapper"
 	"github.com/andreaskoch/allmark/parser"
 	"github.com/andreaskoch/allmark/path"
@@ -407,7 +407,7 @@ func prepare(item *repository.Item) {
 	parser.Parse(item)
 
 	// convert the item
-	converter.Convert(item)
+	html.Convert(item)
 
 	// create the viewmodel
 	mapper.MapItem(item)

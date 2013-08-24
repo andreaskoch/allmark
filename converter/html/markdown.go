@@ -9,7 +9,6 @@ import (
 	"github.com/andreaskoch/allmark/repository"
 )
 
-func renderMarkdown(item *repository.Item) *repository.Item {
-	item.ConvertedContent = markdown.ToHtml(item.ConvertedContent)
-	return item
+func renderMarkdown(item *repository.Item, rawContent string) string {
+	return markdown.ToHtml(rawContent)
 }
