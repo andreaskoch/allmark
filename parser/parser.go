@@ -6,7 +6,6 @@ package parser
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/util"
@@ -190,10 +189,6 @@ func getNextLinenumber(lineNumber int, lines []string) int {
 }
 
 func getItemTypeFromFilename(filenameOrPath string) string {
-
-	if !markdown.IsMarkdownFile(filenameOrPath) {
-		return types.UnknownItemType // abort if file does not have a markdown extension
-	}
 
 	extension := filepath.Ext(filenameOrPath)
 	filenameWithExtension := filepath.Base(filenameOrPath)
