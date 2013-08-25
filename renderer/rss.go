@@ -6,6 +6,7 @@ package renderer
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark/converter/html"
 	"github.com/andreaskoch/allmark/repository"
 	"io"
 )
@@ -36,9 +37,12 @@ func (renderer *Renderer) RSS(writer io.Writer, host string) {
 			continue
 		}
 
+		// render content for rss
+		description := html.Convert(i, renderer.root.FilePathProvider())
+
 		fmt.Fprintln(writer, `<item>`)
 		fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, i.Title))
-		fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, i.Description))
+		fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, description))
 		fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(host, i)))
 		fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(i)))
 		fmt.Fprintln(writer, `</item>`)
