@@ -222,7 +222,7 @@ func prepare(item *repository.Item) {
 }
 
 func attachContent(item *repository.Item) {
-	item.Content = html.Convert(item)
+	item.Content = html.Convert(item, item.FilePathProvider())
 }
 
 func writeTemplate(model interface{}, template *template.Template, writer io.Writer) {

@@ -5,14 +5,12 @@
 package html
 
 import (
+	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 )
 
-func Convert(item *repository.Item) string {
-
-	// path provider
-	pathProvider := item.FilePathProvider()
+func Convert(item *repository.Item, pathProvider *path.Provider) string {
 
 	// files
 	files := item.Files
