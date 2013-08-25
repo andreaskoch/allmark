@@ -60,6 +60,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<nav>
 		<ul>
 			<li><a href="/sitemap.html">Sitemap</a></li>
+			<li><a href="/rss.xml">RSS Feed</a></li>
 		</ul>
 	</nav>
 </footer>

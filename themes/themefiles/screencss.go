@@ -248,6 +248,11 @@ body>footer>nav>ul {
     padding: 0;
 }
 
+body>footer>nav>ul>li {
+    display: inline;
+    margin-left: 10px;
+}
+
 body>footer>nav>ul>li>a {
     color: #000000;
     font-size: 0.8em;
