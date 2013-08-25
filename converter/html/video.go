@@ -25,11 +25,7 @@ var (
 	vimeoVideoPattern = regexp.MustCompile(`http[s]?://vimeo\.com/([\d]+)`)
 )
 
-func renderVideos(item *repository.Item, rawContent string) string {
-	return convertVideoMarkdownExtension(rawContent, item.Files, item.FilePathProvider())
-}
-
-func convertVideoMarkdownExtension(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
+func renderVideos(fileIndex *repository.FileIndex, pathProvider *path.Provider, markdown string) string {
 
 	for {
 

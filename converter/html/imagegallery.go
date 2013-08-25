@@ -18,11 +18,7 @@ var (
 	imageGalleryPattern = regexp.MustCompile(`imagegallery: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func renderImageGalleries(item *repository.Item, rawContent string) string {
-	return convertImageGalleryMarkdownExtension(rawContent, item.Files, item.FilePathProvider())
-}
-
-func convertImageGalleryMarkdownExtension(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
+func renderImageGalleries(fileIndex *repository.FileIndex, pathProvider *path.Provider, markdown string) string {
 
 	for {
 

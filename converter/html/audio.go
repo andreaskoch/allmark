@@ -19,11 +19,7 @@ var (
 	audioPattern = regexp.MustCompile(`audio: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func renderAudio(item *repository.Item, rawContent string) string {
-	return convertAudioMarkdownExtension(rawContent, item.Files, item.FilePathProvider())
-}
-
-func convertAudioMarkdownExtension(markdown string, fileIndex *repository.FileIndex, pathProvider *path.Provider) string {
+func renderAudio(fileIndex *repository.FileIndex, pathProvider *path.Provider, markdown string) string {
 
 	for {
 

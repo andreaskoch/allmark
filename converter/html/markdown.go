@@ -6,9 +6,10 @@ package html
 
 import (
 	"github.com/andreaskoch/allmark/markdown"
+	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 )
 
-func renderMarkdown(item *repository.Item, rawContent string) string {
+func renderMarkdown(fileIndex *repository.FileIndex, pathProvider *path.Provider, rawContent string) string {
 	return markdown.ToHtml(rawContent)
 }
