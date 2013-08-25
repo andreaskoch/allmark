@@ -10,6 +10,6 @@ import (
 	"github.com/andreaskoch/allmark/repository"
 )
 
-func renderMarkdown(fileIndex *repository.FileIndex, pathProvider *path.Provider, rawContent string) string {
-	return markdown.ToHtml(rawContent)
+func renderMarkdown(fileIndex *repository.FileIndex, pathProvider *path.Provider, markdownCode string) string {
+	return markdown.ToHtml(markdownCode)
 }
