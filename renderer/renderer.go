@@ -6,7 +6,6 @@ package renderer
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark/config"
 	"github.com/andreaskoch/allmark/converter/html"
@@ -15,27 +14,9 @@ import (
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/templates"
-	"github.com/andreaskoch/allmark/view"
 	"io"
 	"os"
-	"path/filepath"
-	"strings"
 	"text/template"
-)
-
-var (
-
-	// sort the items by date and folder name
-	dateAndFolder = func(item1, item2 *repository.Item) bool {
-
-		if item1.MetaData.Date.Equal(item2.MetaData.Date) {
-			// ascending by directory name
-			return filepath.Base(item1.Directory()) < filepath.Base(item2.Directory())
-		}
-
-		// descending by date
-		return item1.MetaData.Date.After(item2.MetaData.Date)
-	}
 )
 
 type Renderer struct {
@@ -143,179 +124,6 @@ func (renderer *Renderer) Execute() {
 		}
 	}()
 
-}
-
-func (renderer *Renderer) Error404(writer io.Writer) {
-
-	// get the 404 page template
-	templateType := templates.ErrorTemplateName
-	template, err := renderer.templateProvider.GetFullTemplate(templateType)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "No template of type %s found.", templateType)
-		return
-	}
-
-	// create a error view model
-	title := "Not found"
-	content := fmt.Sprintf("The requested item was not found.")
-	errorModel := view.Error(title, content, renderer.root.RelativePath, renderer.root.AbsolutePath)
-
-	// attach the toplevel navigation
-	errorModel.ToplevelNavigation = renderer.root.ToplevelNavigation
-
-	// attach the bread crumb navigation
-	errorModel.BreadcrumbNavigation = renderer.root.BreadcrumbNavigation
-
-	// render the template
-	writeTemplate(errorModel, template, writer)
-}
-
-func (renderer *Renderer) Sitemap(writer io.Writer, host string) {
-
-	if renderer.root == nil {
-		fmt.Println("The root is not ready yet.")
-		return
-	}
-
-	// get the sitemap content template
-	sitemapContentTemplate, err := renderer.templateProvider.GetSubTemplate(templates.SitemapContentTemplateName)
-	if err != nil {
-		return
-	}
-
-	// get the sitemap template
-	sitemapTemplate, err := renderer.templateProvider.GetFullTemplate(templates.SitemapTemplateName)
-	if err != nil {
-		return
-	}
-
-	// render the sitemap content
-	sitemapContentModel := mapper.MapSitemap(renderer.root)
-	sitemapContent := renderer.renderSitemapEntry(sitemapContentTemplate, sitemapContentModel)
-
-	sitemapPageModel := view.Model{
-		Title:                "Sitemap",
-		Description:          "A list of all items in this repository.",
-		Content:              sitemapContent,
-		ToplevelNavigation:   renderer.root.ToplevelNavigation,
-		BreadcrumbNavigation: renderer.root.BreadcrumbNavigation,
-		Type:                 "sitemap",
-	}
-
-	writeTemplate(sitemapPageModel, sitemapTemplate, writer)
-}
-
-func (renderer *Renderer) XMLSitemap(w io.Writer, host string) {
-
-	fmt.Fprintln(w, `<?xml version="1.0" encoding="UTF-8"?>`)
-	fmt.Fprintln(w, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
-
-	// get all child items
-	items := repository.GetAllChilds(renderer.root)
-
-	// sort the items by date and folder name
-	dateAndFolder := func(item1, item2 *repository.Item) bool {
-
-		if item1.MetaData.Date.Equal(item2.MetaData.Date) {
-			// ascending by directory name
-			return filepath.Base(item1.Directory()) < filepath.Base(item2.Directory())
-		}
-
-		// descending by date
-		return item1.MetaData.Date.After(item2.MetaData.Date)
-	}
-
-	repository.By(dateAndFolder).Sort(items)
-
-	for _, item := range items {
-		fmt.Fprintln(w, `<url>`)
-		fmt.Fprintln(w, fmt.Sprintf(`<loc>%s</loc>`, getItemLocation(host, item)))
-		fmt.Fprintln(w, fmt.Sprintf(`<lastmod>%s</lastmod>`, getItemDate(item)))
-		fmt.Fprintln(w, `</url>`)
-	}
-
-	fmt.Fprintln(w, `</urlset>`)
-
-}
-
-func (renderer *Renderer) RSS(writer io.Writer, host string) {
-
-	fmt.Fprintln(writer, `<?xml version="1.0" encoding="UTF-8"?>`)
-	fmt.Fprintln(writer, `<rss version="2.0">`)
-	fmt.Fprintln(writer, `<channel>`)
-
-	fmt.Fprintln(writer)
-	fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, renderer.root.Title))
-	fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, renderer.root.Description))
-	fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(host, renderer.root)))
-	fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(renderer.root)))
-	fmt.Fprintln(writer)
-
-	// get all child items
-	items := repository.GetAllChilds(renderer.root)
-
-	// sort the items by date and folder name
-	repository.By(dateAndFolder).Sort(items)
-
-	for _, i := range items {
-
-		// skip the root
-		if i == renderer.root {
-			continue
-		}
-
-		fmt.Fprintln(writer, `<item>`)
-		fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, i.Title))
-		fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, i.Description))
-		fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(host, i)))
-		fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(i)))
-		fmt.Fprintln(writer, `</item>`)
-		fmt.Fprintln(writer)
-	}
-
-	fmt.Fprintln(writer, `</channel>`)
-	fmt.Fprintln(writer, `</rss>`)
-
-}
-
-func getItemDate(item *repository.Item) string {
-	return item.Date
-}
-
-func getItemLocation(host string, item *repository.Item) string {
-	route := item.AbsoluteRoute
-	location := fmt.Sprintf(`http://%s/%s`, host, route)
-	return location
-}
-
-func (renderer *Renderer) renderSitemapEntry(templ *template.Template, sitemapModel *view.Sitemap) string {
-
-	// render
-	buffer := new(bytes.Buffer)
-	writeTemplate(sitemapModel, templ, buffer)
-
-	// get the produced html code
-	rootCode := buffer.String()
-
-	if len(sitemapModel.Childs) > 0 {
-
-		// render all childs
-
-		childCode := ""
-		for _, child := range sitemapModel.Childs {
-			childCode += "\n" + renderer.renderSitemapEntry(templ, child)
-		}
-
-		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, childCode, 1)
-
-	} else {
-
-		// no childs
-		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, "", 1)
-
-	}
-
-	return rootCode
 }
 
 func (renderer *Renderer) listenForChanges(item *repository.Item) {
