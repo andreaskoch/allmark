@@ -172,6 +172,9 @@ func (renderer *Renderer) render(item *repository.Item) {
 	// prepare the item
 	prepare(item)
 
+	// attach content
+	attachContent(item)
+
 	// render the bread crumb navigation
 	attachBreadcrumbNavigation(item)
 
@@ -214,12 +217,12 @@ func prepare(item *repository.Item) {
 	// parse the item
 	parser.Parse(item)
 
-	// convert the item
-	converted := html.Convert(item)
-	item.ConvertedContent = converted
-
 	// create the viewmodel
 	mapper.Map(item)
+}
+
+func attachContent(item *repository.Item) {
+	item.Content = html.Convert(item)
 }
 
 func writeTemplate(model interface{}, template *template.Template, writer io.Writer) {

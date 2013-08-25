@@ -25,7 +25,7 @@ func getDescription(item *repository.Item) string {
 }
 
 func getTitle(item *repository.Item) string {
-	text := pattern.HtmlTagPattern.ReplaceAllString(item.ConvertedContent, "")
+	text := pattern.HtmlTagPattern.ReplaceAllString(item.RawContent, "")
 	excerpt := getTextExcerpt(text, 30)
 	time := item.MetaData.Date.Format(time.RFC850)
 

@@ -40,7 +40,6 @@ func getModel(item *repository.Item) *view.Model {
 		AbsoluteRoute: item.AbsolutePath,
 		Title:         item.Title,
 		Description:   item.Description,
-		Content:       item.ConvertedContent,
 		LanguageTag:   getTwoLetterLanguageCode(item.MetaData.Language),
 		Date:          formatDate(item.MetaData.Date),
 		Type:          item.MetaData.ItemType,

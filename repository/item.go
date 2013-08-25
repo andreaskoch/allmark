@@ -31,11 +31,10 @@ type Item struct {
 	Parent *Item
 	Childs Items
 
-	Title            string
-	Description      string
-	RawContent       string
-	ConvertedContent string
-	MetaData         MetaData
+	Title       string
+	Description string
+	RawContent  string
+	MetaData    MetaData
 
 	AbsolutePath string
 	RelativePath string
