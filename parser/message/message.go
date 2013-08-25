@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark/parser/pattern"
 	"github.com/andreaskoch/allmark/repository"
+	"strings"
 	"time"
 )
 
 func Parse(item *repository.Item, lines []string) (sucess bool, err error) {
 
 	// raw markdown content
-	item.RawContent = lines
+	item.RawContent = strings.TrimSpace(strings.Join(lines, "\n"))
 
 	return true, nil
 }

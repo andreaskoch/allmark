@@ -33,7 +33,7 @@ type Item struct {
 
 	Title            string
 	Description      string
-	RawContent       []string
+	RawContent       string
 	ConvertedContent string
 	MetaData         MetaData
 

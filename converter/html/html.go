@@ -7,13 +7,12 @@ package html
 import (
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
-	"strings"
 )
 
 func Convert(item *repository.Item) string {
 
 	// assign the raw markdown content for the add-ins to work on
-	convertedContent := strings.TrimSpace(strings.Join(item.RawContent, "\n"))
+	convertedContent := item.RawContent
 
 	// render markdown extensions
 	convertedContent = renderImageGalleries(item, convertedContent)

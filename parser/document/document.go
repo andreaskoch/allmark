@@ -25,7 +25,7 @@ func Parse(item *repository.Item, lines []string, fallbackTitle string) (sucess 
 	item.Description, lines = getDescription(lines)
 
 	// raw markdown content
-	item.RawContent = lines
+	item.RawContent = strings.TrimSpace(strings.Join(lines, "\n"))
 
 	return true, nil
 }
