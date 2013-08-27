@@ -14,10 +14,10 @@ import (
 
 var (
 	// markdown headline which start with the headline text righ after the hash
-	markdownHeadlineStartWhitespace = regexp.MustCompile(`^(#+)([\S])`)
+	markdownHeadlineStartWhitespace = regexp.MustCompile(`^(#+)([^\s#])`)
 
 	// match headlines which have a hash at the end
-	markdownHeadlineClosingHeadline = regexp.MustCompile(`^(#+)\s+(.+?)\s+(#+)$`)
+	markdownHeadlineClosingHeadline = regexp.MustCompile(`^(#+)\s*(.+?)\s*(#+)$`)
 )
 
 // Parse an item with a title, description and content
