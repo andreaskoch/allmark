@@ -21,7 +21,7 @@ body {
     background: #fefefe;
     width: 75%;
     min-height: 100%;
-    margin: 0px auto 10px auto;
+    margin: 0px auto 1em auto;
     padding: 0 1em;
     outline: 1300px solid #FAFAFA;
 }
@@ -102,7 +102,7 @@ h4,h5,h6 {
 
 h1 {
     font-size: 2.5em;
-    margin: 0 0 15px 0;
+    margin: 0 0 1.2em 0;
 }
 
 h2 {
@@ -234,7 +234,7 @@ td {
 }
 
 body>footer {
-    margin: 25px 0 0 0;
+    margin: 2em 0 0 0;
     border-top: 1px solid #eee;
 }
 
@@ -250,7 +250,7 @@ body>footer>nav>ul {
 
 body>footer>nav>ul>li {
     display: inline;
-    margin-left: 10px;
+    margin-left: 1em;
 }
 
 body>footer>nav>ul>li>a {
@@ -261,7 +261,7 @@ body>footer>nav>ul>li>a {
 body>nav.toplevel {
     text-align: right;
     font-size: 1.1em;
-    margin: 0 0 15px 0;
+    margin: 0 0 1.2em 0;
     padding: 0;
     clear: both;
 }
@@ -326,17 +326,17 @@ article>.description {
 }
 
 .childs {
-    margin: 25px 0 0 0;
+    margin: 2em 0 0 0;
 }
 
 .childs>.list {
     list-style: none;
     padding: 5px 0 5px 0;
-    margin: 0 0 0 15px;    
+    margin: 0 0 0 1.2em;    
 }
 
 .childs>.list>.child {
-    margin: 0 0 15px 0;
+    margin: 0 0 1.2em 0;
 }
 
 .childs>.list>.child:nth-child(odd) {
@@ -345,6 +345,10 @@ article>.description {
 
 .childs>.list>.child:nth-child(even) {
     background-color:transparent;
+}
+
+.imagegallery {
+    margin: 2em 0;
 }
 
 .imagegallery>h1 {
@@ -365,7 +369,7 @@ article>.description {
 }
 
 .csv {
-    margin: 20px 0 0 20px;
+    margin: 2em 0 0 2em;
     overflow: auto;
 }
 
@@ -407,6 +411,7 @@ article>.description {
 .pdf {
     width: 80%;
     max-height: 80%;
+    margin: 2em 0;
 }
 
 .pdf>h1 {
@@ -434,7 +439,7 @@ article>.description {
 }
 
 section.video {
-    margin: 15px 0;
+    margin: 2em 0;
 }
 
 section.video>h1 {
@@ -447,7 +452,7 @@ section.video>h1 {
 
 .presentation nav {
     float: left;
-    margin: 25px 0 15px 0;
+    margin: 2em 0 1.2em 0;
     width: 100%;
     text-align: center;
 }
