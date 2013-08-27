@@ -15,6 +15,9 @@ import (
 var (
 	// markdown headline which start with the headline text righ after the hash
 	markdownHeadlineStartWhitespace = regexp.MustCompile(`^(#+)([\S])`)
+
+	// match headlines which have a hash at the end
+	markdownHeadlineClosingHeadline = regexp.MustCompile(`^(#+)\s+(.+?)\s+(#+)$`)
 )
 
 // Parse an item with a title, description and content
@@ -42,6 +45,9 @@ func cleanMarkdown(lines []string) []string {
 
 		// headline start
 		fixedLine = markdownHeadlineStartWhitespace.ReplaceAllString(fixedLine, "$1 $2")
+
+		// remove closing headline hashes
+		fixedLine = markdownHeadlineClosingHeadline.ReplaceAllString(fixedLine, "$2 $3")
 
 		// same the fixed line
 		if fixedLine != line {
