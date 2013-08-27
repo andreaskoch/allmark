@@ -11,7 +11,7 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func Map(item *repository.Item) *view.Model {
+func Map(item *repository.Item, content func(item *repository.Item) string) *view.Model {
 
 	var model *view.Model
 
@@ -19,8 +19,8 @@ func Map(item *repository.Item) *view.Model {
 	switch itemType := item.MetaData.ItemType; itemType {
 
 	case types.PresentationItemType, types.RepositoryItemType, types.DocumentItemType, types.MessageItemType:
-		model = getModel(item)
-		model.Childs = getSubModels(item)
+		model = getModel(item, content(item))
+		model.Childs = getSubModels(item, content)
 
 	default:
 		model = view.Error("Item type not recognized", fmt.Sprintf("There is no mapper available for items of type %q", itemType), item.RelativePath, item.AbsolutePath)
@@ -32,7 +32,7 @@ func Map(item *repository.Item) *view.Model {
 	return model
 }
 
-func getModel(item *repository.Item) *view.Model {
+func getModel(item *repository.Item, content string) *view.Model {
 
 	return &view.Model{
 		Level:         item.Level,
@@ -40,6 +40,7 @@ func getModel(item *repository.Item) *view.Model {
 		AbsoluteRoute: item.AbsolutePath,
 		Title:         item.Title,
 		Description:   item.Description,
+		Content:       content,
 		LanguageTag:   getTwoLetterLanguageCode(item.MetaData.Language),
 		Date:          formatDate(item.MetaData.Date),
 		Type:          item.MetaData.ItemType,
@@ -47,13 +48,13 @@ func getModel(item *repository.Item) *view.Model {
 
 }
 
-func getSubModels(item *repository.Item) []*view.Model {
+func getSubModels(item *repository.Item, content func(item *repository.Item) string) []*view.Model {
 
 	items := item.Childs
 	models := make([]*view.Model, 0)
 
 	for _, child := range items {
-		models = append(models, Map(child))
+		models = append(models, Map(child, content))
 	}
 
 	return models
