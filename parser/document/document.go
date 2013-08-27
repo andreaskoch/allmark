@@ -12,6 +12,11 @@ import (
 	"strings"
 )
 
+var (
+	// markdown headline which start with the headline text righ after the hash
+	markdownHeadlineStartWhitespace = regexp.MustCompile(`^(#+)([\S])`)
+)
+
 // Parse an item with a title, description and content
 func Parse(item *repository.Item, lines []string, fallbackTitle string) (sucess bool, err error) {
 
@@ -25,9 +30,26 @@ func Parse(item *repository.Item, lines []string, fallbackTitle string) (sucess 
 	item.Description, lines = getDescription(lines)
 
 	// raw markdown content
-	item.RawContent = strings.TrimSpace(strings.Join(lines, "\n"))
+	item.RawContent = strings.TrimSpace(strings.Join(cleanMarkdown(lines), "\n"))
 
 	return true, nil
+}
+
+func cleanMarkdown(lines []string) []string {
+	for index, line := range lines {
+
+		fixedLine := line
+
+		// headline start
+		fixedLine = markdownHeadlineStartWhitespace.ReplaceAllString(fixedLine, "$1 $2")
+
+		// same the fixed line
+		if fixedLine != line {
+			lines[index] = fixedLine
+		}
+	}
+
+	return lines
 }
 
 func getMatchingValue(lines []string, matchPattern *regexp.Regexp) (string, []string) {
