@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark/parser/document"
 	"github.com/andreaskoch/allmark/parser/message"
 	"github.com/andreaskoch/allmark/parser/metadata"
+	"github.com/andreaskoch/allmark/parser/presentation"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/util"
@@ -75,9 +76,19 @@ func parsePhysical(item *repository.Item) (*repository.Item, error) {
 
 	// parse the content
 	switch itemType := item.MetaData.ItemType; itemType {
-	case types.RepositoryItemType, types.DocumentItemType, types.PresentationItemType:
+
+	case types.RepositoryItemType, types.DocumentItemType:
 		{
 			if success, err := document.Parse(item, lines, fallbackTitle); success {
+				return item, nil
+			} else {
+				return nil, err
+			}
+		}
+
+	case types.PresentationItemType:
+		{
+			if success, err := presentation.Parse(item, lines, fallbackTitle); success {
 				return item, nil
 			} else {
 				return nil, err
@@ -95,6 +106,7 @@ func parsePhysical(item *repository.Item) (*repository.Item, error) {
 
 	default:
 		return nil, fmt.Errorf("Item %q (type: %s) cannot be parsed.", item.Path(), itemType)
+
 	}
 
 	panic("Unreachable")
