@@ -26,9 +26,6 @@ func Convert(item *repository.Item, pathProvider *path.Provider) string {
 	// assign the raw markdown content for the add-ins to work on
 	convertedContent := item.RawContent
 
-	// rewrite all links
-	convertedContent = rewireLinks(files, pathProvider, convertedContent)
-
 	// render markdown extensions
 	convertedContent = renderImageGalleries(files, pathProvider, convertedContent)
 	convertedContent = renderFileLinks(files, pathProvider, convertedContent)
@@ -36,6 +33,9 @@ func Convert(item *repository.Item, pathProvider *path.Provider) string {
 	convertedContent = renderPDFs(files, pathProvider, convertedContent)
 	convertedContent = renderVideos(files, pathProvider, convertedContent)
 	convertedContent = renderAudio(files, pathProvider, convertedContent)
+
+	// rewrite all links
+	convertedContent = rewireLinks(files, pathProvider, convertedContent)
 
 	// render markdown
 	convertedContent = renderMarkdown(files, pathProvider, convertedContent)
