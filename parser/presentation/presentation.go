@@ -5,7 +5,6 @@
 package presentation
 
 import (
-	"fmt"
 	"github.com/andreaskoch/allmark/parser/document"
 	"github.com/andreaskoch/allmark/parser/pattern"
 	"github.com/andreaskoch/allmark/repository"
@@ -14,8 +13,8 @@ import (
 )
 
 var (
-	// markdown headline which start with the headline text righ after the hash
-	markdownHeadlineStartWhitespace = regexp.MustCompile(`^(#+)([^\s#])`)
+	// markdown headline pattern
+	anyLevelMarkdownHeadline = regexp.MustCompile(`^(#+?)([^#].+?[^#])(#*)$`)
 )
 
 // Parse an item with a title, description and content
@@ -30,9 +29,6 @@ func Parse(item *repository.Item, lines []string, fallbackTitle string) (sucess 
 	presentationLines := make([]string, 0)
 	lines = strings.Split(item.RawContent, "\n")
 
-	highestHeadlineLevel := 6
-	lowestHeadlineLevel := 1
-
 	// separate the slides with horizontal rule
 	for lineNumber, line := range lines {
 
@@ -42,44 +38,34 @@ func Parse(item *repository.Item, lines []string, fallbackTitle string) (sucess 
 			continue
 		}
 
-		// determine the headline level
-		headlineLevel, err := getHeadlineLevel(line)
-		if err != nil {
-			panic(err)
-		}
+		// prepend a horizontal rule if
+		// - its not the first line
+		// - the headline is not already preceeded with a horizontal rule
+		if lineNumber > 0 && !horizontalRuleAlreadyPresentIn(lines[0:lineNumber-1]) {
 
-		// capture the highest headline level
-		if headlineLevel < highestHeadlineLevel {
-			highestHeadlineLevel = headlineLevel
-		}
-
-		// capture the lowest headline level
-		if headlineLevel > lowestHeadlineLevel {
-			lowestHeadlineLevel = headlineLevel
-		}
-
-		// get the lines before this line
-		if lineNumber > 0 && horizontalRuleAlreadyPresentIn(lines[0:lineNumber-1]) {
-
-			// headline is already preceeded by horizontal rule
-			presentationLines = append(presentationLines, line)
-
-		} else {
-
-			// prepend a horizontal rule
 			presentationLines = append(presentationLines, "")
 			presentationLines = append(presentationLines, "---")
 			presentationLines = append(presentationLines, "")
 
-			presentationLines = append(presentationLines, line)
 		}
 
+		// Fix the headline levels:
+		// If the current line is followed by content make the current headline a level-two headline.
+		// If the current line is not followed by content make the current headline a level-one headline.
+		if lineNumber < len(lines)-1 && followingLinesContainContent(lines[lineNumber+1:]) {
+
+			// slide with content -> h2 headline
+			secondLevelHeadline := anyLevelMarkdownHeadline.ReplaceAllString(line, "## $2")
+			presentationLines = append(presentationLines, secondLevelHeadline)
+
+		} else {
+
+			// slide without content -> h1 headline
+			firstLevelHeadline := anyLevelMarkdownHeadline.ReplaceAllString(line, "# $2")
+			presentationLines = append(presentationLines, firstLevelHeadline)
+
+		}
 	}
-
-	// normalize the headline levels
-	// for lineNumber, line := range lines {
-
-	// }
 
 	// save the presentation code
 	item.RawContent = strings.TrimSpace(strings.Join(presentationLines, "\n"))
@@ -87,30 +73,14 @@ func Parse(item *repository.Item, lines []string, fallbackTitle string) (sucess 
 	return true, nil
 }
 
-func getHeadlineLevel(line string) (int, error) {
-
-	if !isHeadline(line) {
-		return 0, fmt.Errorf("The line %q is not a headline.", line)
-	}
-
-	level := 0
-	for _, character := range line {
-
-		if string(character) == `#` {
-			level++
-		} else {
-			break
-		}
-	}
-
-	return level, nil
-
+// Determine whether the supplied text
+// is a markdown headline.
+func isHeadline(text string) bool {
+	return strings.HasPrefix(text, "#")
 }
 
-func isHeadline(line string) bool {
-	return strings.HasPrefix(line, "#")
-}
-
+// Determine whether the supplied lines contain a horizontal rule
+// before a line contains actual content.
 func horizontalRuleAlreadyPresentIn(lines []string) bool {
 	if len(lines) == 0 {
 		return false
@@ -126,5 +96,37 @@ func horizontalRuleAlreadyPresentIn(lines []string) bool {
 		return pattern.HorizontalRulePattern.MatchString(line)
 	}
 
-	return false
+	panic("Unreachable")
+}
+
+// Determine if the supplied lines contain content before
+// the next slide-end (horizontal rule or headine).
+func followingLinesContainContent(lines []string) bool {
+	if len(lines) == 0 {
+		return false
+	}
+
+	for _, line := range lines {
+
+		// an empty line is not content.
+		if pattern.EmptyLinePattern.MatchString(line) {
+			continue
+		}
+
+		// if there is another headline, there is no more content.
+		if isHeadline(line) {
+			return false
+		}
+
+		// if there is a horizontal rule, there is no more content.
+		if pattern.HorizontalRulePattern.MatchString(line) {
+			return false
+		}
+
+		// if it is not white-space, a headline or a
+		// horizontal rule it must be content.
+		return true
+	}
+
+	panic("Unreachable")
 }
