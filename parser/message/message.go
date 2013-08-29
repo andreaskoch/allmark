@@ -12,7 +12,16 @@ import (
 	"time"
 )
 
-func Parse(item *repository.Item, lines []string) (sucess bool, err error) {
+func Parse(item *repository.Item, lines []string, fallbackTitle string) (sucess bool, err error) {
+
+	// title
+	item.Title = getTitle(item)
+	if item.Title == "" {
+		item.Title = fallbackTitle
+	}
+
+	// description
+	item.Description = getDescription(item)
 
 	// raw markdown content
 	item.RawContent = strings.TrimSpace(strings.Join(lines, "\n"))

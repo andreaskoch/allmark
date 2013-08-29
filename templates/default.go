@@ -176,12 +176,12 @@ const presentationTemplate = `
 `
 
 const messageTemplate = `
-<section class="content">
-{{.Content}}
-</section>
-
 <section class="description">
 {{.Description}}
+</section>
+
+<section class="content">
+{{.Content}}
 </section>
 `
 

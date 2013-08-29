@@ -97,7 +97,7 @@ func parsePhysical(item *repository.Item) (*repository.Item, error) {
 
 	case types.MessageItemType:
 		{
-			if success, err := message.Parse(item, lines); success {
+			if success, err := message.Parse(item, lines, fallbackTitle); success {
 				return item, nil
 			} else {
 				return nil, err
