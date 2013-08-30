@@ -21,7 +21,7 @@ var (
 	DescriptionPattern = regexp.MustCompile(`^[\pL\pN\p{Latin}]+.+`)
 
 	// Lines which nothing but dashes
-	HorizontalRulePattern = regexp.MustCompile(`^-{2,}`)
+	HorizontalRulePattern = regexp.MustCompile(`^-{3,}$`)
 
 	// Lines with a "key: value" syntax
 	MetaDataPattern = regexp.MustCompile(`^(\w+):\s*([\pL\pN\p{Latin}]+.+)$`)
