@@ -20,7 +20,7 @@ var (
 // Parse an item with a title, description and content
 func Parse(item *repository.Item, lines []string, fallbackTitle string) (sucess bool, err error) {
 
-	// parse the document
+	// use the document parser. a presentation has the same structure as a document
 	if success, err := document.Parse(item, lines, fallbackTitle); !success {
 		return sucess, err
 	}
