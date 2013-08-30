@@ -32,13 +32,10 @@ func (renderer *Renderer) RSS(writer io.Writer, host string) {
 
 	for _, i := range items {
 
-		// skip the root
-		if i == renderer.root {
-			continue
-		}
-
 		// render content for rss
-		description := html.Convert(i, renderer.root.FilePathProvider())
+		filePathProvider := renderer.root.FilePathProvider()
+		httpRouteProvider := filePathProvider.NewHttpPathProvider(host)
+		description := html.Convert(i, httpRouteProvider)
 
 		fmt.Fprintln(writer, `<item>`)
 		fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, i.Title))

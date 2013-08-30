@@ -23,6 +23,23 @@ const (
 	WebServerDefaultFilename = "index.html"
 )
 
+func NewHttpPathProvider(hostname, basePath string, useTempDir bool) *Provider {
+
+	// create a unique temp directory
+	baseDirHash := util.GetHash(basePath)
+	tempDir := filepath.Join(os.TempDir(), baseDirHash)
+	if useTempDir {
+		util.CreateDirectory(tempDir)
+	}
+
+	return &Provider{
+		hostname:   hostname,
+		basePath:   basePath,
+		tempDir:    tempDir,
+		useTempDir: useTempDir,
+	}
+}
+
 func NewProvider(basePath string, useTempDir bool) *Provider {
 
 	// create a unique temp directory
@@ -40,6 +57,7 @@ func NewProvider(basePath string, useTempDir bool) *Provider {
 }
 
 type Provider struct {
+	hostname   string
 	basePath   string
 	tempDir    string
 	useTempDir bool
@@ -47,6 +65,10 @@ type Provider struct {
 
 func (provider *Provider) New(basePath string) *Provider {
 	return NewProvider(basePath, provider.UseTempDir())
+}
+
+func (provider *Provider) NewHttpPathProvider(hostname string) *Provider {
+	return NewHttpPathProvider(hostname, provider.BasePath(), provider.UseTempDir())
 }
 
 func (provider *Provider) BasePath() string {
@@ -63,13 +85,23 @@ func (provider *Provider) TempDir() string {
 
 func (provider *Provider) GetWebRoute(pather Pather) string {
 
+	// attach hostname if it is set
+	host := ""
+	if provider.hostname != "" {
+		host = "http://" + provider.hostname + "/"
+	}
+
 	switch pathType := pather.PathType(); pathType {
+
 	case PatherTypeItem:
-		return util.EncodeUrl(provider.getItemRoute(pather))
+		return host + util.EncodeUrl(provider.getItemRoute(pather))
+
 	case PatherTypeFile, PatherTypeIndex:
-		return util.EncodeUrl(provider.getFileRoute(pather))
+		return host + util.EncodeUrl(provider.getFileRoute(pather))
+
 	default:
 		panic(fmt.Sprintf("Unknown pather type %q", pathType))
+
 	}
 
 	panic("Unreachable. Unknown pather type")
