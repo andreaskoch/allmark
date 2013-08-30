@@ -47,7 +47,7 @@ func cleanMarkdown(lines []string) []string {
 		fixedLine = markdownHeadlineStartWhitespace.ReplaceAllString(fixedLine, "$1 $2")
 
 		// remove closing headline hashes
-		fixedLine = markdownHeadlineClosingHeadline.ReplaceAllString(fixedLine, "$2 $3")
+		fixedLine = markdownHeadlineClosingHeadline.ReplaceAllString(fixedLine, "$1 $2")
 
 		// same the fixed line
 		if fixedLine != line {
