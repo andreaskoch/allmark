@@ -6,7 +6,7 @@ package repository
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark/path"
+	p "github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/go-fswatch"
 	"io/ioutil"
 	"path/filepath"
@@ -17,7 +17,7 @@ func skipFiles(path string) bool {
 	return false
 }
 
-func newFileIndex(rootPathProvider *path.Provider, directory string) (*FileIndex, error) {
+func newFileIndex(rootPathProvider *p.Provider, directory string) (*FileIndex, error) {
 
 	// create a relative path provider
 	relativePathProvider := rootPathProvider.New(filepath.Dir(directory))
@@ -69,8 +69,8 @@ type FileIndex struct {
 	Changed chan bool
 	Stopped chan bool
 
-	rootPathProvider     *path.Provider
-	relativePathProvider *path.Provider
+	rootPathProvider     *p.Provider
+	relativePathProvider *p.Provider
 
 	files []*File
 	path  string
@@ -96,19 +96,19 @@ func (fileIndex *FileIndex) Items() []*File {
 	return fileIndex.files
 }
 
-func (fileIndex *FileIndex) RootPathProvider() *path.Provider {
+func (fileIndex *FileIndex) RootPathProvider() *p.Provider {
 	return fileIndex.rootPathProvider
 }
 
-func (fileIndex *FileIndex) RelativePathProvider() *path.Provider {
+func (fileIndex *FileIndex) RelativePathProvider() *p.Provider {
 	return fileIndex.relativePathProvider
 }
 
-func (fileIndex *FileIndex) FilesByPath(path string, condition func(pather path.Pather) bool) []*File {
+func (fileIndex *FileIndex) FilesByPath(path string, condition func(pather p.Pather) bool) []*File {
 
 	// normalize path
-	path = strings.Replace(path, path.UrlDirectorySeperator, path.FilesystemDirectorySeperator, -1)
-	path = strings.Trim(path, path.FilesystemDirectorySeperator)
+	path = strings.Replace(path, p.UrlDirectorySeperator, p.FilesystemDirectorySeperator, -1)
+	path = strings.Trim(path, p.FilesystemDirectorySeperator)
 
 	// make path relative
 	if strings.Index(path, FilesDirectoryName) == 0 {
@@ -140,7 +140,7 @@ func (fileIndex *FileIndex) update() {
 	fileIndex.files = getFiles(fileIndex.RootPathProvider(), fileIndex.Directory())
 }
 
-func getFiles(rootPathProvider *path.Provider, directory string) []*File {
+func getFiles(rootPathProvider *p.Provider, directory string) []*File {
 
 	files := make([]*File, 0)
 
