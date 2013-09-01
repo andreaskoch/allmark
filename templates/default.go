@@ -125,6 +125,19 @@ const documentTemplate = `
 
 <div class="cleaner"></div>
 
+{{ if .Tags }}
+<section class="tags">
+Tags:
+<ul class="list">
+{{range .Tags}}
+<li class="tag">
+	{{.Name}}
+</li>
+{{end}}
+</ul>
+</section>
+{{end}}
+
 <section class="childs">
 <ol class="list">
 {{range .Childs}}

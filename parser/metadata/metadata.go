@@ -150,19 +150,9 @@ func locateMetaData(lines []string) (Match, []string) {
 	return NotFound(), lines
 }
 
-func getTagsFromValue(value string) []string {
+func getTagsFromValue(value string) repository.Tags {
 	rawTags := strings.Split(value, ",")
-	tags := make([]string, 0, 1)
-
-	for _, tag := range rawTags {
-		trimmedTag := strings.TrimSpace(tag)
-		if trimmedTag != "" {
-			tags = append(tags, trimmedTag)
-		}
-
-	}
-
-	return tags
+	return repository.NewTags(rawTags)
 }
 
 func getItemModificationTime(item *repository.Item) (time.Time, error) {

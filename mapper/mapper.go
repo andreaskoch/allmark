@@ -44,8 +44,21 @@ func getModel(item *repository.Item, content string) *view.Model {
 		LanguageTag:   getTwoLetterLanguageCode(item.MetaData.Language),
 		Date:          formatDate(item.MetaData.Date),
 		Type:          item.MetaData.ItemType,
+		Tags:          getTags(item),
 	}
 
+}
+
+func getTags(item *repository.Item) []*view.Tag {
+	tagModels := make([]*view.Tag, 0)
+
+	for _, tag := range item.MetaData.Tags {
+		tagModels = append(tagModels, &view.Tag{
+			Name: tag.Name,
+		})
+	}
+
+	return tagModels
 }
 
 func getSubModels(item *repository.Item, content func(item *repository.Item) string) []*view.Model {

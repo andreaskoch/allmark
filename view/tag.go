@@ -2,15 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package repository
+package view
 
-import (
-	"time"
-)
-
-type MetaData struct {
-	Language string
-	Date     time.Time
-	Tags     Tags
-	ItemType string
+type Tag struct {
+	Name string `json:"name"`
 }

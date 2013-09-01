@@ -149,6 +149,9 @@ func (renderer *Renderer) listenForChanges(item *repository.Item) {
 
 func (renderer *Renderer) removeItem(item *repository.Item) {
 
+	// un-register tags
+	tags.Remove(item)
+
 	targetPath := renderer.pathProvider.GetRenderTargetPath(item)
 
 	go func() {
@@ -211,8 +214,12 @@ func (renderer *Renderer) render(item *repository.Item) {
 }
 
 func prepare(item *repository.Item) {
+
 	// parse the item
 	parser.Parse(item)
+
+	// register tags
+	tags.Add(item)
 
 	// content converter
 	content := func(i *repository.Item) string {
@@ -227,6 +234,5 @@ func writeTemplate(model interface{}, template *template.Template, writer io.Wri
 	err := template.Execute(writer, model)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(2)
 	}
 }
