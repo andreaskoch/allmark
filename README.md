@@ -31,15 +31,13 @@ allmark is a lightweight markdown web server for Linux, Mac OS and Windows writt
 - Posting comments
 - Rendering / Markdown extensions
     - 360° panoramas
-    - image galleries (implemented but need improvement)
+    - image galleries (implemented but needs improvement)
     - file lists (implemented but needs improvement)
     - cross references
     - tag links
     - geo locations
 - Different file formats
     - json
-    - RSS / ATOM
-    - rtf?
 - Web Server
     - Cache Header Management
 - Search
