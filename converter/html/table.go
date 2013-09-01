@@ -36,24 +36,28 @@ func renderCSVTables(fileIndex *repository.FileIndex, pathProvider *path.Provide
 		title := strings.TrimSpace(matches[1])
 		path := strings.TrimSpace(matches[2])
 
-		// create image gallery code
+		// get the file path
 		files := fileIndex.FilesByPath(path, isCSVFile)
 
 		if len(files) == 0 {
+
 			// file not found remove entry
-			msg := fmt.Sprintf("<!-- Cannot render table. The file %q could not be found -->", path)
+			msg := fmt.Sprintf("<!-- Cannot render table. The file %q was not found -->", path)
 			markdown = strings.Replace(markdown, originalText, msg, 1)
 			continue
+
 		}
 
 		matchedFile := files[0]
 		realFilePath := matchedFile.Path()
 		tableData, err := readCSV(realFilePath)
 		if err != nil {
+
 			// file not found remove entry
 			msg := fmt.Sprintf("<!-- Cannot read csv file %q (Error: %s) -->", path, err)
 			markdown = strings.Replace(markdown, originalText, msg, 1)
 			continue
+
 		}
 
 		relativeFilePath := pathProvider.GetWebRoute(matchedFile)

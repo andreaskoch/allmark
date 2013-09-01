@@ -480,6 +480,14 @@ section.video>h1 {
     padding: 10px;
 }
 
+.filepreview {
+    margin: 2em 0;
+}
+
+.filepreview>h1 {
+    font-size: 1.2em;
+}
+
 /* first level */
 .sitemap>.content>ol {
     list-style: none;

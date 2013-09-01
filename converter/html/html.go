@@ -33,6 +33,7 @@ func Convert(item *repository.Item, pathProvider *path.Provider) string {
 	convertedContent = renderPDFs(files, pathProvider, convertedContent)
 	convertedContent = renderVideos(files, pathProvider, convertedContent)
 	convertedContent = renderAudio(files, pathProvider, convertedContent)
+	convertedContent = renderFilePreview(files, pathProvider, convertedContent)
 
 	// rewrite all links
 	convertedContent = rewireLinks(files, pathProvider, convertedContent)
