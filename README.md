@@ -6,6 +6,11 @@ allmark is a lightweight markdown web server for Linux, Mac OS and Windows writt
 
 [![Build Status](https://travis-ci.org/andreaskoch/allmark.png)](https://travis-ci.org/andreaskoch/allmark)
 
+## Dependencies
+
+- [Blackfriday: a markdown processor for Go](https://github.com/russross/blackfriday)
+- [go-fswatch: a library for monitoring file system changes](https://github.com/andreaskoch/go-fswatch)
+
 ## Roadmap / To Dos
 
 - Run on Raspberry Pi / WDLXTV ("Host your blog from your home")
