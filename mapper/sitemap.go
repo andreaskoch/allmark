@@ -9,16 +9,12 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func MapSitemap(root *repository.Item) *view.Sitemap {
-	return mapSitemap(root)
-}
-
-func mapSitemap(item *repository.Item) *view.Sitemap {
+func MapSitemap(item *repository.Item) *view.Sitemap {
 
 	// map the childs
 	childs := make([]*view.Sitemap, 0)
 	for _, child := range item.Childs {
-		childs = append(childs, mapSitemap(child))
+		childs = append(childs, MapSitemap(child))
 	}
 
 	// map the item

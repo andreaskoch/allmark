@@ -11,7 +11,6 @@ import (
 	"github.com/andreaskoch/allmark/templates"
 	"github.com/andreaskoch/allmark/view"
 	"io"
-	"strings"
 	"text/template"
 )
 
@@ -37,10 +36,10 @@ func (renderer *Renderer) Tags(writer io.Writer, host string) {
 	}
 
 	// render the tagmap content
-	tagmapContentModel := mapper.MapSitemap(renderer.root)
-	tagmapContent := renderer.renderTagmapEntry(tagmapContentTemplate, tagmapContentModel)
+	tagmapModel := mapper.MapTagmap(tags)
+	tagmapContent := renderer.renderTagmap(tagmapContentTemplate, &tagmapModel)
 
-	sitemapPageModel := view.Model{
+	tagmapPageModel := view.Model{
 		Title:                "Tags",
 		Description:          "A list of all tags in this repository.",
 		Content:              tagmapContent,
@@ -49,35 +48,17 @@ func (renderer *Renderer) Tags(writer io.Writer, host string) {
 		Type:                 "tagmap",
 	}
 
-	writeTemplate(sitemapPageModel, tagmapTemplate, writer)
+	writeTemplate(tagmapPageModel, tagmapTemplate, writer)
 }
 
-func (renderer *Renderer) renderTagmapEntry(templ *template.Template, sitemapModel *view.Sitemap) string {
+func (renderer *Renderer) renderTagmap(templ *template.Template, tagmapModel *view.TagMap) string {
 
 	// render
 	buffer := new(bytes.Buffer)
-	writeTemplate(sitemapModel, templ, buffer)
+	writeTemplate(tagmapModel, templ, buffer)
 
 	// get the produced html code
 	rootCode := buffer.String()
-
-	if len(sitemapModel.Childs) > 0 {
-
-		// render all childs
-
-		childCode := ""
-		for _, child := range sitemapModel.Childs {
-			childCode += "\n" + renderer.renderSitemapEntry(templ, child)
-		}
-
-		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, childCode, 1)
-
-	} else {
-
-		// no childs
-		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, "", 1)
-
-	}
 
 	return rootCode
 }

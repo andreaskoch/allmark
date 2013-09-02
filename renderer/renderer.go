@@ -19,6 +19,14 @@ import (
 	"text/template"
 )
 
+var (
+	tags repository.TagMap
+)
+
+func init() {
+	tags = repository.NewTagMap()
+}
+
 type Renderer struct {
 	Rendered chan *repository.Item
 	Removed  chan *repository.Item

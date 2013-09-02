@@ -244,16 +244,14 @@ const sitemapTemplate = `
 </section>
 `
 
-var tagmapContentTemplate = fmt.Sprintf(`
+var tagmapContentTemplate = `
 <li>
 	<a href="{{.AbsoluteRoute}}" {{ if .Description }}title="{{.Description}}"{{ end }}>{{.Title}}</a>
 
 	{{ if .Childs }}	
-	<ol>
-	%s
-	</ol>
+	Childs
 	{{ end }}
-</li>`, ChildTemplatePlaceholder)
+</li>`
 
 const tagmapTemplate = `
 <header>

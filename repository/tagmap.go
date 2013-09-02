@@ -2,27 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package renderer
+package repository
 
-import (
-	"github.com/andreaskoch/allmark/repository"
-)
+type TagMap map[Tag]ItemList
 
-var (
-	tags TagMap
-)
-
-func init() {
-	tags = newTagMap()
-}
-
-type TagMap map[repository.Tag]repository.ItemList
-
-func newTagMap() TagMap {
+func NewTagMap() TagMap {
 	return make(TagMap)
 }
 
-func (tagmap TagMap) Add(item *repository.Item) {
+func (tagmap TagMap) Add(item *Item) {
 
 	for _, tag := range item.MetaData.Tags {
 
@@ -34,14 +22,14 @@ func (tagmap TagMap) Add(item *repository.Item) {
 		} else {
 
 			// create a new item list
-			tagmap[tag] = repository.NewItemList(item)
+			tagmap[tag] = NewItemList(item)
 		}
 
 	}
 
 }
 
-func (tagmap TagMap) Remove(item *repository.Item) {
+func (tagmap TagMap) Remove(item *Item) {
 
 	for _, tag := range item.MetaData.Tags {
 
