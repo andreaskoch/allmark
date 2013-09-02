@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
+	"html"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
@@ -91,7 +92,13 @@ func getFileContent(path string) (fileContent string, contentType string, err er
 		return "", "", err
 	}
 
+	// convert to string
 	fileContent = string(content)
+
+	// escape html charachters
+	fileContent = html.EscapeString(fileContent)
+
+	// get the content type
 	contentType = getFileType(path)
 
 	return fileContent, contentType, nil
