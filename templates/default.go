@@ -245,13 +245,22 @@ const sitemapTemplate = `
 `
 
 var tagmapContentTemplate = `
-<li>
-	<a href="{{.AbsoluteRoute}}" {{ if .Description }}title="{{.Description}}"{{ end }}>{{.Title}}</a>
-
-	{{ if .Childs }}	
-	Childs
-	{{ end }}
-</li>`
+<ul>
+{{range .Tags}}
+<li class="tag">
+	{{.Name}}
+	<ol>
+		{{range .Childs}}
+		<li class="child">
+			<a href="{{.RelativeRoute}}" class="child-title child-link">{{.Title}}</a>
+			<p class="child-description">{{.Description}}</p>
+		</li>
+		{{end}}
+	</ol>
+</li>
+{{end}}
+</ul>
+`
 
 const tagmapTemplate = `
 <header>
@@ -265,8 +274,6 @@ const tagmapTemplate = `
 </section>
 
 <section class="content">
-<ol>
 {{.Content}}
-</ol>
 </section>
 `
