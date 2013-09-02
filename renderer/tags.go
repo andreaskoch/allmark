@@ -5,58 +5,79 @@
 package renderer
 
 import (
-	"github.com/andreaskoch/allmark/repository"
+	"bytes"
+	"fmt"
+	"github.com/andreaskoch/allmark/mapper"
+	"github.com/andreaskoch/allmark/templates"
+	"github.com/andreaskoch/allmark/view"
+	"io"
+	"strings"
+	"text/template"
 )
 
-var (
-	tags TagMap
-)
+func (renderer *Renderer) Tags(writer io.Writer, host string) {
 
-func init() {
-	tags = newTagMap()
+	if renderer.root == nil {
+		fmt.Fprintf(writer, "The root is not ready yet.")
+		return
+	}
+
+	// get the tagmap content template
+	tagmapContentTemplate, err := renderer.templateProvider.GetSubTemplate(templates.TagmapContentTemplateName)
+	if err != nil {
+		fmt.Fprintf(writer, "Content template not found. Error: %s", err)
+		return
+	}
+
+	// get the tagmap template
+	tagmapTemplate, err := renderer.templateProvider.GetFullTemplate(templates.TagmapTemplateName)
+	if err != nil {
+		fmt.Fprintf(writer, "Template not found. Error: %s", err)
+		return
+	}
+
+	// render the tagmap content
+	tagmapContentModel := mapper.MapSitemap(renderer.root)
+	tagmapContent := renderer.renderTagmapEntry(tagmapContentTemplate, tagmapContentModel)
+
+	sitemapPageModel := view.Model{
+		Title:                "Tags",
+		Description:          "A list of all tags in this repository.",
+		Content:              tagmapContent,
+		ToplevelNavigation:   renderer.root.ToplevelNavigation,
+		BreadcrumbNavigation: renderer.root.BreadcrumbNavigation,
+		Type:                 "tagmap",
+	}
+
+	writeTemplate(sitemapPageModel, tagmapTemplate, writer)
 }
 
-type TagMap map[repository.Tag]repository.ItemList
+func (renderer *Renderer) renderTagmapEntry(templ *template.Template, sitemapModel *view.Sitemap) string {
 
-func newTagMap() TagMap {
-	return make(TagMap)
-}
+	// render
+	buffer := new(bytes.Buffer)
+	writeTemplate(sitemapModel, templ, buffer)
 
-func (tagmap TagMap) Add(item *repository.Item) {
+	// get the produced html code
+	rootCode := buffer.String()
 
-	for _, tag := range item.MetaData.Tags {
+	if len(sitemapModel.Childs) > 0 {
 
-		if itemlist, exists := tagmap[tag]; exists {
+		// render all childs
 
-			// add the item to the item list for this tag
-			itemlist.Add(item)
-
-		} else {
-
-			// create a new item list
-			tagmap[tag] = repository.NewItemList(item)
+		childCode := ""
+		for _, child := range sitemapModel.Childs {
+			childCode += "\n" + renderer.renderSitemapEntry(templ, child)
 		}
+
+		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, childCode, 1)
+
+	} else {
+
+		// no childs
+		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, "", 1)
 
 	}
 
-}
-
-func (tagmap TagMap) Remove(item *repository.Item) {
-
-	for _, tag := range item.MetaData.Tags {
-
-		if itemlist, exists := tagmap[tag]; exists {
-
-			// remove the item from the item list for this tag
-			itemlist.Remove(item)
-
-		} else {
-
-			// remove the complete tag
-			delete(tagmap, tag)
-
-		}
-
-	}
-
+	return rootCode
 }

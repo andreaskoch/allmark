@@ -61,6 +61,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <footer>
 	<nav>
 		<ul>
+			<li><a href="/tags.html">Tags</a></li>
 			<li><a href="/sitemap.html">Sitemap</a></li>
 			<li><a href="/rss.xml">RSS Feed</a></li>
 		</ul>
@@ -226,6 +227,35 @@ var sitemapContentTemplate = fmt.Sprintf(`
 </li>`, ChildTemplatePlaceholder)
 
 const sitemapTemplate = `
+<header>
+<h1 class="title">
+{{.Title}}
+</h1>
+</header>
+
+<section class="description">
+{{.Description}}
+</section>
+
+<section class="content">
+<ol>
+{{.Content}}
+</ol>
+</section>
+`
+
+var tagmapContentTemplate = fmt.Sprintf(`
+<li>
+	<a href="{{.AbsoluteRoute}}" {{ if .Description }}title="{{.Description}}"{{ end }}>{{.Title}}</a>
+
+	{{ if .Childs }}	
+	<ol>
+	%s
+	</ol>
+	{{ end }}
+</li>`, ChildTemplatePlaceholder)
+
+const tagmapTemplate = `
 <header>
 <h1 class="title">
 {{.Title}}

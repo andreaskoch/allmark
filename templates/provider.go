@@ -20,6 +20,8 @@ const (
 	ErrorTemplateName          = "error"
 	SitemapTemplateName        = "sitemap"
 	SitemapContentTemplateName = "sitemapcontent"
+	TagmapTemplateName         = "tagmap"
+	TagmapContentTemplateName  = "tagmapcontent"
 )
 
 type Provider struct {
@@ -38,6 +40,10 @@ func NewProvider(templateFolder string) *Provider {
 
 	templates[MasterTemplateName] = NewTemplate(templateFolder, MasterTemplateName, masterTemplate, templateModified)
 	templates[ErrorTemplateName] = NewTemplate(templateFolder, ErrorTemplateName, errorTemplate, templateModified)
+
+	templates[TagmapTemplateName] = NewTemplate(templateFolder, TagmapTemplateName, tagmapTemplate, templateModified)
+	templates[TagmapContentTemplateName] = NewTemplate(templateFolder, TagmapContentTemplateName, tagmapContentTemplate, templateModified)
+
 	templates[SitemapTemplateName] = NewTemplate(templateFolder, SitemapTemplateName, sitemapTemplate, templateModified)
 	templates[SitemapContentTemplateName] = NewTemplate(templateFolder, SitemapContentTemplateName, sitemapContentTemplate, templateModified)
 

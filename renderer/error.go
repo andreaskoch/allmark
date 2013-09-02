@@ -9,7 +9,6 @@ import (
 	"github.com/andreaskoch/allmark/templates"
 	"github.com/andreaskoch/allmark/view"
 	"io"
-	"os"
 )
 
 func (renderer *Renderer) Error404(writer io.Writer) {
@@ -18,7 +17,7 @@ func (renderer *Renderer) Error404(writer io.Writer) {
 	templateType := templates.ErrorTemplateName
 	template, err := renderer.templateProvider.GetFullTemplate(templateType)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "No template of type %s found.", templateType)
+		fmt.Fprintf(writer, "Template not found. Error: %s", err)
 		return
 	}
 

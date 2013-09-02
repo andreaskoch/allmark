@@ -27,6 +27,7 @@ var (
 
 	error404Handler   func(w http.ResponseWriter, r *http.Request)
 	xmlSitemapHandler func(w http.ResponseWriter, r *http.Request)
+	tagmapHandler     func(w http.ResponseWriter, r *http.Request)
 	sitemapHandler    func(w http.ResponseWriter, r *http.Request)
 	rssHandler        func(w http.ResponseWriter, r *http.Request)
 )
@@ -35,6 +36,7 @@ const (
 
 	// Dynamic Routes
 	ItemHandlerRoute       = "/"
+	TagmapHandlerRoute     = "/tags.html"
 	SitemapHandlerRoute    = "/sitemap.html"
 	XmlSitemapHandlerRoute = "/sitemap.xml"
 	RssHandlerRoute        = "/rss.xml"
@@ -84,6 +86,11 @@ func (server *Server) Serve() {
 		server.renderer.XMLSitemap(w, getHostnameFromRequest(r))
 	}
 
+	// initialize the tagmap handler
+	tagmapHandler = func(w http.ResponseWriter, r *http.Request) {
+		server.renderer.Tags(w, getHostnameFromRequest(r))
+	}
+
 	// initialize the sitemap handler
 	sitemapHandler = func(w http.ResponseWriter, r *http.Request) {
 		server.renderer.Sitemap(w, getHostnameFromRequest(r))
@@ -102,6 +109,7 @@ func (server *Server) Serve() {
 
 	// register handlers
 	http.HandleFunc(ItemHandlerRoute, itemHandler)
+	http.HandleFunc(TagmapHandlerRoute, tagmapHandler)
 	http.HandleFunc(SitemapHandlerRoute, sitemapHandler)
 	http.HandleFunc(XmlSitemapHandlerRoute, xmlSitemapHandler)
 	http.HandleFunc(RssHandlerRoute, rssHandler)

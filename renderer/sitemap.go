@@ -18,19 +18,21 @@ import (
 func (renderer *Renderer) Sitemap(writer io.Writer, host string) {
 
 	if renderer.root == nil {
-		fmt.Println("The root is not ready yet.")
+		fmt.Fprintf(writer, "The root is not ready yet.")
 		return
 	}
 
 	// get the sitemap content template
 	sitemapContentTemplate, err := renderer.templateProvider.GetSubTemplate(templates.SitemapContentTemplateName)
 	if err != nil {
+		fmt.Fprintf(writer, "Content template not found. Error: %s", err)
 		return
 	}
 
 	// get the sitemap template
 	sitemapTemplate, err := renderer.templateProvider.GetFullTemplate(templates.SitemapTemplateName)
 	if err != nil {
+		fmt.Fprintf(writer, "Template not found. Error: %s", err)
 		return
 	}
 
