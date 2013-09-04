@@ -16,19 +16,19 @@ func NewItemList(items ...*Item) ItemList {
 	return itemlist
 }
 
-func (itemlist ItemList) Add(item *Item) {
+func (itemlist ItemList) Add(item *Item) ItemList {
 
 	for _, existingItem := range itemlist {
 		if existingItem == item {
-			return // abort, item already exists
+			return itemlist // abort, item already exists
 		}
 	}
 
-	itemlist = append(itemlist, item)
+	return append(itemlist, item)
 
 }
 
-func (itemlist ItemList) Remove(item *Item) {
+func (itemlist ItemList) Remove(item *Item) ItemList {
 
 	newlist := make(ItemList, 0)
 
@@ -40,8 +40,9 @@ func (itemlist ItemList) Remove(item *Item) {
 		}
 	}
 
-	if itemRemoved {
-		itemlist = newlist
+	if !itemRemoved {
+		return itemlist
 	}
 
+	return newlist
 }

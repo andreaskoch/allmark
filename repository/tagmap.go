@@ -17,7 +17,7 @@ func (tagmap TagMap) Add(item *Item) {
 		if itemlist, exists := tagmap[tag]; exists {
 
 			// add the item to the item list for this tag
-			itemlist.Add(item)
+			tagmap[tag] = itemlist.Add(item)
 
 		} else {
 
@@ -36,7 +36,7 @@ func (tagmap TagMap) Remove(item *Item) {
 		if itemlist, exists := tagmap[tag]; exists {
 
 			// remove the item from the item list for this tag
-			itemlist.Remove(item)
+			tagmap[tag] = itemlist.Remove(item)
 
 		} else {
 
