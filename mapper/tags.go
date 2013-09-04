@@ -9,6 +9,13 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
+var (
+	// sort tags by name
+	byName = func(tag1, tag2 *view.Tag) bool {
+		return tag1.Name < tag2.Name
+	}
+)
+
 func MapTagmap(tagmap repository.TagMap) view.TagMap {
 
 	tags := make([]*view.Tag, 0)
@@ -18,6 +25,9 @@ func MapTagmap(tagmap repository.TagMap) view.TagMap {
 		tagModel := MapTag(tag, items)
 		tags = append(tags, tagModel)
 	}
+
+	// sort tags by name
+	view.SortTagBy(byName).Sort(tags)
 
 	return view.TagMap{
 		Tags: tags,
