@@ -23,7 +23,7 @@ func (by By) Sort(items Items) {
 
 type itemSorter struct {
 	items Items
-	by    func(item1, item2 *Item) bool
+	by    By
 }
 
 func (sorter *itemSorter) Len() int {
