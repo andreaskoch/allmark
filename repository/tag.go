@@ -25,6 +25,10 @@ func NewTag(name string) (*Tag, error) {
 	}, nil
 }
 
+func (tag *Tag) String() string {
+	return tag.Name
+}
+
 func normalizeTagName(name string) string {
 	return strings.ToLower(strings.TrimSpace(name))
 }
