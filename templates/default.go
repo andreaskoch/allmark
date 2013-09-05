@@ -132,7 +132,7 @@ Tags:
 <ul class="list">
 {{range .Tags}}
 <li class="tag">
-	{{.Name}}
+	<a href="{{.AbsoluteRoute}}" title="{{.Description}}">{{.Name}}</a>
 </li>
 {{end}}
 </ul>
@@ -248,7 +248,7 @@ var tagmapContentTemplate = `
 <ul>
 {{range .Tags}}
 <li class="tag">
-	{{.Name}}
+	<a name="{{.Name}}" title="{{.Description}}">{{.Name}}</a>
 	<ol>
 		{{range .Childs}}
 		<li class="child">

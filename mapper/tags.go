@@ -16,13 +16,13 @@ var (
 	}
 )
 
-func MapTagmap(tagmap repository.TagMap, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) view.TagMap {
+func MapTagmap(tagmap repository.TagMap, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) view.TagMap {
 
 	tags := make([]*view.Tag, 0)
 
 	for tag, items := range tagmap {
 
-		tagModel := MapTag(tag, items, relativePath, absolutePath, content)
+		tagModel := MapTag(tag, items, tagPath, relativePath, absolutePath, content)
 		tags = append(tags, tagModel)
 	}
 
@@ -34,18 +34,18 @@ func MapTagmap(tagmap repository.TagMap, relativePath func(item *repository.Item
 	}
 }
 
-func MapTag(tag repository.Tag, items repository.ItemList, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Tag {
+func MapTag(tag repository.Tag, items repository.ItemList, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Tag {
 
 	models := make([]*view.Model, 0)
 
 	for _, item := range items {
-		models = append(models, Map(item, relativePath, absolutePath, content))
+		models = append(models, Map(item, tagPath, relativePath, absolutePath, content))
 	}
 
 	return &view.Tag{
-		Name:          tag.Name,
-		AbsoluteRoute: tag.Name,
-		Description:   "not set",
+		Name:          tag.Name(),
+		AbsoluteRoute: tagPath(&tag),
+		Description:   "",
 		Childs:        models,
 	}
 }

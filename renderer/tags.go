@@ -52,7 +52,7 @@ func (renderer *Renderer) Tags(writer io.Writer, host string) {
 	}
 
 	// render the tagmap content
-	tagmapModel := mapper.MapTagmap(tags, relativePath, absolutePath, content)
+	tagmapModel := mapper.MapTagmap(tags, tagPath, relativePath, absolutePath, content)
 	tagmapContent := renderer.renderTagmap(tagmapContentTemplate, &tagmapModel)
 
 	tagmapPageModel := view.Model{

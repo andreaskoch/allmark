@@ -10,7 +10,7 @@ import (
 )
 
 type Tag struct {
-	Name string
+	name string
 }
 
 func NewTag(name string) (*Tag, error) {
@@ -21,12 +21,16 @@ func NewTag(name string) (*Tag, error) {
 	}
 
 	return &Tag{
-		Name: normalized,
+		name: normalized,
 	}, nil
 }
 
 func (tag *Tag) String() string {
-	return tag.Name
+	return tag.name
+}
+
+func (tag *Tag) Name() string {
+	return tag.name
 }
 
 func normalizeTagName(name string) string {

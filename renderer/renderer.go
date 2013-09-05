@@ -23,6 +23,10 @@ var (
 	tags repository.TagMap
 )
 
+func tagPath(tag *repository.Tag) string {
+	return fmt.Sprintf("/tags.html#%s", tag.Name())
+}
+
 func init() {
 	tags = repository.NewTagMap()
 }
@@ -245,7 +249,7 @@ func prepare(item *repository.Item) {
 	}
 
 	// create the viewmodel
-	mapper.Map(item, relativePath, absolutePath, content)
+	mapper.Map(item, tagPath, relativePath, absolutePath, content)
 }
 
 func writeTemplate(model interface{}, template *template.Template, writer io.Writer) {
