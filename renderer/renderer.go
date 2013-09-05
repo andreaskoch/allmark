@@ -229,13 +229,23 @@ func prepare(item *repository.Item) {
 	// register tags
 	tags.Add(item)
 
+	// relative file path provider
+	relativePath := func(item *repository.Item) string {
+		return item.RelativePath
+	}
+
+	// absolute file path provider
+	absolutePath := func(item *repository.Item) string {
+		return item.AbsolutePath
+	}
+
 	// content converter
 	content := func(i *repository.Item) string {
 		return html.Convert(i, i.FilePathProvider())
 	}
 
 	// create the viewmodel
-	mapper.Map(item, content)
+	mapper.Map(item, relativePath, absolutePath, content)
 }
 
 func writeTemplate(model interface{}, template *template.Template, writer io.Writer) {

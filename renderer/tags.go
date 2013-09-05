@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark/mapper"
+	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/templates"
 	"github.com/andreaskoch/allmark/view"
 	"io"
@@ -35,8 +36,23 @@ func (renderer *Renderer) Tags(writer io.Writer, host string) {
 		return
 	}
 
+	// relative file path provider
+	relativePath := func(item *repository.Item) string {
+		return item.AbsolutePath
+	}
+
+	// absolute file path provider
+	absolutePath := func(item *repository.Item) string {
+		return item.AbsolutePath
+	}
+
+	// content converter
+	content := func(item *repository.Item) string {
+		return ""
+	}
+
 	// render the tagmap content
-	tagmapModel := mapper.MapTagmap(tags)
+	tagmapModel := mapper.MapTagmap(tags, relativePath, absolutePath, content)
 	tagmapContent := renderer.renderTagmap(tagmapContentTemplate, &tagmapModel)
 
 	tagmapPageModel := view.Model{

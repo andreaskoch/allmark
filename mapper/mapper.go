@@ -11,7 +11,7 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func Map(item *repository.Item, content func(item *repository.Item) string) *view.Model {
+func Map(item *repository.Item, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
 
 	var model *view.Model
 
@@ -19,11 +19,11 @@ func Map(item *repository.Item, content func(item *repository.Item) string) *vie
 	switch itemType := item.MetaData.ItemType; itemType {
 
 	case types.PresentationItemType, types.RepositoryItemType, types.DocumentItemType, types.MessageItemType:
-		model = getModel(item, content(item))
-		model.Childs = getSubModels(item, content)
+		model = getModel(item, relativePath, absolutePath, content)
+		model.Childs = getSubModels(item, relativePath, absolutePath, content)
 
 	default:
-		model = view.Error("Item type not recognized", fmt.Sprintf("There is no mapper available for items of type %q", itemType), item.RelativePath, item.AbsolutePath)
+		model = view.Error("Item type not recognized", fmt.Sprintf("There is no mapper available for items of type %q", itemType), relativePath(item), absolutePath(item))
 	}
 
 	// assign the model to the item
@@ -32,15 +32,15 @@ func Map(item *repository.Item, content func(item *repository.Item) string) *vie
 	return model
 }
 
-func getModel(item *repository.Item, content string) *view.Model {
+func getModel(item *repository.Item, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
 
 	return &view.Model{
 		Level:         item.Level,
-		RelativeRoute: item.RelativePath,
-		AbsoluteRoute: item.AbsolutePath,
+		RelativeRoute: relativePath(item),
+		AbsoluteRoute: absolutePath(item),
 		Title:         item.Title,
 		Description:   item.Description,
-		Content:       content,
+		Content:       content(item),
 		LanguageTag:   getTwoLetterLanguageCode(item.MetaData.Language),
 		Date:          formatDate(item.MetaData.Date),
 		Type:          item.MetaData.ItemType,
@@ -61,13 +61,13 @@ func getTags(item *repository.Item) []*view.Tag {
 	return tagModels
 }
 
-func getSubModels(item *repository.Item, content func(item *repository.Item) string) []*view.Model {
+func getSubModels(item *repository.Item, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
 
 	items := item.Childs
 	models := make([]*view.Model, 0)
 
 	for _, child := range items {
-		models = append(models, Map(child, content))
+		models = append(models, Map(child, relativePath, absolutePath, content))
 	}
 
 	return models
