@@ -31,20 +31,14 @@ func (tagmap TagMap) Add(item *Item) {
 
 func (tagmap TagMap) Remove(item *Item) {
 
-	for _, tag := range item.MetaData.Tags {
+	for tag, itemlist := range tagmap {
 
-		if itemlist, exists := tagmap[tag]; exists {
+		tagmap[tag] = itemlist.Remove(item)
 
-			// remove the item from the item list for this tag
-			tagmap[tag] = itemlist.Remove(item)
-
-		} else {
-
-			// remove the complete tag
+		// remove tag if item list is empty
+		if itemlist.IsEmpty() {
 			delete(tagmap, tag)
-
 		}
-
 	}
 
 }

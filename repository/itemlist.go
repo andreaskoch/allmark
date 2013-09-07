@@ -16,6 +16,10 @@ func NewItemList(items ...*Item) ItemList {
 	return itemlist
 }
 
+func (itemlist ItemList) IsEmpty() bool {
+	return len(itemlist) == 0
+}
+
 func (itemlist ItemList) Add(item *Item) ItemList {
 
 	for _, existingItem := range itemlist {
