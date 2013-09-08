@@ -39,7 +39,6 @@ allmark is a lightweight markdown web server for Linux, Mac OS and Windows writt
     - image galleries (implemented but needs improvement)
     - file lists (implemented but needs improvement)
     - cross references
-    - tag links
     - geo locations
 - Different file formats
     - json
