@@ -323,6 +323,7 @@ body>nav.breadcrumb>ul>li>a {
 
 article>.description {
     font-size: 1.2em;
+    margin: 0 0 1.5em 0;
 }
 
 .childs {
