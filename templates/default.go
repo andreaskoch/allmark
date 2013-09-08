@@ -97,6 +97,7 @@ const repositoryTemplate = `
 
 <div class="cleaner"></div>
 
+{{ if .Childs }}
 <section class="childs">
 <ol class="list">
 {{range .Childs}}
@@ -107,6 +108,7 @@ const repositoryTemplate = `
 {{end}}
 </ol>
 </section>
+{{end}}
 `
 
 const documentTemplate = `
@@ -142,6 +144,7 @@ const documentTemplate = `
 </section>
 {{end}}
 
+{{ if .Childs }}
 <section class="childs">
 <ol class="list">
 {{range .Childs}}
@@ -152,6 +155,7 @@ const documentTemplate = `
 {{end}}
 </ol>
 </section>
+{{end}}
 `
 
 const presentationTemplate = `
