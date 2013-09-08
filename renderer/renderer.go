@@ -227,11 +227,17 @@ func (renderer *Renderer) render(item *repository.Item) {
 
 func prepare(item *repository.Item) {
 
+	// same the previous tag list of the supplied item
+	previousTags := repository.NewTags()
+	if item.MetaData.Tags != nil && len(item.MetaData.Tags) > 0 {
+		previousTags = item.MetaData.Tags
+	}
+
 	// parse the item
 	parser.Parse(item)
 
 	// register tags
-	tags.Add(item)
+	tags.Update(item, previousTags)
 
 	// relative file path provider
 	relativePath := func(item *repository.Item) string {

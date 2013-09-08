@@ -33,6 +33,10 @@ func (tag *Tag) Name() string {
 	return tag.name
 }
 
+func (tag *Tag) Equals(otherTag Tag) bool {
+	return tag.Name() == otherTag.Name()
+}
+
 func normalizeTagName(name string) string {
 	return strings.ToLower(strings.TrimSpace(name))
 }

@@ -10,8 +10,9 @@ func NewTagMap() TagMap {
 	return make(TagMap)
 }
 
-func (tagmap TagMap) Add(item *Item) {
+func (tagmap TagMap) Update(item *Item, previousTagList Tags) {
 
+	// add new tags
 	for _, tag := range item.MetaData.Tags {
 
 		if itemlist, exists := tagmap[tag]; exists {
@@ -25,6 +26,23 @@ func (tagmap TagMap) Add(item *Item) {
 			tagmap[tag] = NewItemList(item)
 		}
 
+	}
+
+	// remove old tags
+	for _, oldTag := range previousTagList {
+
+		// check if the old tag is still in the new tags list
+		if item.MetaData.Tags.Contains(oldTag) {
+			continue // the tag is still there
+		}
+
+		// the tag has been removed from the item's tag list
+		if itemlist, exists := tagmap[oldTag]; exists {
+
+			// remove the item from the item list for this tag
+			tagmap[oldTag] = itemlist.Remove(item)
+
+		}
 	}
 
 }

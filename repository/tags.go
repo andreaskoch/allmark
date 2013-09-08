@@ -10,8 +10,12 @@ import (
 
 type Tags []Tag
 
-func NewTags(names []string) Tags {
-	tags := Tags{}
+func NewTags() Tags {
+	return make(Tags, 0)
+}
+
+func NewTagsFromNames(names []string) Tags {
+	tags := make(Tags, 0, len(names))
 
 	for _, name := range names {
 
@@ -25,4 +29,15 @@ func NewTags(names []string) Tags {
 	}
 
 	return tags
+}
+
+func (tags Tags) Contains(otherTag Tag) bool {
+
+	for _, tag := range tags {
+		if tag.Equals(otherTag) {
+			return true
+		}
+	}
+
+	return false
 }

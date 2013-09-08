@@ -152,7 +152,7 @@ func locateMetaData(lines []string) (Match, []string) {
 
 func getTagsFromValue(value string) repository.Tags {
 	rawTags := strings.Split(value, ",")
-	return repository.NewTags(rawTags)
+	return repository.NewTagsFromNames(rawTags)
 }
 
 func getItemModificationTime(item *repository.Item) (time.Time, error) {
