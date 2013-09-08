@@ -128,14 +128,17 @@ const documentTemplate = `
 
 {{ if .Tags }}
 <section class="tags">
-Tags:
-<ul class="list">
-{{range .Tags}}
-<li class="tag">
-	<a href="{{.AbsoluteRoute}}" title="{{.Description}}">{{.Name}}</a>
-</li>
-{{end}}
-</ul>
+	<header>
+		Tags:
+	</header>
+
+	<ul class="tags">
+	{{range .Tags}}
+	<li class="tag">
+		<a href="{{.AbsoluteRoute}}" title="{{.Description}}">{{.Name}}</a>
+	</li>
+	{{end}}
+	</ul>
 </section>
 {{end}}
 

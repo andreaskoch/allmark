@@ -326,6 +326,33 @@ article>.description {
     margin: 0 0 1.5em 0;
 }
 
+article>.tags {
+   margin: 1.5em 0 0 0;    
+}
+
+article>.tags>header {
+    float: left;
+    font-size: 1.2em;
+}
+
+article>.tags>.tags {
+    list-style-type: none;
+
+}
+
+article>.tags>.tags>.tag {
+    display: inline-block;
+    margin: 0 0 0 0.5em;
+}
+
+article>.tags>.tags>.tag>a {
+    color: #FFF;
+    background-color: #000;
+    line-height: 1.0em;
+    font-size: 1.0em;
+    padding: 3px 6px;
+}
+
 article>.childs {
     margin: 2em 0 0 0;
 }
