@@ -326,25 +326,25 @@ article>.description {
     margin: 0 0 1.5em 0;
 }
 
-.childs {
+article>.childs {
     margin: 2em 0 0 0;
 }
 
-.childs>.list {
+article>.childs>.list {
     list-style: none;
     padding: 5px 0 5px 0;
     margin: 0 0 0 1.2em;    
 }
 
-.childs>.list>.child {
+article>.childs>.list>.child {
     margin: 0 0 1.2em 0;
 }
 
-.childs>.list>.child:nth-child(odd) {
+article>.childs>.list>.child:nth-child(odd) {
     background-color:#eee;
 }
 
-.childs>.list>.child:nth-child(even) {
+article>.childs>.list>.child:nth-child(even) {
     background-color:transparent;
 }
 
@@ -509,6 +509,30 @@ section.video>h1 {
 /* third, forth, n-th level */
 .sitemap>.content>ol>li>ol>li ol {
     list-style-type: decimal;
+}
+
+.tagmap>.content>.tags {
+    list-style-type: none;
+}
+
+.tagmap>.content>.tags>.tag {
+    margin: 0 0 1.5em 0;
+}
+
+.tagmap>.content>.tags>.tag>a {
+    color: #FFF;
+    background-color: #000;
+    line-height: 1.2em;
+    font-size: 1.2em;
+    padding: 3px 6px;
+}
+
+.tagmap>.content>.tags>.tag>.childs {
+    list-style-type: none;
+}
+
+.tagmap>.content>.tags>.tag>.childs>.child {
+    margin: 0.7em 0 0;
 }
 
 @media only screen and (max-height: 500px) {

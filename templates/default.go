@@ -245,11 +245,11 @@ const sitemapTemplate = `
 `
 
 var tagmapContentTemplate = `
-<ul>
+<ul class="tags">
 {{range .Tags}}
 <li class="tag">
 	<a name="{{.Name}}" title="{{.Description}}">{{.Name}}</a>
-	<ol>
+	<ol class="childs">
 		{{range .Childs}}
 		<li class="child">
 			<a href="{{.RelativeRoute}}" class="child-title child-link">{{.Title}}</a>
