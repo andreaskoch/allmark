@@ -252,6 +252,7 @@ const sitemapTemplate = `
 `
 
 var tagmapContentTemplate = `
+{{ if .Tags }}
 <ul class="tags">
 {{range .Tags}}
 <li class="tag">
@@ -267,6 +268,9 @@ var tagmapContentTemplate = `
 </li>
 {{end}}
 </ul>
+{{else}}
+There are currently no tags.
+{{end}}
 `
 
 const tagmapTemplate = `
