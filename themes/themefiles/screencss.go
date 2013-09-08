@@ -102,7 +102,7 @@ h4,h5,h6 {
 
 h1 {
     font-size: 2.5em;
-    margin: 0 0 1.2em 0;
+    margin: 0;
 }
 
 h2 {
