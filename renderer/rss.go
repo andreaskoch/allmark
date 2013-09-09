@@ -8,17 +8,17 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/andreaskoch/allmark/converter/html"
+	"github.com/andreaskoch/allmark/path"
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/util"
 	"io"
 	"os"
 )
 
-func (renderer *Renderer) RSS(writer io.Writer, host string) {
+func cacheReponse(targetFile string, pathProvider *path.Provider, responseWriter ResponseWriter, host string, writer io.Writer) {
 
 	// assemble the file path on disk
-	targetFile := "rss.xml"
-	renderTargetPath := renderer.pathProvider.GetRenderTargetPathForGiven(targetFile)
+	renderTargetPath := pathProvider.GetRenderTargetPathForGiven(targetFile)
 
 	// read the file from disk if it exists
 	if util.FileExists(renderTargetPath) {
@@ -59,29 +59,40 @@ func (renderer *Renderer) RSS(writer io.Writer, host string) {
 	defer file.Close()
 
 	fileWriter := bufio.NewWriter(file)
-	renderer.rss(fileWriter, host)
+	responseWriter(fileWriter, host)
 
 	fileWriter.Flush()
 
 	// try to read from the cache again
-	renderer.RSS(writer, host)
+	cacheReponse(targetFile, pathProvider, responseWriter, host, writer)
 }
 
-func (renderer *Renderer) rss(writer io.Writer, host string) {
+func (renderer *Renderer) RSS(writer io.Writer, host string) {
+
+	targetFile := "rss.xml"
+	pathProvider := renderer.pathProvider
+	rssRenderer := func(writer io.Writer, host string) {
+		rss(writer, host, renderer.root)
+	}
+
+	cacheReponse(targetFile, pathProvider, rssRenderer, host, writer)
+}
+
+func rss(writer io.Writer, host string, rootItem *repository.Item) {
 
 	fmt.Fprintln(writer, `<?xml version="1.0" encoding="UTF-8"?>`)
 	fmt.Fprintln(writer, `<rss version="2.0">`)
 	fmt.Fprintln(writer, `<channel>`)
 
 	fmt.Fprintln(writer)
-	fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, renderer.root.Title))
-	fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, renderer.root.Description))
-	fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(host, renderer.root)))
-	fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(renderer.root)))
+	fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, rootItem.Title))
+	fmt.Fprintln(writer, fmt.Sprintf(`<description><![CDATA[%s]]></description>`, rootItem.Description))
+	fmt.Fprintln(writer, fmt.Sprintf(`<link>%s</link>`, getItemLocation(host, rootItem)))
+	fmt.Fprintln(writer, fmt.Sprintf(`<pubData>%s</pubData>`, getItemDate(rootItem)))
 	fmt.Fprintln(writer)
 
 	// get all child items
-	items := repository.GetAllChilds(renderer.root)
+	items := repository.GetAllChilds(rootItem)
 
 	// sort the items by date and folder name
 	repository.By(dateAndFolder).Sort(items)
@@ -89,7 +100,7 @@ func (renderer *Renderer) rss(writer io.Writer, host string) {
 	for _, i := range items {
 
 		// render content for rss
-		filePathProvider := renderer.root.FilePathProvider()
+		filePathProvider := rootItem.FilePathProvider()
 		httpRouteProvider := filePathProvider.NewHttpPathProvider(host)
 		description := html.Convert(i, httpRouteProvider)
 

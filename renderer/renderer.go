@@ -31,6 +31,8 @@ func init() {
 	tags = repository.NewTagMap()
 }
 
+type ResponseWriter func(writer io.Writer, host string)
+
 type Renderer struct {
 	Rendered chan *repository.Item
 	Removed  chan *repository.Item
