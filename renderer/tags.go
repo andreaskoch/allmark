@@ -17,20 +17,31 @@ import (
 
 func (renderer *Renderer) Tags(writer io.Writer, host string) {
 
-	if renderer.root == nil {
+	targetFile := "tags.html"
+	pathProvider := renderer.pathProvider
+	rssRenderer := func(writer io.Writer, host string) {
+		renderTags(writer, host, renderer.root, renderer.templateProvider)
+	}
+
+	cacheReponse(targetFile, pathProvider, rssRenderer, host, writer)
+}
+
+func renderTags(writer io.Writer, host string, rootItem *repository.Item, templateProvider *templates.Provider) {
+
+	if rootItem == nil {
 		fmt.Fprintf(writer, "The root is not ready yet.")
 		return
 	}
 
 	// get the tagmap content template
-	tagmapContentTemplate, err := renderer.templateProvider.GetSubTemplate(templates.TagmapContentTemplateName)
+	tagmapContentTemplate, err := templateProvider.GetSubTemplate(templates.TagmapContentTemplateName)
 	if err != nil {
 		fmt.Fprintf(writer, "Content template not found. Error: %s", err)
 		return
 	}
 
 	// get the tagmap template
-	tagmapTemplate, err := renderer.templateProvider.GetFullTemplate(templates.TagmapTemplateName)
+	tagmapTemplate, err := templateProvider.GetFullTemplate(templates.TagmapTemplateName)
 	if err != nil {
 		fmt.Fprintf(writer, "Template not found. Error: %s", err)
 		return
@@ -53,21 +64,21 @@ func (renderer *Renderer) Tags(writer io.Writer, host string) {
 
 	// render the tagmap content
 	tagmapModel := mapper.MapTagmap(tags, tagPath, relativePath, absolutePath, content)
-	tagmapContent := renderer.renderTagmap(tagmapContentTemplate, &tagmapModel)
+	tagmapContent := renderTagmapTemplate(tagmapContentTemplate, &tagmapModel)
 
 	tagmapPageModel := view.Model{
 		Title:                "Tags",
 		Description:          "A list of all tags in this repository.",
 		Content:              tagmapContent,
-		ToplevelNavigation:   renderer.root.ToplevelNavigation,
-		BreadcrumbNavigation: renderer.root.BreadcrumbNavigation,
+		ToplevelNavigation:   rootItem.ToplevelNavigation,
+		BreadcrumbNavigation: rootItem.BreadcrumbNavigation,
 		Type:                 "tagmap",
 	}
 
 	writeTemplate(tagmapPageModel, tagmapTemplate, writer)
 }
 
-func (renderer *Renderer) renderTagmap(templ *template.Template, tagmapModel *view.TagMap) string {
+func renderTagmapTemplate(templ *template.Template, tagmapModel *view.TagMap) string {
 
 	// render
 	buffer := new(bytes.Buffer)
