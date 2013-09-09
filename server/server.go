@@ -78,7 +78,7 @@ func (server *Server) Serve() {
 		w.WriteHeader(http.StatusNotFound)
 
 		// write 404 page
-		server.renderer.Error404(w)
+		server.renderer.Error404(w, getHostnameFromRequest(r))
 	}
 
 	// initialize the xml sitemap handler

@@ -121,6 +121,25 @@ func (provider *Provider) GetFilepath(pather Pather) string {
 	panic("Unreachable. Unknown pather type")
 }
 
+func (provider *Provider) GetRenderTargetPathForGiven(relativePath string) string {
+	var renderTargetPath string
+
+	if provider.UseTempDir() {
+
+		renderTargetPath = filepath.Join(provider.TempDir(), relativePath)
+
+		// make sure the directory exists
+		util.CreateDirectory(filepath.Dir(renderTargetPath))
+
+	} else {
+
+		renderTargetPath = filepath.Join(provider.basePath, relativePath)
+
+	}
+
+	return renderTargetPath
+}
+
 func (provider *Provider) GetRenderTargetPath(pather Pather) string {
 
 	itemDirectoryRelative := provider.getRelativePath(pather.Directory())

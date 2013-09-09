@@ -11,7 +11,7 @@ import (
 	"io"
 )
 
-func (renderer *Renderer) Error404(writer io.Writer) {
+func (renderer *Renderer) Error404(writer io.Writer, host string) {
 
 	// get the 404 page template
 	templateType := templates.ErrorTemplateName
