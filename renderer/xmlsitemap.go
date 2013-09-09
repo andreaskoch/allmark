@@ -26,13 +26,24 @@ var (
 	}
 )
 
-func (renderer *Renderer) XMLSitemap(w io.Writer, host string) {
+func (renderer *Renderer) XMLSitemap(writer io.Writer, host string) {
 
-	fmt.Fprintln(w, `<?xml version="1.0" encoding="UTF-8"?>`)
-	fmt.Fprintln(w, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
+	targetFile := "sitemap.xml"
+	pathProvider := renderer.pathProvider
+	rssRenderer := func(writer io.Writer, host string) {
+		xmlsitemap(writer, host, renderer.root)
+	}
+
+	cacheReponse(targetFile, pathProvider, rssRenderer, host, writer)
+}
+
+func xmlsitemap(writer io.Writer, host string, rootItem *repository.Item) {
+
+	fmt.Fprintln(writer, `<?xml version="1.0" encoding="UTF-8"?>`)
+	fmt.Fprintln(writer, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
 
 	// get all child items
-	items := repository.GetAllChilds(renderer.root)
+	items := repository.GetAllChilds(rootItem)
 
 	// sort the items by date and folder name
 	dateAndFolder := func(item1, item2 *repository.Item) bool {
@@ -49,12 +60,12 @@ func (renderer *Renderer) XMLSitemap(w io.Writer, host string) {
 	repository.By(dateAndFolder).Sort(items)
 
 	for _, item := range items {
-		fmt.Fprintln(w, `<url>`)
-		fmt.Fprintln(w, fmt.Sprintf(`<loc>%s</loc>`, getItemLocation(host, item)))
-		fmt.Fprintln(w, fmt.Sprintf(`<lastmod>%s</lastmod>`, getItemDate(item)))
-		fmt.Fprintln(w, `</url>`)
+		fmt.Fprintln(writer, `<url>`)
+		fmt.Fprintln(writer, fmt.Sprintf(`<loc>%s</loc>`, getItemLocation(host, item)))
+		fmt.Fprintln(writer, fmt.Sprintf(`<lastmod>%s</lastmod>`, getItemDate(item)))
+		fmt.Fprintln(writer, `</url>`)
 	}
 
-	fmt.Fprintln(w, `</urlset>`)
+	fmt.Fprintln(writer, `</urlset>`)
 
 }
