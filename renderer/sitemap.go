@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark/mapper"
+	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/templates"
 	"github.com/andreaskoch/allmark/view"
 	"io"
@@ -17,42 +18,53 @@ import (
 
 func (renderer *Renderer) Sitemap(writer io.Writer, host string) {
 
-	if renderer.root == nil {
+	targetFile := "sitemap.html"
+	pathProvider := renderer.pathProvider
+	rssRenderer := func(writer io.Writer, host string) {
+		sitemap(writer, renderer.root, renderer.templateProvider)
+	}
+
+	cacheReponse(targetFile, pathProvider, rssRenderer, host, writer)
+}
+
+func sitemap(writer io.Writer, rootItem *repository.Item, templateProvider *templates.Provider) {
+
+	if rootItem == nil {
 		fmt.Fprintf(writer, "The root is not ready yet.")
 		return
 	}
 
 	// get the sitemap content template
-	sitemapContentTemplate, err := renderer.templateProvider.GetSubTemplate(templates.SitemapContentTemplateName)
+	sitemapContentTemplate, err := templateProvider.GetSubTemplate(templates.SitemapContentTemplateName)
 	if err != nil {
 		fmt.Fprintf(writer, "Content template not found. Error: %s", err)
 		return
 	}
 
 	// get the sitemap template
-	sitemapTemplate, err := renderer.templateProvider.GetFullTemplate(templates.SitemapTemplateName)
+	sitemapTemplate, err := templateProvider.GetFullTemplate(templates.SitemapTemplateName)
 	if err != nil {
 		fmt.Fprintf(writer, "Template not found. Error: %s", err)
 		return
 	}
 
 	// render the sitemap content
-	sitemapContentModel := mapper.MapSitemap(renderer.root)
-	sitemapContent := renderer.renderSitemapEntry(sitemapContentTemplate, sitemapContentModel)
+	sitemapContentModel := mapper.MapSitemap(rootItem)
+	sitemapContent := renderSitemapEntry(sitemapContentTemplate, sitemapContentModel)
 
 	sitemapPageModel := view.Model{
 		Title:                "Sitemap",
 		Description:          "A list of all items in this repository.",
 		Content:              sitemapContent,
-		ToplevelNavigation:   renderer.root.ToplevelNavigation,
-		BreadcrumbNavigation: renderer.root.BreadcrumbNavigation,
+		ToplevelNavigation:   rootItem.ToplevelNavigation,
+		BreadcrumbNavigation: rootItem.BreadcrumbNavigation,
 		Type:                 "sitemap",
 	}
 
 	writeTemplate(sitemapPageModel, sitemapTemplate, writer)
 }
 
-func (renderer *Renderer) renderSitemapEntry(templ *template.Template, sitemapModel *view.Sitemap) string {
+func renderSitemapEntry(templ *template.Template, sitemapModel *view.Sitemap) string {
 
 	// render
 	buffer := new(bytes.Buffer)
@@ -67,7 +79,7 @@ func (renderer *Renderer) renderSitemapEntry(templ *template.Template, sitemapMo
 
 		childCode := ""
 		for _, child := range sitemapModel.Childs {
-			childCode += "\n" + renderer.renderSitemapEntry(templ, child)
+			childCode += "\n" + renderSitemapEntry(templ, child)
 		}
 
 		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, childCode, 1)
