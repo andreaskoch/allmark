@@ -25,7 +25,10 @@ func cacheReponse(targetFile string, pathProvider *path.Provider, responseWriter
 	renderTargetPath := pathProvider.GetRenderTargetPathForGiven(targetFile)
 
 	// read the file from disk if it exists
-	if util.FileExists(renderTargetPath) {
+	isCached, renderTargetPathHasBeenCachedOnce := cachedResponseFiles[renderTargetPath]
+	readResposeFromDisk := isCached && renderTargetPathHasBeenCachedOnce
+
+	if util.FileExists(renderTargetPath) && readResposeFromDisk {
 		file, err := os.Open(renderTargetPath)
 		if err != nil {
 			fmt.Fprintln(writer, fmt.Sprintf(`Unable to read %q.`, renderTargetPath))
@@ -82,7 +85,7 @@ func clearCachedResponses() {
 		}
 
 		if !util.FileExists(filepath) {
-			delete(cachedResponseFiles, filepath)
+			cachedResponseFiles[filepath] = false
 			continue
 		}
 
@@ -92,6 +95,6 @@ func clearCachedResponses() {
 			continue
 		}
 
-		delete(cachedResponseFiles, filepath)
+		cachedResponseFiles[filepath] = false
 	}
 }
