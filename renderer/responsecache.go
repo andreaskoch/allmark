@@ -13,6 +13,12 @@ import (
 	"os"
 )
 
+var cachedResponseFiles map[string]bool
+
+func init() {
+	cachedResponseFiles = make(map[string]bool)
+}
+
 func cacheReponse(targetFile string, pathProvider *path.Provider, responseWriter ResponseWriter, host string, writer io.Writer) {
 
 	// assemble the file path on disk
@@ -54,13 +60,38 @@ func cacheReponse(targetFile string, pathProvider *path.Provider, responseWriter
 		return
 	}
 
-	defer file.Close()
+	defer func() {
+		file.Close()
+
+		// mark the target file as cached
+		cachedResponseFiles[renderTargetPath] = true
+
+		// try to read from the cache again
+		cacheReponse(targetFile, pathProvider, responseWriter, host, writer)
+	}()
 
 	fileWriter := bufio.NewWriter(file)
 	responseWriter(fileWriter, host)
-
 	fileWriter.Flush()
+}
 
-	// try to read from the cache again
-	cacheReponse(targetFile, pathProvider, responseWriter, host, writer)
+func clearCachedResponses() {
+	for filepath, isCached := range cachedResponseFiles {
+		if !isCached {
+			continue
+		}
+
+		if !util.FileExists(filepath) {
+			delete(cachedResponseFiles, filepath)
+			continue
+		}
+
+		fmt.Printf("Removing cached response %q from disk.\n", filepath)
+		if err := os.Remove(filepath); err != nil {
+			fmt.Printf("Unable to remove file %q. Error: %s\n", filepath, err)
+			continue
+		}
+
+		delete(cachedResponseFiles, filepath)
+	}
 }

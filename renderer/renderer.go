@@ -153,9 +153,15 @@ func (renderer *Renderer) listenForChanges(item *repository.Item) {
 					renderer.render(parent)
 				}
 
+				// remove all cached responses
+				clearCachedResponses()
+
 			case <-item.Moved:
 				fmt.Printf("Removing %q\n", item)
 				renderer.removeItem(item)
+
+				// remove all cached responses
+				clearCachedResponses()
 			}
 		}
 	}()
