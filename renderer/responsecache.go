@@ -22,7 +22,7 @@ func init() {
 func cacheReponse(targetFile string, pathProvider *path.Provider, responseWriter ResponseWriter, host string, writer io.Writer) {
 
 	// assemble the file path on disk
-	renderTargetPath := pathProvider.GetRenderTargetPathForGiven(targetFile)
+	renderTargetPath := pathProvider.GetRenderTargetPathForGiven(fmt.Sprintf("host-%s-%s", util.GetHash(host), targetFile))
 
 	// read the file from disk if it exists
 	isCached, renderTargetPathHasBeenCachedOnce := cachedResponseFiles[renderTargetPath]
