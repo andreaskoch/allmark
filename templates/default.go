@@ -109,6 +109,19 @@ const repositoryTemplate = `
 </ol>
 </section>
 {{end}}
+
+{{if .TagCloud}}
+<section class="tagcloud">
+	<h1>Tag Cloud</h1>
+	<div class="tags">
+	{{range .TagCloud}}
+	<span class="level-{{.Level}}">
+		<a href="{{.AbsoluteRoute}}">{{.Name}}</a>
+	</span>
+	{{end}}
+	</div>
+</section>
+{{end}}
 `
 
 const documentTemplate = `
