@@ -18,6 +18,7 @@ type Model struct {
 	Childs               []*Model              `json:"childs"`
 	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
 	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
+	TagCloud             *TagCloud             `json:"tagcloud"`
 }
 
 func Error(title, content, relativPath, absolutePath string) *Model {

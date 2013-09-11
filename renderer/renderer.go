@@ -195,11 +195,14 @@ func (renderer *Renderer) render(item *repository.Item) {
 	// prepare the item
 	prepare(item)
 
-	// render the bread crumb navigation
+	// attach the bread crumb navigation model
 	attachBreadcrumbNavigation(item)
 
-	// render the top-level navigation
+	// attach the top-level navigation model
 	attachToplevelNavigation(renderer.root, item)
+
+	// attach the tag cloud model
+	attachTagCloud(item)
 
 	// get a template
 	if template, err := renderer.templateProvider.GetFullTemplate(item.Type); err == nil {

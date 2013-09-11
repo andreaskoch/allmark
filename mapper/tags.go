@@ -11,7 +11,7 @@ import (
 
 var (
 	// sort tags by name
-	byName = func(tag1, tag2 *view.Tag) bool {
+	tagsByName = func(tag1, tag2 *view.Tag) bool {
 		return tag1.Name < tag2.Name
 	}
 )
@@ -27,7 +27,7 @@ func MapTagmap(tagmap repository.TagMap, tagPath func(tag *repository.Tag) strin
 	}
 
 	// sort tags by name
-	view.SortTagBy(byName).Sort(tags)
+	view.SortTagBy(tagsByName).Sort(tags)
 
 	return view.TagMap{
 		Tags: tags,
