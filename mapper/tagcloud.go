@@ -56,12 +56,8 @@ func MapTagCloud(tagmap repository.TagMap, tagPath func(tag *repository.Tag) str
 	// update the tag cloud entry levels according
 	// to the recorded min and max number of items
 	for index, entry := range cloud {
-
 		// calculate the entry level
-		entry.Level = getTagCloudEntryLevel(entry.NumberOfChilds, minNumberOfItems, maxNumberOfItems, tagCloudEntryLevels)
-
-		// save the entry back to the tag cloud
-		cloud[index] = entry
+		cloud[index].Level = getTagCloudEntryLevel(entry.NumberOfChilds, minNumberOfItems, maxNumberOfItems, tagCloudEntryLevels)
 	}
 
 	// sort tags by name
@@ -93,11 +89,11 @@ func getTagCloudEntryLevel(numberOfChilds, minNumberOfChilds, maxNumberOfChilds,
 	}
 
 	// calculate the ratio between the "number of childs" to the "maximum number" of childs (0, 1]
-	ratioNumberOfChildsToMaxNumberOfChilds := float64(maxNumberOfChilds) / float64(maxNumberOfChilds)
+	ratioNumberOfChildsToMaxNumberOfChilds := float64(numberOfChilds) / float64(maxNumberOfChilds)
+	inverseRation := 1 - ratioNumberOfChildsToMaxNumberOfChilds
 
 	// calculate the level
-	inverseLevel := int(math.Floor(ratioNumberOfChildsToMaxNumberOfChilds * float64(levelCount)))
-	level := levelCount - inverseLevel
+	level := int(math.Floor(inverseRation*float64(levelCount))) + 1
 
 	return level
 }
