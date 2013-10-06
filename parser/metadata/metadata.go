@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/util"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -34,7 +35,7 @@ func New(item *repository.Item) (repository.MetaData, error) {
 
 func Parse(item *repository.Item, lines []string, getFallbackItemType func() string) (repository.MetaData, []string) {
 
-	metaData := repository.MetaData{}
+	metaData := repository.NewMetaData()
 
 	// apply fallback item type
 	metaData.ItemType = getFallbackItemType()
@@ -114,8 +115,76 @@ func Parse(item *repository.Item, lines []string, getFallbackItemType func() str
 
 		case "author":
 			{
-				if author := strings.TrimSpace(strings.ToLower(value)); author != "" {
+				if author := strings.TrimSpace(value); author != "" {
 					metaData.Author = author
+				}
+				break
+			}
+
+		case "street":
+			{
+				if street := strings.TrimSpace(value); street != "" {
+					metaData.GeoData.Street = street
+				}
+				break
+			}
+
+		case "city":
+			{
+				if city := strings.TrimSpace(value); city != "" {
+					metaData.GeoData.City = city
+				}
+				break
+			}
+
+		case "postcode":
+			{
+				if postcode := strings.TrimSpace(value); postcode != "" {
+					metaData.GeoData.Postcode = postcode
+				}
+				break
+			}
+
+		case "country":
+			{
+				if country := strings.TrimSpace(value); country != "" {
+					metaData.GeoData.Country = country
+				}
+				break
+			}
+
+		case "latitude":
+			{
+				if latitude := strings.TrimSpace(value); latitude != "" {
+					metaData.GeoData.Latitude = latitude
+				}
+				break
+			}
+
+		case "longitude":
+			{
+				if longitude := strings.TrimSpace(value); longitude != "" {
+					metaData.GeoData.Longitude = longitude
+				}
+				break
+			}
+
+		case "maptype":
+			{
+				if maptype := strings.TrimSpace(value); maptype != "" {
+					metaData.GeoData.MapType = maptype
+				}
+				break
+			}
+
+		case "zoom":
+			{
+				if zoom := strings.TrimSpace(value); zoom != "" {
+					if zoomLevel, err := strconv.ParseInt(zoom, 10, 0); err != nil && zoomLevel >= 0 && zoomLevel <= 100 {
+						metaData.GeoData.Zoom = int(zoomLevel)
+					} else {
+						metaData.GeoData.Zoom = 75
+					}
 				}
 				break
 			}

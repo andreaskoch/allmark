@@ -46,8 +46,22 @@ func getModel(item *repository.Item, tagPath func(tag *repository.Tag) string, r
 		LastModifiedDate: formatDate(item.MetaData.LastModifiedDate),
 		Type:             item.MetaData.ItemType,
 		Tags:             getTags(item, tagPath),
+		GeoLocation:      getGeoLocation(item.MetaData),
 	}
 
+}
+
+func getGeoLocation(metaData repository.MetaData) *view.GeoLocation {
+	return &view.GeoLocation{
+		Street:    metaData.GeoData.Street,
+		City:      metaData.GeoData.City,
+		Postcode:  metaData.GeoData.Postcode,
+		Country:   metaData.GeoData.Country,
+		Latitude:  metaData.GeoData.Latitude,
+		Longitude: metaData.GeoData.Longitude,
+		MapType:   metaData.GeoData.MapType,
+		Zoom:      metaData.GeoData.Zoom,
+	}
 }
 
 func getTags(item *repository.Item, tagPath func(tag *repository.Tag) string) []*view.Tag {

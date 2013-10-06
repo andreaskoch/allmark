@@ -16,4 +16,24 @@ type MetaData struct {
 	ItemType         string
 	Alias            string
 	Author           string
+	GeoData          GeoInformation
+}
+
+func NewMetaData() MetaData {
+	return MetaData{}
+}
+
+type GeoInformation struct {
+	Street    string
+	City      string
+	Postcode  string
+	Country   string
+	Latitude  string
+	Longitude string
+	MapType   string
+	Zoom      int
+}
+
+func NewGeoInformation() GeoInformation {
+	return GeoInformation{}
 }
