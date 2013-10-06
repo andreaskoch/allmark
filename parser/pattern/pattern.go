@@ -27,7 +27,7 @@ var (
 	SingleLineMetaDataPattern = regexp.MustCompile(`^(\w+[\w\s]+\w+):\s*([\pL\pN\p{Latin}]+.+)$`)
 
 	// Lines with a meta data label in them syntax
-	MultiLineTagsPattern = regexp.MustCompile(`(?is)tags:\n{1,2}(\s?-\s?.+\n)+\n`)
+	MultiLineTagsPattern = regexp.MustCompile(`(?is)tags:\n{1,2}(\s?-\s?.+\n)+`)
 
 	// Lines with a meta data label in them syntax
 	MetaDataLabelPattern = regexp.MustCompile(`^(\w+[\w\s]+\w+):`)
