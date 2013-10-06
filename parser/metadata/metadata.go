@@ -204,12 +204,29 @@ func Parse(item *repository.Item, lines []string, getFallbackItemType func() str
 		tagLines := strings.Split(multiLineTagBlock, "\n")
 		for _, line := range tagLines {
 			if isListItem, matches := util.IsMatch(line, pattern.MetaDataListItemPattern); isListItem && len(matches) == 2 {
-				tagName := strings.TrimSpace(strings.ToLower(matches[1]))
+				tagName := strings.TrimSpace(matches[1])
 				tagNames = append(tagNames, tagName)
 			}
 		}
 
 		metaData.Tags = repository.NewTagsFromNames(tagNames)
+	}
+
+	// parse multi line locations
+	if multiLineLocationsPosition := pattern.MultiLineLocationsPattern.FindStringSubmatchIndex(remainingMetaDataText); multiLineLocationsPosition != nil {
+
+		locationNames := make([]string, 0)
+
+		multiLineLocationsBlock := strings.TrimSpace(remainingMetaDataText[multiLineLocationsPosition[0]:multiLineLocationsPosition[1]])
+		tagLines := strings.Split(multiLineLocationsBlock, "\n")
+		for _, line := range tagLines {
+			if isListItem, matches := util.IsMatch(line, pattern.MetaDataListItemPattern); isListItem && len(matches) == 2 {
+				locationName := strings.TrimSpace(matches[1])
+				locationNames = append(locationNames, locationName)
+			}
+		}
+
+		metaData.Locations = repository.NewLocationsFromNames(locationNames)
 	}
 
 	return metaData, lines

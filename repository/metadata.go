@@ -16,6 +16,7 @@ type MetaData struct {
 	ItemType         string
 	Alias            string
 	Author           string
+	Locations        Locations
 	GeoData          GeoInformation
 }
 
