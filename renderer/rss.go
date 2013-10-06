@@ -63,7 +63,7 @@ func rss(writer io.Writer, host string, rootItem *repository.Item) {
 }
 
 func getItemDate(item *repository.Item) string {
-	return item.Date
+	return item.CreationDate
 }
 
 func getItemLocation(host string, item *repository.Item) string {

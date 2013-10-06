@@ -15,7 +15,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<title>{{.Title}}</title>
 
 	<link rel="schema.DC" href="http://purl.org/dc/terms/">
-	<meta name="DC.date" content="{{.Date}}">
+	<meta name="DC.date" content="{{.CreationDate}}">
 
 	<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
 

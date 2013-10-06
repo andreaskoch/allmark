@@ -30,13 +30,13 @@ func Parse(item *repository.Item, lines []string, fallbackTitle string) (sucess 
 }
 
 func getDescription(item *repository.Item) string {
-	return item.MetaData.Date.Format(time.RFC850)
+	return item.MetaData.CreationDate.Format(time.RFC850)
 }
 
 func getTitle(item *repository.Item) string {
 	text := pattern.HtmlTagPattern.ReplaceAllString(item.RawContent, "")
 	excerpt := getTextExcerpt(text, 30)
-	time := item.MetaData.Date.Format(time.RFC850)
+	time := item.MetaData.CreationDate.Format(time.RFC850)
 
 	return fmt.Sprintf("%s: %s", time, excerpt)
 }

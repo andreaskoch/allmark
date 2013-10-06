@@ -35,16 +35,17 @@ func Map(item *repository.Item, tagPath func(tag *repository.Tag) string, relati
 func getModel(item *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
 
 	return &view.Model{
-		Level:         item.Level,
-		RelativeRoute: relativePath(item),
-		AbsoluteRoute: absolutePath(item),
-		Title:         item.Title,
-		Description:   item.Description,
-		Content:       content(item),
-		LanguageTag:   getTwoLetterLanguageCode(item.MetaData.Language),
-		Date:          formatDate(item.MetaData.Date),
-		Type:          item.MetaData.ItemType,
-		Tags:          getTags(item, tagPath),
+		Level:            item.Level,
+		RelativeRoute:    relativePath(item),
+		AbsoluteRoute:    absolutePath(item),
+		Title:            item.Title,
+		Description:      item.Description,
+		Content:          content(item),
+		LanguageTag:      getTwoLetterLanguageCode(item.MetaData.Language),
+		CreationDate:     formatDate(item.MetaData.CreationDate),
+		LastModifiedDate: formatDate(item.MetaData.LastModifiedDate),
+		Type:             item.MetaData.ItemType,
+		Tags:             getTags(item, tagPath),
 	}
 
 }

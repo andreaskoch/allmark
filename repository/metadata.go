@@ -9,8 +9,11 @@ import (
 )
 
 type MetaData struct {
-	Language string
-	Date     time.Time
-	Tags     Tags
-	ItemType string
+	Language         string
+	CreationDate     time.Time
+	LastModifiedDate time.Time
+	Tags             Tags
+	ItemType         string
+	Alias            string
+	Author           string
 }

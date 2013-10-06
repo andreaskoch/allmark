@@ -16,13 +16,13 @@ var (
 	// sort the items by date and folder name
 	dateAndFolder = func(item1, item2 *repository.Item) bool {
 
-		if item1.MetaData.Date.Equal(item2.MetaData.Date) {
+		if item1.MetaData.CreationDate.Equal(item2.MetaData.CreationDate) {
 			// ascending by directory name
 			return filepath.Base(item1.Directory()) < filepath.Base(item2.Directory())
 		}
 
 		// descending by date
-		return item1.MetaData.Date.After(item2.MetaData.Date)
+		return item1.MetaData.CreationDate.After(item2.MetaData.CreationDate)
 	}
 )
 
@@ -48,13 +48,13 @@ func xmlsitemap(writer io.Writer, host string, rootItem *repository.Item) {
 	// sort the items by date and folder name
 	dateAndFolder := func(item1, item2 *repository.Item) bool {
 
-		if item1.MetaData.Date.Equal(item2.MetaData.Date) {
+		if item1.MetaData.CreationDate.Equal(item2.MetaData.CreationDate) {
 			// ascending by directory name
 			return filepath.Base(item1.Directory()) < filepath.Base(item2.Directory())
 		}
 
 		// descending by date
-		return item1.MetaData.Date.After(item2.MetaData.Date)
+		return item1.MetaData.CreationDate.After(item2.MetaData.CreationDate)
 	}
 
 	repository.By(dateAndFolder).Sort(items)

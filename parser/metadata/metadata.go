@@ -24,8 +24,9 @@ func New(item *repository.Item) (repository.MetaData, error) {
 	}
 
 	metaData := repository.MetaData{
-		ItemType: types.DocumentItemType,
-		Date:     date,
+		ItemType:         types.DocumentItemType,
+		CreationDate:     date,
+		LastModifiedDate: date,
 	}
 
 	return metaData, nil
@@ -41,7 +42,7 @@ func Parse(item *repository.Item, lines []string, getFallbackItemType func() str
 	// apply the fallback date
 	fallbackDate := minDate
 	if date, err := getItemModificationTime(item); err == nil {
-		metaData.Date = date
+		fallbackDate = date
 	}
 
 	// find the meta data section
@@ -50,12 +51,14 @@ func Parse(item *repository.Item, lines []string, getFallbackItemType func() str
 		return metaData, lines
 	}
 
-	// parse the meta data
+	// parse the single line meta data
+	remainingLines := make([]string, 0)
 	for _, line := range metaDataLocation.Matches {
-		isKeyValuePair, matches := util.IsMatch(line, pattern.MetaDataPattern)
+		isKeyValuePair, matches := util.IsMatch(line, pattern.SingleLineMetaDataPattern)
 
 		// skip if line is not a key-value pair
 		if !isKeyValuePair {
+			remainingLines = append(remainingLines, line)
 			continue
 		}
 
@@ -71,29 +74,74 @@ func Parse(item *repository.Item, lines []string, getFallbackItemType func() str
 				break
 			}
 
+		case "created at":
 		case "date":
 			{
 				date, _ := date.ParseIso8601Date(value, fallbackDate)
-				metaData.Date = date
+				metaData.CreationDate = date
+				break
+			}
+
+		case "modified at":
+			{
+				date, _ := date.ParseIso8601Date(value, fallbackDate)
+				metaData.LastModifiedDate = date
 				break
 			}
 
 		case "tags":
 			{
-				metaData.Tags = getTagsFromValue(value)
+				if strings.TrimSpace(value) != "" {
+					metaData.Tags = getTagsFromValue(value)
+				}
 				break
 			}
 
 		case "type":
 			{
-				itemTypeString := strings.TrimSpace(strings.ToLower(value))
-				if itemTypeString != "" {
-					metaData.ItemType = itemTypeString
+				if typeValue := strings.TrimSpace(strings.ToLower(value)); typeValue != "" {
+					metaData.ItemType = typeValue
+				}
+				break
+			}
+
+		case "alias":
+			{
+				if aliasValue := strings.TrimSpace(strings.ToLower(value)); aliasValue != "" {
+					metaData.Alias = aliasValue
+				}
+				break
+			}
+
+		case "author":
+			{
+				if author := strings.TrimSpace(strings.ToLower(value)); author != "" {
+					metaData.Author = author
 				}
 				break
 			}
 
 		}
+	}
+
+	// begin parsing multi-line meta data
+	remainingMetaDataText := strings.Join(remainingLines, "\n")
+
+	// parse multi line tags
+	if multiLineTagLocation := pattern.MultiLineTagsPattern.FindStringSubmatchIndex(remainingMetaDataText); multiLineTagLocation != nil {
+
+		tagNames := make([]string, 0)
+
+		multiLineTagBlock := strings.TrimSpace(remainingMetaDataText[multiLineTagLocation[0]:multiLineTagLocation[1]])
+		tagLines := strings.Split(multiLineTagBlock, "\n")
+		for _, line := range tagLines {
+			if isListItem, matches := util.IsMatch(line, pattern.MetaDataListItemPattern); isListItem && len(matches) == 2 {
+				tagName := strings.TrimSpace(strings.ToLower(matches[1]))
+				tagNames = append(tagNames, tagName)
+			}
+		}
+
+		metaData.Tags = repository.NewTagsFromNames(tagNames)
 	}
 
 	return metaData, lines
@@ -132,8 +180,7 @@ func locateMetaData(lines []string) (Match, []string) {
 	// either by white space or be meta data
 	for _, line := range lines[metaDataStartLine:] {
 
-		lineMatchesMetaDataPattern := pattern.MetaDataPattern.MatchString(line)
-		if lineMatchesMetaDataPattern {
+		if lineMatchesMetaDataPattern := pattern.MetaDataLabelPattern.MatchString(line); lineMatchesMetaDataPattern {
 
 			endLine := len(lines)
 			return Found(lines[metaDataStartLine:endLine]), lines[0:contentEndPosition]

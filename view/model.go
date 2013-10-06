@@ -13,7 +13,8 @@ type Model struct {
 	Content              string                `json:"content"`
 	LanguageTag          string                `json:"languageTag"`
 	Type                 string                `json:"type"`
-	Date                 string                `json:"date"`
+	CreationDate         string                `json:"creationdate"`
+	LastModifiedDate     string                `json:"lastmodifieddate"`
 	Tags                 []*Tag                `json:"tags"`
 	Childs               []*Model              `json:"childs"`
 	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
