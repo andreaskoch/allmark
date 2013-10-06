@@ -171,6 +171,53 @@ const documentTemplate = `
 {{end}}
 `
 
+const locationTemplate = `
+<header>
+<h1 class="title">
+{{.Title}}
+</h1>
+</header>
+
+<section class="description">
+{{.Description}}
+</section>
+
+<section class="content">
+{{.Content}}
+</section>
+
+<div class="cleaner"></div>
+
+{{ if .Tags }}
+<section class="tags">
+	<header>
+		Tags:
+	</header>
+
+	<ul class="tags">
+	{{range .Tags}}
+	<li class="tag">
+		<a href="{{.AbsoluteRoute}}" title="{{.Description}}">{{.Name}}</a>
+	</li>
+	{{end}}
+	</ul>
+</section>
+{{end}}
+
+{{ if .Childs }}
+<section class="childs">
+<ol class="list">
+{{range .Childs}}
+<li class="child">
+	<a href="{{.RelativeRoute}}" class="child-title child-link">{{.Title}}</a>
+	<p class="child-description">{{.Description}}</p>
+</li>
+{{end}}
+</ol>
+</section>
+{{end}}
+`
+
 const presentationTemplate = `
 <header>
 <h1 class="title">

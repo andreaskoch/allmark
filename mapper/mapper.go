@@ -18,7 +18,7 @@ func Map(item *repository.Item, tagPath func(tag *repository.Tag) string, relati
 	// map the parsed item to the view model depending on the item type
 	switch itemType := item.MetaData.ItemType; itemType {
 
-	case types.PresentationItemType, types.RepositoryItemType, types.DocumentItemType, types.MessageItemType:
+	case types.PresentationItemType, types.RepositoryItemType, types.DocumentItemType, types.MessageItemType, types.LocationItemType:
 		model = getModel(item, tagPath, relativePath, absolutePath, content)
 		model.Childs = getSubModels(item, tagPath, relativePath, absolutePath, content)
 

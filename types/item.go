@@ -11,4 +11,5 @@ const (
 	PresentationItemType = "presentation"
 	MessageItemType      = "message"
 	RepositoryItemType   = "repository"
+	LocationItemType     = "location"
 )

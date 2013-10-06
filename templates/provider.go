@@ -48,6 +48,7 @@ func NewProvider(templateFolder string) *Provider {
 	templates[SitemapContentTemplateName] = NewTemplate(templateFolder, SitemapContentTemplateName, sitemapContentTemplate, templateModified)
 
 	templates[types.DocumentItemType] = NewTemplate(templateFolder, types.DocumentItemType, documentTemplate, templateModified)
+	templates[types.LocationItemType] = NewTemplate(templateFolder, types.LocationItemType, locationTemplate, templateModified)
 	templates[types.MessageItemType] = NewTemplate(templateFolder, types.MessageItemType, messageTemplate, templateModified)
 	templates[types.RepositoryItemType] = NewTemplate(templateFolder, types.RepositoryItemType, repositoryTemplate, templateModified)
 	templates[types.PresentationItemType] = NewTemplate(templateFolder, types.PresentationItemType, presentationTemplate, templateModified)
