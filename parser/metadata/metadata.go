@@ -5,6 +5,7 @@
 package metadata
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark/date"
 	"github.com/andreaskoch/allmark/parser/pattern"
 	"github.com/andreaskoch/allmark/repository"
@@ -65,8 +66,9 @@ func Parse(item *repository.Item, lines []string, getFallbackItemType func() str
 		// prepare key and value
 		key := strings.ToLower(strings.TrimSpace(matches[1]))
 		value := strings.TrimSpace(matches[2])
+		fmt.Printf("%q\n", key)
 
-		switch strings.ToLower(key) {
+		switch key {
 
 		case "language":
 			{
@@ -74,10 +76,10 @@ func Parse(item *repository.Item, lines []string, getFallbackItemType func() str
 				break
 			}
 
-		case "created at":
-		case "date":
+		case "created at", "date":
 			{
 				date, _ := date.ParseIso8601Date(value, fallbackDate)
+				fmt.Println(date)
 				metaData.CreationDate = date
 				break
 			}

@@ -24,13 +24,13 @@ var (
 	HorizontalRulePattern = regexp.MustCompile(`^-{3,}$`)
 
 	// Lines with a "key: value" syntax
-	SingleLineMetaDataPattern = regexp.MustCompile(`^(\w+):\s*([\pL\pN\p{Latin}]+.+)$`)
+	SingleLineMetaDataPattern = regexp.MustCompile(`^(\w+[\w\s]+\w+):\s*([\pL\pN\p{Latin}]+.+)$`)
 
 	// Lines with a meta data label in them syntax
 	MultiLineTagsPattern = regexp.MustCompile(`(?is)tags:\n{1,2}(\s?-\s?.+\n)+\n`)
 
 	// Lines with a meta data label in them syntax
-	MetaDataLabelPattern = regexp.MustCompile(`^(\w+):`)
+	MetaDataLabelPattern = regexp.MustCompile(`^(\w+[\w\s]+\w+):`)
 
 	// Meta data list item pattern
 	MetaDataListItemPattern = regexp.MustCompile(`^\s?[*-]\s?(.+)$`)

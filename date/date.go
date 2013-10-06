@@ -18,7 +18,7 @@ import (
 var iso8601DateFormatPattern = regexp.MustCompile("^(\\d{4})-(\\d{2})-(\\d{2})")
 
 // The regular expression which matches a hh:mm time format pattern (e.g 21:13).
-var timeFormatPattern = regexp.MustCompile("\\s(\\d{2}):(\\d{2})")
+var timeFormatPattern = regexp.MustCompile("\\s(\\d{2}):(\\d{2})(:\\d{2})?")
 
 // ParseIso8601Date parses a ISO 8601 date string (e.g. 2013-02-08 21:13)
 // and returns the time value it represents.
@@ -64,8 +64,7 @@ func ParseIso8601Date(value string, fallback time.Time) (time.Time, error) {
 	)
 
 	// check if the value matches the 24 hour time format pattern
-	isValidTime, timeComponents := util.IsMatch(value, timeFormatPattern)
-	if isValidTime {
+	if isValidTime, timeComponents := util.IsMatch(value, timeFormatPattern); isValidTime && len(timeComponents) > 2 {
 
 		// parse hours
 		hourString := timeComponents[1]
