@@ -20,7 +20,11 @@ import (
 )
 
 var (
+	// a map of all items by tag
 	tags repository.TagMap
+
+	// a map of all items by alias
+	items repository.ItemMap
 )
 
 func tagPath(tag *repository.Tag) string {
@@ -29,6 +33,7 @@ func tagPath(tag *repository.Tag) string {
 
 func init() {
 	tags = repository.NewTagMap()
+	items = repository.NewItemMap()
 }
 
 type ResponseWriter func(writer io.Writer, host string)
@@ -172,6 +177,9 @@ func (renderer *Renderer) removeItem(item *repository.Item) {
 	// un-register tags
 	tags.Remove(item)
 
+	// un-register item
+	items.Remove(item)
+
 	targetPath := renderer.pathProvider.GetRenderTargetPath(item)
 
 	go func() {
@@ -249,6 +257,9 @@ func prepare(item *repository.Item) {
 
 	// register tags
 	tags.Update(item, previousTags)
+
+	// register item
+	items.Add(item)
 
 	// relative file path provider
 	relativePath := func(item *repository.Item) string {
