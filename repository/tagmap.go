@@ -10,7 +10,7 @@ func NewTagMap() TagMap {
 	return make(TagMap)
 }
 
-func (tagmap TagMap) Update(item *Item, previousTagList Tags) {
+func (tagmap TagMap) Register(item *Item, previousTagList Tags) {
 
 	// add new tags
 	for _, tag := range item.MetaData.Tags {

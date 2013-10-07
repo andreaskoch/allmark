@@ -20,7 +20,7 @@ type Model struct {
 	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
 	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
 	TagCloud             *TagCloud             `json:"tagCloud"`
-	Locations            []*GeoLocation        `json:"locations"`
+	Locations            []*Model              `json:"locations"`
 	GeoLocation          *GeoLocation          `json:"geoLocation"`
 }
 

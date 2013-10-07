@@ -131,7 +131,7 @@ func newItem(rootPathProvider *path.Provider, parent *Item, itemPath string, lev
 
 	// assign paths
 	item.RelativePath = item.RelativePathProvider().GetWebRoute(item)
-	item.AbsolutePath = item.RootPathProvider().GetWebRoute(item)
+	item.AbsolutePath = "/" + item.RootPathProvider().GetWebRoute(item)
 
 	// find childs
 	item.updateChilds()

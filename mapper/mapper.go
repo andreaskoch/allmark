@@ -11,7 +11,7 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func Map(item *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
+func Map(item *repository.Item, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
 
 	var model *view.Model
 
@@ -19,8 +19,8 @@ func Map(item *repository.Item, tagPath func(tag *repository.Tag) string, relati
 	switch itemType := item.MetaData.ItemType; itemType {
 
 	case types.PresentationItemType, types.RepositoryItemType, types.DocumentItemType, types.MessageItemType, types.LocationItemType:
-		model = getModel(item, tagPath, relativePath, absolutePath, content)
-		model.Childs = getSubModels(item, tagPath, relativePath, absolutePath, content)
+		model = getModel(item, itemResolver, tagPath, relativePath, absolutePath, content)
+		model.Childs = getSubModels(item, itemResolver, tagPath, relativePath, absolutePath, content)
 
 	default:
 		model = view.Error("Item type not recognized", fmt.Sprintf("There is no mapper available for items of type %q", itemType), relativePath(item), absolutePath(item))
@@ -32,7 +32,7 @@ func Map(item *repository.Item, tagPath func(tag *repository.Tag) string, relati
 	return model
 }
 
-func getModel(item *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
+func getModel(item *repository.Item, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
 
 	return &view.Model{
 		Level:            item.Level,
@@ -46,9 +46,23 @@ func getModel(item *repository.Item, tagPath func(tag *repository.Tag) string, r
 		LastModifiedDate: formatDate(item.MetaData.LastModifiedDate),
 		Type:             item.MetaData.ItemType,
 		Tags:             getTags(item, tagPath),
+		Locations:        getLocations(item.MetaData.Locations, itemResolver, tagPath, relativePath, absolutePath, content),
 		GeoLocation:      getGeoLocation(item.MetaData),
 	}
 
+}
+
+func getLocations(locations repository.Locations, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
+	locationModels := make([]*view.Model, 0)
+
+	for _, location := range locations {
+		item := itemResolver(location.String())
+		if item != nil {
+			locationModels = append(locationModels, getModel(item, itemResolver, tagPath, relativePath, absolutePath, content))
+		}
+	}
+
+	return locationModels
 }
 
 func getGeoLocation(metaData repository.MetaData) *view.GeoLocation {
@@ -77,13 +91,13 @@ func getTags(item *repository.Item, tagPath func(tag *repository.Tag) string) []
 	return tagModels
 }
 
-func getSubModels(item *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
+func getSubModels(item *repository.Item, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
 
 	items := item.Childs
 	models := make([]*view.Model, 0)
 
 	for _, child := range items {
-		models = append(models, Map(child, tagPath, relativePath, absolutePath, content))
+		models = append(models, Map(child, itemResolver, tagPath, relativePath, absolutePath, content))
 	}
 
 	return models

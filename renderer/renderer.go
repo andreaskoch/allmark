@@ -27,6 +27,11 @@ var (
 	items repository.ItemMap
 )
 
+// item link provider
+func itemResolver(itemName string) *repository.Item {
+	return items.LookupByAlias(itemName)
+}
+
 func tagPath(tag *repository.Tag) string {
 	return fmt.Sprintf("/tags.html#%s", tag.Name())
 }
@@ -256,10 +261,10 @@ func prepare(item *repository.Item) {
 	parser.Parse(item)
 
 	// register tags
-	tags.Update(item, previousTags)
+	tags.Register(item, previousTags)
 
 	// register item
-	items.Add(item)
+	items.Register(item)
 
 	// relative file path provider
 	relativePath := func(item *repository.Item) string {
@@ -277,7 +282,7 @@ func prepare(item *repository.Item) {
 	}
 
 	// create the viewmodel
-	mapper.Map(item, tagPath, relativePath, absolutePath, content)
+	mapper.Map(item, itemResolver, tagPath, relativePath, absolutePath, content)
 }
 
 func writeTemplate(model interface{}, template *template.Template, writer io.Writer) {

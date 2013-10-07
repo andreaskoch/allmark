@@ -169,6 +169,19 @@ const documentTemplate = `
 </ol>
 </section>
 {{end}}
+
+{{ if .Locations }}
+<section class="locations">
+<ol class="list">
+{{range .Locations}}
+<li class="location">
+	<a href="{{.AbsoluteRoute}}" class="child-title child-link">{{.Title}}</a>
+	<p class="child-description">{{.Description}}</p>
+</li>
+{{end}}
+</ol>
+</section>
+{{end}}
 `
 
 const locationTemplate = `

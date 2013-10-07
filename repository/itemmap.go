@@ -14,7 +14,7 @@ func NewItemMap() ItemMap {
 	return make(ItemMap)
 }
 
-func (itemmap ItemMap) Add(item *Item) {
+func (itemmap ItemMap) Register(item *Item) {
 
 	key := itemmap.getMapKey(item)
 	itemmap[key] = item
@@ -28,7 +28,7 @@ func (itemmap ItemMap) Remove(item *Item) {
 
 }
 
-func (itemmap ItemMap) GetItemByAlias(alias string) *Item {
+func (itemmap ItemMap) LookupByAlias(alias string) *Item {
 	key := itemmap.normalizeKey(alias)
 	if item, exists := itemmap[key]; exists {
 		return item
