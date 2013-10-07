@@ -19,7 +19,7 @@ func MapToplevelNavigation(root *repository.Item) *view.ToplevelNavigation {
 	for _, child := range root.Childs {
 		toplevelEntries = append(toplevelEntries, &view.ToplevelEntry{
 			Title: child.Title,
-			Path:  "/" + child.AbsoluteRoute,
+			Path:  child.AbsoluteRoute,
 		})
 	}
 
@@ -48,6 +48,6 @@ func MapBreadcrumbNavigationEntries(item *repository.Item) []*view.Breadcrumb {
 	return append(navigationEntries, &view.Breadcrumb{
 		Level: item.Level,
 		Title: model.Title,
-		Path:  "/" + model.AbsoluteRoute,
+		Path:  model.AbsoluteRoute,
 	})
 }
