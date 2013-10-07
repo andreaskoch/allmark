@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/view"
+	"strings"
 )
 
 func Map(item *repository.Item, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
@@ -47,7 +48,7 @@ func getModel(item *repository.Item, itemResolver func(itemName string) *reposit
 		Type:             item.MetaData.ItemType,
 		Tags:             getTags(item, tagPath),
 		Locations:        getLocations(item.MetaData.Locations, itemResolver, tagPath, relativePath, absolutePath, content),
-		GeoLocation:      getGeoLocation(item.MetaData),
+		GeoLocation:      getGeoLocation(item),
 	}
 
 }
@@ -65,17 +66,42 @@ func getLocations(locations repository.Locations, itemResolver func(itemName str
 	return locationModels
 }
 
-func getGeoLocation(metaData repository.MetaData) *view.GeoLocation {
+func getGeoLocation(item *repository.Item) *view.GeoLocation {
 	return &view.GeoLocation{
-		Street:    metaData.GeoData.Street,
-		City:      metaData.GeoData.City,
-		Postcode:  metaData.GeoData.Postcode,
-		Country:   metaData.GeoData.Country,
-		Latitude:  metaData.GeoData.Latitude,
-		Longitude: metaData.GeoData.Longitude,
-		MapType:   metaData.GeoData.MapType,
-		Zoom:      metaData.GeoData.Zoom,
+		PlaceName:   getPlaceName(item),
+		Address:     getAddress(item.MetaData.GeoData),
+		Coordinates: getCoordinates(item.MetaData.GeoData),
+
+		Street:    item.MetaData.GeoData.Street,
+		City:      item.MetaData.GeoData.City,
+		Postcode:  item.MetaData.GeoData.Postcode,
+		Country:   item.MetaData.GeoData.Country,
+		Latitude:  item.MetaData.GeoData.Latitude,
+		Longitude: item.MetaData.GeoData.Longitude,
+		MapType:   item.MetaData.GeoData.MapType,
+		Zoom:      item.MetaData.GeoData.Zoom,
 	}
+}
+
+func getAddress(geoData repository.GeoInformation) string {
+	components := []string{geoData.Street, geoData.Postcode, geoData.City, geoData.Country}
+	return strings.Join(components, ", ")
+}
+
+func getPlaceName(item *repository.Item) string {
+	if item.Title == "" || item.MetaData.GeoData.City == "" {
+		return ""
+	}
+	components := []string{item.Title, item.MetaData.GeoData.City, item.MetaData.GeoData.Country}
+	return strings.Join(components, ", ")
+}
+
+func getCoordinates(geoData repository.GeoInformation) string {
+	if geoData.Latitude == "" || geoData.Longitude == "" {
+		return ""
+	}
+
+	return fmt.Sprintf("%s; %s", geoData.Latitude, geoData.Longitude)
 }
 
 func getTags(item *repository.Item, tagPath func(tag *repository.Tag) string) []*view.Tag {

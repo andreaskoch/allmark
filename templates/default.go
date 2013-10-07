@@ -17,6 +17,14 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<link rel="schema.DC" href="http://purl.org/dc/terms/">
 	<meta name="DC.date" content="{{.CreationDate}}">
 
+	{{if .GeoLocation.Coordinates}}
+	<meta name="geo.position" content="{{.GeoLocation.Coordinates}}">
+	{{end}}
+	
+	{{if .GeoLocation.PlaceName}}
+	<meta name="geo.placename" content="{{.GeoLocation.PlaceName}}">	
+	{{end}}
+
 	<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
 
 	<link rel="shortcut icon" href="/theme/favicon.ico" />
@@ -157,25 +165,46 @@ const documentTemplate = `
 </section>
 {{end}}
 
+{{ if .Locations }}
+<section class="locations">
+	<header>
+		Locations:
+	</header>
+
+	<ol class="list">
+	{{range .Locations}}
+	<li class="location">
+		<a href="{{.AbsoluteRoute}}">{{.Title}}</a>
+		{{ if .Description }}
+		<p>{{.Description}}</p>
+		{{end}}
+
+		{{ if .GeoLocation }}
+
+		{{ if .GeoLocation.Address }}
+		<p class="address">{{ .GeoLocation.Address }}</p>
+		{{end}}
+
+		{{ if .GeoLocation.Coordinates }}
+		<p class="geo">
+			<span class="latitude">{{ .GeoLocation.Latitude }}</span>;
+			<span class="longitude">{{ .GeoLocation.Longitude }}</span>
+		</p>
+		{{end}}
+
+		{{ end }}
+	</li>
+	{{end}}
+	</ol>
+</section>
+{{end}}
+
 {{ if .Childs }}
 <section class="childs">
 <ol class="list">
 {{range .Childs}}
 <li class="child">
 	<a href="{{.RelativeRoute}}" class="child-title child-link">{{.Title}}</a>
-	<p class="child-description">{{.Description}}</p>
-</li>
-{{end}}
-</ol>
-</section>
-{{end}}
-
-{{ if .Locations }}
-<section class="locations">
-<ol class="list">
-{{range .Locations}}
-<li class="location">
-	<a href="{{.AbsoluteRoute}}" class="child-title child-link">{{.Title}}</a>
 	<p class="child-description">{{.Description}}</p>
 </li>
 {{end}}

@@ -5,6 +5,10 @@
 package view
 
 type GeoLocation struct {
+	PlaceName   string `json:"placename"`
+	Address     string `json:"address"`
+	Coordinates string `json:"coordinates"`
+
 	Street    string `json:"street"`
 	City      string `json:"city"`
 	Postcode  string `json:"postcode"`
