@@ -17,12 +17,14 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<link rel="schema.DC" href="http://purl.org/dc/terms/">
 	<meta name="DC.date" content="{{.CreationDate}}">
 
+	{{if .GeoLocation }}
 	{{if .GeoLocation.Coordinates}}
 	<meta name="geo.position" content="{{.GeoLocation.Coordinates}}">
 	{{end}}
 	
 	{{if .GeoLocation.PlaceName}}
 	<meta name="geo.placename" content="{{.GeoLocation.PlaceName}}">	
+	{{end}}
 	{{end}}
 
 	<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
