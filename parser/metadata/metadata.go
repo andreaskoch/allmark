@@ -38,10 +38,13 @@ func Parse(item *repository.Item, lines []string) (repository.MetaData, []string
 
 	metaData := repository.NewMetaData()
 
-	// apply fallback item type
+	// fallback: item type
 	metaData.ItemType = getItemTypeFromFilename(item.Path())
 
-	// apply the fallback date
+	// fallback: alias
+	metaData.Alias = getFallbackAlias(item)
+
+	// fallback: date
 	fallbackDate := minDate
 	if date, err := getItemModificationTime(item); err == nil {
 		fallbackDate = date
@@ -281,6 +284,10 @@ func locateMetaData(lines []string) (Match, []string) {
 	}
 
 	return NotFound(), lines
+}
+
+func getFallbackAlias(item *repository.Item) string {
+	return filepath.Base(item.Directory())
 }
 
 func getTagsFromValue(value string) repository.Tags {
