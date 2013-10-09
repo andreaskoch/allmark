@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/util"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -33,12 +34,12 @@ func New(item *repository.Item) (repository.MetaData, error) {
 	return metaData, nil
 }
 
-func Parse(item *repository.Item, lines []string, getFallbackItemType func() string) (repository.MetaData, []string) {
+func Parse(item *repository.Item, lines []string) (repository.MetaData, []string) {
 
 	metaData := repository.NewMetaData()
 
 	// apply fallback item type
-	metaData.ItemType = getFallbackItemType()
+	metaData.ItemType = getItemTypeFromFilename(item.Path())
 
 	// apply the fallback date
 	fallbackDate := minDate
@@ -294,4 +295,33 @@ func getItemModificationTime(item *repository.Item) (time.Time, error) {
 	}
 
 	return date, nil
+}
+
+func getItemTypeFromFilename(filenameOrPath string) string {
+
+	extension := filepath.Ext(filenameOrPath)
+	filenameWithExtension := filepath.Base(filenameOrPath)
+	filename := filenameWithExtension[0:(strings.LastIndex(filenameWithExtension, extension))]
+
+	switch strings.ToLower(filename) {
+	case types.DocumentItemType:
+		return types.DocumentItemType
+
+	case types.LocationItemType:
+		return types.LocationItemType
+
+	case types.PresentationItemType:
+		return types.PresentationItemType
+
+	case types.MessageItemType:
+		return types.MessageItemType
+
+	case types.RepositoryItemType:
+		return types.RepositoryItemType
+
+	default:
+		return types.DocumentItemType
+	}
+
+	return types.UnknownItemType
 }

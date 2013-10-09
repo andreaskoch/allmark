@@ -15,7 +15,6 @@ import (
 	"github.com/andreaskoch/allmark/util"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 func Parse(item *repository.Item) (*repository.Item, error) {
@@ -67,12 +66,7 @@ func parsePhysical(item *repository.Item) (*repository.Item, error) {
 	// determine the fallback title
 	fallbackTitle := getFallbackTitle(item)
 
-	// parse the meta data
-	fallbackItemTypeFunc := func() string {
-		return getItemTypeFromFilename(item.Path())
-	}
-
-	item.MetaData, lines = metadata.Parse(item, lines, fallbackItemTypeFunc)
+	item.MetaData, lines = metadata.Parse(item, lines)
 
 	// parse the content
 	switch itemType := item.MetaData.ItemType; itemType {
@@ -110,33 +104,4 @@ func parsePhysical(item *repository.Item) (*repository.Item, error) {
 	}
 
 	panic("Unreachable")
-}
-
-func getItemTypeFromFilename(filenameOrPath string) string {
-
-	extension := filepath.Ext(filenameOrPath)
-	filenameWithExtension := filepath.Base(filenameOrPath)
-	filename := filenameWithExtension[0:(strings.LastIndex(filenameWithExtension, extension))]
-
-	switch strings.ToLower(filename) {
-	case types.DocumentItemType:
-		return types.DocumentItemType
-
-	case types.LocationItemType:
-		return types.LocationItemType
-
-	case types.PresentationItemType:
-		return types.PresentationItemType
-
-	case types.MessageItemType:
-		return types.MessageItemType
-
-	case types.RepositoryItemType:
-		return types.RepositoryItemType
-
-	default:
-		return types.DocumentItemType
-	}
-
-	return types.UnknownItemType
 }
