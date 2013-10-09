@@ -25,6 +25,9 @@ var (
 
 	// a map of all items by alias
 	items repository.ItemMap
+
+	// a map of items by location
+	locations repository.LocationMap
 )
 
 // item link provider
@@ -39,6 +42,7 @@ func tagPath(tag *repository.Tag) string {
 func init() {
 	tags = repository.NewTagMap()
 	items = repository.NewItemMap()
+	locations = repository.NewLocationMap()
 }
 
 type ResponseWriter func(writer io.Writer, host string)
@@ -185,6 +189,9 @@ func (renderer *Renderer) removeItem(item *repository.Item) {
 	// un-register item
 	items.Remove(item)
 
+	// un-register locations
+	locations.Remove(item)
+
 	targetPath := renderer.pathProvider.GetRenderTargetPath(item)
 
 	go func() {
@@ -251,10 +258,16 @@ func (renderer *Renderer) render(item *repository.Item) {
 
 func prepare(item *repository.Item) {
 
-	// same the previous tag list of the supplied item
+	// save the previous tag list of the supplied item
 	previousTags := repository.NewTags()
 	if item.MetaData.Tags != nil && len(item.MetaData.Tags) > 0 {
 		previousTags = item.MetaData.Tags
+	}
+
+	// save the previous location list of the supplied item
+	previousLocations := repository.NewLocations()
+	if item.MetaData.Locations != nil && len(item.MetaData.Locations) > 0 {
+		previousLocations = item.MetaData.Locations
 	}
 
 	// parse the item
@@ -265,6 +278,9 @@ func prepare(item *repository.Item) {
 
 	// register item
 	items.Register(item)
+
+	// register locations
+	locations.Register(item, previousLocations)
 
 	// relative file path provider
 	relativePath := func(item *repository.Item) string {
