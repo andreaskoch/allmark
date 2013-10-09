@@ -28,8 +28,8 @@ var (
 )
 
 // item link provider
-func itemResolver(itemName string) *repository.Item {
-	return items.LookupByAlias(itemName)
+func itemResolver(itemName string, expression repository.ResolverExpression) *repository.Item {
+	return items.Lookup(itemName, expression)
 }
 
 func tagPath(tag *repository.Tag) string {

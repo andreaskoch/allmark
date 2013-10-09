@@ -11,7 +11,7 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func Map(item *repository.Item, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
+func Map(item *repository.Item, itemResolver repository.ItemResolver, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
 
 	var model *view.Model
 
@@ -32,7 +32,7 @@ func Map(item *repository.Item, itemResolver func(itemName string) *repository.I
 	return model
 }
 
-func getModel(item *repository.Item, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
+func getModel(item *repository.Item, itemResolver repository.ItemResolver, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
 
 	return &view.Model{
 		Level:            item.Level,
@@ -52,7 +52,7 @@ func getModel(item *repository.Item, itemResolver func(itemName string) *reposit
 
 }
 
-func getSubModels(item *repository.Item, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
+func getSubModels(item *repository.Item, itemResolver repository.ItemResolver, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
 
 	items := item.Childs
 	models := make([]*view.Model, 0)

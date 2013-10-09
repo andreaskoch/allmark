@@ -5,9 +5,12 @@
 package repository
 
 import (
-	"fmt"
 	"strings"
 )
+
+type ResolverExpression func(item *Item) bool
+
+type ItemResolver func(itemName string, expression ResolverExpression) *Item
 
 type ItemMap map[string]ItemList
 
@@ -47,22 +50,24 @@ func (itemmap ItemMap) Remove(item *Item) {
 
 }
 
-func (itemmap ItemMap) LookupByAlias(alias string) *Item {
-	key := itemmap.normalizeKey(alias)
-	if itemList, exists := itemmap[key]; exists {
-		if len(itemList) == 0 {
-			return nil
-		}
+func (itemmap ItemMap) Lookup(alias string, expression ResolverExpression) *Item {
+	results := itemmap.lookupByAlias(alias)
+	if results == nil || len(results) == 0 {
+		return nil
+	}
 
-		// debug
-		if len(itemList) > 1 {
-			fmt.Printf("There is more than one document for the alias %q.\n", alias)
+	for _, item := range results {
+		if expression(item) {
+			return item
 		}
-
-		return itemList[0]
 	}
 
 	return nil
+}
+
+func (itemmap ItemMap) lookupByAlias(alias string) ItemList {
+	key := itemmap.normalizeKey(alias)
+	return itemmap[key]
 }
 
 func (itemmap ItemMap) getMapKey(item *Item) string {
