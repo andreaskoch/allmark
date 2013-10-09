@@ -5,10 +5,11 @@
 package repository
 
 import (
+	"fmt"
 	"strings"
 )
 
-type ItemMap map[string]*Item
+type ItemMap map[string]ItemList
 
 func NewItemMap() ItemMap {
 	return make(ItemMap)
@@ -17,21 +18,48 @@ func NewItemMap() ItemMap {
 func (itemmap ItemMap) Register(item *Item) {
 
 	key := itemmap.getMapKey(item)
-	itemmap[key] = item
+	if itemlist, exists := itemmap[key]; exists {
+
+		// add the item to the item list
+		itemmap[key] = itemlist.Add(item)
+
+	} else {
+
+		// create a new item list
+		itemmap[key] = NewItemList(item)
+	}
 
 }
 
 func (itemmap ItemMap) Remove(item *Item) {
 
 	key := itemmap.getMapKey(item)
-	delete(itemmap, key)
+	if itemlist, exists := itemmap[key]; exists {
+
+		newItemList := itemlist.Remove(item)
+		if len(newItemList) > 0 {
+			itemmap[key] = newItemList
+		} else {
+			delete(itemmap, key)
+		}
+
+	}
 
 }
 
 func (itemmap ItemMap) LookupByAlias(alias string) *Item {
 	key := itemmap.normalizeKey(alias)
-	if item, exists := itemmap[key]; exists {
-		return item
+	if itemList, exists := itemmap[key]; exists {
+		if len(itemList) == 0 {
+			return nil
+		}
+
+		// debug
+		if len(itemList) > 1 {
+			fmt.Printf("There is more than one document for the alias %q.\n", alias)
+		}
+
+		return itemList[0]
 	}
 
 	return nil
