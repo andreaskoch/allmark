@@ -9,7 +9,6 @@ import (
 	"github.com/andreaskoch/allmark/repository"
 	"github.com/andreaskoch/allmark/types"
 	"github.com/andreaskoch/allmark/view"
-	"strings"
 )
 
 func Map(item *repository.Item, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
@@ -53,55 +52,16 @@ func getModel(item *repository.Item, itemResolver func(itemName string) *reposit
 
 }
 
-func getLocations(locations repository.Locations, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
-	locationModels := make([]*view.Model, 0)
+func getSubModels(item *repository.Item, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
 
-	for _, location := range locations {
-		item := itemResolver(location.String())
-		if item != nil {
-			locationModels = append(locationModels, getModel(item, itemResolver, tagPath, relativePath, absolutePath, content))
-		}
+	items := item.Childs
+	models := make([]*view.Model, 0)
+
+	for _, child := range items {
+		models = append(models, Map(child, itemResolver, tagPath, relativePath, absolutePath, content))
 	}
 
-	return locationModels
-}
-
-func getGeoLocation(item *repository.Item) *view.GeoLocation {
-	return &view.GeoLocation{
-		PlaceName:   getPlaceName(item),
-		Address:     getAddress(item.MetaData.GeoData),
-		Coordinates: getCoordinates(item.MetaData.GeoData),
-
-		Street:    item.MetaData.GeoData.Street,
-		City:      item.MetaData.GeoData.City,
-		Postcode:  item.MetaData.GeoData.Postcode,
-		Country:   item.MetaData.GeoData.Country,
-		Latitude:  item.MetaData.GeoData.Latitude,
-		Longitude: item.MetaData.GeoData.Longitude,
-		MapType:   item.MetaData.GeoData.MapType,
-		Zoom:      item.MetaData.GeoData.Zoom,
-	}
-}
-
-func getAddress(geoData repository.GeoInformation) string {
-	components := []string{geoData.Street, geoData.Postcode, geoData.City, geoData.Country}
-	return strings.Join(components, ", ")
-}
-
-func getPlaceName(item *repository.Item) string {
-	if item.Title == "" || item.MetaData.GeoData.City == "" {
-		return ""
-	}
-	components := []string{item.Title, item.MetaData.GeoData.City, item.MetaData.GeoData.Country}
-	return strings.Join(components, ", ")
-}
-
-func getCoordinates(geoData repository.GeoInformation) string {
-	if geoData.Latitude == "" || geoData.Longitude == "" {
-		return ""
-	}
-
-	return fmt.Sprintf("%s; %s", geoData.Latitude, geoData.Longitude)
+	return models
 }
 
 func getTags(item *repository.Item, tagPath func(tag *repository.Tag) string) []*view.Tag {
@@ -115,16 +75,4 @@ func getTags(item *repository.Item, tagPath func(tag *repository.Tag) string) []
 	}
 
 	return tagModels
-}
-
-func getSubModels(item *repository.Item, itemResolver func(itemName string) *repository.Item, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
-
-	items := item.Childs
-	models := make([]*view.Model, 0)
-
-	for _, child := range items {
-		models = append(models, Map(child, itemResolver, tagPath, relativePath, absolutePath, content))
-	}
-
-	return models
 }
