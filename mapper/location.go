@@ -11,13 +11,13 @@ import (
 	"strings"
 )
 
-func getLocations(locations repository.Locations, itemResolver repository.ItemResolver, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
+func getLocations(locations repository.Locations, itemResolver repository.ItemResolver, locationResolver repository.LocationResolver, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
 	locationModels := make([]*view.Model, 0)
 
 	for _, location := range locations {
 		item := itemResolver(location.String(), isLocation)
 		if item != nil {
-			locationModels = append(locationModels, getModel(item, itemResolver, tagPath, relativePath, absolutePath, content))
+			locationModels = append(locationModels, getModel(item, itemResolver, locationResolver, tagPath, relativePath, absolutePath, content))
 		}
 	}
 
@@ -42,7 +42,11 @@ func getGeoLocation(item *repository.Item) *view.GeoLocation {
 }
 
 func isLocation(item *repository.Item) bool {
-	return item.Type == "location"
+	if item == nil {
+		return false
+	}
+
+	return item.MetaData.ItemType == "location"
 }
 
 func getAddress(geoData repository.GeoInformation) string {

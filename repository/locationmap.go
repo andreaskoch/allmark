@@ -4,7 +4,9 @@
 
 package repository
 
-type LocationMap map[Location]ItemList
+type LocationResolver func(locationName string) ItemList
+
+type LocationMap map[string]ItemList
 
 func NewLocationMap() LocationMap {
 	return make(LocationMap)
@@ -15,15 +17,16 @@ func (locationmap LocationMap) Register(item *Item, previousLocationList Locatio
 	// add new location
 	for _, location := range item.MetaData.Locations {
 
-		if itemlist, exists := locationmap[location]; exists {
+		key := location.Name()
+		if itemlist, exists := locationmap[key]; exists {
 
 			// add the item to the item list for this location
-			locationmap[location] = itemlist.Add(item)
+			locationmap[key] = itemlist.Add(item)
 
 		} else {
 
 			// create a new item list
-			locationmap[location] = NewItemList(item)
+			locationmap[key] = NewItemList(item)
 		}
 
 	}
@@ -31,16 +34,18 @@ func (locationmap LocationMap) Register(item *Item, previousLocationList Locatio
 	// remove old location
 	for _, location := range previousLocationList {
 
+		key := location.Name()
+
 		// check if the old location is still in the new location list
 		if item.MetaData.Locations.Contains(location) {
 			continue // the location is still there
 		}
 
 		// the location has been removed from the item's location list
-		if itemlist, exists := locationmap[location]; exists {
+		if itemlist, exists := locationmap[key]; exists {
 
 			// remove the item from the item list for this location
-			locationmap[location] = itemlist.Remove(item)
+			locationmap[key] = itemlist.Remove(item)
 
 		}
 	}
@@ -59,4 +64,14 @@ func (locationmap LocationMap) Remove(item *Item) {
 		}
 	}
 
+}
+
+func (locationmap LocationMap) Lookup(locationName string) ItemList {
+
+	if location, err := NewLocation(locationName); err == nil {
+		key := location.Name()
+		return locationmap[key]
+	}
+
+	return nil
 }

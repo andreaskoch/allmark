@@ -248,6 +248,19 @@ const locationTemplate = `
 </section>
 {{end}}
 
+{{ if .RelatedItems }}
+<section class="related-items">
+<ol class="list">
+{{range .RelatedItems}}
+<li class="related-item">
+	<a href="{{.RelativeRoute}}">{{.Title}}</a>
+	<p>{{.Description}}</p>
+</li>
+{{end}}
+</ol>
+</section>
+{{end}}
+
 {{ if .Childs }}
 <section class="childs">
 <ol class="list">

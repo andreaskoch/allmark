@@ -11,16 +11,32 @@ import (
 	"github.com/andreaskoch/allmark/view"
 )
 
-func Map(item *repository.Item, itemResolver repository.ItemResolver, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
+func Map(item *repository.Item, itemResolver repository.ItemResolver, locationResolver repository.LocationResolver, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
 
 	var model *view.Model
 
 	// map the parsed item to the view model depending on the item type
 	switch itemType := item.MetaData.ItemType; itemType {
 
-	case types.PresentationItemType, types.RepositoryItemType, types.DocumentItemType, types.MessageItemType, types.LocationItemType:
-		model = getModel(item, itemResolver, tagPath, relativePath, absolutePath, content)
-		model.Childs = getSubModels(item, itemResolver, tagPath, relativePath, absolutePath, content)
+	case types.PresentationItemType, types.RepositoryItemType, types.DocumentItemType, types.MessageItemType:
+		model = getModel(item, itemResolver, locationResolver, tagPath, relativePath, absolutePath, content)
+		model.Childs = getSubModels(item, itemResolver, locationResolver, tagPath, relativePath, absolutePath, content)
+
+	case types.LocationItemType:
+		model = getModel(item, itemResolver, locationResolver, tagPath, relativePath, absolutePath, content)
+		model.Childs = getSubModels(item, itemResolver, locationResolver, tagPath, relativePath, absolutePath, content)
+
+		// collect the items related to this location
+		itemsRelatedToCurrentLocation := locationResolver(item.MetaData.Alias)
+
+		// convert to the related items to view models
+		relatedItems := make([]*view.Model, 0)
+		for _, relatedItem := range itemsRelatedToCurrentLocation {
+			relatedItems = append(relatedItems, Map(relatedItem, itemResolver, locationResolver, tagPath, absolutePath, absolutePath, content))
+		}
+
+		// attach the related item view models to the current model
+		model.RelatedItems = relatedItems
 
 	default:
 		model = view.Error("Item type not recognized", fmt.Sprintf("There is no mapper available for items of type %q", itemType), relativePath(item), absolutePath(item))
@@ -32,7 +48,7 @@ func Map(item *repository.Item, itemResolver repository.ItemResolver, tagPath fu
 	return model
 }
 
-func getModel(item *repository.Item, itemResolver repository.ItemResolver, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
+func getModel(item *repository.Item, itemResolver repository.ItemResolver, locationResolver repository.LocationResolver, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) *view.Model {
 
 	return &view.Model{
 		Level:            item.Level,
@@ -46,19 +62,19 @@ func getModel(item *repository.Item, itemResolver repository.ItemResolver, tagPa
 		LastModifiedDate: formatDate(item.MetaData.LastModifiedDate),
 		Type:             item.MetaData.ItemType,
 		Tags:             getTags(item, tagPath),
-		Locations:        getLocations(item.MetaData.Locations, itemResolver, tagPath, relativePath, absolutePath, content),
+		Locations:        getLocations(item.MetaData.Locations, itemResolver, locationResolver, tagPath, relativePath, absolutePath, content),
 		GeoLocation:      getGeoLocation(item),
 	}
 
 }
 
-func getSubModels(item *repository.Item, itemResolver repository.ItemResolver, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
+func getSubModels(item *repository.Item, itemResolver repository.ItemResolver, locationResolver repository.LocationResolver, tagPath func(tag *repository.Tag) string, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
 
 	items := item.Childs
 	models := make([]*view.Model, 0)
 
 	for _, child := range items {
-		models = append(models, Map(child, itemResolver, tagPath, relativePath, absolutePath, content))
+		models = append(models, Map(child, itemResolver, locationResolver, tagPath, relativePath, absolutePath, content))
 	}
 
 	return models

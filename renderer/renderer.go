@@ -35,6 +35,10 @@ func itemResolver(itemName string, expression repository.ResolverExpression) *re
 	return items.Lookup(itemName, expression)
 }
 
+func locationResolver(locationName string) repository.ItemList {
+	return locations.Lookup(locationName)
+}
+
 func tagPath(tag *repository.Tag) string {
 	return fmt.Sprintf("/tags.html#%s", tag.Name())
 }
@@ -298,7 +302,7 @@ func prepare(item *repository.Item) {
 	}
 
 	// create the viewmodel
-	mapper.Map(item, itemResolver, tagPath, relativePath, absolutePath, content)
+	mapper.Map(item, itemResolver, locationResolver, tagPath, relativePath, absolutePath, content)
 }
 
 func writeTemplate(model interface{}, template *template.Template, writer io.Writer) {

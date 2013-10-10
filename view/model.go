@@ -17,6 +17,7 @@ type Model struct {
 	LastModifiedDate     string                `json:"lastmodifieddate"`
 	Tags                 []*Tag                `json:"tags"`
 	Childs               []*Model              `json:"childs"`
+	RelatedItems         []*Model              `json:"relatedItems"`
 	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
 	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
 	TagCloud             *TagCloud             `json:"tagCloud"`

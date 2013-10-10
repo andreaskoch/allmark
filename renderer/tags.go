@@ -63,7 +63,7 @@ func renderTags(writer io.Writer, host string, rootItem *repository.Item, templa
 	}
 
 	// render the tagmap content
-	tagmapModel := mapper.MapTagmap(tags, itemResolver, tagPath, relativePath, absolutePath, content)
+	tagmapModel := mapper.MapTagmap(tags, itemResolver, locationResolver, tagPath, relativePath, absolutePath, content)
 	tagmapContent := renderTagmapTemplate(tagmapContentTemplate, &tagmapModel)
 
 	tagmapPageModel := view.Model{
