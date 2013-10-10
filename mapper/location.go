@@ -12,6 +12,11 @@ import (
 	"strings"
 )
 
+// sort tags by name
+func locationModelsByFromNorthToSouth(model1, model2 *view.Model) bool {
+	return model1.GeoLocation.Latitude > model2.GeoLocation.Latitude
+}
+
 func getLocations(locations repository.Locations, relativePath func(item *repository.Item) string, absolutePath func(item *repository.Item) string, content func(item *repository.Item) string) []*view.Model {
 	locationModels := make([]*view.Model, 0)
 
@@ -21,6 +26,9 @@ func getLocations(locations repository.Locations, relativePath func(item *reposi
 			locationModels = append(locationModels, getModel(item, relativePath, absolutePath, content))
 		}
 	}
+
+	// sort locations from north to south
+	view.SortModelBy(locationModelsByFromNorthToSouth).Sort(locationModels)
 
 	return locationModels
 }
