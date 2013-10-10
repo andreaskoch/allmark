@@ -27,10 +27,10 @@ var (
 	SingleLineMetaDataPattern = regexp.MustCompile(`^(\w+[\w\s]+\w+):\s*([\pL\pN\p{Latin}]+.+)$`)
 
 	// Multi-line tags meta data
-	MultiLineTagsPattern = regexp.MustCompile(`(?is)tags:\n{0,2}(\n\s?-\s?.+)+\n*`)
+	MultiLineTagsPattern = regexp.MustCompile(`(?is)tags:\n{0,2}(\n\s?-\s?[^\n]+)+\n*`)
 
 	// Multi-line locations meta data
-	MultiLineLocationsPattern = regexp.MustCompile(`(?is)locations:\n{0,2}(\n\s?-\s?.+)+\n*`)
+	MultiLineLocationsPattern = regexp.MustCompile(`(?is)locations:\n{0,2}(\n\s?-\s?[^\n]+)+\n*`)
 
 	// Lines with a meta data label in them syntax
 	MetaDataLabelPattern = regexp.MustCompile(`^(\w+[\w\s]+\w+):`)
