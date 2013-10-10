@@ -5,6 +5,7 @@
 package metadata
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark/date"
 	"github.com/andreaskoch/allmark/parser/pattern"
 	"github.com/andreaskoch/allmark/repository"
@@ -205,6 +206,7 @@ func Parse(item *repository.Item, lines []string) (repository.MetaData, []string
 		tagNames := make([]string, 0)
 
 		multiLineTagBlock := strings.TrimSpace(remainingMetaDataText[multiLineTagLocation[0]:multiLineTagLocation[1]])
+		fmt.Println(multiLineTagBlock)
 		tagLines := strings.Split(multiLineTagBlock, "\n")
 		for _, line := range tagLines {
 			if isListItem, matches := util.IsMatch(line, pattern.MetaDataListItemPattern); isListItem && len(matches) == 2 {
@@ -222,6 +224,7 @@ func Parse(item *repository.Item, lines []string) (repository.MetaData, []string
 		locationNames := make([]string, 0)
 
 		multiLineLocationsBlock := strings.TrimSpace(remainingMetaDataText[multiLineLocationsPosition[0]:multiLineLocationsPosition[1]])
+		fmt.Println(multiLineLocationsBlock)
 		tagLines := strings.Split(multiLineLocationsBlock, "\n")
 		for _, line := range tagLines {
 			if isListItem, matches := util.IsMatch(line, pattern.MetaDataListItemPattern); isListItem && len(matches) == 2 {
