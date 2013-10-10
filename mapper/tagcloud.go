@@ -21,7 +21,7 @@ var (
 	tagCloudEntryLevels = 6
 )
 
-func MapTagCloud(tagmap repository.TagMap, tagPath func(tag *repository.Tag) string) view.TagCloud {
+func MapTagCloud(tagmap repository.TagMap) view.TagCloud {
 	cloud := make(view.TagCloud, 0)
 
 	minNumberOfItems := 1
@@ -46,7 +46,7 @@ func MapTagCloud(tagmap repository.TagMap, tagPath func(tag *repository.Tag) str
 		tagCloudEntry := view.TagCloudEntry{
 			Name:           tag.Name(),
 			Description:    "",
-			AbsoluteRoute:  tagPath(&tag),
+			AbsoluteRoute:  tagPathResolver(&tag),
 			NumberOfChilds: numberItemsPerTag,
 		}
 

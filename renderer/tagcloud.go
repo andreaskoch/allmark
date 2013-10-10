@@ -10,6 +10,6 @@ import (
 )
 
 func attachTagCloud(item *repository.Item) {
-	cloud := mapper.MapTagCloud(tags, tagPath)
+	cloud := mapper.MapTagCloud(tags)
 	item.Model.TagCloud = &cloud
 }

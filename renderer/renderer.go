@@ -30,19 +30,6 @@ var (
 	locations repository.LocationMap
 )
 
-// item link provider
-func itemResolver(itemName string, expression repository.ResolverExpression) *repository.Item {
-	return items.Lookup(itemName, expression)
-}
-
-func locationResolver(locationName string) repository.ItemList {
-	return locations.Lookup(locationName)
-}
-
-func tagPath(tag *repository.Tag) string {
-	return fmt.Sprintf("/tags.html#%s", tag.Name())
-}
-
 func init() {
 	tags = repository.NewTagMap()
 	items = repository.NewItemMap()
@@ -72,6 +59,21 @@ func New(repositoryPath string, config *config.Config, useTempDir bool) *Rendere
 	if err != nil {
 		panic(fmt.Sprintf("Cannot create an item from folder %q.\nError: %s\n", repositoryPath, err))
 	}
+
+	// supply the item resolver for the mapper
+	mapper.SetItemResolver(func(itemName string, expression repository.ResolverExpression) *repository.Item {
+		return items.Lookup(itemName, expression)
+	})
+
+	// supply the location resolver for the mapper
+	mapper.SetLocationResolver(func(locationName string) repository.ItemList {
+		return locations.Lookup(locationName)
+	})
+
+	// supply the tag path resolver for the mapper
+	mapper.SetTagPathResolver(func(tag *repository.Tag) string {
+		return fmt.Sprintf("/tags.html#%s", tag.Name())
+	})
 
 	return &Renderer{
 		Rendered: make(chan *repository.Item),
@@ -302,7 +304,7 @@ func prepare(item *repository.Item) {
 	}
 
 	// create the viewmodel
-	mapper.Map(item, itemResolver, locationResolver, tagPath, relativePath, absolutePath, content)
+	mapper.Map(item, relativePath, absolutePath, content)
 }
 
 func writeTemplate(model interface{}, template *template.Template, writer io.Writer) {
