@@ -4,6 +4,10 @@
 
 package view
 
+import (
+	"sort"
+)
+
 type Model struct {
 	Level                int                   `json:"level"`
 	AbsoluteRoute        string                `json:"absoluteRoute"`
@@ -34,4 +38,32 @@ func Error(title, content, relativPath, absolutePath string) *Model {
 		Content:       content,
 		Type:          "error",
 	}
+}
+
+type SortModelBy func(model1, model2 *Model) bool
+
+func (by SortModelBy) Sort(models []*Model) {
+	sorter := &modelSorter{
+		models: models,
+		by:     by,
+	}
+
+	sort.Sort(sorter)
+}
+
+type modelSorter struct {
+	models []*Model
+	by     SortModelBy
+}
+
+func (sorter *modelSorter) Len() int {
+	return len(sorter.models)
+}
+
+func (sorter *modelSorter) Swap(i, j int) {
+	sorter.models[i], sorter.models[j] = sorter.models[j], sorter.models[i]
+}
+
+func (sorter *modelSorter) Less(i, j int) bool {
+	return sorter.by(sorter.models[i], sorter.models[j])
 }
