@@ -15,10 +15,12 @@ import (
 
 var (
 	// [*description text*](*folder path*)
-	markdownLinkPattern = regexp.MustCompile(`\[([^\]]*)\]\(([^)]+)\)`)
+	markdownLinkPattern = regexp.MustCompile(`\[(.*)\]\(([^)]+)\)`)
+
+	markdownItemLinkPattern = regexp.MustCompile(`\[(.*)\]\(/([^)]+)\)`)
 )
 
-func Convert(item *repository.Item, pathProvider *path.Provider) string {
+func Convert(item *repository.Item, pathProvider *path.Provider, itemResolver repository.ItemResolver) string {
 
 	// files
 	files := item.Files
@@ -38,6 +40,9 @@ func Convert(item *repository.Item, pathProvider *path.Provider) string {
 	// rewrite all links
 	convertedContent = rewireLinks(files, pathProvider, convertedContent)
 
+	// rewire item links
+	convertedContent = rewireItemLinks(convertedContent, itemResolver)
+
 	// render markdown
 	convertedContent = renderMarkdown(files, pathProvider, convertedContent)
 
@@ -47,6 +52,40 @@ func Convert(item *repository.Item, pathProvider *path.Provider) string {
 	}
 
 	return convertedContent
+}
+
+func rewireItemLinks(markdown string, itemResolver repository.ItemResolver) string {
+
+	allMatches := markdownItemLinkPattern.FindAllStringSubmatch(markdown, -1)
+	for _, matches := range allMatches {
+
+		if len(matches) != 3 {
+			continue
+		}
+
+		// components
+		originalText := strings.TrimSpace(matches[0])
+		descriptionText := strings.TrimSpace(matches[1])
+		itemAlias := strings.TrimSpace(matches[2])
+
+		// search for an item with the supplied alias
+		item := itemResolver(itemAlias, anyItem)
+		if item == nil {
+			continue // no item found
+		}
+
+		// link
+		newLinkText := fmt.Sprintf("[%s](%s)", descriptionText, item.AbsolutePath)
+		markdown = strings.Replace(markdown, originalText, newLinkText, 1)
+
+	}
+
+	return markdown
+
+}
+
+func anyItem(item *repository.Item) bool {
+	return true
 }
 
 func rewireLinks(fileIndex *repository.FileIndex, pathProvider *path.Provider, markdown string) string {

@@ -30,6 +30,10 @@ var (
 	locations repository.LocationMap
 )
 
+func resolveItem(itemName string, expression repository.ResolverExpression) *repository.Item {
+	return items.Lookup(itemName, expression)
+}
+
 func init() {
 	tags = repository.NewTagMap()
 	items = repository.NewItemMap()
@@ -61,9 +65,7 @@ func New(repositoryPath string, config *config.Config, useTempDir bool) *Rendere
 	}
 
 	// supply the item resolver for the mapper
-	mapper.SetItemResolver(func(itemName string, expression repository.ResolverExpression) *repository.Item {
-		return items.Lookup(itemName, expression)
-	})
+	mapper.SetItemResolver(resolveItem)
 
 	// supply the location resolver for the mapper
 	mapper.SetLocationResolver(func(locationName string) repository.ItemList {
@@ -300,7 +302,7 @@ func prepare(item *repository.Item) {
 
 	// content converter
 	content := func(i *repository.Item) string {
-		return html.Convert(i, i.FilePathProvider())
+		return html.Convert(i, i.FilePathProvider(), resolveItem)
 	}
 
 	// create the viewmodel

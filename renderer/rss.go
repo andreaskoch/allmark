@@ -46,7 +46,7 @@ func rss(writer io.Writer, host string, rootItem *repository.Item) {
 		// render content for rss
 		filePathProvider := rootItem.FilePathProvider()
 		httpRouteProvider := filePathProvider.NewHttpPathProvider(host)
-		description := html.Convert(i, httpRouteProvider)
+		description := html.Convert(i, httpRouteProvider, resolveItem)
 
 		fmt.Fprintln(writer, `<item>`)
 		fmt.Fprintln(writer, fmt.Sprintf(`<title><![CDATA[%s]]></title>`, i.Title))
