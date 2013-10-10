@@ -5,12 +5,12 @@
 package util
 
 // GetLastElement retrn the last element of a string array.
-func GetLastElement(array []string) string {
-	if array == nil {
+func GetLastElement(slice []string) string {
+	if slice == nil {
 		return ""
 	}
 
-	return array[len(array)-1]
+	return slice[len(slice)-1]
 }
 
 func SliceContainsElement(list []string, elem string) bool {
@@ -20,4 +20,18 @@ func SliceContainsElement(list []string, elem string) bool {
 		}
 	}
 	return false
+}
+
+func TrimSlice(slice []string) []string {
+	trimmed := make([]string, 0)
+
+	for _, element := range slice {
+		if element == "" {
+			continue
+		}
+
+		trimmed = append(trimmed, element)
+	}
+
+	return trimmed
 }

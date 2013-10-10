@@ -7,6 +7,7 @@ package mapper
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark/repository"
+	"github.com/andreaskoch/allmark/util"
 	"github.com/andreaskoch/allmark/view"
 	"strings"
 )
@@ -51,15 +52,26 @@ func isLocation(item *repository.Item) bool {
 
 func getAddress(geoData repository.GeoInformation) string {
 	components := []string{geoData.Street, geoData.Postcode, geoData.City, geoData.Country}
-	return strings.Join(components, ", ")
+	components = util.TrimSlice(components)
+	if len(components) > 0 {
+		return strings.Join(components, ", ")
+	}
+
+	return ""
 }
 
 func getPlaceName(item *repository.Item) string {
 	if item.Title == "" || item.MetaData.GeoData.City == "" {
 		return ""
 	}
+
 	components := []string{item.Title, item.MetaData.GeoData.City, item.MetaData.GeoData.Country}
-	return strings.Join(components, ", ")
+	components = util.TrimSlice(components)
+	if len(components) > 0 {
+		return strings.Join(components, ", ")
+	}
+
+	return ""
 }
 
 func getCoordinates(geoData repository.GeoInformation) string {
