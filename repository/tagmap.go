@@ -4,6 +4,8 @@
 
 package repository
 
+type TagPathResolver func(tag *Tag) string
+
 type TagMap map[Tag]ItemList
 
 func NewTagMap() TagMap {

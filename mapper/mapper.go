@@ -12,28 +12,20 @@ import (
 )
 
 var (
-	itemResolver = func(itemName string, expression repository.ResolverExpression) *repository.Item {
-		return nil
-	}
-
-	locationResolver = func(locationName string) repository.ItemList {
-		return nil
-	}
-
-	tagPathResolver = func(tag *repository.Tag) string {
-		return ""
-	}
+	itemResolver     repository.ItemResolver
+	locationResolver repository.LocationResolver
+	tagPathResolver  repository.TagPathResolver
 )
 
-func SetItemResolver(resolver func(itemName string, expression repository.ResolverExpression) *repository.Item) {
+func SetItemResolver(resolver repository.ItemResolver) {
 	itemResolver = resolver
 }
 
-func SetLocationResolver(resolver func(locationName string) repository.ItemList) {
+func SetLocationResolver(resolver repository.LocationResolver) {
 	locationResolver = resolver
 }
 
-func SetTagPathResolver(resolver func(tag *repository.Tag) string) {
+func SetTagPathResolver(resolver repository.TagPathResolver) {
 	tagPathResolver = resolver
 }
 
