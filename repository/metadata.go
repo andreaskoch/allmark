@@ -21,7 +21,14 @@ type MetaData struct {
 }
 
 func NewMetaData() MetaData {
-	return MetaData{}
+
+	now := time.Now()
+
+	return MetaData{
+		Language:         "en",
+		CreationDate:     now,
+		LastModifiedDate: now,
+	}
 }
 
 type GeoInformation struct {
