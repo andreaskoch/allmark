@@ -17,7 +17,17 @@ var Autoupdate = (function () {
      */
     var getCurrentRoute = function() {
         var url = document.location.pathname;
-        return url.replace(/^\/+/, "");
+        return url;
+    };
+
+    /**
+     * Check whether the supplied routes are alike
+     * @param string route1 The first route
+     * @param string route2 The second route
+     * @return bool true if the supplied routes are alike; otherwise false
+     */
+    var routesAreAlike = function(route1, route2) {
+        return decodeURIComponent(route1) === decodeURIComponent(route2);
     };
 
     /**
@@ -87,7 +97,7 @@ var Autoupdate = (function () {
             }
 
             // check if update is applicable for the current route
-            if (message.route !== getCurrentRoute()) {
+            if (!routesAreAlike(message.route, getCurrentRoute())) {
                 return;
             }
 
