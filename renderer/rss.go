@@ -36,7 +36,10 @@ func rss(writer io.Writer, host string, rootItem *repository.Item) {
 	fmt.Fprintln(writer)
 
 	// get all child items
-	items := repository.GetAllChilds(rootItem)
+	items := repository.GetAllChilds(rootItem, func(item *repository.Item) bool {
+		isNotVirtual := !item.IsVirtual()
+		return isNotVirtual
+	})
 
 	// sort the items by date and folder name
 	repository.By(dateAndFolder).Sort(items)

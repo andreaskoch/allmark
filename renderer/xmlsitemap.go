@@ -43,7 +43,10 @@ func xmlsitemap(writer io.Writer, host string, rootItem *repository.Item) {
 	fmt.Fprintln(writer, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
 
 	// get all child items
-	items := repository.GetAllChilds(rootItem)
+	items := repository.GetAllChilds(rootItem, func(item *repository.Item) bool {
+		isNotVirtual := !item.IsVirtual()
+		return isNotVirtual
+	})
 
 	// sort the items by date and folder name
 	dateAndFolder := func(item1, item2 *repository.Item) bool {

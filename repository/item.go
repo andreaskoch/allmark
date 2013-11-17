@@ -361,11 +361,13 @@ func (item *Item) getChildItemDirectories() []string {
 	return directories
 }
 
-func GetAllChilds(root *Item) Items {
+func GetAllChilds(root *Item, expression func(item *Item) bool) Items {
 	childs := Items{}
 
 	callback := func(i *Item) {
-		childs = append(childs, i)
+		if expression(i) {
+			childs = append(childs, i)
+		}
 	}
 
 	root.Walk(callback)
