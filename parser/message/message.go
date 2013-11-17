@@ -20,6 +20,7 @@ func Parse(item *repository.Item, lines []string, fallbackTitle string) (sucess 
 
 	messageContent := strings.TrimSpace(strings.Join(lines, "\n"))
 	item.Description = messageContent
+	item.RawContent = messageContent
 
 	return true, nil
 }
