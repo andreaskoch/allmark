@@ -6,11 +6,12 @@ package dataaccess
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/route"
 )
 
 // An Item represents a single document in a repository.
 type Item struct {
-	path   string
+	route  *route.Route
 	parent *Item
 	files  []*File
 	childs []*Item
@@ -29,13 +30,13 @@ func NewItem(path string, parent *Item, files []*File, childs []*Item) (*Item, e
 
 func newItem(path string, parent *Item, files []*File, childs []*Item) (*Item, error) {
 
-	normalizedPath, err := NormalizePath(path)
+	route, err := route.New(path)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot create item. Error: %s", err)
+		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", path, err)
 	}
 
 	return &Item{
-		path:   normalizedPath,
+		route:  route,
 		parent: parent,
 		files:  files,
 		childs: childs,
@@ -43,15 +44,15 @@ func newItem(path string, parent *Item, files []*File, childs []*Item) (*Item, e
 }
 
 func (item *Item) String() string {
-	return fmt.Sprintf("%s", item.path)
+	return fmt.Sprintf("%s", item.route)
 }
 
 func (item *Item) Parent() *Item {
 	return item.parent
 }
 
-func (item *Item) Path() string {
-	return item.path
+func (item *Item) Route() *route.Route {
+	return item.route
 }
 
 func (item *Item) Files() []*File {

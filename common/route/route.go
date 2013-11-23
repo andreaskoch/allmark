@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package dataaccess
+package route
 
 import (
 	"fmt"
@@ -16,8 +16,25 @@ var (
 	regexpdoubleForwardSlashPattern = regexp.MustCompile(`/+`)
 )
 
+type Route struct {
+	value string
+}
+
+func New(path string) (*Route, error) {
+	normalizedPath, err := normalizePath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Route{normalizedPath}, nil
+}
+
+func (route *Route) String() string {
+	return route.value
+}
+
 // Normalize the supplied path to be used for an Item or File
-func NormalizePath(path string) (string, error) {
+func normalizePath(path string) (string, error) {
 
 	// trim spaces
 	path = strings.TrimSpace(path)

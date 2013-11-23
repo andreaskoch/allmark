@@ -6,11 +6,12 @@ package dataaccess
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/route"
 )
 
 // A File represents a file ressource that is associated with an Item.
 type File struct {
-	path   string
+	route  *route.Route
 	parent *File
 	childs []*File
 }
@@ -27,24 +28,24 @@ func NewFile(path string, parent *File, childs []*File) (*File, error) {
 
 func newFile(path string, parent *File, childs []*File) (*File, error) {
 
-	normalizedPath, err := NormalizePath(path)
+	route, err := route.New(path)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot create file. Error: %s", err)
+		return nil, fmt.Errorf("Cannot create a File for the path %q. Error: %s", path, err)
 	}
 
 	return &File{
-		path:   normalizedPath,
+		route:  route,
 		parent: parent,
 		childs: childs,
 	}, nil
 }
 
 func (file *File) String() string {
-	return fmt.Sprintf("%s", file.path)
+	return fmt.Sprintf("%s", file.route)
 }
 
-func (file *File) Path() string {
-	return file.path
+func (file *File) Route() *route.Route {
+	return file.route
 }
 
 func (file *File) Parent() *File {
