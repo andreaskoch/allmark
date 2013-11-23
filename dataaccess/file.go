@@ -16,27 +16,27 @@ type File struct {
 }
 
 // Creates a new root File object that has no parent.
-func NewRootFile(path string, childs []*File) *File {
+func NewRootFile(path string, childs []*File) (*File, error) {
 	return newFile(path, nil, childs)
 }
 
 // Creates a new File object that is associated with a parent File.
-func NewFile(path string, parent *File, childs []*File) *File {
+func NewFile(path string, parent *File, childs []*File) (*File, error) {
 	return newFile(path, parent, childs)
 }
 
-func newFile(path string, parent *File, childs []*File) *File {
+func newFile(path string, parent *File, childs []*File) (*File, error) {
 
-	normalizedPath := NormalizePath(path)
-	if normalizedPath == "" {
-		panic("A file path cannot be empty.")
+	normalizedPath, err := NormalizePath(path)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot create file. Error: %s", err)
 	}
 
 	return &File{
-		path:   path,
+		path:   normalizedPath,
 		parent: parent,
 		childs: childs,
-	}
+	}, nil
 }
 
 func (file *File) String() string {

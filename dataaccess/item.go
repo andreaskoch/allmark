@@ -18,20 +18,20 @@ type Item struct {
 
 // Creates a new root Item that has no parent.
 // A root item usually represents a repository - a collection of items.
-func NewRootItem(path string, files []*File, childs []*Item) *Item {
+func NewRootItem(path string, files []*File, childs []*Item) (*Item, error) {
 	return newItem(path, nil, files, childs)
 }
 
 // Creates a new Item object that is the child of the supplied parent Item.
-func NewItem(path string, parent *Item, files []*File, childs []*Item) *Item {
+func NewItem(path string, parent *Item, files []*File, childs []*Item) (*Item, error) {
 	return newItem(path, parent, files, childs)
 }
 
-func newItem(path string, parent *Item, files []*File, childs []*Item) *Item {
+func newItem(path string, parent *Item, files []*File, childs []*Item) (*Item, error) {
 
-	normalizedPath := NormalizePath(path)
-	if normalizedPath == "" {
-		panic("An item path cannot be empty.")
+	normalizedPath, err := NormalizePath(path)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot create item. Error: %s", err)
 	}
 
 	return &Item{
@@ -39,7 +39,7 @@ func newItem(path string, parent *Item, files []*File, childs []*Item) *Item {
 		parent: parent,
 		files:  files,
 		childs: childs,
-	}
+	}, nil
 }
 
 func (item *Item) String() string {

@@ -8,6 +8,20 @@ import (
 	"testing"
 )
 
+// Testing the NormalizePath function: The function returns an error if the supplied path is empty
+func Test_NormalizePath_EmptyStringCreatesError(t *testing.T) {
+	// arrange
+	inputPath := " "
+
+	// act
+	_, err := NormalizePath(inputPath)
+
+	// assert
+	if err == nil {
+		t.Errorf("The have returned an error. %q is not a valid path.", inputPath)
+	}
+}
+
 // Testing the NormalizePath function: Remove leading and trailing white space
 func Test_NormalizePath_TrimEnd(t *testing.T) {
 	// arrange
@@ -15,7 +29,7 @@ func Test_NormalizePath_TrimEnd(t *testing.T) {
 	expectedResult := "documents/Test"
 
 	// act
-	result := NormalizePath(inputPath)
+	result, _ := NormalizePath(inputPath)
 
 	// assert
 	if result != expectedResult {
@@ -30,7 +44,7 @@ func Test_NormalizePath_RemoveTrailingSlashes(t *testing.T) {
 	expectedResult := "documents/Test"
 
 	// act
-	result := NormalizePath(inputPath)
+	result, _ := NormalizePath(inputPath)
 
 	// assert
 	if result != expectedResult {
@@ -45,7 +59,7 @@ func Test_NormalizePath_RemoveLeadingSlashes(t *testing.T) {
 	expectedResult := "documents/Test"
 
 	// act
-	result := NormalizePath(inputPath)
+	result, _ := NormalizePath(inputPath)
 
 	// assert
 	if result != expectedResult {
@@ -60,7 +74,7 @@ func Test_NormalizePath_NormalizeSlashes(t *testing.T) {
 	expectedResult := "documents/Test"
 
 	// act
-	result := NormalizePath(inputPath)
+	result, _ := NormalizePath(inputPath)
 
 	// assert
 	if result != expectedResult {
@@ -75,7 +89,7 @@ func Test_NormalizePath_ReplaceWhitespaceWithUrlSafeCharacters(t *testing.T) {
 	expectedResult := "documents/A+Test"
 
 	// act
-	result := NormalizePath(inputPath)
+	result, _ := NormalizePath(inputPath)
 
 	// assert
 	if result != expectedResult {
@@ -90,7 +104,7 @@ func Test_NormalizePath_ReplaceDoubleWhitespaceWithASingleUrlSafeCharacters(t *t
 	expectedResult := "my+documents/A+Test"
 
 	// act
-	result := NormalizePath(inputPath)
+	result, _ := NormalizePath(inputPath)
 
 	// assert
 	if result != expectedResult {

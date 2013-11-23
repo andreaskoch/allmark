@@ -5,6 +5,7 @@
 package dataaccess
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -16,10 +17,15 @@ var (
 )
 
 // Normalize the supplied path to be used for an Item or File
-func NormalizePath(path string) string {
+func NormalizePath(path string) (string, error) {
 
 	// trim spaces
 	path = strings.TrimSpace(path)
+
+	// check if the path is empty
+	if path == "" {
+		return path, fmt.Errorf("A path cannot be empty.")
+	}
 
 	// replace all backslashes with a (single) forward slash
 	path = regexpBackSlashPattern.ReplaceAllString(path, "/")
@@ -36,5 +42,5 @@ func NormalizePath(path string) string {
 	// replace duplicate spaces with a (single) url safe character
 	path = regexpWhitespacePattern.ReplaceAllString(path, "+")
 
-	return path
+	return path, nil
 }
