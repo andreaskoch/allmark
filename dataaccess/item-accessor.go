@@ -1,5 +1,5 @@
 package dataaccess
 
 type ItemAccessor interface {
-	GetRootItem() *Item
+	GetRootItem() (*Item, error)
 }

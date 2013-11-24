@@ -17,16 +17,16 @@ type File struct {
 }
 
 // Creates a new root File object that has no parent.
-func NewRootFile(path string, childs []*File) (*File, error) {
-	return newFile(path, nil, childs)
+func NewRootFile(path string) (*File, error) {
+	return newFile(path, nil)
 }
 
 // Creates a new File object that is associated with a parent File.
-func NewFile(path string, parent *File, childs []*File) (*File, error) {
-	return newFile(path, parent, childs)
+func NewFile(path string, parent *File) (*File, error) {
+	return newFile(path, parent)
 }
 
-func newFile(path string, parent *File, childs []*File) (*File, error) {
+func newFile(path string, parent *File) (*File, error) {
 
 	route, err := route.New(path)
 	if err != nil {
@@ -36,7 +36,6 @@ func newFile(path string, parent *File, childs []*File) (*File, error) {
 	return &File{
 		route:  route,
 		parent: parent,
-		childs: childs,
 	}, nil
 }
 
@@ -48,8 +47,22 @@ func (file *File) Route() *route.Route {
 	return file.route
 }
 
+func (file *File) SetParent(parent *File) {
+	file.parent = parent
+}
+
 func (file *File) Parent() *File {
 	return file.parent
+}
+
+func (file *File) SetChilds(childs []*File) {
+
+	// make the the current File the parent for all childs
+	for _, child := range childs {
+		child.SetParent(file)
+	}
+
+	file.childs = childs
 }
 
 func (file *File) Childs() []*File {
