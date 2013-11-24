@@ -6,24 +6,27 @@ package main
 
 import (
 	"fmt"
-	util "github.com/andreaskoch/allmark2/common/util/filesystem"
-	"github.com/andreaskoch/allmark2/dataaccess"
+	fsutil "github.com/andreaskoch/allmark2/common/util/filesystem"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
 )
 
 func main() {
 
-	filesystemAccessor, err := filesystem.New(util.GetWorkingDirectory())
+	repository, err := filesystem.NewRepository(fsutil.GetWorkingDirectory())
 	if err != nil {
 		panic(err)
 	}
 
-	rootItem, err := filesystemAccessor.GetRootItem()
-	if err != nil {
-		panic(err)
-	}
+	itemEvents, done := repository.GetItems()
 
-	rootItem.Walk(func(item *dataaccess.Item) {
-		fmt.Println(item)
-	})
+	allItemsRetrieved := false
+	for !allItemsRetrieved {
+		select {
+		case allItemsRetrieved = <-done:
+		case itemEvent := <-itemEvents:
+			if itemEvent != nil {
+				fmt.Println(itemEvent.Item)
+			}
+		}
+	}
 }
