@@ -87,7 +87,7 @@ func indexItems(itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 
 		}
 
-	} else if !markdown.IsMarkdownFile(itemPath) {
+	} else if !isMarkdownFile(itemPath) {
 
 		// the supplied item path does not point to a markdown file
 		itemEvents <- dataaccess.NewEvent(nil, fmt.Errorf("%q is not a markdown file.", itemPath))

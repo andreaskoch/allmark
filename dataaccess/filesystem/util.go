@@ -5,7 +5,6 @@
 package filesystem
 
 import (
-	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"io/ioutil"
@@ -54,7 +53,7 @@ func findMarkdownFileInDirectory(directory string) (found bool, file string) {
 		}
 
 		absoluteFilePath := filepath.Join(directory, element.Name())
-		if isMarkdown := markdown.IsMarkdownFile(absoluteFilePath); isMarkdown {
+		if isMarkdown := isMarkdownFile(absoluteFilePath); isMarkdown {
 			return true, absoluteFilePath
 		}
 	}
@@ -82,4 +81,16 @@ func getChildDirectories(directory string) []string {
 	}
 
 	return directories
+}
+
+func isMarkdownFile(fileNameOrPath string) bool {
+	fileExtension := strings.ToLower(filepath.Ext(fileNameOrPath))
+	switch fileExtension {
+	case ".md", ".markdown", ".mdown":
+		return true
+	default:
+		return false
+	}
+
+	panic("Unreachable")
 }
