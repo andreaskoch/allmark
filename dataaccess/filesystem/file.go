@@ -12,38 +12,7 @@ import (
 	"path/filepath"
 )
 
-func newRootFolder(path string) (*dataaccess.File, error) {
-	return newFile(nil, path)
-}
-
-func newFile(parent *dataaccess.File, path string) (*dataaccess.File, error) {
-
-	// check if the path exists
-	if exists := fsutil.PathExists(path); !exists {
-		return nil, fmt.Errorf("The path %q does not exists.", path)
-	}
-
-	// check if the path is a directory or a file
-	isDir, err := fsutil.IsDirectory(path)
-	if err != nil {
-		return nil, err
-	}
-
-	// create the file
-	file, err := dataaccess.NewFile(path, parent)
-	if err != nil {
-		return nil, err
-	}
-
-	// append childs
-	if isDir {
-		file.SetChilds(getChildFiles(path))
-	}
-
-	return file, nil
-}
-
-func getChildFiles(directory string) []*dataaccess.File {
+func getFiles(directory string) []*dataaccess.File {
 
 	childs := make([]*dataaccess.File, 0)
 
@@ -56,7 +25,7 @@ func getChildFiles(directory string) []*dataaccess.File {
 
 		// append new file
 		path := filepath.Join(directory, directoryEntry.Name())
-		file, err := newRootFolder(path)
+		file, err := newFile(path)
 		if err != nil {
 			fmt.Printf("Unable to add file %q to index.\nError: %s\n", path, err)
 		}
@@ -65,4 +34,20 @@ func getChildFiles(directory string) []*dataaccess.File {
 	}
 
 	return childs
+}
+
+func newFile(path string) (*dataaccess.File, error) {
+
+	// check if the path is a file
+	if isFile, _ := fsutil.IsFile(path); !isFile {
+		return nil, fmt.Errorf("%q is not a file.", path)
+	}
+
+	// create the file
+	file, err := dataaccess.NewFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
 }

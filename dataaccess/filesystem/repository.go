@@ -7,7 +7,6 @@ package filesystem
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
-	"github.com/andreaskoch/allmark2/common/markdown"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"path/filepath"
@@ -95,11 +94,8 @@ func indexItems(itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 	}
 
 	// create the file index
-	files := make([]*dataaccess.File, 0)
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	if filesRootFolder, err := newRootFolder(filesDirectory); err == nil {
-		files = filesRootFolder.Childs()
-	}
+	files := getFiles(filesDirectory)
 
 	// create the item
 	item, err := dataaccess.NewItem(itemPath, files)

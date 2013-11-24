@@ -11,22 +11,10 @@ import (
 
 // A File represents a file ressource that is associated with an Item.
 type File struct {
-	route  *route.Route
-	parent *File
-	childs []*File
+	route *route.Route
 }
 
-// Creates a new root File object that has no parent.
-func NewRootFile(path string) (*File, error) {
-	return newFile(path, nil)
-}
-
-// Creates a new File object that is associated with a parent File.
-func NewFile(path string, parent *File) (*File, error) {
-	return newFile(path, parent)
-}
-
-func newFile(path string, parent *File) (*File, error) {
+func NewFile(path string) (*File, error) {
 
 	route, err := route.New(path)
 	if err != nil {
@@ -34,8 +22,7 @@ func newFile(path string, parent *File) (*File, error) {
 	}
 
 	return &File{
-		route:  route,
-		parent: parent,
+		route: route,
 	}, nil
 }
 
@@ -45,34 +32,4 @@ func (file *File) String() string {
 
 func (file *File) Route() *route.Route {
 	return file.route
-}
-
-func (file *File) SetParent(parent *File) {
-	file.parent = parent
-}
-
-func (file *File) Parent() *File {
-	return file.parent
-}
-
-func (file *File) SetChilds(childs []*File) {
-
-	// make the the current File the parent for all childs
-	for _, child := range childs {
-		child.SetParent(file)
-	}
-
-	file.childs = childs
-}
-
-func (file *File) Childs() []*File {
-	return file.childs
-}
-
-func (file *File) Walk(callback func(file *File)) {
-	callback(file)
-
-	for _, child := range file.childs {
-		child.Walk(callback)
-	}
 }
