@@ -7,7 +7,7 @@ package filesystem
 import (
 	"github.com/andreaskoch/allmark/markdown"
 	"github.com/andreaskoch/allmark2/common/config"
-	util "github.com/andreaskoch/allmark2/common/util/filesystem"
+	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -19,7 +19,7 @@ var (
 
 func isReservedDirectory(path string) bool {
 
-	if isFile, _ := util.IsFile(path); isFile {
+	if isFile, _ := fsutil.IsFile(path); isFile {
 		path = filepath.Dir(path)
 	}
 

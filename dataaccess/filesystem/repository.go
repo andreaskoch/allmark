@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/markdown"
-	util "github.com/andreaskoch/allmark2/common/util/filesystem"
+	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"path/filepath"
 )
@@ -20,12 +20,12 @@ type Repository struct {
 func NewRepository(directory string) (*Repository, error) {
 
 	// check if path exists
-	if !util.PathExists(directory) {
+	if !fsutil.PathExists(directory) {
 		return nil, fmt.Errorf("The path %q does not exist.", directory)
 	}
 
 	// check if the supplied path is a file
-	if isDirectory, _ := util.IsDirectory(directory); !isDirectory {
+	if isDirectory, _ := fsutil.IsDirectory(directory); !isDirectory {
 		directory = filepath.Dir(directory)
 	}
 
@@ -60,7 +60,7 @@ func (itemAccessor *Repository) GetItems() (itemEvents chan *dataaccess.Reposito
 func indexItems(itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 
 	// abort if path does not exist
-	if !util.PathExists(itemPath) {
+	if !fsutil.PathExists(itemPath) {
 		itemEvents <- dataaccess.NewEvent(nil, fmt.Errorf("The path %q does not exist.", itemPath))
 		return
 	}
@@ -73,7 +73,7 @@ func indexItems(itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 
 	// check if its a virtual item or a markdown item
 	itemDirectory := filepath.Dir(itemPath)
-	if isDirectory, _ := util.IsDirectory(itemPath); isDirectory {
+	if isDirectory, _ := fsutil.IsDirectory(itemPath); isDirectory {
 
 		if found, filepath := findMarkdownFileInDirectory(itemPath); found {
 

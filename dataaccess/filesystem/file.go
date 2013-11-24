@@ -6,7 +6,7 @@ package filesystem
 
 import (
 	"fmt"
-	util "github.com/andreaskoch/allmark2/common/util/filesystem"
+	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"io/ioutil"
 	"path/filepath"
@@ -19,12 +19,12 @@ func newRootFolder(path string) (*dataaccess.File, error) {
 func newFile(parent *dataaccess.File, path string) (*dataaccess.File, error) {
 
 	// check if the path exists
-	if exists := util.PathExists(path); !exists {
+	if exists := fsutil.PathExists(path); !exists {
 		return nil, fmt.Errorf("The path %q does not exists.", path)
 	}
 
 	// check if the path is a directory or a file
-	isDir, err := util.IsDirectory(path)
+	isDir, err := fsutil.IsDirectory(path)
 	if err != nil {
 		return nil, err
 	}

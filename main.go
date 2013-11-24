@@ -6,7 +6,7 @@ package main
 
 import (
 	"fmt"
-	fsutil "github.com/andreaskoch/allmark2/common/util/filesystem"
+	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
 )
 
