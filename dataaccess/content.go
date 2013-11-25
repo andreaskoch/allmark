@@ -5,7 +5,3 @@
 package dataaccess
 
 type ContentProviderFunc func() ([]byte, error)
-
-type ContentProvider interface {
-	Content() ([]byte, error)
-}

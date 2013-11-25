@@ -36,6 +36,6 @@ func (file *File) Route() *route.Route {
 	return file.route
 }
 
-func (file *File) Content() ([]byte, error) {
-	return file.content()
+func (file *File) ContentProvider() ContentProviderFunc {
+	return file.content
 }

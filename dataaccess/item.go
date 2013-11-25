@@ -43,6 +43,6 @@ func (item *Item) Files() []*File {
 	return item.files
 }
 
-func (item *Item) Content() ([]byte, error) {
-	return item.content()
+func (item *Item) ContentProvider() ContentProviderFunc {
+	return item.content
 }
