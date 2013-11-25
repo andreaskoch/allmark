@@ -44,7 +44,10 @@ func newFile(path string) (*dataaccess.File, error) {
 	}
 
 	// create the file
-	file, err := dataaccess.NewFile(path)
+	file, err := dataaccess.NewFile(path, func() ([]byte, error) {
+		return getContent(path)
+	})
+
 	if err != nil {
 		return nil, err
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -15,6 +16,17 @@ import (
 var (
 	ReservedDirectoryNames = []string{config.FilesDirectoryName, config.MetaDataFolderName}
 )
+
+func getContent(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	defer file.Close()
+
+	return ioutil.ReadAll(file)
+}
 
 func isReservedDirectory(path string) bool {
 
