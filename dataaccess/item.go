@@ -19,13 +19,7 @@ type Item struct {
 	contentProvider ContentProviderFunc
 }
 
-func NewItem(path string, hashProvider HashProviderFunc, contentProvider ContentProviderFunc, files []*File) (*Item, error) {
-
-	route, err := route.New(path)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", path, err)
-	}
-
+func NewItem(route *route.Route, hashProvider HashProviderFunc, contentProvider ContentProviderFunc, files []*File) (*Item, error) {
 	return &Item{
 		route: route,
 		files: files,

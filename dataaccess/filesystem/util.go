@@ -5,7 +5,10 @@
 package filesystem
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
+	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/common/util/hashutil"
 	"io/ioutil"
@@ -18,15 +21,50 @@ var (
 	ReservedDirectoryNames = []string{config.FilesDirectoryName, config.MetaDataFolderName}
 )
 
-func getHash(path string) (string, error) {
-	file, err := os.Open(path)
+func getHash(itemPath string, route *route.Route) (string, error) {
+
+	// path hash
+	pathHash, routeHashErr := getRouteHash(route)
+	if routeHashErr != nil {
+		return "", routeHashErr
+	}
+
+	// fallback file hash
+	fileHash, fallbackHashErr := getStringHash("")
+	if fallbackHashErr != nil {
+		return "", fallbackHashErr
+	}
+
+	// file hash
+	if isFile, _ := fsutil.IsFile(itemPath); isFile {
+		if hash, err := getFileHash(itemPath); err == nil {
+			fileHash = hash
+		}
+	}
+
+	// return the combined hash
+	return fmt.Sprintf("%s+%s", pathHash, fileHash), nil
+}
+
+func getRouteHash(route *route.Route) (string, error) {
+	return getStringHash(route.String())
+}
+
+func getStringHash(text string) (string, error) {
+	routeReader := bytes.NewReader([]byte(text))
+	return hashutil.GetHash(routeReader)
+}
+
+func getFileHash(path string) (string, error) {
+
+	fileReader, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}
 
-	defer file.Close()
+	defer fileReader.Close()
 
-	return hashutil.GetHash(file)
+	return hashutil.GetHash(fileReader)
 }
 
 func getContent(path string) ([]byte, error) {

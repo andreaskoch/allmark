@@ -6,6 +6,7 @@ package filesystem
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"io/ioutil"
@@ -43,9 +44,15 @@ func newFile(path string) (*dataaccess.File, error) {
 		return nil, fmt.Errorf("%q is not a file.", path)
 	}
 
+	// route
+	route, err := route.New(path)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot create a File for the path %q. Error: %s", path, err)
+	}
+
 	// hash provider
 	hashProvider := func() (string, error) {
-		return getHash(path)
+		return getHash(path, route)
 	}
 
 	// content provider
@@ -54,7 +61,7 @@ func newFile(path string) (*dataaccess.File, error) {
 	}
 
 	// create the file
-	file, err := dataaccess.NewFile(path, hashProvider, contentProvider)
+	file, err := dataaccess.NewFile(route, hashProvider, contentProvider)
 
 	if err != nil {
 		return nil, err

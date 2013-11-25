@@ -25,7 +25,8 @@ func main() {
 		case allItemsRetrieved = <-done:
 		case itemEvent := <-itemEvents:
 			if itemEvent != nil {
-				fmt.Println(itemEvent.Item)
+				hashProvider := itemEvent.Item.HashProvider()
+				fmt.Println(hashProvider())
 			}
 		}
 	}

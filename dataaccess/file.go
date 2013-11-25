@@ -17,13 +17,7 @@ type File struct {
 	contentProvider ContentProviderFunc
 }
 
-func NewFile(path string, hashProvider HashProviderFunc, contentProvider ContentProviderFunc) (*File, error) {
-
-	route, err := route.New(path)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot create a File for the path %q. Error: %s", path, err)
-	}
-
+func NewFile(route *route.Route, hashProvider HashProviderFunc, contentProvider ContentProviderFunc) (*File, error) {
 	return &File{
 		route: route,
 

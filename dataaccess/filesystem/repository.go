@@ -7,6 +7,7 @@ package filesystem
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
+	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"path/filepath"
@@ -93,13 +94,15 @@ func indexItems(itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 		return
 	}
 
-	// create the file index
-	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := getFiles(filesDirectory)
+	// route
+	route, err := route.New(itemPath)
+	if err != nil {
+		itemEvents <- dataaccess.NewEvent(nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemPath, err))
+	}
 
 	// hash provider
 	hashProvider := func() (string, error) {
-		return getHash(itemPath)
+		return getHash(itemPath, route)
 	}
 
 	// content provider
@@ -107,8 +110,12 @@ func indexItems(itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 		return getContent(itemPath)
 	}
 
+	// create the file index
+	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
+	files := getFiles(filesDirectory)
+
 	// create the item
-	item, err := dataaccess.NewItem(itemPath, hashProvider, contentProvider, files)
+	item, err := dataaccess.NewItem(route, hashProvider, contentProvider, files)
 
 	itemEvents <- dataaccess.NewEvent(item, err)
 
