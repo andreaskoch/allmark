@@ -11,13 +11,15 @@ import (
 
 // An Item represents a single document in a repository.
 type Item struct {
-	route   *route.Route
-	parent  *Item
-	files   []*File
-	content ContentProviderFunc
+	route  *route.Route
+	parent *Item
+	files  []*File
+
+	hashProvider    HashProviderFunc
+	contentProvider ContentProviderFunc
 }
 
-func NewItem(path string, contentProvider ContentProviderFunc, files []*File) (*Item, error) {
+func NewItem(path string, hashProvider HashProviderFunc, contentProvider ContentProviderFunc, files []*File) (*Item, error) {
 
 	route, err := route.New(path)
 	if err != nil {
@@ -25,9 +27,11 @@ func NewItem(path string, contentProvider ContentProviderFunc, files []*File) (*
 	}
 
 	return &Item{
-		route:   route,
-		files:   files,
-		content: contentProvider,
+		route: route,
+		files: files,
+
+		hashProvider:    hashProvider,
+		contentProvider: contentProvider,
 	}, nil
 }
 
@@ -43,6 +47,10 @@ func (item *Item) Files() []*File {
 	return item.files
 }
 
+func (item *Item) HashProvider() HashProviderFunc {
+	return item.hashProvider
+}
+
 func (item *Item) ContentProvider() ContentProviderFunc {
-	return item.content
+	return item.contentProvider
 }

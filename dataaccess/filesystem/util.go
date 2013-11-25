@@ -7,6 +7,7 @@ package filesystem
 import (
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
+	"github.com/andreaskoch/allmark2/common/util/hashutil"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -16,6 +17,17 @@ import (
 var (
 	ReservedDirectoryNames = []string{config.FilesDirectoryName, config.MetaDataFolderName}
 )
+
+func getHash(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+
+	defer file.Close()
+
+	return hashutil.GetHash(file)
+}
 
 func getContent(path string) ([]byte, error) {
 	file, err := os.Open(path)

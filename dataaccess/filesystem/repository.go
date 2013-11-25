@@ -97,10 +97,18 @@ func indexItems(itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
 	files := getFiles(filesDirectory)
 
-	// create the item
-	item, err := dataaccess.NewItem(itemPath, func() ([]byte, error) {
+	// hash provider
+	hashProvider := func() (string, error) {
+		return getHash(itemPath)
+	}
+
+	// content provider
+	contentProvider := func() ([]byte, error) {
 		return getContent(itemPath)
-	}, files)
+	}
+
+	// create the item
+	item, err := dataaccess.NewItem(itemPath, hashProvider, contentProvider, files)
 
 	itemEvents <- dataaccess.NewEvent(item, err)
 

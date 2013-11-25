@@ -43,10 +43,18 @@ func newFile(path string) (*dataaccess.File, error) {
 		return nil, fmt.Errorf("%q is not a file.", path)
 	}
 
-	// create the file
-	file, err := dataaccess.NewFile(path, func() ([]byte, error) {
+	// hash provider
+	hashProvider := func() (string, error) {
+		return getHash(path)
+	}
+
+	// content provider
+	contentProvider := func() ([]byte, error) {
 		return getContent(path)
-	})
+	}
+
+	// create the file
+	file, err := dataaccess.NewFile(path, hashProvider, contentProvider)
 
 	if err != nil {
 		return nil, err

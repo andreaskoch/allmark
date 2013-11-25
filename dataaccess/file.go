@@ -11,11 +11,13 @@ import (
 
 // A File represents a file ressource that is associated with an Item.
 type File struct {
-	route   *route.Route
-	content ContentProviderFunc
+	route *route.Route
+
+	hashProvider    HashProviderFunc
+	contentProvider ContentProviderFunc
 }
 
-func NewFile(path string, contentProvider ContentProviderFunc) (*File, error) {
+func NewFile(path string, hashProvider HashProviderFunc, contentProvider ContentProviderFunc) (*File, error) {
 
 	route, err := route.New(path)
 	if err != nil {
@@ -23,8 +25,10 @@ func NewFile(path string, contentProvider ContentProviderFunc) (*File, error) {
 	}
 
 	return &File{
-		route:   route,
-		content: contentProvider,
+		route: route,
+
+		hashProvider:    hashProvider,
+		contentProvider: contentProvider,
 	}, nil
 }
 
@@ -36,6 +40,10 @@ func (file *File) Route() *route.Route {
 	return file.route
 }
 
+func (file *File) HashProvider() HashProviderFunc {
+	return file.hashProvider
+}
+
 func (file *File) ContentProvider() ContentProviderFunc {
-	return file.content
+	return file.contentProvider
 }

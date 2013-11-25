@@ -5,3 +5,5 @@
 package dataaccess
 
 type ContentProviderFunc func() ([]byte, error)
+
+type HashProviderFunc func() (string, error)
