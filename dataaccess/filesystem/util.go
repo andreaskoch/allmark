@@ -21,13 +21,7 @@ var (
 	ReservedDirectoryNames = []string{config.FilesDirectoryName, config.MetaDataFolderName}
 )
 
-func getHash(itemPath string, route *route.Route) (string, error) {
-
-	// path hash
-	pathHash, routeHashErr := getRouteHash(route)
-	if routeHashErr != nil {
-		return "", routeHashErr
-	}
+func getHash(filepath string, route *route.Route) (string, error) {
 
 	// fallback file hash
 	fileHash, fallbackHashErr := getStringHash("")
@@ -36,14 +30,20 @@ func getHash(itemPath string, route *route.Route) (string, error) {
 	}
 
 	// file hash
-	if isFile, _ := fsutil.IsFile(itemPath); isFile {
-		if hash, err := getFileHash(itemPath); err == nil {
+	if isFile, _ := fsutil.IsFile(filepath); isFile {
+		if hash, err := getFileHash(filepath); err == nil {
 			fileHash = hash
 		}
 	}
 
+	// route hash
+	routeHash, routeHashErr := getRouteHash(route)
+	if routeHashErr != nil {
+		return "", routeHashErr
+	}
+
 	// return the combined hash
-	return fmt.Sprintf("%s+%s", pathHash, fileHash), nil
+	return fmt.Sprintf("%s+%s", routeHash, fileHash), nil
 }
 
 func getRouteHash(route *route.Route) (string, error) {

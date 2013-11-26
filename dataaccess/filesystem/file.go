@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 )
 
-func getFiles(directory string) []*dataaccess.File {
+func getFiles(itemHashProvider dataaccess.HashProviderFunc, directory string) []*dataaccess.File {
 
 	childs := make([]*dataaccess.File, 0)
 
@@ -26,7 +26,7 @@ func getFiles(directory string) []*dataaccess.File {
 
 		// append new file
 		path := filepath.Join(directory, directoryEntry.Name())
-		file, err := newFile(path)
+		file, err := newFile(itemHashProvider, path)
 		if err != nil {
 			fmt.Printf("Unable to add file %q to index.\nError: %s\n", path, err)
 		}
@@ -37,7 +37,7 @@ func getFiles(directory string) []*dataaccess.File {
 	return childs
 }
 
-func newFile(path string) (*dataaccess.File, error) {
+func newFile(itemHashProvider dataaccess.HashProviderFunc, path string) (*dataaccess.File, error) {
 
 	// check if the path is a file
 	if isFile, _ := fsutil.IsFile(path); !isFile {
@@ -52,7 +52,21 @@ func newFile(path string) (*dataaccess.File, error) {
 
 	// hash provider
 	hashProvider := func() (string, error) {
-		return getHash(path, route)
+
+		// item hash
+		itemHash, itemHashErr := itemHashProvider()
+		if itemHashErr != nil {
+			return "", fmt.Errorf("Unable to determine the hash of the parent item for file %q. Error: %s", path, itemHashErr)
+		}
+
+		// file hash
+		fileHash, fileHashErr := getHash(path, route)
+		if fileHashErr != nil {
+			return "", fmt.Errorf("Unable to determine the hash for file %q. Error: %s", path, fileHashErr)
+		}
+
+		// return the combined hash
+		return fmt.Sprintf("%s+%s", itemHash, fileHash), nil
 	}
 
 	// content provider

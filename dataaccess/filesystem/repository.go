@@ -11,9 +11,11 @@ import (
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"path/filepath"
+	"strings"
 )
 
 type Repository struct {
+	hash      string
 	directory string
 }
 
@@ -29,26 +31,33 @@ func NewRepository(directory string) (*Repository, error) {
 		directory = filepath.Dir(directory)
 	}
 
+	// abort if the supplied path is a reserved directory
 	if isReservedDirectory(directory) {
 		return nil, fmt.Errorf("The path %q is using a reserved name and cannot be a root.", directory)
 	}
 
+	// hash provider: use the directory name for the hash (for now)
+	directoryName := strings.ToLower(filepath.Base(directory))
+	hash, err := getStringHash(directoryName)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot create a hash for the repository with the name %q. Error: %s", directoryName, err)
+	}
+
 	return &Repository{
 		directory: directory,
+		hash:      hash,
 	}, nil
 }
 
-func (itemAccessor *Repository) GetItems() (itemEvents chan *dataaccess.RepositoryEvent, done chan bool) {
+func (repository *Repository) GetItems() (itemEvents chan *dataaccess.RepositoryEvent, done chan bool) {
 
 	itemEvents = make(chan *dataaccess.RepositoryEvent, 1)
 	done = make(chan bool)
 
 	go func() {
 
-		directory := itemAccessor.directory
-
 		// repository directory item
-		indexItems(directory, itemEvents)
+		indexItems(repository, repository.directory, itemEvents)
 
 		done <- true
 	}()
@@ -56,8 +65,12 @@ func (itemAccessor *Repository) GetItems() (itemEvents chan *dataaccess.Reposito
 	return itemEvents, done
 }
 
+func (repository *Repository) Hash() string {
+	return repository.hash
+}
+
 // Create a new Item for the specified path.
-func indexItems(itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
+func indexItems(repository *Repository, itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 
 	// abort if path does not exist
 	if !fsutil.PathExists(itemPath) {
@@ -101,8 +114,16 @@ func indexItems(itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 	}
 
 	// hash provider
-	hashProvider := func() (string, error) {
-		return getHash(itemPath, route)
+	itemHashProvider := func() (string, error) {
+
+		// item hash
+		itemHash, itemHashErr := getHash(itemPath, route)
+		if itemHashErr != nil {
+			return "", fmt.Errorf("Unable to determine the hash of the item with the route %q. Error: %s", route, itemHashErr)
+		}
+
+		// return combined hash
+		return fmt.Sprintf("%s+%s", repository.Hash(), itemHash), nil
 	}
 
 	// content provider
@@ -112,16 +133,16 @@ func indexItems(itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := getFiles(filesDirectory)
+	files := getFiles(itemHashProvider, filesDirectory)
 
 	// create the item
-	item, err := dataaccess.NewItem(route, hashProvider, contentProvider, files)
+	item, err := dataaccess.NewItem(route, itemHashProvider, contentProvider, files)
 
 	itemEvents <- dataaccess.NewEvent(item, err)
 
-	// child items
+	// recurse for child items
 	childItemDirectories := getChildDirectories(itemDirectory)
 	for _, childItemDirectory := range childItemDirectories {
-		indexItems(childItemDirectory, itemEvents)
+		indexItems(repository, childItemDirectory, itemEvents)
 	}
 }
