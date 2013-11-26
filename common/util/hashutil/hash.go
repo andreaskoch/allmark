@@ -22,5 +22,5 @@ func GetHash(reader io.Reader) (string, error) {
 	sha1Hash.Write(bytes)
 	hashBytes := sha1Hash.Sum(nil)
 
-	return string(hex.EncodeToString(hashBytes)), nil
+	return string(hex.EncodeToString(hashBytes)[:7]), nil
 }
