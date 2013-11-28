@@ -12,7 +12,6 @@ import (
 // An Item represents a single document in a repository.
 type Item struct {
 	route  *route.Route
-	parent *Item
 	files  []*File
 
 	hashProvider    HashProviderFunc
