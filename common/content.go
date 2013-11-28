@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package dataaccess
+package common
 
 type ContentProviderFunc func() ([]byte, error)
 

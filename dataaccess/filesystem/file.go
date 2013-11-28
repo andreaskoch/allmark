@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 )
 
-func getFiles(itemHashProvider dataaccess.HashProviderFunc, directory string) []*dataaccess.File {
+func getFiles(directory string) []*dataaccess.File {
 
 	childs := make([]*dataaccess.File, 0)
 
@@ -26,7 +26,7 @@ func getFiles(itemHashProvider dataaccess.HashProviderFunc, directory string) []
 
 		// append new file
 		path := filepath.Join(directory, directoryEntry.Name())
-		file, err := newFile(itemHashProvider, path)
+		file, err := newFile(path)
 		if err != nil {
 			fmt.Printf("Unable to add file %q to index.\nError: %s\n", path, err)
 		}
@@ -37,7 +37,7 @@ func getFiles(itemHashProvider dataaccess.HashProviderFunc, directory string) []
 	return childs
 }
 
-func newFile(itemHashProvider dataaccess.HashProviderFunc, path string) (*dataaccess.File, error) {
+func newFile(path string) (*dataaccess.File, error) {
 
 	// check if the path is a file
 	if isFile, _ := fsutil.IsFile(path); !isFile {

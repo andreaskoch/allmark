@@ -7,6 +7,7 @@ package filesystem
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
+	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
@@ -15,11 +16,12 @@ import (
 )
 
 type Repository struct {
+	logger    logger.Logger
 	hash      string
 	directory string
 }
 
-func NewRepository(directory string) (*Repository, error) {
+func NewRepository(logger logger.Logger, directory string) (*Repository, error) {
 
 	// check if path exists
 	if !fsutil.PathExists(directory) {
@@ -44,6 +46,7 @@ func NewRepository(directory string) (*Repository, error) {
 	}
 
 	return &Repository{
+		logger:    logger,
 		directory: directory,
 		hash:      hash,
 	}, nil
@@ -132,7 +135,7 @@ func indexItems(repository *Repository, itemPath string, itemEvents chan *dataac
 
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := getFiles(itemHashProvider, filesDirectory)
+	files := getFiles(filesDirectory)
 
 	// create the item
 	item, err := dataaccess.NewItem(route, itemHashProvider, contentProvider, files)

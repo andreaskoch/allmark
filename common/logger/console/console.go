@@ -33,21 +33,21 @@ func (logger *ConsoleLogger) SetOutput(w io.Writer) {
 }
 
 func (logger *ConsoleLogger) Debug(v ...interface{}) {
-	fmt.Fprintf(logger.output, LogLevelDebug, v)
+	fmt.Fprintf(logger.output, LogLevelDebug, v, "\n")
 }
 
 func (logger *ConsoleLogger) Info(v ...interface{}) {
-	fmt.Fprintf(logger.output, LogLevelInfo, v)
+	fmt.Fprintf(logger.output, LogLevelInfo, v, "\n")
 }
 
 func (logger *ConsoleLogger) Warn(v ...interface{}) {
-	fmt.Fprintf(logger.output, LogLevelWarn, v)
+	fmt.Fprintf(logger.output, LogLevelWarn, v, "\n")
 }
 
 func (logger *ConsoleLogger) Error(v ...interface{}) {
-	fmt.Fprintf(logger.output, LogLevelError, v)
+	fmt.Fprintf(logger.output, LogLevelError, v, "\n")
 }
 
 func (logger *ConsoleLogger) Fatal(v ...interface{}) {
-	fmt.Fprintf(logger.output, LogLevelFatal, v)
+	fmt.Fprintf(logger.output, LogLevelFatal, v, "\n")
 }

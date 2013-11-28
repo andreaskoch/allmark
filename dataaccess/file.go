@@ -6,6 +6,7 @@ package dataaccess
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common"
 	"github.com/andreaskoch/allmark2/common/route"
 )
 
@@ -13,11 +14,11 @@ import (
 type File struct {
 	route *route.Route
 
-	hashProvider    HashProviderFunc
-	contentProvider ContentProviderFunc
+	hashProvider    common.HashProviderFunc
+	contentProvider common.ContentProviderFunc
 }
 
-func NewFile(route *route.Route, hashProvider HashProviderFunc, contentProvider ContentProviderFunc) (*File, error) {
+func NewFile(route *route.Route, hashProvider common.HashProviderFunc, contentProvider common.ContentProviderFunc) (*File, error) {
 	return &File{
 		route: route,
 
@@ -34,10 +35,10 @@ func (file *File) Route() *route.Route {
 	return file.route
 }
 
-func (file *File) HashProvider() HashProviderFunc {
+func (file *File) HashProvider() common.HashProviderFunc {
 	return file.hashProvider
 }
 
-func (file *File) ContentProvider() ContentProviderFunc {
+func (file *File) ContentProvider() common.ContentProviderFunc {
 	return file.contentProvider
 }
