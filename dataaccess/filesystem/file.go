@@ -53,20 +53,13 @@ func newFile(itemHashProvider dataaccess.HashProviderFunc, path string) (*dataac
 	// hash provider
 	hashProvider := func() (string, error) {
 
-		// item hash
-		itemHash, itemHashErr := itemHashProvider()
-		if itemHashErr != nil {
-			return "", fmt.Errorf("Unable to determine the hash of the parent item for file %q. Error: %s", path, itemHashErr)
-		}
-
 		// file hash
 		fileHash, fileHashErr := getHash(path, route)
 		if fileHashErr != nil {
 			return "", fmt.Errorf("Unable to determine the hash for file %q. Error: %s", path, fileHashErr)
 		}
 
-		// return the combined hash
-		return fmt.Sprintf("%s+%s", itemHash, fileHash), nil
+		return fileHash, nil
 	}
 
 	// content provider

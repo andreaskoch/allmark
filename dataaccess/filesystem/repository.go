@@ -65,7 +65,7 @@ func (repository *Repository) GetItems() (itemEvents chan *dataaccess.Repository
 	return itemEvents, done
 }
 
-func (repository *Repository) Hash() string {
+func (repository *Repository) Id() string {
 	return repository.hash
 }
 
@@ -122,8 +122,7 @@ func indexItems(repository *Repository, itemPath string, itemEvents chan *dataac
 			return "", fmt.Errorf("Unable to determine the hash of the item with the route %q. Error: %s", route, itemHashErr)
 		}
 
-		// return combined hash
-		return fmt.Sprintf("%s+%s", repository.Hash(), itemHash), nil
+		return itemHash, nil
 	}
 
 	// content provider
