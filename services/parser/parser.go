@@ -24,8 +24,21 @@ func New(logger logger.Logger) (*Parser, error) {
 func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 
 	// convert the files
-	files := make([]*model.File, 0, len(item.Files()))
-	for _, file := range item.Files() {
+	files := parser.convertFiles(item.Files())
+
+	itemModel, err := model.NewItem(item.Route(), files)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to convert item %q. Error: %s", item, err)
+	}
+
+	return itemModel, nil
+}
+
+func (parser *Parser) convertFiles(dataaccessFiles []*dataaccess.File) []*model.File {
+
+	files := make([]*model.File, 0, len(dataaccessFiles))
+
+	for _, file := range dataaccessFiles {
 
 		fileModel, err := model.NewFile(file)
 		if err != nil {
@@ -36,10 +49,5 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 		files = append(files, fileModel)
 	}
 
-	itemModel, err := model.NewItem(item.Route(), files)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to convert item %q. Error: %s", item, err)
-	}
-
-	return itemModel, nil
+	return files
 }
