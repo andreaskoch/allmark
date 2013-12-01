@@ -9,6 +9,17 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 )
 
+type ItemType int
+
+const (
+	Document ItemType = iota
+	Presentation
+	Message
+	Location
+	Repository
+	Unknown
+)
+
 // An Item represents a single document.
 type Item struct {
 	route *route.Route

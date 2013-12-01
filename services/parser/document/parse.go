@@ -1,0 +1,14 @@
+// Copyright 2013 Andreas Koch. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package document
+
+import (
+	"github.com/andreaskoch/allmark2/model"
+)
+
+func Parse(item *model.Item, lines []string) error {
+
+	return nil
+}
