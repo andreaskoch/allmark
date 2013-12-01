@@ -15,7 +15,7 @@ var (
 
 	// Lines which a start with a hash, followed by zero or more
 	// white space characters, followed by text.
-	TitlePattern = regexp.MustCompile(`^#\s*([\pL\pN\p{Latin}]+.+)`)
+	titlePattern = regexp.MustCompile(`^#\s*([\pL\pN\p{Latin}]+.+)`)
 
 	// Lines which start with text
 	DescriptionPattern = regexp.MustCompile(`^[\pL\pN\p{Latin}]+.+`)
@@ -77,4 +77,21 @@ func GetSingleLineMetaDataKeyAndValue(line string) (key string, value string) {
 	}
 
 	return "", ""
+}
+
+func IsTitle(line string) (bool, string) {
+	matches := titlePattern.FindStringSubmatch(line)
+	if len(matches) > 1 {
+		return true, matches[1] // title was found
+	}
+
+	return false, "" // no title was found
+}
+
+func IsDescription(line string) (bool, string) {
+	if DescriptionPattern.MatchString(line) {
+		return true, line // description was found
+	}
+
+	return false, "" // no description was found
 }
