@@ -32,22 +32,22 @@ func (logger *ConsoleLogger) SetOutput(w io.Writer) {
 	logger.output = w
 }
 
-func (logger *ConsoleLogger) Debug(v ...interface{}) {
-	fmt.Fprintf(logger.output, LogLevelDebug, v, "\n")
+func (logger *ConsoleLogger) Debug(format string, v ...interface{}) {
+	fmt.Fprintf(logger.output, fmt.Sprintf("[%s] %s\n", LogLevelDebug, format), v)
 }
 
-func (logger *ConsoleLogger) Info(v ...interface{}) {
-	fmt.Fprintf(logger.output, LogLevelInfo, v, "\n")
+func (logger *ConsoleLogger) Info(format string, v ...interface{}) {
+	fmt.Fprintf(logger.output, fmt.Sprintf("[%s] %s\n", LogLevelInfo, format), v)
 }
 
-func (logger *ConsoleLogger) Warn(v ...interface{}) {
-	fmt.Fprintf(logger.output, LogLevelWarn, v, "\n")
+func (logger *ConsoleLogger) Warn(format string, v ...interface{}) {
+	fmt.Fprintf(logger.output, fmt.Sprintf("[%s] %s\n", LogLevelWarn, format), v)
 }
 
-func (logger *ConsoleLogger) Error(v ...interface{}) {
-	fmt.Fprintf(logger.output, LogLevelError, v, "\n")
+func (logger *ConsoleLogger) Error(format string, v ...interface{}) {
+	fmt.Fprintf(logger.output, fmt.Sprintf("[%s] %s\n", LogLevelError, format), v)
 }
 
-func (logger *ConsoleLogger) Fatal(v ...interface{}) {
-	fmt.Fprintf(logger.output, LogLevelFatal, v, "\n")
+func (logger *ConsoleLogger) Fatal(format string, v ...interface{}) {
+	fmt.Fprintf(logger.output, fmt.Sprintf("[%s] %s\n", LogLevelFatal, format), v)
 }
