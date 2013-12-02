@@ -44,18 +44,15 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 	// detect the item type
 	switch itemType := typedetection.DetectType(lines); itemType {
 
-	case model.Document:
+	case model.Unknown:
+		return nil, fmt.Errorf("Unknown item type for Item %q.", item)
+
+	default:
 		{
 			if err := document.Parse(itemModel, lines); err != nil {
 				return nil, fmt.Errorf("Unable to parse document title of Item %q. Error: %s", item, err)
 			}
 		}
-
-	case model.Unknown:
-		return nil, fmt.Errorf("Unknown item type for Item %q.", item)
-
-	default:
-		panic("Unreachable")
 
 	}
 
