@@ -34,12 +34,14 @@ func main() {
 	allItemsRetrieved := false
 	for !allItemsRetrieved {
 		select {
-		case allItemsRetrieved = <-done:
-		case itemEvent := <-itemEvents:
-			if itemEvent == nil {
-				logger.Info("Empty item event.")
+		case isDone := <-done:
+			if isDone {
+				allItemsRetrieved = true
 			}
 
+		case itemEvent := <-itemEvents:
+
+			// parse item
 			logger.Info("Parsing item %q", itemEvent.Item)
 			item, err := parser.Parse(itemEvent.Item)
 			if err != nil {
