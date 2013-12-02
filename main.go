@@ -46,7 +46,7 @@ func main() {
 				logger.Warn("Unable to parse item %q.", itemEvent.Item)
 			}
 
-			logger.Info("Parsed item %q.", item)
+			logger.Info("Parsed item %q.", item.Title)
 		}
 	}
 }
