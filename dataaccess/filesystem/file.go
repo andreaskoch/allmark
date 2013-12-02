@@ -24,8 +24,15 @@ func getFiles(directory string) []*dataaccess.File {
 
 	for _, directoryEntry := range filesDirectoryEntries {
 
-		// append new file
 		path := filepath.Join(directory, directoryEntry.Name())
+
+		// recurse if the path is a directory
+		if isDir, _ := fsutil.IsDirectory(path); isDir {
+			childs = append(childs, getFiles(path)...)
+			continue
+		}
+
+		// append new file
 		file, err := newFile(path)
 		if err != nil {
 			fmt.Printf("Unable to add file %q to index.\nError: %s\n", path, err)
