@@ -41,14 +41,20 @@ func main() {
 
 		case itemEvent := <-itemEvents:
 
-			// parse item
-			logger.Info("Parsing item %q", itemEvent.Item)
-			item, err := parser.Parse(itemEvent.Item)
-			if err != nil {
-				logger.Warn("Unable to parse item %q.", itemEvent.Item)
+			if itemEvent.Item != nil {
+
+				// parse item
+				logger.Info("Parsing item %q", itemEvent.Item)
+				item, err := parser.Parse(itemEvent.Item)
+				if err != nil {
+					logger.Warn("Unable to parse item %q. Error: %s", itemEvent.Item, err)
+					continue
+				}
+
+				logger.Info("Parsed item %q.", item.Title)
+
 			}
 
-			logger.Info("Parsed item %q.", item.Title)
 		}
 	}
 }
