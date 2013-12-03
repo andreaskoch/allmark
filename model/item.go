@@ -12,12 +12,12 @@ import (
 type ItemType int
 
 const (
-	Document ItemType = iota
-	Presentation
-	Message
-	Location
-	Repository
-	Unknown
+	TypeDocument ItemType = iota
+	TypePresentation
+	TypeMessage
+	TypeLocation
+	TypeRepository
+	TypeUnknown
 )
 
 // An Item represents a single document.
@@ -28,6 +28,8 @@ type Item struct {
 	Title       string
 	Description string
 	Content     string
+
+	MetaData MetaData
 }
 
 func NewItem(route *route.Route, files []*File) (*Item, error) {

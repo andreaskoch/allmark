@@ -16,7 +16,7 @@ func DetectType(lines []string) model.ItemType {
 	// get the meta data definitions
 	lines = metadata.GetLines(lines)
 	if len(lines) == 0 {
-		return model.Document
+		return model.TypeDocument
 	}
 
 	// find the type name
@@ -36,17 +36,17 @@ func DetectType(lines []string) model.ItemType {
 	// detect the type
 	switch typeName {
 	case "document":
-		return model.Document
+		return model.TypeDocument
 	case "message":
-		return model.Message
+		return model.TypeMessage
 	case "location":
-		return model.Location
+		return model.TypeLocation
 	case "presentation":
-		return model.Presentation
+		return model.TypePresentation
 	case "repository":
-		return model.Repository
+		return model.TypeRepository
 	default:
-		return model.Document // fallback
+		return model.TypeDocument // fallback
 	}
 
 	panic("Unreachable")

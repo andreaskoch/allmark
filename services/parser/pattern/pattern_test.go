@@ -268,3 +268,37 @@ func Test_GetSingleLineMetaDataKeyAndValue_NoKeyValue(t *testing.T) {
 		t.Errorf("The result value should be empty but was %s.", resultValue)
 	}
 }
+
+func Test_IsMultiLineTagDefinition_True(t *testing.T) {
+	// arrange
+	expected := true
+	input := `tags:
+- tag1
+- tag2
+- tag3`
+
+	// act
+	result, _ := IsMultiLineTagDefinition(input)
+
+	// assert
+	if result != expected {
+		t.Errorf("The text %q is a multi-line tag definition, but the result was %s (expected: %s).", input, result, expected)
+	}
+}
+
+func Test_IsMultiLineTagDefinition_AllTagsAreReturned(t *testing.T) {
+	// arrange
+	expected := 3
+	input := `tags:
+- tag1
+- tag2
+- tag3`
+
+	// act
+	_, matches := IsMultiLineTagDefinition(input)
+
+	// assert
+	if len(matches) != expected {
+		t.Errorf("The text %q should return %d matches but returned %d. Result: %#v", input, expected, len(matches), matches)
+	}
+}

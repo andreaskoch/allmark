@@ -80,5 +80,11 @@ func Parse(item *model.Item, lines []string) (parseError error) {
 
 	contentLines := lines[contentStartIndex:contentEndIndex]
 	item.Content = strings.Join(contentLines, "\n")
+
+	// meta data
+	if err := metadata.Parse(item, lines); err != nil {
+		return fmt.Errorf("Unable to parse the meta data of item %q. Error: %s", item, err)
+	}
+
 	return
 }

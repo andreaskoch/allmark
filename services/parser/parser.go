@@ -44,7 +44,7 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 	// detect the item type
 	switch itemType := typedetection.DetectType(lines); itemType {
 
-	case model.Unknown:
+	case model.TypeUnknown:
 		return nil, fmt.Errorf("Unknown item type for Item %q.", item)
 
 	default:
