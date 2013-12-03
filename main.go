@@ -5,6 +5,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
@@ -52,6 +53,9 @@ func main() {
 				}
 
 				logger.Info("Parsed item %q.", item.Title)
+				fmt.Println(item.Description)
+				fmt.Println("---------")
+				fmt.Println(item.Content)
 
 			}
 

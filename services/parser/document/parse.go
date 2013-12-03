@@ -7,11 +7,12 @@ package document
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/model"
+	"github.com/andreaskoch/allmark2/services/parser/metadata"
 	"github.com/andreaskoch/allmark2/services/parser/pattern"
 	"strings"
 )
 
-func Parse(item *model.Item, lines []string) error {
+func Parse(item *model.Item, lines []string) (parseError error) {
 
 	// title
 	titleLineNumber := len(lines)
@@ -38,11 +39,11 @@ func Parse(item *model.Item, lines []string) error {
 
 	// abort if there are no more lines
 	if len(lines) < titleLineNumber+1 {
-		return nil // there are no more lines, but having no description is ok
+		return // there are no more lines, but having no description is ok
 	}
 
 	// description
-	descriptionLineNumber := len(lines)
+	descriptionLineNumber := titleLineNumber + 1
 	for lineNumber, line := range lines[(titleLineNumber + 1):] {
 
 		// ignore empty lines
@@ -65,11 +66,19 @@ func Parse(item *model.Item, lines []string) error {
 	}
 
 	// abort if there are no more lines
-	if len(lines) < descriptionLineNumber+1 {
-		return nil // there are no more lines, but having no content is ok
+	if len(lines) < descriptionLineNumber+2 {
+		return // there are no more lines, but having no content is ok
 	}
 
 	// content
+	contentStartIndex := (descriptionLineNumber + 2)
+	contentEndIndex := len(lines)
 
-	return nil
+	if metaDataStartIndex, err := metadata.GetLocation(lines); err == nil {
+		contentEndIndex = metaDataStartIndex
+	}
+
+	contentLines := lines[contentStartIndex:contentEndIndex]
+	item.Content = strings.Join(contentLines, "\n")
+	return
 }
