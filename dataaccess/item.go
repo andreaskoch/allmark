@@ -15,17 +15,19 @@ type Item struct {
 	route *route.Route
 	files []*File
 
-	hashProvider    common.HashProviderFunc
-	contentProvider common.ContentProviderFunc
+	lastModifiedProvider common.LastModifiedProviderFunc
+	hashProvider         common.HashProviderFunc
+	contentProvider      common.ContentProviderFunc
 }
 
-func NewItem(route *route.Route, hashProvider common.HashProviderFunc, contentProvider common.ContentProviderFunc, files []*File) (*Item, error) {
+func NewItem(route *route.Route, lastModifiedProvider common.LastModifiedProviderFunc, hashProvider common.HashProviderFunc, contentProvider common.ContentProviderFunc, files []*File) (*Item, error) {
 	return &Item{
 		route: route,
 		files: files,
 
-		hashProvider:    hashProvider,
-		contentProvider: contentProvider,
+		lastModifiedProvider: lastModifiedProvider,
+		hashProvider:         hashProvider,
+		contentProvider:      contentProvider,
 	}, nil
 }
 
@@ -39,6 +41,10 @@ func (item *Item) Route() *route.Route {
 
 func (item *Item) Files() []*File {
 	return item.files
+}
+
+func (item *Item) LastModifiedProvider() common.LastModifiedProviderFunc {
+	return item.lastModifiedProvider
 }
 
 func (item *Item) HashProvider() common.HashProviderFunc {

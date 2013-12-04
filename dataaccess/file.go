@@ -14,16 +14,18 @@ import (
 type File struct {
 	route *route.Route
 
-	hashProvider    common.HashProviderFunc
-	contentProvider common.ContentProviderFunc
+	lastModifiedProvider common.LastModifiedProviderFunc
+	hashProvider         common.HashProviderFunc
+	contentProvider      common.ContentProviderFunc
 }
 
-func NewFile(route *route.Route, hashProvider common.HashProviderFunc, contentProvider common.ContentProviderFunc) (*File, error) {
+func NewFile(route *route.Route, lastModifiedProvider common.LastModifiedProviderFunc, hashProvider common.HashProviderFunc, contentProvider common.ContentProviderFunc) (*File, error) {
 	return &File{
 		route: route,
 
-		hashProvider:    hashProvider,
-		contentProvider: contentProvider,
+		lastModifiedProvider: lastModifiedProvider,
+		hashProvider:         hashProvider,
+		contentProvider:      contentProvider,
 	}, nil
 }
 
@@ -33,6 +35,10 @@ func (file *File) String() string {
 
 func (file *File) Route() *route.Route {
 	return file.route
+}
+
+func (file *File) LastModifiedProvider() common.LastModifiedProviderFunc {
+	return file.lastModifiedProvider
 }
 
 func (file *File) HashProvider() common.HashProviderFunc {

@@ -4,6 +4,12 @@
 
 package common
 
+import (
+	"time"
+)
+
+type LastModifiedProviderFunc func() (time.Time, error)
+
 type ContentProviderFunc func() ([]byte, error)
 
 type HashProviderFunc func() (string, error)
