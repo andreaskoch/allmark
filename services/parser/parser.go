@@ -48,6 +48,10 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 
 	// fetch the item data
 	data, _ := contentProvider.Data()
+
+	// todo: cleanup data
+	// - replace \r\n with \n
+
 	lines := getLines(bytes.NewReader(data))
 
 	// detect the item type
