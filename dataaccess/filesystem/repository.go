@@ -91,10 +91,12 @@ func indexItems(repository *Repository, itemPath string, itemEvents chan *dataac
 		return
 	}
 
-	// check if its a virtual item or a markdown item
+	// make sure the item path points to a markdown file
+	isVirtualItem := false
 	itemDirectory := filepath.Dir(itemPath)
 	if isDirectory, _ := fsutil.IsDirectory(itemPath); isDirectory {
 
+		// search for a markdown file in the directory
 		if found, filepath := findMarkdownFileInDirectory(itemPath); found {
 
 			itemDirectory = itemPath
@@ -103,6 +105,7 @@ func indexItems(repository *Repository, itemPath string, itemEvents chan *dataac
 		} else {
 
 			// virtual item
+			isVirtualItem = true
 			itemDirectory = itemPath
 
 		}
@@ -114,23 +117,26 @@ func indexItems(repository *Repository, itemPath string, itemEvents chan *dataac
 		return
 	}
 
-	// route
-	route, err := route.New(repository.Path(), itemPath)
-	if err != nil {
-		itemEvents <- dataaccess.NewEvent(nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemPath, err))
+	// create a new item
+	if !isVirtualItem {
+		// route
+		route, err := route.New(repository.Path(), itemPath)
+		if err != nil {
+			itemEvents <- dataaccess.NewEvent(nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemPath, err))
+		}
+
+		// content provider
+		contentProvider := newContentProvider(itemPath, route)
+
+		// create the file index
+		filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
+		files := getFiles(repository, filesDirectory)
+
+		// create the item
+		item, err := dataaccess.NewItem(route, contentProvider, files)
+
+		itemEvents <- dataaccess.NewEvent(item, err)
 	}
-
-	// content provider
-	contentProvider := newContentProvider(itemPath, route)
-
-	// create the file index
-	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := getFiles(repository, filesDirectory)
-
-	// create the item
-	item, err := dataaccess.NewItem(route, contentProvider, files)
-
-	itemEvents <- dataaccess.NewEvent(item, err)
 
 	// recurse for child items
 	childItemDirectories := getChildDirectories(itemDirectory)
