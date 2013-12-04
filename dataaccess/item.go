@@ -6,28 +6,22 @@ package dataaccess
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark2/common"
+	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/route"
 )
 
 // An Item represents a single document in a repository.
 type Item struct {
-	route *route.Route
-	files []*File
-
-	lastModifiedProvider common.LastModifiedProviderFunc
-	hashProvider         common.HashProviderFunc
-	contentProvider      common.ContentProviderFunc
+	route           *route.Route
+	files           []*File
+	contentProvider *content.ContentProvider
 }
 
-func NewItem(route *route.Route, lastModifiedProvider common.LastModifiedProviderFunc, hashProvider common.HashProviderFunc, contentProvider common.ContentProviderFunc, files []*File) (*Item, error) {
+func NewItem(route *route.Route, contentProvider *content.ContentProvider, files []*File) (*Item, error) {
 	return &Item{
-		route: route,
-		files: files,
-
-		lastModifiedProvider: lastModifiedProvider,
-		hashProvider:         hashProvider,
-		contentProvider:      contentProvider,
+		route:           route,
+		files:           files,
+		contentProvider: contentProvider,
 	}, nil
 }
 
@@ -43,14 +37,6 @@ func (item *Item) Files() []*File {
 	return item.files
 }
 
-func (item *Item) LastModifiedProvider() common.LastModifiedProviderFunc {
-	return item.lastModifiedProvider
-}
-
-func (item *Item) HashProvider() common.HashProviderFunc {
-	return item.hashProvider
-}
-
-func (item *Item) ContentProvider() common.ContentProviderFunc {
+func (item *Item) ContentProvider() *content.ContentProvider {
 	return item.contentProvider
 }

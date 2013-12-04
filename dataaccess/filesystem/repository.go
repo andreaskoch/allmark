@@ -13,7 +13,6 @@ import (
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 type Repository struct {
@@ -117,34 +116,15 @@ func indexItems(repository *Repository, itemPath string, itemEvents chan *dataac
 		itemEvents <- dataaccess.NewEvent(nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemPath, err))
 	}
 
-	// last modified provider
-	lastModifiedProvider := func() (time.Time, error) {
-		return fsutil.GetModificationTime(itemPath)
-	}
-
-	// hash provider
-	itemHashProvider := func() (string, error) {
-
-		// item hash
-		itemHash, itemHashErr := getHash(itemPath, route)
-		if itemHashErr != nil {
-			return "", fmt.Errorf("Unable to determine the hash of the item with the route %q. Error: %s", route, itemHashErr)
-		}
-
-		return itemHash, nil
-	}
-
 	// content provider
-	contentProvider := func() ([]byte, error) {
-		return getContent(itemPath)
-	}
+	contentProvider := newContentProvider(itemPath, route)
 
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
 	files := getFiles(filesDirectory)
 
 	// create the item
-	item, err := dataaccess.NewItem(route, lastModifiedProvider, itemHashProvider, contentProvider, files)
+	item, err := dataaccess.NewItem(route, contentProvider, files)
 
 	itemEvents <- dataaccess.NewEvent(item, err)
 

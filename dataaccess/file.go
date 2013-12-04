@@ -6,26 +6,20 @@ package dataaccess
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark2/common"
+	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/route"
 )
 
 // A File represents a file ressource that is associated with an Item.
 type File struct {
-	route *route.Route
-
-	lastModifiedProvider common.LastModifiedProviderFunc
-	hashProvider         common.HashProviderFunc
-	contentProvider      common.ContentProviderFunc
+	route           *route.Route
+	contentProvider *content.ContentProvider
 }
 
-func NewFile(route *route.Route, lastModifiedProvider common.LastModifiedProviderFunc, hashProvider common.HashProviderFunc, contentProvider common.ContentProviderFunc) (*File, error) {
+func NewFile(route *route.Route, contentProvider *content.ContentProvider) (*File, error) {
 	return &File{
-		route: route,
-
-		lastModifiedProvider: lastModifiedProvider,
-		hashProvider:         hashProvider,
-		contentProvider:      contentProvider,
+		route:           route,
+		contentProvider: contentProvider,
 	}, nil
 }
 
@@ -37,14 +31,6 @@ func (file *File) Route() *route.Route {
 	return file.route
 }
 
-func (file *File) LastModifiedProvider() common.LastModifiedProviderFunc {
-	return file.lastModifiedProvider
-}
-
-func (file *File) HashProvider() common.HashProviderFunc {
-	return file.hashProvider
-}
-
-func (file *File) ContentProvider() common.ContentProviderFunc {
+func (file *File) ContentProvider() *content.ContentProvider {
 	return file.contentProvider
 }

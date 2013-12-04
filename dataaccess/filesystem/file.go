@@ -11,7 +11,6 @@ import (
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"io/ioutil"
 	"path/filepath"
-	"time"
 )
 
 func getFiles(directory string) []*dataaccess.File {
@@ -58,30 +57,11 @@ func newFile(path string) (*dataaccess.File, error) {
 		return nil, fmt.Errorf("Cannot create a File for the path %q. Error: %s", path, err)
 	}
 
-	// last modified provider
-	lastModifiedProvider := func() (time.Time, error) {
-		return fsutil.GetModificationTime(path)
-	}
-
-	// hash provider
-	hashProvider := func() (string, error) {
-
-		// file hash
-		fileHash, fileHashErr := getHash(path, route)
-		if fileHashErr != nil {
-			return "", fmt.Errorf("Unable to determine the hash for file %q. Error: %s", path, fileHashErr)
-		}
-
-		return fileHash, nil
-	}
-
 	// content provider
-	contentProvider := func() ([]byte, error) {
-		return getContent(path)
-	}
+	contentProvider := newContentProvider(path, route)
 
 	// create the file
-	file, err := dataaccess.NewFile(route, lastModifiedProvider, hashProvider, contentProvider)
+	file, err := dataaccess.NewFile(route, contentProvider)
 
 	if err != nil {
 		return nil, err

@@ -37,17 +37,18 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 		return nil, fmt.Errorf("Unable to convert Item %q. Error: %s", item, err)
 	}
 
+	// content provider
+	contentProvider := item.ContentProvider()
+
 	// capture the last modified date
-	getLastModifiedDate := item.LastModifiedProvider()
-	lastModifiedDate, err := getLastModifiedDate()
+	lastModifiedDate, err := contentProvider.LastModified()
 	if err != nil {
-		lastModifiedDate = time.Now()
+		lastModifiedDate = time.Now() // fallback to the current time
 	}
 
-	// fetch the item content
-	getContent := item.ContentProvider()
-	content, _ := getContent()
-	lines := getLines(bytes.NewReader(content))
+	// fetch the item data
+	data, _ := contentProvider.Data()
+	lines := getLines(bytes.NewReader(data))
 
 	// detect the item type
 	switch itemType := typedetection.DetectType(lines); itemType {

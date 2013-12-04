@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
+	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/common/util/hashutil"
@@ -15,11 +16,39 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var (
 	ReservedDirectoryNames = []string{config.FilesDirectoryName, config.MetaDataFolderName}
 )
+
+func newContentProvider(path string, route *route.Route) *content.ContentProvider {
+
+	// content provider
+	dataProvider := func() ([]byte, error) {
+		return getData(path)
+	}
+
+	// hash provider
+	hashProvider := func() (string, error) {
+
+		// file hash
+		fileHash, fileHashErr := getHash(path, route)
+		if fileHashErr != nil {
+			return "", fmt.Errorf("Unable to determine the hash for file %q. Error: %s", path, fileHashErr)
+		}
+
+		return fileHash, nil
+	}
+
+	// last modified provider
+	lastModifiedProvider := func() (time.Time, error) {
+		return fsutil.GetModificationTime(path)
+	}
+
+	return content.NewProvider(dataProvider, hashProvider, lastModifiedProvider)
+}
 
 func getHash(filepath string, route *route.Route) (string, error) {
 
@@ -67,7 +96,7 @@ func getFileHash(path string) (string, error) {
 	return hashutil.GetHash(fileReader)
 }
 
-func getContent(path string) ([]byte, error) {
+func getData(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return []byte{}, err
