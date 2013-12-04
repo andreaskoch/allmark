@@ -9,24 +9,8 @@ import (
 	"github.com/andreaskoch/allmark2/services/parser/pattern"
 )
 
-func GetLines(lines []string) []string {
-
-	lineNumber, err := GetLocation(lines)
-	if err != nil {
-		return []string{} // there is no meta data in the supplied lines
-	}
-
-	// return the lines that contain the meta data
-	if lineNumber+1 < len(lines) {
-		return lines[(lineNumber + 1):]
-	}
-
-	// no meta data
-	return []string{}
-}
-
-// Get the location of the meta data section from the supplied lines.
-func GetLocation(lines []string) (int, error) {
+// Get the position of the meta data section from the supplied lines.
+func GetMetaDataPosition(lines []string) (int, error) {
 
 	if len(lines) == 0 {
 		return 0, fmt.Errorf("There cannot be any meta data if the supplied lines are empty.")

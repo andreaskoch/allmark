@@ -75,7 +75,7 @@ func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseE
 	contentStartIndex := (descriptionLineNumber + 2)
 	contentEndIndex := len(lines)
 
-	if metaDataStartIndex, err := metadata.GetLocation(lines); err == nil {
+	if metaDataStartIndex, err := metadata.GetMetaDataPosition(lines); err == nil {
 		contentEndIndex = metaDataStartIndex
 	}
 

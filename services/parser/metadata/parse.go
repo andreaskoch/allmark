@@ -8,185 +8,114 @@ import (
 	"github.com/andreaskoch/allmark2/common/util/dateutil"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/parser/pattern"
-	"strconv"
 	"strings"
 	"time"
 )
 
 func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseError error) {
 
+	// find the meta data section
+	metaDataLines := GetMetaDataLines(lines)
+
+	// create a new meta data object
 	metaData := model.NewMetaData()
 
-	// fallback: alias
-	metaData.Alias = getFallbackAlias(item)
+	// parse the different attributes
+	remainingLines := parseLanguage(metaData, metaDataLines)
+	remainingLines = parseAuthor(metaData, remainingLines)
+	remainingLines = parseAlias(metaData, getFallbackAlias(item), remainingLines)
+	remainingLines = parseCreationDate(metaData, lastModifiedDate, remainingLines)
+	remainingLines = parseLastModifiedDate(metaData, lastModifiedDate, remainingLines)
+	remainingLines = parseTags(metaData, remainingLines)
+	remainingLines = parseLocations(metaData, remainingLines)
 
-	// find the meta data section
-	metaDataLines := GetLines(lines)
+	// assign the meta data to the item
+	item.MetaData = metaData
+	return
+}
 
-	// parse the single line meta data
-	remainingLines := make([]string, 0)
-	for _, line := range metaDataLines {
+func parseLanguage(metaData *model.MetaData, lines []string) (remainingLines []string) {
+	found, value, remainingLines := getSingleLineMetaData([]string{"language", "lang"}, lines)
+	if found {
+		metaData.Language = value
+	}
 
-		key, value := pattern.GetSingleLineMetaDataKeyAndValue(line)
+	return remainingLines
+}
 
-		// skip if line is not a key-value pair
-		if key == "" && value == "" {
-			remainingLines = append(remainingLines, line)
-			continue
-		}
+func parseAuthor(metaData *model.MetaData, lines []string) (remainingLines []string) {
+	found, value, remainingLines := getSingleLineMetaData([]string{"author"}, lines)
+	if found {
+		metaData.Author = value
+	}
 
-		// prepare key and value
-		key = strings.ToLower(key)
-		value = strings.TrimSpace(value)
+	return remainingLines
+}
 
-		switch key {
+func parseAlias(metaData *model.MetaData, fallback string, lines []string) (remainingLines []string) {
+	found, value, remainingLines := getSingleLineMetaData([]string{"alias"}, lines)
 
-		case "language":
-			{
-				metaData.Language = value
-				break
-			}
+	if found {
+		metaData.Alias = value
+	} else {
+		metaData.Alias = fallback
+	}
 
-		case "created at", "date":
-			{
-				date, _ := dateutil.ParseIso8601Date(value, lastModifiedDate)
-				metaData.CreationDate = date
-				break
-			}
+	return remainingLines
+}
 
-		case "modified at":
-			{
-				date, _ := dateutil.ParseIso8601Date(value, lastModifiedDate)
-				metaData.LastModifiedDate = date
-				break
-			}
+func parseTags(metaData *model.MetaData, lines []string) (remainingLines []string) {
 
-		case "tags":
-			{
-				if strings.TrimSpace(value) != "" {
-					metaData.Tags = getTagsFromValue(value)
-				}
-				break
-			}
+	found, value, remainingLines := getSingleLineMetaData([]string{"tags"}, lines)
+	if found {
+		rawTags := strings.Split(value, ",")
+		metaData.Tags = model.NewTagsFromNames(rawTags)
+	} else {
+		// begin parsing multi-line meta data
+		remainingMetaDataText := strings.Join(remainingLines, "\n")
 
-		case "type":
-			{
-				if typeValue := strings.TrimSpace(strings.ToLower(value)); typeValue != "" {
-					metaData.ItemType = typeValue
-				}
-				break
-			}
-
-		case "alias":
-			{
-				if aliasValue := strings.TrimSpace(strings.ToLower(value)); aliasValue != "" {
-					metaData.Alias = aliasValue
-				}
-				break
-			}
-
-		case "author":
-			{
-				if author := strings.TrimSpace(value); author != "" {
-					metaData.Author = author
-				}
-				break
-			}
-
-		case "street":
-			{
-				if street := strings.TrimSpace(value); street != "" {
-					metaData.GeoData.Street = street
-				}
-				break
-			}
-
-		case "city":
-			{
-				if city := strings.TrimSpace(value); city != "" {
-					metaData.GeoData.City = city
-				}
-				break
-			}
-
-		case "postcode":
-			{
-				if postcode := strings.TrimSpace(value); postcode != "" {
-					metaData.GeoData.Postcode = postcode
-				}
-				break
-			}
-
-		case "country":
-			{
-				if country := strings.TrimSpace(value); country != "" {
-					metaData.GeoData.Country = country
-				}
-				break
-			}
-
-		case "latitude":
-			{
-				if latitude := strings.TrimSpace(value); latitude != "" {
-					metaData.GeoData.Latitude = latitude
-				}
-				break
-			}
-
-		case "longitude":
-			{
-				if longitude := strings.TrimSpace(value); longitude != "" {
-					metaData.GeoData.Longitude = longitude
-				}
-				break
-			}
-
-		case "maptype":
-			{
-				if maptype := strings.TrimSpace(value); maptype != "" {
-					metaData.GeoData.MapType = maptype
-				}
-				break
-			}
-
-		case "zoom":
-			{
-				if zoom := strings.TrimSpace(value); zoom != "" {
-					if zoomLevel, err := strconv.ParseInt(zoom, 10, 0); err != nil && zoomLevel >= 0 && zoomLevel <= 100 {
-						metaData.GeoData.Zoom = int(zoomLevel)
-					} else {
-						metaData.GeoData.Zoom = 75
-					}
-				}
-				break
-			}
-
+		// parse multi line tags
+		if hasTags, tags := pattern.IsMultiLineTagDefinition(remainingMetaDataText); hasTags {
+			metaData.Tags = model.NewTagsFromNames(tags)
 		}
 	}
+
+	return remainingLines
+}
+
+func parseLocations(metaData *model.MetaData, lines []string) (remainingLines []string) {
 
 	// begin parsing multi-line meta data
-	remainingMetaDataText := strings.Join(remainingLines, "\n")
-
-	// parse multi line tags
-	if hasTags, tags := pattern.IsMultiLineTagDefinition(remainingMetaDataText); hasTags {
-		metaData.Tags = model.NewTagsFromNames(tags)
-	}
+	remainingMetaDataText := strings.Join(lines, "\n")
 
 	// parse multi line locations
 	if hasLocations, locations := pattern.IsMultiLineLocationDefinition(remainingMetaDataText); hasLocations {
 		metaData.Locations = model.NewLocationsFromNames(locations)
 	}
 
-	item.MetaData = metaData
-	return
+	return remainingLines
+}
 
+func parseCreationDate(metaData *model.MetaData, fallbackDate time.Time, lines []string) (remainingLines []string) {
+	found, value, remainingLines := getSingleLineMetaData([]string{"created at", "date"}, lines)
+	if found {
+		date, _ := dateutil.ParseIso8601Date(value, fallbackDate)
+		metaData.CreationDate = date
+	}
+
+	return remainingLines
+}
+
+func parseLastModifiedDate(metaData *model.MetaData, fallbackDate time.Time, lines []string) (remainingLines []string) {
+	found, value, remainingLines := getSingleLineMetaData([]string{"modified at", "modified"}, lines)
+	if found {
+		date, _ := dateutil.ParseIso8601Date(value, fallbackDate)
+		metaData.LastModifiedDate = date
+	}
+
+	return remainingLines
 }
 
 func getFallbackAlias(item *model.Item) string {
 	return "fallback alias"
-}
-
-func getTagsFromValue(value string) model.Tags {
-	rawTags := strings.Split(value, ",")
-	return model.NewTagsFromNames(rawTags)
 }

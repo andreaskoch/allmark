@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func Test_GetLines_SingleLine(t *testing.T) {
+func Test_GetMetaDataLines_SingleLine(t *testing.T) {
 	// arrange
 	inputLines := []string{
 		"# Headline",
@@ -21,7 +21,7 @@ func Test_GetLines_SingleLine(t *testing.T) {
 	}
 
 	// act
-	result := GetLines(inputLines)
+	result := GetMetaDataLines(inputLines)
 
 	// assert
 	if len(result) != 1 {
@@ -29,7 +29,7 @@ func Test_GetLines_SingleLine(t *testing.T) {
 	}
 }
 
-func Test_GetLines_SingleLineWithWhitespace(t *testing.T) {
+func Test_GetMetaDataLines_SingleLineWithWhitespace(t *testing.T) {
 	// arrange
 	inputLines := []string{
 		"# Headline",
@@ -44,7 +44,7 @@ func Test_GetLines_SingleLineWithWhitespace(t *testing.T) {
 	}
 
 	// act
-	result := GetLines(inputLines)
+	result := GetMetaDataLines(inputLines)
 
 	// assert
 	if len(result) != 3 {
@@ -52,7 +52,7 @@ func Test_GetLines_SingleLineWithWhitespace(t *testing.T) {
 	}
 }
 
-func Test_GetLines_EmptyMetaDataSection(t *testing.T) {
+func Test_GetMetaDataLines_EmptyMetaDataSection(t *testing.T) {
 	// arrange
 	inputLines := []string{
 		"# Headline",
@@ -64,7 +64,7 @@ func Test_GetLines_EmptyMetaDataSection(t *testing.T) {
 	}
 
 	// act
-	result := GetLines(inputLines)
+	result := GetMetaDataLines(inputLines)
 
 	// assert
 	if len(result) != 0 {
@@ -72,7 +72,7 @@ func Test_GetLines_EmptyMetaDataSection(t *testing.T) {
 	}
 }
 
-func Test_GetLines_NoMetaData(t *testing.T) {
+func Test_GetMetaDataLines_NoMetaData(t *testing.T) {
 	// arrange
 	inputLines := []string{
 		"# Headline",
@@ -83,7 +83,7 @@ func Test_GetLines_NoMetaData(t *testing.T) {
 	}
 
 	// act
-	result := GetLines(inputLines)
+	result := GetMetaDataLines(inputLines)
 
 	// assert
 	if len(result) != 0 {
@@ -91,37 +91,15 @@ func Test_GetLines_NoMetaData(t *testing.T) {
 	}
 }
 
-func Test_GetLines_NoInput(t *testing.T) {
+func Test_GetMetaDataLines_NoInput(t *testing.T) {
 	// arrange
 	inputLines := []string{}
 
 	// act
-	result := GetLines(inputLines)
+	result := GetMetaDataLines(inputLines)
 
 	// assert
 	if len(result) != 0 {
 		t.Errorf("The resulting line slice should be empty but contained %d lines.", len(result))
-	}
-}
-
-func Test_GetLocation_SingleLine(t *testing.T) {
-	// arrange
-	inputLines := []string{
-		"# Headline",     // Line number: 0
-		"Description",    // Line number: 1
-		"",               // Line number: 2
-		"yada yada",      // Line number: 3
-		"",               // Line number: 4
-		"---",            // Line number: 5
-		"type: document", // Line number: 6
-	}
-	expectedResult := 5
-
-	// act
-	result, _ := GetLocation(inputLines)
-
-	// assert
-	if result != expectedResult {
-		t.Errorf("The location of the meta data should be %d but was %d.", expectedResult, result)
 	}
 }

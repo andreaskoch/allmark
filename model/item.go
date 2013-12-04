@@ -29,7 +29,7 @@ type Item struct {
 	Description string
 	Content     string
 
-	MetaData MetaData
+	MetaData *MetaData
 }
 
 func NewItem(route *route.Route, files []*File) (*Item, error) {

@@ -14,7 +14,7 @@ import (
 func DetectType(lines []string) model.ItemType {
 
 	// get the meta data definitions
-	lines = metadata.GetLines(lines)
+	lines = metadata.GetMetaDataLines(lines)
 	if len(lines) == 0 {
 		return model.TypeDocument
 	}

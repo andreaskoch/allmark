@@ -32,6 +32,7 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 	// convert the files
 	files := parser.convertFiles(item.Files())
 
+	// create a new item model
 	itemModel, err := model.NewItem(route, files)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to convert Item %q. Error: %s", item, err)

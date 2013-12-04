@@ -56,6 +56,8 @@ func main() {
 				fmt.Println(item.Description)
 				fmt.Println("---------")
 				fmt.Println(item.Content)
+				fmt.Println("---------")
+				fmt.Printf("%#v\n", item.MetaData)
 
 			}
 

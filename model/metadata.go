@@ -13,18 +13,17 @@ type MetaData struct {
 	CreationDate     time.Time
 	LastModifiedDate time.Time
 	Tags             Tags
-	ItemType         string
 	Alias            string
 	Author           string
 	Locations        Locations
-	GeoData          GeoInformation
+	GeoInformation   *GeoInformation
 }
 
-func NewMetaData() MetaData {
+func NewMetaData() *MetaData {
 
 	now := time.Now()
 
-	return MetaData{
+	return &MetaData{
 		Language:         "en",
 		CreationDate:     now,
 		LastModifiedDate: now,
