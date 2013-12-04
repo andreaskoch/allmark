@@ -72,6 +72,10 @@ func (repository *Repository) Id() string {
 	return repository.hash
 }
 
+func (repository *Repository) Path() string {
+	return repository.directory
+}
+
 // Create a new Item for the specified path.
 func indexItems(repository *Repository, itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 
@@ -111,7 +115,7 @@ func indexItems(repository *Repository, itemPath string, itemEvents chan *dataac
 	}
 
 	// route
-	route, err := route.New(itemPath)
+	route, err := route.New(repository.Path(), itemPath)
 	if err != nil {
 		itemEvents <- dataaccess.NewEvent(nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemPath, err))
 	}
@@ -121,7 +125,7 @@ func indexItems(repository *Repository, itemPath string, itemEvents chan *dataac
 
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := getFiles(filesDirectory)
+	files := getFiles(repository, filesDirectory)
 
 	// create the item
 	item, err := dataaccess.NewItem(route, contentProvider, files)

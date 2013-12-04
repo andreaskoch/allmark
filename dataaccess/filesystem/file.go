@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 )
 
-func getFiles(directory string) []*dataaccess.File {
+func getFiles(repository *Repository, directory string) []*dataaccess.File {
 
 	childs := make([]*dataaccess.File, 0)
 
@@ -28,12 +28,12 @@ func getFiles(directory string) []*dataaccess.File {
 
 		// recurse if the path is a directory
 		if isDir, _ := fsutil.IsDirectory(path); isDir {
-			childs = append(childs, getFiles(path)...)
+			childs = append(childs, getFiles(repository, path)...)
 			continue
 		}
 
 		// append new file
-		file, err := newFile(path)
+		file, err := newFile(repository, path)
 		if err != nil {
 			fmt.Printf("Unable to add file %q to index.\nError: %s\n", path, err)
 		}
@@ -44,7 +44,7 @@ func getFiles(directory string) []*dataaccess.File {
 	return childs
 }
 
-func newFile(path string) (*dataaccess.File, error) {
+func newFile(repository *Repository, path string) (*dataaccess.File, error) {
 
 	// check if the path is a file
 	if isFile, _ := fsutil.IsFile(path); !isFile {
@@ -52,7 +52,7 @@ func newFile(path string) (*dataaccess.File, error) {
 	}
 
 	// route
-	route, err := route.New(path)
+	route, err := route.New(repository.Path(), path)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot create a File for the path %q. Error: %s", path, err)
 	}

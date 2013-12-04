@@ -19,4 +19,5 @@ func NewEvent(item *Item, err error) *RepositoryEvent {
 type Repository interface {
 	GetItems() (itemEvents chan *RepositoryEvent, done chan bool)
 	Id() string
+	Path() string
 }

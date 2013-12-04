@@ -20,13 +20,23 @@ type Route struct {
 	value string
 }
 
-func New(path string) (*Route, error) {
-	normalizedPath, err := normalizePath(path)
+func New(repositoryPath, itemPath string) (*Route, error) {
+
+	// normalize the repository path
+	normalizedRepositoryPath, err := normalizePath(repositoryPath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to normalize the supplied repository path %q. Error: %s", repositoryPath, err)
 	}
 
-	return &Route{normalizedPath}, nil
+	// normalize the item path
+	normalizedItemPath, err := normalizePath(itemPath)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to normalize the supplied item path %q. Error: %s", itemPath, err)
+	}
+
+	// strip the repository path from the item path
+	routeValue := strings.Replace(normalizedItemPath, normalizedRepositoryPath, "", 1)
+	return &Route{routeValue}, nil
 }
 
 func (route *Route) String() string {
