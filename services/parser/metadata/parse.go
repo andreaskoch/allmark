@@ -117,5 +117,17 @@ func parseLastModifiedDate(metaData *model.MetaData, fallbackDate time.Time, lin
 }
 
 func getFallbackAlias(item *model.Item) string {
-	return "fallback alias"
+
+	route := item.Route().String()
+	components := strings.Split(route, "/")
+
+	// if the number of components is less than two than there is no item directory
+	numberOfComponents := len(components)
+	if numberOfComponents < 2 {
+		return ""
+	}
+
+	// return the second last component as the alias
+	secondLastComponentPosition := numberOfComponents - 2
+	return components[secondLastComponentPosition]
 }
