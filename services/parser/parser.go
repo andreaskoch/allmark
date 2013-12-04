@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/parser/document"
+	"github.com/andreaskoch/allmark2/services/parser/message"
 	"github.com/andreaskoch/allmark2/services/parser/typedetection"
 	"time"
 )
@@ -58,15 +59,22 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 	// detect the item type
 	switch itemType := typedetection.DetectType(lines); itemType {
 
-	case model.TypeUnknown:
-		return nil, fmt.Errorf("Unknown item type for Item %q.", item)
-
-	default:
+	case model.TypeDocument, model.TypeLocation, model.TypeRepository:
 		{
 			if err := document.Parse(itemModel, lastModifiedDate, lines); err != nil {
-				return nil, fmt.Errorf("Unable to parse document title of Item %q. Error: %s", item, err)
+				return nil, fmt.Errorf("Unable to parse item %q. Error: %s", item, err)
 			}
 		}
+
+	case model.TypeMessage:
+		{
+			if err := message.Parse(itemModel, lastModifiedDate, lines); err != nil {
+				return nil, fmt.Errorf("Unable to parse item %q. Error: %s", item, err)
+			}
+		}
+
+	default:
+		return nil, fmt.Errorf("Cannot parse item %q. Unknown item type.", item)
 
 	}
 
