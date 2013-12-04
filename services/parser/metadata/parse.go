@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func Parse(item *model.Item, lines []string) (parseError error) {
+func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseError error) {
 
 	metaData := model.NewMetaData()
 
@@ -49,14 +49,14 @@ func Parse(item *model.Item, lines []string) (parseError error) {
 
 		case "created at", "date":
 			{
-				date, _ := dateutil.ParseIso8601Date(value, time.Now())
+				date, _ := dateutil.ParseIso8601Date(value, lastModifiedDate)
 				metaData.CreationDate = date
 				break
 			}
 
 		case "modified at":
 			{
-				date, _ := dateutil.ParseIso8601Date(value, time.Now())
+				date, _ := dateutil.ParseIso8601Date(value, lastModifiedDate)
 				metaData.LastModifiedDate = date
 				break
 			}

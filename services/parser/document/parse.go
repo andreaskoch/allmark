@@ -10,9 +10,10 @@ import (
 	"github.com/andreaskoch/allmark2/services/parser/metadata"
 	"github.com/andreaskoch/allmark2/services/parser/pattern"
 	"strings"
+	"time"
 )
 
-func Parse(item *model.Item, lines []string) (parseError error) {
+func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseError error) {
 
 	// title
 	titleLineNumber := len(lines)
@@ -82,7 +83,7 @@ func Parse(item *model.Item, lines []string) (parseError error) {
 	item.Content = strings.Join(contentLines, "\n")
 
 	// meta data
-	if err := metadata.Parse(item, lines); err != nil {
+	if err := metadata.Parse(item, lastModifiedDate, lines); err != nil {
 		return fmt.Errorf("Unable to parse the meta data of item %q. Error: %s", item, err)
 	}
 

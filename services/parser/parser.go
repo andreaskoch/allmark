@@ -12,6 +12,7 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/parser/document"
 	"github.com/andreaskoch/allmark2/services/parser/typedetection"
+	"time"
 )
 
 type Parser struct {
@@ -36,6 +37,13 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 		return nil, fmt.Errorf("Unable to convert Item %q. Error: %s", item, err)
 	}
 
+	// capture the last modified date
+	getLastModifiedDate := item.LastModifiedProvider()
+	lastModifiedDate, err := getLastModifiedDate()
+	if err != nil {
+		lastModifiedDate = time.Now()
+	}
+
 	// fetch the item content
 	getContent := item.ContentProvider()
 	content, _ := getContent()
@@ -49,7 +57,7 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 
 	default:
 		{
-			if err := document.Parse(itemModel, lines); err != nil {
+			if err := document.Parse(itemModel, lastModifiedDate, lines); err != nil {
 				return nil, fmt.Errorf("Unable to parse document title of Item %q. Error: %s", item, err)
 			}
 		}
