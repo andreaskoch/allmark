@@ -117,6 +117,8 @@ func indexItems(repository *Repository, itemPath string, itemEvents chan *dataac
 		return
 	}
 
+	// todo: create content providers for virtual items
+
 	// create a new item
 	if !isVirtualItem {
 		// route
