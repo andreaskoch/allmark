@@ -5,7 +5,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
@@ -30,37 +29,25 @@ func main() {
 	}
 
 	// read the repository
-	itemEvents, done := repository.GetItems()
+	itemEvents := repository.GetItems()
+	for itemEvent := range itemEvents {
 
-	allItemsRetrieved := false
-	for !allItemsRetrieved {
-		select {
-		case isDone := <-done:
-			if isDone {
-				allItemsRetrieved = true
-			}
-
-		case itemEvent := <-itemEvents:
-
-			if itemEvent.Item != nil {
-
-				// parse item
-				logger.Info("Parsing item %q", itemEvent.Item)
-				item, err := parser.Parse(itemEvent.Item)
-				if err != nil {
-					logger.Warn("Unable to parse item %q. Error: %s", itemEvent.Item, err)
-					continue
-				}
-
-				logger.Info("Parsed item %q.", item.Title)
-				fmt.Println(item.Description)
-				fmt.Println("---------")
-				fmt.Println(item.Content)
-				fmt.Println("---------")
-				fmt.Printf("%#v\n", item.MetaData)
-
-			}
-
+		if itemEvent.Error != nil {
+			logger.Warn("%s", itemEvent.Error)
 		}
+
+		if itemEvent.Item == nil {
+			continue
+		}
+
+		// parse item
+		logger.Info("Parsing item %q", itemEvent.Item)
+		item, err := parser.Parse(itemEvent.Item)
+		if err != nil {
+			logger.Warn("Unable to parse item %q. Error: %s", itemEvent.Item, err)
+			continue
+		}
+
+		logger.Info("Parsed item %q.", item.Title)
 	}
 }

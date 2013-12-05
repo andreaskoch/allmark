@@ -52,20 +52,20 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 	}, nil
 }
 
-func (repository *Repository) GetItems() (itemEvents chan *dataaccess.RepositoryEvent, done chan bool) {
+func (repository *Repository) GetItems() (itemEvents chan *dataaccess.RepositoryEvent) {
 
 	itemEvents = make(chan *dataaccess.RepositoryEvent, 1)
-	done = make(chan bool)
 
 	go func() {
 
 		// repository directory item
 		indexItems(repository, repository.directory, itemEvents)
 
-		done <- true
+		// close the channel. All items have been indexed
+		close(itemEvents)
 	}()
 
-	return itemEvents, done
+	return itemEvents
 }
 
 func (repository *Repository) Id() string {
