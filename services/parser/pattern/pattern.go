@@ -43,11 +43,26 @@ var (
 	HtmlTagPattern = regexp.MustCompile(`\<[^\>]*\>`)
 
 	// Markdown headline pattern
-	AnyLevelMarkdownHeadline = regexp.MustCompile(`^(#+?)([^#].+?[^#])(#*)$`)
+	anyLevelMarkdownHeadline = regexp.MustCompile(`^(#+?)([^#].+?[^#])(#*)$`)
 )
 
 func IsEmpty(line string) bool {
 	return emptyLinePattern.MatchString(line)
+}
+
+func IsHeadline(line string) (isHeadline bool, headline string, level int) {
+	matches := anyLevelMarkdownHeadline.FindStringSubmatch(line)
+	if len(matches) != 4 {
+		return false, "", 0
+	}
+
+	hashes := strings.TrimSpace(matches[1])
+
+	isHeadline = true
+	headline = strings.TrimSpace(matches[2])
+	level = len(hashes)
+
+	return
 }
 
 func IsHorizontalRule(line string) bool {

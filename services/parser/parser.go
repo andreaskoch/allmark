@@ -12,6 +12,7 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/parser/document"
 	"github.com/andreaskoch/allmark2/services/parser/message"
+	"github.com/andreaskoch/allmark2/services/parser/presentation"
 	"github.com/andreaskoch/allmark2/services/parser/typedetection"
 	"time"
 )
@@ -62,6 +63,13 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 	case model.TypeDocument, model.TypeLocation, model.TypeRepository:
 		{
 			if err := document.Parse(itemModel, lastModifiedDate, lines); err != nil {
+				return nil, fmt.Errorf("Unable to parse item %q. Error: %s", item, err)
+			}
+		}
+
+	case model.TypePresentation:
+		{
+			if err := presentation.Parse(itemModel, lastModifiedDate, lines); err != nil {
 				return nil, fmt.Errorf("Unable to parse item %q. Error: %s", item, err)
 			}
 		}
