@@ -6,6 +6,7 @@ package model
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Tags []Tag
@@ -14,21 +15,26 @@ func NewTags() Tags {
 	return make(Tags, 0)
 }
 
-func NewTagsFromNames(names []string) Tags {
+func NewTagsFromNames(names []string) (Tags, error) {
 	tags := make(Tags, 0, len(names))
-
+	errors := make([]string, 0)
 	for _, name := range names {
+
+		// skip empty values
+		if strings.TrimSpace(name) == "" {
+			continue
+		}
 
 		tag, err := NewTag(name)
 		if err != nil {
-			fmt.Printf("Skipping tag %q. Error: %s\n", name, err)
+			errors = append(errors, fmt.Sprintf("Cannot create tag %q. Error: %s", name, err))
 			continue
 		}
 
 		tags = append(tags, *tag)
 	}
 
-	return tags
+	return tags, fmt.Errorf("The following tags could not be created:\n%s", strings.Join(errors, "\n"))
 }
 
 func (tags Tags) Contains(otherTag Tag) bool {

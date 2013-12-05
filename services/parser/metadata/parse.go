@@ -69,14 +69,14 @@ func parseTags(metaData *model.MetaData, lines []string) (remainingLines []strin
 	found, value, remainingLines := getSingleLineMetaData([]string{"tags"}, lines)
 	if found {
 		rawTags := strings.Split(value, ",")
-		metaData.Tags = model.NewTagsFromNames(rawTags)
+		metaData.Tags, _ = model.NewTagsFromNames(rawTags)
 	} else {
 		// begin parsing multi-line meta data
 		remainingMetaDataText := strings.Join(remainingLines, "\n")
 
 		// parse multi line tags
 		if hasTags, tags := pattern.IsMultiLineTagDefinition(remainingMetaDataText); hasTags {
-			metaData.Tags = model.NewTagsFromNames(tags)
+			metaData.Tags, _ = model.NewTagsFromNames(tags)
 		}
 	}
 
