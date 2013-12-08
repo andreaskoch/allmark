@@ -7,7 +7,7 @@ package config
 import (
 	"bufio"
 	"fmt"
-	"github.com/andreaskoch/allmark/util"
+	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -164,7 +164,7 @@ func (config *Config) Save() (*Config, error) {
 	path := config.Filepath()
 
 	// make sure the directory exists
-	if created, err := util.CreateFile(path); !created {
+	if created, err := fsutil.CreateFile(path); !created {
 		return config, fmt.Errorf("Could not create path %q.\nError: %s\n", path, err)
 	}
 

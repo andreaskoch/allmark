@@ -5,6 +5,7 @@
 package main
 
 import (
+	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
@@ -15,11 +16,16 @@ import (
 
 func main() {
 
+	repositoryPath := fsutil.GetWorkingDirectory()
+
 	// logger
 	logger := console.New()
 
+	// config
+	config := config.Get(repositoryPath)
+
 	// data access
-	repository, err := filesystem.NewRepository(logger, fsutil.GetWorkingDirectory())
+	repository, err := filesystem.NewRepository(logger, repositoryPath)
 	if err != nil {
 		logger.Fatal("Unable to create a repository. Error: %s", err)
 	}
@@ -37,7 +43,7 @@ func main() {
 	}
 
 	// server
-	server, err := server.New(logger, converter)
+	server, err := server.New(logger, config, converter)
 	if err != nil {
 		logger.Fatal("Unable to instantiate a server. Error: %s", err)
 	}
