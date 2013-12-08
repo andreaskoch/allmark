@@ -5,9 +5,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
+	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml"
 	"github.com/andreaskoch/allmark2/services/parser"
 )
 
@@ -28,6 +30,12 @@ func main() {
 		panic(err)
 	}
 
+	// converter
+	converter, err := markdowntohtml.New(logger)
+	if err != nil {
+		panic(err)
+	}
+
 	// read the repository
 	itemEvents := repository.GetItems()
 	for itemEvent := range itemEvents {
@@ -41,13 +49,14 @@ func main() {
 		}
 
 		// parse item
-		logger.Info("Parsing item %q", itemEvent.Item)
 		item, err := parser.Parse(itemEvent.Item)
 		if err != nil {
 			logger.Warn("Unable to parse item %q. Error: %s", itemEvent.Item, err)
 			continue
 		}
 
-		logger.Info("Parsed item %q.", item.Title)
+		// convert item
+		converter.Convert(item)
+		fmt.Println(item.Content)
 	}
 }
