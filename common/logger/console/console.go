@@ -50,4 +50,5 @@ func (logger *ConsoleLogger) Error(format string, v ...interface{}) {
 
 func (logger *ConsoleLogger) Fatal(format string, v ...interface{}) {
 	fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", LogLevelFatal, format), v)
+	os.Exit(1)
 }

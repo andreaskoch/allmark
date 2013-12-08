@@ -5,12 +5,12 @@
 package main
 
 import (
-	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml"
 	"github.com/andreaskoch/allmark2/services/parser"
+	"github.com/andreaskoch/allmark2/ui/web/server"
 )
 
 func main() {
@@ -21,19 +21,25 @@ func main() {
 	// data access
 	repository, err := filesystem.NewRepository(logger, fsutil.GetWorkingDirectory())
 	if err != nil {
-		panic(err)
+		logger.Fatal("Unable to create a repository. Error: %s", err)
 	}
 
 	// parser
 	parser, err := parser.New(logger)
 	if err != nil {
-		panic(err)
+		logger.Fatal("Unable to instantiate a parser. Error: %s", err)
 	}
 
 	// converter
 	converter, err := markdowntohtml.New(logger)
 	if err != nil {
-		panic(err)
+		logger.Fatal("Unable to instantiate a converter. Error: %s", err)
+	}
+
+	// server
+	server, err := server.New(logger)
+	if err != nil {
+		logger.Fatal("Unable to instantiate a server. Error: %s", err)
 	}
 
 	// read the repository
@@ -57,6 +63,8 @@ func main() {
 
 		// convert item
 		converter.Convert(item)
-		fmt.Println(item.Content)
+
+		// send item to server
+		server.Serve(item)
 	}
 }
