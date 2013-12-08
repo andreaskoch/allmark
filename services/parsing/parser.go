@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package parser
+package parsing
 
 import (
 	"bytes"
@@ -10,10 +10,10 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/model"
-	"github.com/andreaskoch/allmark2/services/parser/document"
-	"github.com/andreaskoch/allmark2/services/parser/message"
-	"github.com/andreaskoch/allmark2/services/parser/presentation"
-	"github.com/andreaskoch/allmark2/services/parser/typedetection"
+	"github.com/andreaskoch/allmark2/services/parsing/document"
+	"github.com/andreaskoch/allmark2/services/parsing/message"
+	"github.com/andreaskoch/allmark2/services/parsing/presentation"
+	"github.com/andreaskoch/allmark2/services/parsing/typedetection"
 	"time"
 )
 

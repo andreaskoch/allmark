@@ -7,7 +7,7 @@ package message
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/model"
-	"github.com/andreaskoch/allmark2/services/parser/metadata"
+	"github.com/andreaskoch/allmark2/services/parsing/metadata"
 	"strings"
 	"time"
 )

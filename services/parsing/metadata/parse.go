@@ -7,7 +7,7 @@ package metadata
 import (
 	"github.com/andreaskoch/allmark2/common/util/dateutil"
 	"github.com/andreaskoch/allmark2/model"
-	"github.com/andreaskoch/allmark2/services/parser/pattern"
+	"github.com/andreaskoch/allmark2/services/parsing/pattern"
 	"strings"
 	"time"
 )

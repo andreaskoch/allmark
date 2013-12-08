@@ -7,8 +7,8 @@ package document
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/model"
-	"github.com/andreaskoch/allmark2/services/parser/metadata"
-	"github.com/andreaskoch/allmark2/services/parser/pattern"
+	"github.com/andreaskoch/allmark2/services/parsing/metadata"
+	"github.com/andreaskoch/allmark2/services/parsing/pattern"
 	"strings"
 	"time"
 )

@@ -8,8 +8,8 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
-	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml"
-	"github.com/andreaskoch/allmark2/services/parser"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml"
+	"github.com/andreaskoch/allmark2/services/parsing"
 	"github.com/andreaskoch/allmark2/ui/web/server"
 )
 
@@ -25,7 +25,7 @@ func main() {
 	}
 
 	// parser
-	parser, err := parser.New(logger)
+	parser, err := parsing.New(logger)
 	if err != nil {
 		logger.Fatal("Unable to instantiate a parser. Error: %s", err)
 	}

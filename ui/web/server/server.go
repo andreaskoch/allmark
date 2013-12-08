@@ -7,10 +7,10 @@ package server
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/model"
-	"github.com/andreaskoch/allmark2/services/converter"
+	"github.com/andreaskoch/allmark2/services/conversion"
 )
 
-func New(logger logger.Logger, converter converter.Converter) (*Server, error) {
+func New(logger logger.Logger, converter conversion.Converter) (*Server, error) {
 	return &Server{
 		logger: logger,
 	}, nil

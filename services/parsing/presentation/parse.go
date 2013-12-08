@@ -7,8 +7,8 @@ package presentation
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/model"
-	"github.com/andreaskoch/allmark2/services/parser/document"
-	"github.com/andreaskoch/allmark2/services/parser/pattern"
+	"github.com/andreaskoch/allmark2/services/parsing/document"
+	"github.com/andreaskoch/allmark2/services/parsing/pattern"
 	"strings"
 	"time"
 )

@@ -7,8 +7,8 @@ package markdowntohtml
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/model"
-	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/audio"
-	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/markdown"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/audio"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/markdown"
 )
 
 type Converter struct {

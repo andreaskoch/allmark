@@ -7,7 +7,7 @@ package audio
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/model"
-	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/pattern"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pattern"
 	"mime"
 	"regexp"
 	"strings"
