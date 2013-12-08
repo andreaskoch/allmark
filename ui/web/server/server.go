@@ -7,9 +7,10 @@ package server
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/model"
+	"github.com/andreaskoch/allmark2/services/converter"
 )
 
-func New(logger logger.Logger) (*Server, error) {
+func New(logger logger.Logger, converter converter.Converter) (*Server, error) {
 	return &Server{
 		logger: logger,
 	}, nil
@@ -20,5 +21,5 @@ type Server struct {
 }
 
 func (server *Server) Serve(item *model.Item) {
-	server.logger.Info("Serving item %q", item)
+	server.logger.Debug("Serving item %q", item)
 }

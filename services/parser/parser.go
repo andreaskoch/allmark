@@ -29,7 +29,7 @@ func New(logger logger.Logger) (*Parser, error) {
 
 func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 
-	parser.logger.Info("Parsing item %q", item)
+	parser.logger.Debug("Parsing item %q", item)
 
 	route := item.Route()
 

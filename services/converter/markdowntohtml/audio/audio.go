@@ -18,11 +18,13 @@ var (
 	audioPattern = regexp.MustCompile(`audio: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func Convert(markdown string, files []*model.File) string {
+func Convert(markdown string, files []*model.File) (convertedContent string, conversionError error) {
+
+	convertedContent = markdown
 
 	for {
 
-		found, matches := pattern.IsMatch(markdown, audioPattern)
+		found, matches := pattern.IsMatch(convertedContent, audioPattern)
 		if !found || (found && len(matches) != 3) {
 			break
 		}
@@ -36,11 +38,11 @@ func Convert(markdown string, files []*model.File) string {
 		renderedCode := getAudioCode(title, path, files)
 
 		// replace markdown with link list
-		markdown = strings.Replace(markdown, originalText, renderedCode, 1)
+		convertedContent = strings.Replace(convertedContent, originalText, renderedCode, 1)
 
 	}
 
-	return markdown
+	return convertedContent, nil
 }
 
 func getAudioCode(title, path string, files []*model.File) string {

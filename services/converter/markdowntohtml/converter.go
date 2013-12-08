@@ -21,14 +21,20 @@ func New(logger logger.Logger) (*Converter, error) {
 	}, nil
 }
 
-func (converter *Converter) Convert(item *model.Item) (*model.Item, error) {
-	converter.logger.Info("Converting item %q.", item)
+func (converter *Converter) Convert(item *model.Item) (convertedContent string, conversionError error) {
 
-	// markdown extensions
-	item.Content = audio.Convert(item.Content, item.Files())
+	converter.logger.Debug("Converting item %q.", item)
 
-	// markdown
-	item.Content = markdown.Convert(item.Content)
+	content := item.Content
 
-	return item, nil
+	// markdown extension: audio
+	content, audioConversionError := audio.Convert(content, item.Files())
+	if audioConversionError != nil {
+		converter.logger.Warn("Error while converting audio extensions. Error: %s", audioConversionError)
+	}
+
+	// markdown to html
+	content = markdown.Convert(content)
+
+	return content, nil
 }

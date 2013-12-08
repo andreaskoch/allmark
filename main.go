@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// server
-	server, err := server.New(logger)
+	server, err := server.New(logger, converter)
 	if err != nil {
 		logger.Fatal("Unable to instantiate a server. Error: %s", err)
 	}
@@ -46,6 +46,7 @@ func main() {
 	itemEvents := repository.GetItems()
 	for itemEvent := range itemEvents {
 
+		// validate event
 		if itemEvent.Error != nil {
 			logger.Warn("%s", itemEvent.Error)
 		}
@@ -60,9 +61,6 @@ func main() {
 			logger.Warn("Unable to parse item %q. Error: %s", itemEvent.Item, err)
 			continue
 		}
-
-		// convert item
-		converter.Convert(item)
 
 		// send item to server
 		server.Serve(item)

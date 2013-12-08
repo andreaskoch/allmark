@@ -9,5 +9,5 @@ import (
 )
 
 type Converter interface {
-	Convert(item *model.Item) (*model.Item, error)
+	Convert(item *model.Item) (convertedContent string, conversionError error)
 }
