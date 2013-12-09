@@ -33,12 +33,6 @@ type Server struct {
 }
 
 func (server *Server) Serve(item *model.Item) {
-
-	// start the server if it is not running
-	if !server.IsRunning() {
-		server.start()
-	}
-
 	server.logger.Debug("Serving item %q", item)
 	server.index.Add(item)
 }
@@ -47,7 +41,8 @@ func (server *Server) IsRunning() bool {
 	return server.isRunning
 }
 
-func (server *Server) start() {
+func (server *Server) Start() chan error {
+	result := make(chan error)
 
 	go func() {
 		server.isRunning = true
@@ -57,12 +52,15 @@ func (server *Server) start() {
 		server.logger.Info("Starting http server %q\n", httpBinding)
 
 		if err := http.ListenAndServe(httpBinding, nil); err != nil {
-			server.logger.Fatal("Server failed with error: %v", err)
+			result <- fmt.Errorf("Server failed with error: %v", err)
+		} else {
+			result <- nil
 		}
 
 		server.isRunning = false
 	}()
 
+	return result
 }
 
 func (server *Server) getHttpBinding() string {

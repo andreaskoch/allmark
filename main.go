@@ -71,4 +71,9 @@ func main() {
 		// send item to server
 		server.Serve(item)
 	}
+
+	// start the server
+	if result := <-server.Start(); result != nil {
+		logger.Info("%s", result)
+	}
 }
