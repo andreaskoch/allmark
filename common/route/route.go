@@ -34,12 +34,24 @@ func New(repositoryPath, itemPath string) (*Route, error) {
 		return nil, fmt.Errorf("Failed to normalize the supplied item path %q. Error: %s", itemPath, err)
 	}
 
+	// prepare the route value:
 	// strip the repository path from the item path
 	routeValue := strings.Replace(normalizedItemPath, normalizedRepositoryPath, "", 1)
+
+	// strip the file name
+	routeValue = routeValue[:strings.LastIndex(routeValue, "/")]
+	if routeValue == "" {
+		routeValue = "/"
+	}
+
 	return &Route{routeValue}, nil
 }
 
 func (route *Route) String() string {
+	return route.value
+}
+
+func (route *Route) Value() string {
 	return route.value
 }
 

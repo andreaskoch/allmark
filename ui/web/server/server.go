@@ -68,7 +68,7 @@ func (server *Server) Start() chan error {
 		// initialize the xml sitemap handler
 		indexDebugger := func(w http.ResponseWriter, r *http.Request) {
 			for _, route := range server.index.Routes() {
-				fmt.Fprintf(w, "%q\n", route)
+				fmt.Fprintf(w, "%q\n", route.Value())
 			}
 		}
 
