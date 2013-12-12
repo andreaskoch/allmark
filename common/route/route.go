@@ -20,16 +20,16 @@ type Route struct {
 	value string
 }
 
-func New(repositoryPath, itemPath string) (*Route, error) {
+func NewFromPath(repositoryPath, itemPath string) (*Route, error) {
 
 	// normalize the repository path
-	normalizedRepositoryPath, err := normalizePath(repositoryPath)
+	normalizedRepositoryPath, err := normalize(repositoryPath)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to normalize the supplied repository path %q. Error: %s", repositoryPath, err)
 	}
 
 	// normalize the item path
-	normalizedItemPath, err := normalizePath(itemPath)
+	normalizedItemPath, err := normalize(itemPath)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to normalize the supplied item path %q. Error: %s", itemPath, err)
 	}
@@ -47,6 +47,15 @@ func New(repositoryPath, itemPath string) (*Route, error) {
 	return &Route{routeValue}, nil
 }
 
+func NewFromRequest(requestPath string) (*Route, error) {
+	normalizedRequestPath, err := normalize(requestPath)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to normalize the supplied request path %q. Error: %s", requestPath, err)
+	}
+
+	return &Route{normalizedRequestPath}, nil
+}
+
 func (route *Route) String() string {
 	return route.value
 }
@@ -56,7 +65,7 @@ func (route *Route) Value() string {
 }
 
 // Normalize the supplied path to be used for an Item or File
-func normalizePath(path string) (string, error) {
+func normalize(path string) (string, error) {
 
 	// trim spaces
 	path = strings.TrimSpace(path)

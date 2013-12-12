@@ -10,6 +10,8 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler"
+	"github.com/andreaskoch/allmark2/ui/web/server/index"
 	"math"
 	"net/http"
 )
@@ -35,7 +37,7 @@ func New(logger logger.Logger, config *config.Config, converter conversion.Conve
 		config:    config,
 		logger:    logger,
 		converter: converter,
-		index:     newIndex(logger),
+		index:     index.New(logger),
 	}, nil
 }
 
@@ -45,7 +47,7 @@ type Server struct {
 	config    *config.Config
 	logger    logger.Logger
 	converter conversion.Converter
-	index     *Index
+	index     *index.Index
 }
 
 func (server *Server) Serve(item *model.Item) {
@@ -64,15 +66,8 @@ func (server *Server) Start() chan error {
 		server.isRunning = true
 
 		// register the handlers
-
-		// initialize the xml sitemap handler
-		indexDebugger := func(w http.ResponseWriter, r *http.Request) {
-			for _, route := range server.index.Routes() {
-				fmt.Fprintf(w, "%q\n", route.Value())
-			}
-		}
-
-		http.HandleFunc(DebugHandlerRoute, indexDebugger)
+		http.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.index).Func())
+		http.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.index).Func())
 
 		// start http server: http
 		httpBinding := server.getHttpBinding()

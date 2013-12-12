@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package server
+package index
 
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
@@ -10,7 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 )
 
-func newIndex(logger logger.Logger) *Index {
+func New(logger logger.Logger) *Index {
 	return &Index{
 		logger: logger,
 		items:  make(map[route.Route]*model.Item),
@@ -20,6 +20,11 @@ func newIndex(logger logger.Logger) *Index {
 type Index struct {
 	logger logger.Logger
 	items  map[route.Route]*model.Item
+}
+
+func (index *Index) IsMatch(route route.Route) (item *model.Item, isMatch bool) {
+	item, isMatch = index.items[route]
+	return
 }
 
 func (index *Index) Routes() []route.Route {
