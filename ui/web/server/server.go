@@ -14,6 +14,22 @@ import (
 	"net/http"
 )
 
+const (
+
+	// Dynamic Routes
+	ItemHandlerRoute       = "/"
+	TagmapHandlerRoute     = "/tags.html"
+	SitemapHandlerRoute    = "/sitemap.html"
+	XmlSitemapHandlerRoute = "/sitemap.xml"
+	RssHandlerRoute        = "/rss.xml"
+	RobotsTxtHandlerRoute  = "/robots.txt"
+	DebugHandlerRoute      = "/debug/index"
+	WebSocketHandlerRoute  = "/ws"
+
+	// Static Routes
+	ThemeFolderRoute = "/theme/"
+)
+
 func New(logger logger.Logger, config *config.Config, converter conversion.Converter) (*Server, error) {
 	return &Server{
 		config:    config,
@@ -46,6 +62,17 @@ func (server *Server) Start() chan error {
 
 	go func() {
 		server.isRunning = true
+
+		// register the handlers
+
+		// initialize the xml sitemap handler
+		indexDebugger := func(w http.ResponseWriter, r *http.Request) {
+			for _, route := range server.index.Routes() {
+				fmt.Fprintf(w, "%q\n", route)
+			}
+		}
+
+		http.HandleFunc(DebugHandlerRoute, indexDebugger)
 
 		// start http server: http
 		httpBinding := server.getHttpBinding()

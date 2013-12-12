@@ -22,6 +22,14 @@ type Index struct {
 	items  map[route.Route]*model.Item
 }
 
+func (index *Index) Routes() []route.Route {
+	routes := make([]route.Route, 0)
+	for route, _ := range index.items {
+		routes = append(routes, route)
+	}
+	return routes
+}
+
 func (index *Index) Add(item *model.Item) {
 	index.logger.Debug("Adding item %q to index", item)
 	index.items[*item.Route()] = item
