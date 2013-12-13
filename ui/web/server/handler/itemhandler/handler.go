@@ -41,7 +41,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 
 		item, found := handler.index.IsMatch(*requestRoute)
 		if !found {
-			fmt.Fprintln(w, "%s", "item not found")
+			fmt.Fprintln(w, "item not found")
 			return
 		}
 

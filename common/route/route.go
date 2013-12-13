@@ -48,10 +48,20 @@ func NewFromPath(repositoryPath, itemPath string) (*Route, error) {
 }
 
 func NewFromRequest(requestPath string) (*Route, error) {
+
+	// empty routes start with a slash
+	if requestPath == "" {
+		requestPath = "/"
+	}
+
+	// normalize the request path
 	normalizedRequestPath, err := normalize(requestPath)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to normalize the supplied request path %q. Error: %s", requestPath, err)
 	}
+
+	// make sure the request path starts with a slash
+	normalizedRequestPath = "/" + normalizedRequestPath
 
 	return &Route{normalizedRequestPath}, nil
 }
