@@ -11,7 +11,6 @@ import (
 
 func GetRequestedPathFromRequest(r *http.Request) string {
 	requestedPath := r.URL.Path
-	requestedPath = strings.TrimLeft(requestedPath, "/")
 	return requestedPath
 }
 
