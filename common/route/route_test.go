@@ -9,13 +9,13 @@ import (
 )
 
 // Testing the NewFromRequest Route functon: The constructor function should return an error if the supplied path is empty.
-func Test_NewFromRequest_EmptyStringReturnsSlash(t *testing.T) {
+func Test_NewFromRequest_EmptyStringReturnsError(t *testing.T) {
 	// act
-	result, _ := NewFromRequest("")
+	_, err := NewFromRequest("")
 
 	// assert
-	if result.String() != "/" {
-		t.Errorf("The constructor function should return a single slash route if the supplied path is empty.")
+	if err == nil {
+		t.Errorf("The constructor function should return an error if the supplied path is empty.")
 	}
 }
 

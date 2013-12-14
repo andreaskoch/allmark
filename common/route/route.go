@@ -40,28 +40,20 @@ func NewFromPath(repositoryPath, itemPath string) (*Route, error) {
 
 	// strip the file name
 	routeValue = routeValue[:strings.LastIndex(routeValue, "/")]
-	if routeValue == "" {
-		routeValue = "/"
-	}
+
+	// trim leading slashes
+	routeValue = strings.TrimLeft(routeValue, "/")
 
 	return &Route{routeValue}, nil
 }
 
 func NewFromRequest(requestPath string) (*Route, error) {
 
-	// empty routes start with a slash
-	if requestPath == "" {
-		requestPath = "/"
-	}
-
 	// normalize the request path
 	normalizedRequestPath, err := normalize(requestPath)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to normalize the supplied request path %q. Error: %s", requestPath, err)
 	}
-
-	// make sure the request path starts with a slash
-	normalizedRequestPath = "/" + normalizedRequestPath
 
 	return &Route{normalizedRequestPath}, nil
 }
@@ -90,8 +82,8 @@ func (parent *Route) IsParentOf(child *Route) bool {
 	}
 
 	// if there is more than one slash in the relative child route, the child is not a direct descendant of the parent route
-	relativeChildRoute := strings.Replace(childRoute, parentRoute, "", 1)
-	if strings.Count(relativeChildRoute, "/") > 1 {
+	relativeChildRoute := strings.TrimLeft(strings.Replace(childRoute, parentRoute, "", 1), "/")
+	if strings.Count(relativeChildRoute, "/") > 0 {
 		return false
 	}
 
@@ -116,9 +108,8 @@ func (child *Route) IsChildOf(parent *Route) bool {
 	}
 
 	// if there is more than one slash in the relative child route, the child is not a direct descendant of the parent route
-	relativeChildRoute := strings.Replace(childRoute, parentRoute, "", 1)
-	fmt.Printf("Relative Route: %q\n", relativeChildRoute)
-	if strings.Count(relativeChildRoute, "/") > 1 {
+	relativeChildRoute := strings.TrimLeft(strings.Replace(childRoute, parentRoute, "", 1), "/")
+	if strings.Count(relativeChildRoute, "/") > 0 {
 		return false
 	}
 
