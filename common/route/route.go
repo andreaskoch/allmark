@@ -66,6 +66,20 @@ func (route *Route) Value() string {
 	return route.value
 }
 
+func (route *Route) Parent() *Route {
+	routeValue := route.Value()
+
+	// check if the route contains a slash, if not there is no parent
+	if !strings.Contains(routeValue, "/") {
+		return nil // no parent available
+	}
+
+	positionOfLastSlash := strings.LastIndex(routeValue, "/")
+	parentRouteValue := routeValue[:positionOfLastSlash]
+
+	return &Route{parentRouteValue}
+}
+
 // Check if the the current route is direct parent for the supplied (child) route.
 func (parent *Route) IsParentOf(child *Route) bool {
 	parentRoute := parent.Value()

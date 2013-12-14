@@ -49,3 +49,43 @@ func Test_IsParentOf_RouteIsNotAParent_ResultIsFalse(t *testing.T) {
 		t.Errorf("%q is not a parent of %q. The result should be false but was %t.", child, parent, result)
 	}
 }
+
+func Test_Parent_RouteHasAParent_ResultIsNotNil(t *testing.T) {
+	// arrange
+	route, _ := NewFromRequest("/documents/Collection")
+
+	// act
+	result := route.Parent()
+
+	// assert
+	if result == nil {
+		t.Errorf("%q does have a parent but the result was %q.", route, result)
+	}
+}
+
+func Test_Parent_RouteHasAParent_ResultIsCorrect(t *testing.T) {
+	// arrange
+	route, _ := NewFromRequest("/documents/Collection")
+
+	// act
+	result := route.Parent()
+
+	// assert
+	expected := "documents"
+	if result.String() != expected {
+		t.Errorf("%q should have a parent %q but the result was %q.", route, expected, result)
+	}
+}
+
+func Test_Parent_RouteHasNoParent_ResultIsNil(t *testing.T) {
+	// arrange
+	route, _ := NewFromRequest("/documents")
+
+	// act
+	result := route.Parent()
+
+	// assert
+	if result != nil {
+		t.Errorf("%q should have no parent but the result was %q.", route, result)
+	}
+}
