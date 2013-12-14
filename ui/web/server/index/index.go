@@ -27,6 +27,35 @@ func (index *Index) IsMatch(route route.Route) (item *model.Item, isMatch bool) 
 	return
 }
 
+func (index *Index) GetParent(item *model.Item) *model.Item {
+	childRoute := item.Route()
+
+	for parentRoute, parentItem := range index.items {
+		if !parentRoute.IsParentOf(childRoute) {
+			continue
+		}
+
+		return parentItem
+	}
+
+	// no parent found
+	return nil
+}
+
+func (index *Index) GetChilds(item *model.Item) []*model.Item {
+	route := item.Route()
+	childs := make([]*model.Item, 0)
+	for itemRoute, item := range index.items {
+		if !itemRoute.IsChildOf(route) {
+			continue
+		}
+
+		childs = append(childs, item)
+	}
+
+	return childs
+}
+
 func (index *Index) Routes() []route.Route {
 	routes := make([]route.Route, 0)
 	for route, _ := range index.items {

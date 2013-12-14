@@ -74,6 +74,58 @@ func (route *Route) Value() string {
 	return route.value
 }
 
+// Check if the the current route is direct parent for the supplied (child) route.
+func (parent *Route) IsParentOf(child *Route) bool {
+	parentRoute := parent.Value()
+	childRoute := child.Value()
+
+	// the current route cannot be a parent for the supplied (child) route if the parent route length greater or equal than the child route length.
+	if len(parentRoute) >= len(childRoute) {
+		return false
+	}
+
+	// if the parent route is not the start of the child route it cannot be its parent
+	if !strings.HasPrefix(childRoute, parentRoute) {
+		return false
+	}
+
+	// if there is more than one slash in the relative child route, the child is not a direct descendant of the parent route
+	relativeChildRoute := strings.Replace(childRoute, parentRoute, "", 1)
+	if strings.Count(relativeChildRoute, "/") > 1 {
+		return false
+	}
+
+	// the child is a direct desecendant of the parent
+	return true
+
+}
+
+// Check if the current route is a direct child of the supplied (parent) route.
+func (child *Route) IsChildOf(parent *Route) bool {
+	childRoute := child.Value()
+	parentRoute := parent.Value()
+
+	// the current route cannot be a child of the supplied (parent) route if the child route length less or equal than the parent route length.
+	if len(childRoute) <= len(parentRoute) {
+		return false
+	}
+
+	// if the child route does not start with the parent route it cannot be a child
+	if !strings.HasPrefix(childRoute, parentRoute) {
+		return false
+	}
+
+	// if there is more than one slash in the relative child route, the child is not a direct descendant of the parent route
+	relativeChildRoute := strings.Replace(childRoute, parentRoute, "", 1)
+	fmt.Printf("Relative Route: %q\n", relativeChildRoute)
+	if strings.Count(relativeChildRoute, "/") > 1 {
+		return false
+	}
+
+	// the child is a direct desecendant of the parent
+	return true
+}
+
 // Normalize the supplied path to be used for an Item or File
 func normalize(path string) (string, error) {
 

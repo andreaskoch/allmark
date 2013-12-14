@@ -39,12 +39,27 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		// make sure the request body is closed
 		defer r.Body.Close()
 
+		// check if there is a item for the request
 		item, found := handler.index.IsMatch(*requestRoute)
 		if !found {
 			fmt.Fprintln(w, "item not found")
 			return
 		}
 
-		fmt.Fprintf(w, "%s", item.Content)
+		// Parent
+		parent := handler.index.GetParent(item)
+		if parent != nil {
+			fmt.Fprintf(w, "Parent: %s\n", parent.Title)
+		}
+
+		// Content
+		fmt.Fprintf(w, "\nContent:\n")
+		fmt.Fprintf(w, "\n%s\n", item.Content)
+
+		// Childs
+		childs := handler.index.GetChilds(item)
+		for _, child := range childs {
+			fmt.Fprintf(w, "Child: %s\n", child.Title)
+		}
 	}
 }

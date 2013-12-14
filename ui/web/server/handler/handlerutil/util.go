@@ -6,7 +6,6 @@ package handlerutil
 
 import (
 	"net/http"
-	"strings"
 )
 
 func GetRequestedPathFromRequest(r *http.Request) string {
