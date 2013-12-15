@@ -38,6 +38,8 @@ func (index *Index) GetParent(item *model.Item) *model.Item {
 		return parentItem
 	}
 
+	// todo: create virtual item if the level of the route is not zero
+
 	// no parent found
 	return nil
 }
@@ -52,6 +54,8 @@ func (index *Index) GetChilds(item *model.Item) []*model.Item {
 
 		childs = append(childs, item)
 	}
+
+	// todo: create virtual item for next leve childs
 
 	return childs
 }

@@ -66,6 +66,22 @@ func (route *Route) Value() string {
 	return route.value
 }
 
+func (route *Route) Level() int {
+
+	// empty routes have the level 0
+	if route.value == "" {
+		return 0
+	}
+
+	// routes without a slash are 1st level
+	if !strings.Contains(route.value, "/") {
+		return 1
+	}
+
+	// routes with slashes have a level equal to the number of slashes
+	return strings.Count(route.value, "/") + 1
+}
+
 func (route *Route) Parent() *Route {
 	routeValue := route.Value()
 
