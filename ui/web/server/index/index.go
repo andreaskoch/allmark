@@ -30,22 +30,54 @@ func (index *Index) IsMatch(route route.Route) (item *model.Item, isMatch bool) 
 func (index *Index) GetParent(item *model.Item) *model.Item {
 	childRoute := item.Route()
 
+	// already at the root
+	if childRoute.Level() == 0 {
+		return nil
+	}
+
+	// locate the parent item
 	for parentRoute, parentItem := range index.items {
 		if !parentRoute.IsParentOf(childRoute) {
 			continue
 		}
 
+		// return the parent
 		return parentItem
 	}
 
-	// todo: create virtual item if the level of the route is not zero
+	// no parent item found - create a virtual parent
+	parentRoute := childRoute.Parent()
+	virtualParent, err := newVirtualItem(parentRoute)
+	if err != nil {
 
-	// no parent found
-	return nil
+		// error while creating a virtual parent
+		index.logger.Warn("Unable to create a virtual parent for the route %q. Error: %s", parentRoute, err)
+		return nil
+
+	}
+
+	// return the virtual parent
+	return virtualParent
+}
+
+func newVirtualItem(route *route.Route) (*model.Item, error) {
+
+	// create a virtual item
+	item, err := model.NewVirtualItem(route)
+	if err != nil {
+		return nil, err
+	}
+
+	// set the item title
+	item.Title = route.FolderName()
+
+	return item, nil
 }
 
 func (index *Index) GetChilds(item *model.Item) []*model.Item {
 	route := item.Route()
+
+	// locate all childs
 	childs := make([]*model.Item, 0)
 	for itemRoute, item := range index.items {
 		if !itemRoute.IsChildOf(route) {

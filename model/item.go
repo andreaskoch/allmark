@@ -32,6 +32,12 @@ type Item struct {
 	MetaData *MetaData
 }
 
+func NewVirtualItem(route *route.Route) (*Item, error) {
+	return &Item{
+		route: route,
+	}, nil
+}
+
 func NewItem(route *route.Route, files []*File) (*Item, error) {
 	return &Item{
 		route: route,

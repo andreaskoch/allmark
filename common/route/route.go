@@ -66,6 +66,15 @@ func (route *Route) Value() string {
 	return route.value
 }
 
+func (route *Route) FolderName() string {
+	lastSlashPosition := strings.LastIndex(route.value, "/")
+	if lastSlashPosition == -1 {
+		return route.value
+	}
+
+	return route.value[lastSlashPosition:]
+}
+
 func (route *Route) Level() int {
 
 	// empty routes have the level 0
