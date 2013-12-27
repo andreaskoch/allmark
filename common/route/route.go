@@ -23,16 +23,10 @@ type Route struct {
 func NewFromPath(repositoryPath, itemPath string) (*Route, error) {
 
 	// normalize the repository path
-	normalizedRepositoryPath, err := normalize(repositoryPath)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to normalize the supplied repository path %q. Error: %s", repositoryPath, err)
-	}
+	normalizedRepositoryPath := normalize(repositoryPath)
 
 	// normalize the item path
-	normalizedItemPath, err := normalize(itemPath)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to normalize the supplied item path %q. Error: %s", itemPath, err)
-	}
+	normalizedItemPath := normalize(itemPath)
 
 	// prepare the route value:
 	// strip the repository path from the item path
@@ -50,12 +44,11 @@ func NewFromPath(repositoryPath, itemPath string) (*Route, error) {
 func NewFromRequest(requestPath string) (*Route, error) {
 
 	// normalize the request path
-	normalizedRequestPath, err := normalize(requestPath)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to normalize the supplied request path %q. Error: %s", requestPath, err)
-	}
+	normalizedRequestPath := normalize(requestPath)
 
-	return &Route{normalizedRequestPath}, nil
+	return &Route{
+		normalizedRequestPath,
+	}, nil
 }
 
 func (route *Route) String() string {
@@ -89,6 +82,38 @@ func (route *Route) Level() int {
 
 	// routes with slashes have a level equal to the number of slashes
 	return strings.Count(route.value, "/") + 1
+}
+
+func (route *Route) SubRoute(level int) (*Route, error) {
+
+	// root level
+	if level == 0 {
+		return NewFromRequest("")
+	}
+
+	// same level
+	if level == route.Level() {
+		return route, nil
+	}
+
+	// split path into components
+	components := strings.Split(route.value, "/")
+
+	// abort if the requested level is out of range
+	if level > len(components)-1 {
+		return nil, fmt.Errorf("The route %q does nof a have a sub-route with the level %d.", route, level)
+	}
+
+	// assemble the sub route
+	subset := components[0:level]
+	subRoutePath := strings.Join(subset, "/")
+
+	subRoute, err := NewFromRequest(subRoutePath)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to create a route from the path %q. Error: %s", subRoutePath, err)
+	}
+
+	return subRoute, nil
 }
 
 func (route *Route) Parent() *Route {
@@ -131,7 +156,7 @@ func (parent *Route) IsParentOf(child *Route) bool {
 
 }
 
-// Check if the current route is a direct child of the supplied (parent) route.
+// Check if the current route is a child of the supplied (parent) route.
 func (child *Route) IsChildOf(parent *Route) bool {
 	childRoute := child.Value()
 	parentRoute := parent.Value()
@@ -146,25 +171,18 @@ func (child *Route) IsChildOf(parent *Route) bool {
 		return false
 	}
 
-	// if there is more than one slash in the relative child route, the child is not a direct descendant of the parent route
-	relativeChildRoute := strings.TrimLeft(strings.Replace(childRoute, parentRoute, "", 1), "/")
-	if strings.Count(relativeChildRoute, "/") > 0 {
-		return false
-	}
-
-	// the child is a direct desecendant of the parent
 	return true
 }
 
 // Normalize the supplied path to be used for an Item or File
-func normalize(path string) (string, error) {
+func normalize(path string) string {
 
 	// trim spaces
 	path = strings.TrimSpace(path)
 
 	// check if the path is empty
 	if path == "" {
-		return path, fmt.Errorf("A path cannot be empty.")
+		return ""
 	}
 
 	// replace all backslashes with a (single) forward slash
@@ -182,5 +200,5 @@ func normalize(path string) (string, error) {
 	// replace duplicate spaces with a (single) url safe character
 	path = regexpWhitespacePattern.ReplaceAllString(path, "+")
 
-	return path, nil
+	return path
 }

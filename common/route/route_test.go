@@ -8,14 +8,14 @@ import (
 	"testing"
 )
 
-// Testing the NewFromRequest Route functon: The constructor function should return an error if the supplied path is empty.
-func Test_NewFromRequest_EmptyStringReturnsError(t *testing.T) {
+// Testing the NewFromRequest Route functon: The constructor function should return a valid route if the supplied path is empty.
+func Test_NewFromRequest_EmptyString_ValidRouteIsReturned(t *testing.T) {
 	// act
-	_, err := NewFromRequest("")
+	result, _ := NewFromRequest("")
 
 	// assert
-	if err == nil {
-		t.Errorf("The constructor function should return an error if the supplied path is empty.")
+	if result == nil {
+		t.Errorf("The constructor function should returned a valid route but returned nil instead.")
 	}
 }
 
@@ -33,17 +33,18 @@ func Test_NewFromRequest_ValidPathReturnsRoute(t *testing.T) {
 	}
 }
 
-// Testing the normalize function: The function returns an error if the supplied path is empty.
-func Test_normalize_EmptyStringCreatesError(t *testing.T) {
+// Testing the normalize function: The function returns an empty route.
+func Test_normalize_EmptyString_RouteIsReturned(t *testing.T) {
 	// arrange
 	inputPath := " "
+	expected := ""
 
 	// act
-	_, err := normalize(inputPath)
+	result := normalize(inputPath)
 
 	// assert
-	if err == nil {
-		t.Errorf("The have returned an error. %q is not a valid path.", inputPath)
+	if result != expected {
+		t.Errorf("The normalze function should have returned %q but retured %q instead.", expected, result)
 	}
 }
 
@@ -54,7 +55,7 @@ func Test_normalize_TrimEnd(t *testing.T) {
 	expectedResult := "documents/Test"
 
 	// act
-	result, _ := normalize(inputPath)
+	result := normalize(inputPath)
 
 	// assert
 	if result != expectedResult {
@@ -69,7 +70,7 @@ func Test_normalize_RemoveTrailingSlashes(t *testing.T) {
 	expectedResult := "documents/Test"
 
 	// act
-	result, _ := normalize(inputPath)
+	result := normalize(inputPath)
 
 	// assert
 	if result != expectedResult {
@@ -84,7 +85,7 @@ func Test_normalize_RemoveLeadingSlashes(t *testing.T) {
 	expectedResult := "documents/Test"
 
 	// act
-	result, _ := normalize(inputPath)
+	result := normalize(inputPath)
 
 	// assert
 	if result != expectedResult {
@@ -99,7 +100,7 @@ func Test_normalize_NormalizeSlashes(t *testing.T) {
 	expectedResult := "documents/Test"
 
 	// act
-	result, _ := normalize(inputPath)
+	result := normalize(inputPath)
 
 	// assert
 	if result != expectedResult {
@@ -114,7 +115,7 @@ func Test_normalize_ReplaceWhitespaceWithUrlSafeCharacters(t *testing.T) {
 	expectedResult := "documents/A+Test"
 
 	// act
-	result, _ := normalize(inputPath)
+	result := normalize(inputPath)
 
 	// assert
 	if result != expectedResult {
@@ -129,7 +130,7 @@ func Test_normalize_ReplaceDoubleWhitespaceWithASingleUrlSafeCharacters(t *testi
 	expectedResult := "my+documents/A+Test"
 
 	// act
-	result, _ := normalize(inputPath)
+	result := normalize(inputPath)
 
 	// assert
 	if result != expectedResult {

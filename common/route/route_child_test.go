@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func Test_IsChildOf_ParentRouteIsEmpty_ResultIsFalse(t *testing.T) {
+func Test_IsChildOf_ParentRouteIsEmpty_ResultIsTrue(t *testing.T) {
 	// arrange
 	parent, _ := NewFromRequest("/")
 	child, _ := NewFromRequest("/documents/Test-1")
@@ -17,8 +17,8 @@ func Test_IsChildOf_ParentRouteIsEmpty_ResultIsFalse(t *testing.T) {
 	result := child.IsChildOf(parent)
 
 	// assert
-	if result {
-		t.Errorf("%q is a not a direct child of %q. The result should be false but was %t.", child, parent, result)
+	if !result {
+		t.Errorf("%q is a direct child of %q. The result should be true but was %t.", child, parent, result)
 	}
 }
 
@@ -36,7 +36,7 @@ func Test_IsChildOf_RouteIsFirstLevelChild_ResultIsTrue(t *testing.T) {
 	}
 }
 
-func Test_IsChildOf_RouteIsSecondLevelChild_ResultIsFalse(t *testing.T) {
+func Test_IsChildOf_RouteIsSecondLevelChild_ResultIsTrue(t *testing.T) {
 	// arrange
 	parent, _ := NewFromRequest("/documents/Collection")
 	child, _ := NewFromRequest("/documents/Collection/Level-1/Level-2")
@@ -45,8 +45,8 @@ func Test_IsChildOf_RouteIsSecondLevelChild_ResultIsFalse(t *testing.T) {
 	result := child.IsChildOf(parent)
 
 	// assert
-	if result {
-		t.Errorf("%q is only a 2nd level child of %q. The result should be false but was %t.", child, parent, result)
+	if !result {
+		t.Errorf("%q is a 2nd level child of %q. The result should be true but was %t.", child, parent, result)
 	}
 }
 

@@ -76,20 +76,67 @@ func newVirtualItem(route *route.Route) (*model.Item, error) {
 
 func (index *Index) GetChilds(item *model.Item) []*model.Item {
 	route := item.Route()
+	routeLevel := route.Level()
 
-	// locate all childs
-	childs := make([]*model.Item, 0)
+	// locate first and second level childs
+	firstLevelChilds := make([]*model.Item, 0)
+	deeperLevelChilds := make([]*model.Item, 0)
+
 	for itemRoute, item := range index.items {
+
+		// skip all items which are not a child
 		if !itemRoute.IsChildOf(route) {
 			continue
 		}
 
-		childs = append(childs, item)
+		// a first level child is one that is one level deeper than the parent
+		isFirstLevelChild := itemRoute.Level() == routeLevel+1
+
+		// add first and second level childs to their respective lists
+		if isFirstLevelChild {
+			firstLevelChilds = append(firstLevelChilds, item)
+		} else {
+			deeperLevelChilds = append(deeperLevelChilds, item)
+		}
 	}
 
-	// todo: create virtual item for next leve childs
+	// just return the first level childs if there are no deeper level childs
+	if len(deeperLevelChilds) == 0 {
+		return firstLevelChilds
+	}
 
-	return childs
+	// create virtual items from the deeper level item if there is no first-level child
+	secondLevelChildMap := make(map[string]*model.Item)
+	for _, deeperLevelChild := range deeperLevelChilds {
+
+		// determine child route
+		secondLevelChildRoute, _ := deeperLevelChild.Route().SubRoute(routeLevel + 1)
+		if secondLevelChildRoute == nil {
+			continue
+		}
+
+		// skip existing entries
+		if _, exists := secondLevelChildMap[secondLevelChildRoute.Value()]; exists {
+			continue
+		}
+
+		// create virtual child item
+		virtualChild, err := newVirtualItem(secondLevelChildRoute)
+		if err != nil {
+			index.logger.Warn("Unable to create a virtual child for the route %q. Error: %s", secondLevelChildRoute, err)
+			continue
+		}
+
+		secondLevelChildMap[secondLevelChildRoute.Value()] = virtualChild
+
+	}
+
+	secondLevelChilds := make([]*model.Item, 0)
+	for _, secondLevelChild := range secondLevelChildMap {
+		secondLevelChilds = append(secondLevelChilds, secondLevelChild)
+	}
+
+	return secondLevelChilds
 }
 
 func (index *Index) Routes() []route.Route {
