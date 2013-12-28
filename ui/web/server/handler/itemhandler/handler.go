@@ -8,21 +8,24 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/server/index"
 	"net/http"
 )
 
-func New(logger logger.Logger, index *index.Index) *ItemHandler {
+func New(logger logger.Logger, index *index.Index, converter conversion.Converter) *ItemHandler {
 	return &ItemHandler{
-		logger: logger,
-		index:  index,
+		logger:    logger,
+		index:     index,
+		converter: converter,
 	}
 }
 
 type ItemHandler struct {
-	logger logger.Logger
-	index  *index.Index
+	logger    logger.Logger
+	index     *index.Index
+	converter conversion.Converter
 }
 
 func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -52,9 +55,16 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			fmt.Fprintf(w, "Parent: %s\n", parent.Title)
 		}
 
+		// convert contetn
+		convertedContent, err := handler.converter.Convert(item)
+		if err != nil {
+			fmt.Fprintln(w, "Unable to convert content. Error: %s", err)
+			return
+		}
+
 		// Content
 		fmt.Fprintf(w, "\nContent:\n")
-		fmt.Fprintf(w, "\n%s\n", item.Content)
+		fmt.Fprintf(w, "\n%s\n", convertedContent)
 
 		// Childs
 		childs := handler.index.GetChilds(item)

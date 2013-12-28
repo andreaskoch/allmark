@@ -66,7 +66,7 @@ func (server *Server) Start() chan error {
 		server.isRunning = true
 
 		// register the handlers
-		http.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.index).Func())
+		http.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.index, server.converter).Func())
 		http.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.index).Func())
 
 		// start http server: http
