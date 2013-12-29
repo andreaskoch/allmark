@@ -19,7 +19,19 @@ var (
 	audioPattern = regexp.MustCompile(`audio: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func Convert(markdown string, pathProvider paths.Pather, files []*model.File) (convertedContent string, conversionError error) {
+func New(pathProvider paths.Pather, files []*model.File) *AudioExtension {
+	return &AudioExtension{
+		pathProvider: pathProvider,
+		files:        files,
+	}
+}
+
+type AudioExtension struct {
+	pathProvider paths.Pather
+	files        []*model.File
+}
+
+func (converter *AudioExtension) Convert(markdown string) (convertedContent string, conversionError error) {
 
 	convertedContent = markdown
 
@@ -36,10 +48,10 @@ func Convert(markdown string, pathProvider paths.Pather, files []*model.File) (c
 		path := strings.TrimSpace(matches[2])
 
 		// fix the path
-		path = pathProvider.Path(path)
+		path = converter.pathProvider.Path(path)
 
 		// get the code
-		renderedCode := getAudioCode(title, path, files)
+		renderedCode := getAudioCode(title, path)
 
 		// replace markdown with link list
 		convertedContent = strings.Replace(convertedContent, originalText, renderedCode, 1)
@@ -49,7 +61,7 @@ func Convert(markdown string, pathProvider paths.Pather, files []*model.File) (c
 	return convertedContent, nil
 }
 
-func getAudioCode(title, path string, files []*model.File) string {
+func getAudioCode(title, path string) string {
 
 	// html5 audio file
 	if isAudioFile, mimeType := isAudioFileLink(path); isAudioFile {

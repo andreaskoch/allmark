@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/audio"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/files"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/markdown"
 )
 
@@ -30,9 +31,17 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	content := item.Content
 
 	// markdown extension: audio
-	content, audioConversionError := audio.Convert(content, pathProvider, item.Files())
+	audioConverter := audio.New(pathProvider, item.Files())
+	content, audioConversionError := audioConverter.Convert(content)
 	if audioConversionError != nil {
 		converter.logger.Warn("Error while converting audio extensions. Error: %s", audioConversionError)
+	}
+
+	// markdown extension: files
+	filesConverter := files.New(pathProvider, item.Files())
+	content, filesConversionError := filesConverter.Convert(content)
+	if filesConversionError != nil {
+		converter.logger.Warn("Error while converting files extensions. Error: %s", filesConversionError)
 	}
 
 	// markdown to html
