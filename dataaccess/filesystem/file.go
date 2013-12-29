@@ -6,6 +6,7 @@ package filesystem
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
@@ -13,29 +14,32 @@ import (
 	"path/filepath"
 )
 
-func getFiles(repository *Repository, directory string) []*dataaccess.File {
+func getFiles(repository *Repository, itemDirectory string) []*dataaccess.File {
+
+	// get the "files"-directory
+	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
 
 	childs := make([]*dataaccess.File, 0)
 
-	filesDirectoryEntries, err := ioutil.ReadDir(directory)
+	filesDirectoryEntries, err := ioutil.ReadDir(filesDirectory)
 	if err != nil {
 		return childs
 	}
 
 	for _, directoryEntry := range filesDirectoryEntries {
 
-		path := filepath.Join(directory, directoryEntry.Name())
+		filePath := filepath.Join(filesDirectory, directoryEntry.Name())
 
 		// recurse if the path is a directory
-		if isDir, _ := fsutil.IsDirectory(path); isDir {
-			childs = append(childs, getFiles(repository, path)...)
+		if isDir, _ := fsutil.IsDirectory(filePath); isDir {
+			childs = append(childs, getFiles(repository, filePath)...)
 			continue
 		}
 
 		// append new file
-		file, err := newFile(repository, path)
+		file, err := newFile(itemDirectory, filePath)
 		if err != nil {
-			fmt.Printf("Unable to add file %q to index.\nError: %s\n", path, err)
+			fmt.Printf("Unable to add file %q to index.\nError: %s\n", filePath, err)
 		}
 
 		childs = append(childs, file)
@@ -44,21 +48,21 @@ func getFiles(repository *Repository, directory string) []*dataaccess.File {
 	return childs
 }
 
-func newFile(repository *Repository, path string) (*dataaccess.File, error) {
+func newFile(basePath, filePath string) (*dataaccess.File, error) {
 
-	// check if the path is a file
-	if isFile, _ := fsutil.IsFile(path); !isFile {
-		return nil, fmt.Errorf("%q is not a file.", path)
+	// check if the file path is a file
+	if isFile, _ := fsutil.IsFile(filePath); !isFile {
+		return nil, fmt.Errorf("%q is not a file.", filePath)
 	}
 
 	// route
-	route, err := route.NewFromPath(repository.Path(), path)
+	route, err := route.NewFromFilePath(basePath, filePath)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot create a File for the path %q. Error: %s", path, err)
+		return nil, fmt.Errorf("Cannot create a File for the file path %q. Error: %s", filePath, err)
 	}
 
 	// content provider
-	contentProvider := newContentProvider(path, route)
+	contentProvider := newContentProvider(filePath, route)
 
 	// create the file
 	file, err := dataaccess.NewFile(route, contentProvider)

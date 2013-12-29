@@ -20,10 +20,10 @@ type Route struct {
 	value string
 }
 
-func NewFromPath(repositoryPath, itemPath string) (*Route, error) {
+func NewFromItemPath(basePath, itemPath string) (*Route, error) {
 
 	// normalize the repository path
-	normalizedRepositoryPath := normalize(repositoryPath)
+	normalizedRepositoryPath := normalize(basePath)
 
 	// normalize the item path
 	normalizedItemPath := normalize(itemPath)
@@ -34,6 +34,24 @@ func NewFromPath(repositoryPath, itemPath string) (*Route, error) {
 
 	// strip the file name
 	routeValue = routeValue[:strings.LastIndex(routeValue, "/")]
+
+	// trim leading slashes
+	routeValue = strings.TrimLeft(routeValue, "/")
+
+	return &Route{routeValue}, nil
+}
+
+func NewFromFilePath(basePath, itemPath string) (*Route, error) {
+
+	// normalize the repository path
+	normalizedRepositoryPath := normalize(basePath)
+
+	// normalize the item path
+	normalizedItemPath := normalize(itemPath)
+
+	// prepare the route value:
+	// strip the repository path from the item path
+	routeValue := strings.Replace(normalizedItemPath, normalizedRepositoryPath, "", 1)
 
 	// trim leading slashes
 	routeValue = strings.TrimLeft(routeValue, "/")

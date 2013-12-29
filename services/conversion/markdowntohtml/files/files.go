@@ -7,6 +7,7 @@ package files
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/paths"
+	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pattern"
 	"regexp"
@@ -36,26 +37,37 @@ func (converter *FilesExtension) Convert(markdown string) (convertedContent stri
 
 	for {
 
+		// search for files-extension code
 		found, matches := pattern.IsMatch(convertedContent, filesPattern)
 		if !found || (found && len(matches) != 3) {
-			break
+			break // abort. no (more) files-extension code found
 		}
 
-		// parameters
+		// extract the parameters from the pattern matches
 		originalText := strings.TrimSpace(matches[0])
 		title := strings.TrimSpace(matches[1])
 		path := strings.TrimSpace(matches[2])
 
-		// fix the path
+		// normalize the path with the current path provider
 		path = converter.pathProvider.Path(path)
 
-		// create link list code
-		files := converter.getFilesByPath(path)
-		filePaths := converter.getFilePaths(title, files)
-		rootFolderTitle := getLastPathComponent(path)
-		rootFolder := NewRootFilesystemEntry(rootFolderTitle)
-		rootFolder = getFileSystemFromLinks(rootFolder, filePaths)
+		// create the base route from the path
+		baseRoute, err := route.NewFromRequest(path)
+		if err != nil {
+			// abort. an error occured.
+			return markdown, fmt.Errorf("Could not create a route from the path %q. Error: %s", path, err)
+		}
 
+		// get all matching files
+		matchingFiles := getMatchingFiles(baseRoute, converter.files)
+		pathsOfMatchingFiles := getFilePaths(matchingFiles, converter.pathProvider)
+
+		// create a file system from the file paths
+		rootFolderTitle := baseRoute.FolderName()
+		rootFolder := NewRootFilesystemEntry(rootFolderTitle)
+		rootFolder = getFileSystemFromLinks(rootFolder, pathsOfMatchingFiles)
+
+		// render the filesystem
 		fileLinksCode := fmt.Sprintf(`<section class="filelinks"><h1>%s</h1>`, title)
 		fileLinksCode += renderFilesystemEntry(rootFolder, 0)
 		fileLinksCode += `</section>`
@@ -68,43 +80,36 @@ func (converter *FilesExtension) Convert(markdown string) (convertedContent stri
 	return convertedContent, nil
 }
 
-func (converter *FilesExtension) getFilePaths(title string, files []*model.File) []string {
+// Get all files that match (are childs of) the supplied path.
+func getMatchingFiles(baseRoute *route.Route, files []*model.File) []*model.File {
+
+	matchingFiles := make([]*model.File, 0)
+	for _, file := range files {
+
+		// check if the file is a child of the supplied path
+		if !file.Route().IsChildOf(baseRoute) {
+			fmt.Printf("%q is not a child of %q.\n", file.Route(), baseRoute)
+			continue
+		}
+
+		matchingFiles = append(matchingFiles, file)
+	}
+
+	return matchingFiles
+}
+
+// Get the files paths for the supplied File models.
+func getFilePaths(files []*model.File, pathProvider paths.Pather) []string {
 
 	numberOfFiles := len(files)
 	fileLinks := make([]string, numberOfFiles, numberOfFiles)
 
 	for index, file := range files {
-		filePath := converter.pathProvider.Path(file.Route().Value())
+		filePath := pathProvider.Path(file.Route().Value())
 		fileLinks[index] = filePath
 	}
 
 	return fileLinks
-}
-
-func (converter *FilesExtension) getFilesByPath(path string) []*File {
-
-	if strings.Index(path, FilesDirectoryName) == 0 {
-		path = path[len(FilesDirectoryName):]
-	}
-
-	matchingFiles := make([]*File, 0)
-
-	for _, file := range converter.files {
-
-		filePath := file.Path()
-		indexPath := fileIndex.Path()
-
-		if strings.Index(filePath, indexPath) != 0 {
-			continue
-		}
-
-		relativeFilePath := filePath[len(indexPath):]
-		if strings.HasPrefix(relativeFilePath, path) {
-			matchingFiles = append(matchingFiles, file)
-		}
-	}
-
-	return matchingFiles
 }
 
 func renderFilesystemEntry(fsEntry *FileSystemEntry, level int) string {
@@ -155,7 +160,7 @@ func getFileSystemFromLinks(root *FileSystemEntry, filePaths []string) *FileSyst
 		}
 
 		// trim empty components
-		components = util.TrimSlice(components)
+		components = trimSlice(components)
 
 		// get the childs for each component
 		for _, component := range components {

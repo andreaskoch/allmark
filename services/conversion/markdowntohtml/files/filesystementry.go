@@ -4,6 +4,10 @@
 
 package files
 
+import (
+	"github.com/andreaskoch/allmark2/common/route"
+)
+
 type FileSystemEntry struct {
 	name   string
 	parent *FileSystemEntry
@@ -44,7 +48,7 @@ func (fsEntry *FileSystemEntry) Parent() *FileSystemEntry {
 }
 
 func (fsEntry *FileSystemEntry) Name() string {
-	return util.DecodeUrl(fsEntry.name)
+	return route.DecodeUrl(fsEntry.name)
 }
 
 func (fsEntry *FileSystemEntry) GetChild(name string) *FileSystemEntry {

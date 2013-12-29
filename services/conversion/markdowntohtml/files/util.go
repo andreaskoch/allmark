@@ -4,15 +4,16 @@
 
 package files
 
-import (
-	"strings"
-)
+func trimSlice(slice []string) []string {
+	trimmed := make([]string, 0)
 
-func getLastPathComponent(path string) string {
-	if !strings.Contains(path, "/") {
-		return path
+	for _, element := range slice {
+		if element == "" {
+			continue
+		}
+
+		trimmed = append(trimmed, element)
 	}
 
-	components := strings.Split(path, "/")
-	return components[len(components)-1]
+	return trimmed
 }
