@@ -6,6 +6,7 @@ package markdowntohtml
 
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/audio"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/markdown"
@@ -21,14 +22,15 @@ func New(logger logger.Logger) (*Converter, error) {
 	}, nil
 }
 
-func (converter *Converter) Convert(item *model.Item) (convertedContent string, conversionError error) {
+// Convert the supplied item with all paths relative to the supplied base route
+func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item) (convertedContent string, conversionError error) {
 
 	converter.logger.Debug("Converting item %q.", item)
 
 	content := item.Content
 
 	// markdown extension: audio
-	content, audioConversionError := audio.Convert(content, item.Files())
+	content, audioConversionError := audio.Convert(content, pathProvider, item.Files())
 	if audioConversionError != nil {
 		converter.logger.Warn("Error while converting audio extensions. Error: %s", audioConversionError)
 	}

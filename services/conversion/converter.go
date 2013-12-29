@@ -5,9 +5,12 @@
 package conversion
 
 import (
+	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/model"
 )
 
 type Converter interface {
-	Convert(item *model.Item) (convertedContent string, conversionError error)
+
+	// Convert the supplied item with all paths relative to the supplied base route
+	Convert(pathProvider paths.Pather, item *model.Item) (convertedContent string, conversionError error)
 }

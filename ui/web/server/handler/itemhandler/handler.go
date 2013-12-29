@@ -7,6 +7,7 @@ package itemhandler
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
@@ -14,18 +15,20 @@ import (
 	"net/http"
 )
 
-func New(logger logger.Logger, index *index.Index, converter conversion.Converter) *ItemHandler {
+func New(logger logger.Logger, index *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
 	return &ItemHandler{
-		logger:    logger,
-		index:     index,
-		converter: converter,
+		logger:        logger,
+		index:         index,
+		patherFactory: patherFactory,
+		converter:     converter,
 	}
 }
 
 type ItemHandler struct {
-	logger    logger.Logger
-	index     *index.Index
-	converter conversion.Converter
+	logger        logger.Logger
+	index         *index.Index
+	patherFactory paths.PatherFactory
+	converter     conversion.Converter
 }
 
 func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -55,8 +58,10 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			fmt.Fprintf(w, "Parent: %s\n", parent.Title)
 		}
 
-		// convert contetn
-		convertedContent, err := handler.converter.Convert(item)
+		// convert content
+		pathProvider := handler.patherFactory.Relative()
+		convertedContent, err := handler.converter.Convert(pathProvider, item)
+
 		if err != nil {
 			fmt.Fprintln(w, "Unable to convert content. Error: %s", err)
 			return

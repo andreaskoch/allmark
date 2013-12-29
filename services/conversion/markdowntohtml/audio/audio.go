@@ -6,6 +6,7 @@ package audio
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pattern"
 	"mime"
@@ -18,7 +19,7 @@ var (
 	audioPattern = regexp.MustCompile(`audio: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func Convert(markdown string, files []*model.File) (convertedContent string, conversionError error) {
+func Convert(markdown string, pathProvider paths.Pather, files []*model.File) (convertedContent string, conversionError error) {
 
 	convertedContent = markdown
 
@@ -33,6 +34,9 @@ func Convert(markdown string, files []*model.File) (convertedContent string, con
 		originalText := strings.TrimSpace(matches[0])
 		title := strings.TrimSpace(matches[1])
 		path := strings.TrimSpace(matches[2])
+
+		// fix the path
+		path = pathProvider.Path(path)
 
 		// get the code
 		renderedCode := getAudioCode(title, path, files)

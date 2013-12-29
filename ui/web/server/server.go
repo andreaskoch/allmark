@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/paths"
+	"github.com/andreaskoch/allmark2/common/paths/webpaths"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler"
@@ -33,21 +35,26 @@ const (
 )
 
 func New(logger logger.Logger, config *config.Config, converter conversion.Converter) (*Server, error) {
+
+	patherFactory := webpaths.NewFactory()
+
 	return &Server{
-		config:    config,
-		logger:    logger,
-		converter: converter,
-		index:     index.New(logger),
+		config:        config,
+		logger:        logger,
+		patherFactory: patherFactory,
+		converter:     converter,
+		index:         index.New(logger),
 	}, nil
 }
 
 type Server struct {
 	isRunning bool
 
-	config    *config.Config
-	logger    logger.Logger
-	converter conversion.Converter
-	index     *index.Index
+	config        *config.Config
+	logger        logger.Logger
+	patherFactory paths.PatherFactory
+	converter     conversion.Converter
+	index         *index.Index
 }
 
 func (server *Server) Serve(item *model.Item) {
@@ -66,7 +73,7 @@ func (server *Server) Start() chan error {
 		server.isRunning = true
 
 		// register the handlers
-		http.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.index, server.converter).Func())
+		http.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.index, server.patherFactory, server.converter).Func())
 		http.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.index).Func())
 
 		// start http server: http
