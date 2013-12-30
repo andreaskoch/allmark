@@ -27,8 +27,7 @@ func (index *Index) IsMatch(route route.Route) (item *model.Item, isMatch bool) 
 	return
 }
 
-func (index *Index) GetParent(item *model.Item) *model.Item {
-	childRoute := item.Route()
+func (index *Index) GetParent(childRoute *route.Route) *model.Item {
 
 	// already at the root
 	if childRoute.Level() == 0 {
@@ -74,8 +73,7 @@ func newVirtualItem(route *route.Route) (*model.Item, error) {
 	return item, nil
 }
 
-func (index *Index) GetChilds(item *model.Item) []*model.Item {
-	route := item.Route()
+func (index *Index) GetChilds(route *route.Route) []*model.Item {
 	routeLevel := route.Level()
 
 	// locate first and second level childs

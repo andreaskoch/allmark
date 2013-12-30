@@ -55,12 +55,6 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		// Parent
-		parent := handler.index.GetParent(item)
-		if parent != nil {
-			fmt.Fprintf(w, "Parent: %s\n", parent.Title)
-		}
-
 		// convert content
 		pathProvider := handler.patherFactory.Relative()
 		convertedContent, err := handler.converter.Convert(pathProvider, item)
@@ -72,19 +66,46 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 
 		// create a view model
 		viewModel := viewmodel.Model{
-			Type:        item.Type.String(),
-			Title:       item.Title,
-			Description: item.Description,
-			Content:     convertedContent,
+			Type:               item.Type.String(),
+			Title:              item.Title,
+			Description:        item.Description,
+			Content:            convertedContent,
+			ToplevelNavigation: getToplevelNavigation(handler.index),
 		}
 
 		render(w, viewModel)
 
 		// Childs
-		childs := handler.index.GetChilds(item)
+		childs := handler.index.GetChilds(item.Route())
 		for _, child := range childs {
 			fmt.Fprintf(w, "Child: %s\n", child.Title)
 		}
+	}
+}
+
+func getToplevelNavigation(index *index.Index) *viewmodel.ToplevelNavigation {
+	root, err := route.NewFromRequest("")
+	if err != nil {
+		return nil
+	}
+
+	toplevelEntries := make([]*viewmodel.ToplevelEntry, 0)
+	for _, child := range index.GetChilds(root) {
+
+		// skip all childs which are not first level
+		if child.Route().Level() != 1 {
+			continue
+		}
+
+		toplevelEntries = append(toplevelEntries, &viewmodel.ToplevelEntry{
+			Title: child.Title,
+			Path:  child.Route().Value(),
+		})
+
+	}
+
+	return &viewmodel.ToplevelNavigation{
+		Entries: toplevelEntries,
 	}
 }
 
