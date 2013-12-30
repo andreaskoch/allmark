@@ -11,6 +11,31 @@ import (
 
 type ItemType int
 
+func (itemType ItemType) String() string {
+	switch itemType {
+	case TypeDocument:
+		return "Document"
+
+	case TypePresentation:
+		return "Presentation"
+
+	case TypeMessage:
+		return "Message"
+
+	case TypeLocation:
+		return "Location"
+
+	case TypeRepository:
+		return "Repository"
+
+	default:
+		return "Unknown"
+
+	}
+
+	panic("Unreachable")
+}
+
 const (
 	TypeDocument ItemType = iota
 	TypePresentation
@@ -25,6 +50,7 @@ type Item struct {
 	route *route.Route
 	files []*File
 
+	Type        ItemType
 	Title       string
 	Description string
 	Content     string

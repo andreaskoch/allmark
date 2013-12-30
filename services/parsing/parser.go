@@ -60,7 +60,7 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 	lines := getLines(bytes.NewReader(data))
 
 	// detect the item type
-	switch itemType := typedetection.DetectType(lines); itemType {
+	switch itemModel.Type = typedetection.DetectType(lines); itemModel.Type {
 
 	case model.TypeDocument, model.TypeLocation, model.TypeRepository:
 		{

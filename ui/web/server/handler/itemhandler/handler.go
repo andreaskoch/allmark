@@ -12,6 +12,9 @@ import (
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/server/index"
+	"github.com/andreaskoch/allmark2/ui/web/view/templates"
+	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
+	"io"
 	"net/http"
 )
 
@@ -67,9 +70,15 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		// Content
-		fmt.Fprintf(w, "\nContent:\n")
-		fmt.Fprintf(w, "\n%s\n", convertedContent)
+		// create a view model
+		viewModel := viewmodel.Model{
+			Type:        item.Type.String(),
+			Title:       item.Title,
+			Description: item.Description,
+			Content:     convertedContent,
+		}
+
+		render(w, viewModel)
 
 		// Childs
 		childs := handler.index.GetChilds(item)
@@ -77,4 +86,24 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			fmt.Fprintf(w, "Child: %s\n", child.Title)
 		}
 	}
+}
+
+func render(writer io.Writer, viewModel viewmodel.Model) {
+
+	templateProvider := templates.NewProvider(".")
+
+	// get a template
+	if template, err := templateProvider.GetFullTemplate(viewModel.Type); err == nil {
+
+		err := template.Execute(writer, viewModel)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+	} else {
+
+		fmt.Fprintf(writer, "No template for item of type %q.", viewModel.Type)
+
+	}
+
 }
