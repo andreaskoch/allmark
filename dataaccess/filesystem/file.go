@@ -6,7 +6,6 @@ package filesystem
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
@@ -14,10 +13,7 @@ import (
 	"path/filepath"
 )
 
-func getFiles(repository *Repository, itemDirectory string) []*dataaccess.File {
-
-	// get the "files"-directory
-	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
+func getFiles(repository *Repository, itemDirectory, filesDirectory string) []*dataaccess.File {
 
 	childs := make([]*dataaccess.File, 0)
 
@@ -32,7 +28,7 @@ func getFiles(repository *Repository, itemDirectory string) []*dataaccess.File {
 
 		// recurse if the path is a directory
 		if isDir, _ := fsutil.IsDirectory(filePath); isDir {
-			childs = append(childs, getFiles(repository, filePath)...)
+			childs = append(childs, getFiles(repository, itemDirectory, filePath)...)
 			continue
 		}
 

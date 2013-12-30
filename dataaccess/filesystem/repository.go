@@ -6,6 +6,7 @@ package filesystem
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
@@ -130,7 +131,8 @@ func indexItems(repository *Repository, itemPath string, itemEvents chan *dataac
 		contentProvider := newContentProvider(itemPath, route)
 
 		// create the file index
-		files := getFiles(repository, itemDirectory)
+		filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
+		files := getFiles(repository, itemDirectory, filesDirectory)
 
 		// create the item
 		item, err := dataaccess.NewItem(route, contentProvider, files)
