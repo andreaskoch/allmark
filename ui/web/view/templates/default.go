@@ -112,7 +112,7 @@ const repositoryTemplate = `
 <ol class="list">
 {{range .TopDocs}}
 <li class="child">
-	<a href="{{.RelativeRoute}}" class="child-title child-link">{{.Title}}</a>
+	<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
 	<p class="child-description">{{.Description}}</p>
 	<div>{{.Content}}</div>
 </li>
@@ -127,7 +127,7 @@ const repositoryTemplate = `
 	<div class="tags">
 	{{range .TagCloud}}
 	<span class="level-{{.Level}}">
-		<a href="{{.AbsoluteRoute}}">{{.Name}}</a>
+		<a href="{{.Route}}">{{.Name}}</a>
 	</span>
 	{{end}}
 	</div>
@@ -161,7 +161,7 @@ const documentTemplate = `
 	<ul class="tags">
 	{{range .Tags}}
 	<li class="tag">
-		<a href="{{.AbsoluteRoute}}" title="{{.Description}}">{{.Name}}</a>
+		<a href="{{.Route}}" title="{{.Description}}">{{.Name}}</a>
 	</li>
 	{{end}}
 	</ul>
@@ -177,7 +177,7 @@ const documentTemplate = `
 	<ol class="list">
 	{{range .Locations}}
 	<li class="location">
-		<a href="{{.AbsoluteRoute}}">{{.Title}}</a>
+		<a href="{{.Route}}">{{.Title}}</a>
 		{{ if .Description }}
 		<p>{{.Description}}</p>
 		{{end}}
@@ -207,7 +207,7 @@ const documentTemplate = `
 <ol class="list">
 {{range .Childs}}
 <li class="child">
-	<a href="{{.RelativeRoute}}" class="child-title child-link">{{.Title}}</a>
+	<a href="/{{.Route}}" class="child-title child-link">{{.Title}}</a>
 	<p class="child-description">{{.Description}}</p>
 </li>
 {{end}}
@@ -242,7 +242,7 @@ const locationTemplate = `
 	<ul class="tags">
 	{{range .Tags}}
 	<li class="tag">
-		<a href="{{.AbsoluteRoute}}" title="{{.Description}}">{{.Name}}</a>
+		<a href="{{.Route}}" title="{{.Description}}">{{.Name}}</a>
 	</li>
 	{{end}}
 	</ul>
@@ -254,7 +254,7 @@ const locationTemplate = `
 <ol class="list">
 {{range .RelatedItems}}
 <li class="related-item">
-	<a href="{{.RelativeRoute}}">{{.Title}}</a>
+	<a href="{{.Route}}">{{.Title}}</a>
 	<p>{{.Description}}</p>
 </li>
 {{end}}
@@ -267,7 +267,7 @@ const locationTemplate = `
 <ol class="list">
 {{range .Childs}}
 <li class="child">
-	<a href="{{.RelativeRoute}}" class="child-title child-link">{{.Title}}</a>
+	<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
 	<p class="child-description">{{.Description}}</p>
 </li>
 {{end}}
@@ -342,7 +342,7 @@ const errorTemplate = `
 
 var sitemapContentTemplate = fmt.Sprintf(`
 <li>
-	<a href="{{.AbsoluteRoute}}" {{ if .Description }}title="{{.Description}}"{{ end }}>{{.Title}}</a>
+	<a href="{{.Route}}" {{ if .Description }}title="{{.Description}}"{{ end }}>{{.Title}}</a>
 
 	{{ if .Childs }}	
 	<ol>
@@ -378,7 +378,7 @@ var tagmapContentTemplate = `
 	<ol class="childs">
 		{{range .Childs}}
 		<li class="child">
-			<a href="{{.RelativeRoute}}" class="child-title child-link">{{.Title}}</a>
+			<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
 			<p class="child-description">{{.Description}}</p>
 		</li>
 		{{end}}

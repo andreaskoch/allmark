@@ -56,33 +56,59 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		// convert content
+		// create the view model
 		pathProvider := handler.patherFactory.Relative()
-		convertedContent, err := handler.converter.Convert(pathProvider, item)
+		viewModel := getViewModel(handler.index, pathProvider, handler.converter, item)
 
-		if err != nil {
-			fmt.Fprintln(w, "Unable to convert content. Error: %s", err)
-			return
-		}
-
-		// create a view model
-		viewModel := viewmodel.Model{
-			Type:                 item.Type.String(),
-			Title:                item.Title,
-			Description:          item.Description,
-			Content:              convertedContent,
-			ToplevelNavigation:   getToplevelNavigation(handler.index),
-			BreadcrumbNavigation: getBreadcrumbNavigation(handler.index, item),
-		}
-
+		// render the view model
 		render(w, viewModel)
-
-		// Childs
-		childs := handler.index.GetChilds(item.Route())
-		for _, child := range childs {
-			fmt.Fprintf(w, "Child: %s\n", child.Title)
-		}
 	}
+}
+
+func getViewModel(index *index.Index, pathProvider paths.Pather, converter conversion.Converter, item *model.Item) viewmodel.Model {
+
+	// convert content
+	convertedContent, err := converter.Convert(pathProvider, item)
+	if err != nil {
+		// fmt.Fprintln(w, "Unable to convert content. Error: %s", err)
+		return viewmodel.Model{}
+	}
+
+	// create a view model
+	viewModel := viewmodel.Model{
+		Base: getBaseModel(item),
+
+		Content: convertedContent,
+
+		Childs:               getChildModels(index, item),
+		ToplevelNavigation:   getToplevelNavigation(index),
+		BreadcrumbNavigation: getBreadcrumbNavigation(index, item),
+	}
+
+	return viewModel
+}
+
+func getBaseModel(item *model.Item) viewmodel.Base {
+	return viewmodel.Base{
+		Type:  item.Type.String(),
+		Route: item.Route().Value(),
+		Level: item.Route().Level(),
+
+		Title:       item.Title,
+		Description: item.Description,
+	}
+}
+
+func getChildModels(index *index.Index, item *model.Item) []*viewmodel.Base {
+	childModels := make([]*viewmodel.Base, 0)
+
+	childItems := index.GetChilds(item.Route())
+	for _, childItem := range childItems {
+		baseModel := getBaseModel(childItem)
+		childModels = append(childModels, &baseModel)
+	}
+
+	return childModels
 }
 
 func getToplevelNavigation(index *index.Index) *viewmodel.ToplevelNavigation {

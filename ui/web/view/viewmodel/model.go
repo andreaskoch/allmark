@@ -8,36 +8,46 @@ import (
 	"sort"
 )
 
-type Model struct {
-	Level                int                   `json:"level"`
-	AbsoluteRoute        string                `json:"absoluteRoute"`
-	RelativeRoute        string                `json:"relativeRoute"`
-	Title                string                `json:"title"`
-	Description          string                `json:"description"`
-	Content              string                `json:"content"`
-	LanguageTag          string                `json:"languageTag"`
-	Type                 string                `json:"type"`
-	CreationDate         string                `json:"creationdate"`
-	LastModifiedDate     string                `json:"lastmodifieddate"`
-	Tags                 []*Tag                `json:"tags"`
-	TopDocs              []*Model              `json:"topDocuments"`
-	Childs               []*Model              `json:"childs"`
-	RelatedItems         []*Model              `json:"relatedItems"`
-	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
-	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
-	TagCloud             *TagCloud             `json:"tagCloud"`
-	Locations            []*Model              `json:"locations"`
-	GeoLocation          *GeoLocation          `json:"geoLocation"`
+type Base struct {
+	Type  string `json:"type"`
+	Level int    `json:"level"`
+	Route string `json:"route"`
+
+	Title       string `json:"title"`
+	Description string `json:"description"`
+
+	Tags []*Tag `json:"tags"`
+
+	LanguageTag      string `json:"languageTag"`
+	CreationDate     string `json:"creationdate"`
+	LastModifiedDate string `json:"lastmodifieddate"`
 }
 
-func Error(title, content, relativPath, absolutePath string) *Model {
+type Model struct {
+	Base
+
+	Content string `json:"content"`
+
+	TopDocs []*Model `json:"topDocs"`
+	Childs  []*Base  `json:"childs"`
+
+	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
+	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
+
+	TagCloud    *TagCloud    `json:"tagCloud"`
+	Locations   []*Model     `json:"locations"`
+	GeoLocation *GeoLocation `json:"geoLocation"`
+}
+
+func Error(title, content, route string) *Model {
 	return &Model{
-		Level:         0,
-		Title:         title,
-		RelativeRoute: relativPath,
-		AbsoluteRoute: absolutePath,
-		Content:       content,
-		Type:          "error",
+		Base: Base{
+			Level: 0,
+			Title: title,
+			Route: route,
+			Type:  "error",
+		},
+		Content: content,
 	}
 }
 
