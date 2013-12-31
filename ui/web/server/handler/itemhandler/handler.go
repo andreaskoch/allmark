@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/server/index"
@@ -66,11 +67,12 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 
 		// create a view model
 		viewModel := viewmodel.Model{
-			Type:               item.Type.String(),
-			Title:              item.Title,
-			Description:        item.Description,
-			Content:            convertedContent,
-			ToplevelNavigation: getToplevelNavigation(handler.index),
+			Type:                 item.Type.String(),
+			Title:                item.Title,
+			Description:          item.Description,
+			Content:              convertedContent,
+			ToplevelNavigation:   getToplevelNavigation(handler.index),
+			BreadcrumbNavigation: getBreadcrumbNavigation(handler.index, item),
 		}
 
 		render(w, viewModel)
@@ -107,6 +109,33 @@ func getToplevelNavigation(index *index.Index) *viewmodel.ToplevelNavigation {
 	return &viewmodel.ToplevelNavigation{
 		Entries: toplevelEntries,
 	}
+}
+
+func getBreadcrumbNavigation(index *index.Index, item *model.Item) *viewmodel.BreadcrumbNavigation {
+
+	// create a new bread crumb navigation
+	navigation := &viewmodel.BreadcrumbNavigation{
+		Entries: make([]*viewmodel.Breadcrumb, 0),
+	}
+
+	// abort if item or model is nil
+	if item == nil {
+		return navigation
+	}
+
+	// recurse if there is a parent
+	if parent := index.GetParent(item.Route()); parent != nil {
+		navigation.Entries = append(navigation.Entries, getBreadcrumbNavigation(index, parent).Entries...)
+	}
+
+	// append a new navigation entry and return it
+	navigation.Entries = append(navigation.Entries, &viewmodel.Breadcrumb{
+		Title: item.Title,
+		Level: item.Route().Level(),
+		Path:  item.Route().Value(),
+	})
+
+	return navigation
 }
 
 func render(writer io.Writer, viewModel viewmodel.Model) {
