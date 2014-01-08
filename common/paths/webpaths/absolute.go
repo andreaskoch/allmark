@@ -4,18 +4,27 @@
 
 package webpaths
 
+import (
+	"github.com/andreaskoch/allmark2/common/index"
+	"github.com/andreaskoch/allmark2/common/logger"
+)
+
 // Create a new absolute web path provider
-func newAbsoluteWebPathProvider(base string) *AbsoluteWebPathProvider {
+func newAbsoluteWebPathProvider(logger logger.Logger, index *index.Index, prefix string) *AbsoluteWebPathProvider {
 	return &AbsoluteWebPathProvider{
-		base: base,
+		prefix: prefix,
+		logger: logger,
+		index:  index,
 	}
 }
 
 type AbsoluteWebPathProvider struct {
-	base string
+	prefix string
+	logger logger.Logger
+	index  *index.Index
 }
 
 // Get the absolute path for the supplied item
 func (webPathProvider *AbsoluteWebPathProvider) Path(itemPath string) string {
-	return webPathProvider.base + "/" + itemPath
+	return webPathProvider.prefix + "/" + itemPath
 }

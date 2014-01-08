@@ -134,6 +134,16 @@ func (route *Route) SubRoute(level int) (*Route, error) {
 	return subRoute, nil
 }
 
+func (route *Route) IsMatch(path string) bool {
+	cleanedRoute := strings.ToLower(route.Value())
+	cleanedPath := strings.TrimSpace(strings.ToLower(path))
+
+	// check if the current route ends with the supplied path
+	routeEndsWithSpecifiedPath := strings.HasSuffix(cleanedRoute, cleanedPath)
+
+	return routeEndsWithSpecifiedPath
+}
+
 func (route *Route) Parent() *Route {
 	routeValue := route.Value()
 

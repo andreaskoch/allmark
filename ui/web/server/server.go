@@ -7,13 +7,13 @@ package server
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
+	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/paths/webpaths"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler"
-	"github.com/andreaskoch/allmark2/ui/web/server/index"
 	"math"
 	"net/http"
 )
@@ -36,14 +36,15 @@ const (
 
 func New(logger logger.Logger, config *config.Config, converter conversion.Converter) (*Server, error) {
 
-	patherFactory := webpaths.NewFactory()
+	index := index.New(logger)
+	patherFactory := webpaths.NewFactory(logger, index)
 
 	return &Server{
 		config:        config,
 		logger:        logger,
 		patherFactory: patherFactory,
 		converter:     converter,
-		index:         index.New(logger),
+		index:         index,
 	}, nil
 }
 

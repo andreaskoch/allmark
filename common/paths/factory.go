@@ -4,7 +4,11 @@
 
 package paths
 
+import (
+	"github.com/andreaskoch/allmark2/common/route"
+)
+
 type PatherFactory interface {
-	Absolute(base string) Pather
-	Relative() Pather
+	Absolute(prefix string) Pather
+	Relative(baseRoute *route.Route) Pather
 }

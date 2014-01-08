@@ -47,8 +47,9 @@ const (
 
 // An Item represents a single document.
 type Item struct {
-	route *route.Route
-	files []*File
+	isVirtual bool
+	route     *route.Route
+	files     []*File
 
 	Type        ItemType
 	Title       string
@@ -60,19 +61,25 @@ type Item struct {
 
 func NewVirtualItem(route *route.Route) (*Item, error) {
 	return &Item{
-		route: route,
+		isVirtual: true,
+		route:     route,
 	}, nil
 }
 
 func NewItem(route *route.Route, files []*File) (*Item, error) {
 	return &Item{
-		route: route,
-		files: files,
+		isVirtual: false,
+		route:     route,
+		files:     files,
 	}, nil
 }
 
 func (item *Item) String() string {
 	return fmt.Sprintf("%s", item.route)
+}
+
+func (item *Item) IsVirtual() bool {
+	return item.isVirtual
 }
 
 func (item *Item) Route() *route.Route {

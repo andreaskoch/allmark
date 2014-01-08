@@ -6,13 +6,13 @@ package itemhandler
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
-	"github.com/andreaskoch/allmark2/ui/web/server/index"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 	"io"
@@ -57,7 +57,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		}
 
 		// create the view model
-		pathProvider := handler.patherFactory.Relative()
+		pathProvider := handler.patherFactory.Relative(item.Route())
 		viewModel := getViewModel(handler.index, pathProvider, handler.converter, item)
 
 		// render the view model
@@ -70,7 +70,6 @@ func getViewModel(index *index.Index, pathProvider paths.Pather, converter conve
 	// convert content
 	convertedContent, err := converter.Convert(pathProvider, item)
 	if err != nil {
-		// fmt.Fprintln(w, "Unable to convert content. Error: %s", err)
 		return viewmodel.Model{}
 	}
 
@@ -83,9 +82,33 @@ func getViewModel(index *index.Index, pathProvider paths.Pather, converter conve
 		Childs:               getChildModels(index, item),
 		ToplevelNavigation:   getToplevelNavigation(index),
 		BreadcrumbNavigation: getBreadcrumbNavigation(index, item),
+		TopDocs:              getTopDocuments(index, pathProvider, converter, item),
 	}
 
 	return viewModel
+}
+
+func getTopDocuments(index *index.Index, pathProvider paths.Pather, converter conversion.Converter, item *model.Item) []*viewmodel.Model {
+	childModels := make([]*viewmodel.Model, 0)
+
+	childItems := index.GetChilds(item.Route())
+
+	fmt.Println(len(childItems))
+
+	for _, childItem := range childItems {
+
+		// skip virtual items
+		if childItem.IsVirtual() {
+			continue
+		}
+
+		fmt.Println(childItem.Route().Level())
+		// todo: choose the right level, don't just take all childs
+		childModel := getViewModel(index, pathProvider, converter, childItem)
+		childModels = append(childModels, &childModel)
+	}
+
+	return childModels
 }
 
 func getBaseModel(item *model.Item) viewmodel.Base {

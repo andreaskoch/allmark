@@ -6,8 +6,8 @@ package debughandler
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
-	"github.com/andreaskoch/allmark2/ui/web/server/index"
 	"net/http"
 )
 

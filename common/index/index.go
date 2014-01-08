@@ -44,8 +44,13 @@ func (index *Index) GetParent(childRoute *route.Route) *model.Item {
 		return parentItem
 	}
 
-	// no parent item found - create a virtual parent
+	// check if there is a parent
 	parentRoute := childRoute.Parent()
+	if parentRoute == nil {
+		return nil // we are already at the root
+	}
+
+	// no parent item found - create a virtual parent
 	virtualParent, err := newVirtualItem(parentRoute)
 	if err != nil {
 
@@ -74,11 +79,9 @@ func newVirtualItem(route *route.Route) (*model.Item, error) {
 }
 
 func (index *Index) GetChilds(route *route.Route) []*model.Item {
-	routeLevel := route.Level()
 
 	// locate first and second level childs
-	firstLevelChilds := make([]*model.Item, 0)
-	deeperLevelChilds := make([]*model.Item, 0)
+	childs := make([]*model.Item, 0)
 
 	for itemRoute, item := range index.items {
 
@@ -87,54 +90,10 @@ func (index *Index) GetChilds(route *route.Route) []*model.Item {
 			continue
 		}
 
-		// a first level child is one that is one level deeper than the parent
-		isFirstLevelChild := itemRoute.Level() == routeLevel+1
-
-		// add first and second level childs to their respective lists
-		if isFirstLevelChild {
-			firstLevelChilds = append(firstLevelChilds, item)
-		} else {
-			deeperLevelChilds = append(deeperLevelChilds, item)
-		}
+		childs = append(childs, item)
 	}
 
-	// just return the first level childs if there are no deeper level childs
-	if len(deeperLevelChilds) == 0 {
-		return firstLevelChilds
-	}
-
-	// create virtual items from the deeper level item if there is no first-level child
-	secondLevelChildMap := make(map[string]*model.Item)
-	for _, deeperLevelChild := range deeperLevelChilds {
-
-		// determine child route
-		secondLevelChildRoute, _ := deeperLevelChild.Route().SubRoute(routeLevel + 1)
-		if secondLevelChildRoute == nil {
-			continue
-		}
-
-		// skip existing entries
-		if _, exists := secondLevelChildMap[secondLevelChildRoute.Value()]; exists {
-			continue
-		}
-
-		// create virtual child item
-		virtualChild, err := newVirtualItem(secondLevelChildRoute)
-		if err != nil {
-			index.logger.Warn("Unable to create a virtual child for the route %q. Error: %s", secondLevelChildRoute, err)
-			continue
-		}
-
-		secondLevelChildMap[secondLevelChildRoute.Value()] = virtualChild
-
-	}
-
-	secondLevelChilds := make([]*model.Item, 0)
-	for _, secondLevelChild := range secondLevelChildMap {
-		secondLevelChilds = append(secondLevelChilds, secondLevelChild)
-	}
-
-	return secondLevelChilds
+	return childs
 }
 
 func (index *Index) Routes() []route.Route {
