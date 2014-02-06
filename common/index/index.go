@@ -27,6 +27,28 @@ func (index *Index) IsMatch(route route.Route) (item *model.Item, isMatch bool) 
 	return
 }
 
+func (index *Index) IsFileMatch(route route.Route) (*model.File, bool) {
+
+	// skip all virtual parents
+	parent := index.GetParent(&route)
+	for parent != nil && parent.IsVirtual() {
+		parent = index.GetParent(parent.Route())
+	}
+
+	// abort if there is no non-virtual parent
+	if parent == nil {
+		return nil, false
+	}
+
+	// check if the parent has a file with the supplied route
+	if file := parent.GetFile(route); file != nil {
+		return file, true
+	}
+
+	// file not found
+	return nil, false
+}
+
 func (index *Index) GetParent(childRoute *route.Route) *model.Item {
 
 	// already at the root

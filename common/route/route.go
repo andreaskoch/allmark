@@ -69,6 +69,10 @@ func NewFromRequest(requestPath string) (*Route, error) {
 	}, nil
 }
 
+func Combine(route1, route2 *Route) (*Route, error) {
+	return NewFromRequest(route1.Value() + "/" + route2.Value())
+}
+
 func (route *Route) String() string {
 	return route.value
 }

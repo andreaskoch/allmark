@@ -40,7 +40,7 @@ func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 
 		// intersect the child route with the base route to get full path
 		childRouteString := child.Route().Value()
-		path := "dsdsd/" + strings.TrimPrefix(childRouteString, baseRouteString)
+		path := "/" + strings.TrimPrefix(childRouteString, baseRouteString)
 
 		return path
 	}

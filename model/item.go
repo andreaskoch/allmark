@@ -7,6 +7,7 @@ package model
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/route"
+	"strings"
 )
 
 type ItemType int
@@ -88,4 +89,16 @@ func (item *Item) Route() *route.Route {
 
 func (item *Item) Files() []*File {
 	return item.files
+}
+
+func (item *Item) GetFile(fileRoute route.Route) *File {
+	for _, file := range item.Files() {
+		if !strings.HasSuffix(fileRoute.Value(), file.Route().Value()) {
+			continue
+		}
+
+		return file
+	}
+
+	return nil
 }

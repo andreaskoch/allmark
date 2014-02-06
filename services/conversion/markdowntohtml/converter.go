@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
+	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/audio"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/files"
@@ -86,8 +87,12 @@ func rewireLinks(pathProvider paths.Pather, item *model.Item, markdown string) s
 		}
 
 		// assemble the new link path
-		matchingFilePath := matchingFile.Route().Value()
-		matchingFilePath = pathProvider.Path(matchingFilePath)
+		fullFileRoute, err := route.Combine(matchingFile.Parent(), matchingFile.Route())
+		if err != nil {
+			continue
+		}
+
+		matchingFilePath := pathProvider.Path(fullFileRoute.Value())
 
 		// assemble the new link
 		newLinkText := fmt.Sprintf("[%s](%s)", descriptionText, matchingFilePath)

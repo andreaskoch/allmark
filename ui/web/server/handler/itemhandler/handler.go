@@ -49,19 +49,34 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		// make sure the request body is closed
 		defer r.Body.Close()
 
-		// check if there is a item for the request
-		item, found := handler.index.IsMatch(*requestRoute)
-		if !found {
-			fmt.Fprintln(w, "item not found")
+		// stage 1: check if there is a item for the request
+		if item, found := handler.index.IsMatch(*requestRoute); found {
+
+			// create the view model
+			pathProvider := handler.patherFactory.Relative(item.Route())
+			viewModel := getViewModel(handler.index, pathProvider, handler.converter, item)
+
+			// render the view model
+			render(w, viewModel)
+
+		}
+
+		// stage 2: check if there is a file for the request
+		if file, found := handler.index.IsFileMatch(*requestRoute); found {
+			contentProvider := file.ContentProvider()
+
+			// read the file data
+			data, err := contentProvider.Data()
+			if err != nil {
+				return
+			}
+
+			fmt.Fprintf(w, "%s", data)
 			return
 		}
 
-		// create the view model
-		pathProvider := handler.patherFactory.Relative(item.Route())
-		viewModel := getViewModel(handler.index, pathProvider, handler.converter, item)
-
-		// render the view model
-		render(w, viewModel)
+		fmt.Fprintln(w, "item not found.")
+		return
 	}
 }
 
@@ -93,8 +108,6 @@ func getTopDocuments(index *index.Index, pathProvider paths.Pather, converter co
 
 	childItems := index.GetChilds(item.Route())
 
-	fmt.Println(len(childItems))
-
 	for _, childItem := range childItems {
 
 		// skip virtual items
@@ -102,7 +115,6 @@ func getTopDocuments(index *index.Index, pathProvider paths.Pather, converter co
 			continue
 		}
 
-		fmt.Println(childItem.Route().Level())
 		// todo: choose the right level, don't just take all childs
 		childModel := getViewModel(index, pathProvider, converter, childItem)
 		childModels = append(childModels, &childModel)
