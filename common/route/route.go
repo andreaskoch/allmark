@@ -232,5 +232,9 @@ func normalize(path string) string {
 	// replace duplicate spaces with a (single) url safe character
 	path = regexpWhitespacePattern.ReplaceAllString(path, "+")
 
+	// replace brackets
+	path = strings.Replace(path, "(", "", -1)
+	path = strings.Replace(path, ")", "", -1)
+
 	return path
 }
