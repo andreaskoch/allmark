@@ -58,7 +58,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 
 			// render the view model
 			render(w, viewModel)
-
+			return
 		}
 
 		// stage 2: check if there is a file for the request
@@ -75,7 +75,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		fmt.Fprintln(w, "item not found.")
+		fmt.Fprintln(w, fmt.Sprintf("item %q not found.", requestPath))
 		return
 	}
 }

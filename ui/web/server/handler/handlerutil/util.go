@@ -5,11 +5,17 @@
 package handlerutil
 
 import (
+	"github.com/andreaskoch/allmark2/common/route"
 	"net/http"
 )
 
 func GetRequestedPathFromRequest(r *http.Request) string {
-	requestedPath := r.URL.Path
+	requestedRoute, err := route.NewFromRequest(r.URL.Path)
+	if err != nil {
+		panic(err)
+	}
+
+	requestedPath := requestedRoute.Value()
 	return requestedPath
 }
 
