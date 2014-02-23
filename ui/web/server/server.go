@@ -7,15 +7,20 @@ package server
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
+	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/paths/webpaths"
+	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler"
 	"math"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 const (
@@ -36,15 +41,17 @@ const (
 
 func New(logger logger.Logger, config *config.Config, converter conversion.Converter) (*Server, error) {
 
-	index := index.New(logger)
-	patherFactory := webpaths.NewFactory(logger, index)
+	itemIndex := index.CreateItemIndex(logger)
+	fileIndex := index.CreateFileIndex(logger)
+	patherFactory := webpaths.NewFactory(logger, itemIndex)
 
 	return &Server{
 		config:        config,
 		logger:        logger,
 		patherFactory: patherFactory,
 		converter:     converter,
-		index:         index,
+		itemIndex:     itemIndex,
+		fileIndex:     fileIndex,
 	}, nil
 }
 
@@ -55,12 +62,45 @@ type Server struct {
 	logger        logger.Logger
 	patherFactory paths.PatherFactory
 	converter     conversion.Converter
-	index         *index.Index
+	itemIndex     *index.ItemIndex
+	fileIndex     *index.FileIndex
 }
 
-func (server *Server) Serve(item *model.Item) {
+func (server *Server) ServeItem(item *model.Item) {
 	server.logger.Debug("Serving item %q", item)
-	server.index.Add(item)
+	server.itemIndex.Add(item)
+}
+
+func (server *Server) ServeFolder(baseFolder, folderPath string) {
+	if !fsutil.DirectoryExists(folderPath) {
+		return
+	}
+
+	parentRoute, err := route.NewFromRequest("")
+	if err != nil {
+		panic(err)
+	}
+
+	filepath.Walk(folderPath, func(folderEntryPath string, folderEntryInfo os.FileInfo, err error) error {
+
+		if folderEntryInfo.IsDir() {
+			return nil
+		}
+
+		fileRoute, err := route.NewFromFilePath(baseFolder, folderEntryPath)
+		if err != nil {
+			return err
+		}
+
+		file, err := model.NewFromPath(fileRoute, parentRoute, content.FileProvider(folderEntryPath, fileRoute))
+		if err != nil {
+			return err
+		}
+
+		server.fileIndex.Add(file)
+
+		return nil
+	})
 }
 
 func (server *Server) IsRunning() bool {
@@ -74,8 +114,8 @@ func (server *Server) Start() chan error {
 		server.isRunning = true
 
 		// register the handlers
-		http.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.index, server.patherFactory, server.converter).Func())
-		http.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.index).Func())
+		http.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.fileIndex, server.patherFactory, server.converter).Func())
+		http.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex, server.fileIndex).Func())
 
 		// start http server: http
 		httpBinding := server.getHttpBinding()

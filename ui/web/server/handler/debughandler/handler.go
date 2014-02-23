@@ -11,21 +11,27 @@ import (
 	"net/http"
 )
 
-func New(logger logger.Logger, index *index.Index) *DebugHandler {
+func New(logger logger.Logger, itemIndex *index.ItemIndex, fileIndex *index.FileIndex) *DebugHandler {
 	return &DebugHandler{
-		logger: logger,
-		index:  index,
+		logger:    logger,
+		itemIndex: itemIndex,
+		fileIndex: fileIndex,
 	}
 }
 
 type DebugHandler struct {
-	logger logger.Logger
-	index  *index.Index
+	logger    logger.Logger
+	itemIndex *index.ItemIndex
+	fileIndex *index.FileIndex
 }
 
 func (handler *DebugHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		for _, route := range handler.index.Routes() {
+		for _, route := range handler.itemIndex.Routes() {
+			fmt.Fprintf(w, "%q\n", route.Value())
+		}
+
+		for _, route := range handler.fileIndex.Routes() {
 			fmt.Fprintf(w, "%q\n", route.Value())
 		}
 	}

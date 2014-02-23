@@ -6,6 +6,7 @@ package itemhandler
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
@@ -19,10 +20,12 @@ import (
 	"net/http"
 )
 
-func New(logger logger.Logger, index *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
 	return &ItemHandler{
 		logger:        logger,
-		index:         index,
+		itemIndex:     itemIndex,
+		fileIndex:     fileIndex,
+		config:        config,
 		patherFactory: patherFactory,
 		converter:     converter,
 	}
@@ -30,7 +33,9 @@ func New(logger logger.Logger, index *index.Index, patherFactory paths.PatherFac
 
 type ItemHandler struct {
 	logger        logger.Logger
-	index         *index.Index
+	itemIndex     *index.ItemIndex
+	fileIndex     *index.FileIndex
+	config        *config.Config
 	patherFactory paths.PatherFactory
 	converter     conversion.Converter
 }
@@ -39,8 +44,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// get the request route
-		requestPath := handlerutil.GetRequestedPathFromRequest(r)
-		requestRoute, err := route.NewFromRequest(requestPath)
+		requestRoute, err := handlerutil.GetRouteFromRequest(r)
 		if err != nil {
 			fmt.Fprintln(w, "%s", err)
 			return
@@ -49,20 +53,41 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		// make sure the request body is closed
 		defer r.Body.Close()
 
-		// stage 1: check if there is a item for the request
-		if item, found := handler.index.IsMatch(*requestRoute); found {
+		// stage 1: check for theme files
+		themeRoute, err := route.NewFromRequest("theme")
+		if err != nil {
+			fmt.Fprintln(w, "%s", err)
+			return
+		}
+
+		if isThemeFile := requestRoute.IsChildOf(themeRoute); isThemeFile {
+
+			if file, found := handler.fileIndex.IsMatch(*requestRoute); found {
+				fileContentProvider := file.ContentProvider()
+				data, err := fileContentProvider.Data()
+				if err != nil {
+					return
+				}
+
+				fmt.Fprintf(w, "%s", data)
+				return
+			}
+		}
+
+		// stage 2: check if there is a item for the request
+		if item, found := handler.itemIndex.IsMatch(*requestRoute); found {
 
 			// create the view model
 			pathProvider := handler.patherFactory.Relative(item.Route())
-			viewModel := getViewModel(handler.index, pathProvider, handler.converter, item)
+			viewModel := getViewModel(handler.itemIndex, pathProvider, handler.converter, item)
 
 			// render the view model
 			render(w, viewModel)
 			return
 		}
 
-		// stage 2: check if there is a file for the request
-		if file, found := handler.index.IsFileMatch(*requestRoute); found {
+		// stage 3: check if there is a file for the request
+		if file, found := handler.itemIndex.IsFileMatch(*requestRoute); found {
 			contentProvider := file.ContentProvider()
 
 			// read the file data
@@ -75,12 +100,12 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		fmt.Fprintln(w, fmt.Sprintf("item %q not found.", requestPath))
+		fmt.Fprintln(w, fmt.Sprintf("item %q not found.", requestRoute))
 		return
 	}
 }
 
-func getViewModel(index *index.Index, pathProvider paths.Pather, converter conversion.Converter, item *model.Item) viewmodel.Model {
+func getViewModel(itemIndex *index.ItemIndex, pathProvider paths.Pather, converter conversion.Converter, item *model.Item) viewmodel.Model {
 
 	// convert content
 	convertedContent, err := converter.Convert(pathProvider, item)
@@ -94,19 +119,19 @@ func getViewModel(index *index.Index, pathProvider paths.Pather, converter conve
 
 		Content: convertedContent,
 
-		Childs:               getChildModels(index, item),
-		ToplevelNavigation:   getToplevelNavigation(index),
-		BreadcrumbNavigation: getBreadcrumbNavigation(index, item),
-		TopDocs:              getTopDocuments(index, pathProvider, converter, item),
+		Childs:               getChildModels(itemIndex, item),
+		ToplevelNavigation:   getToplevelNavigation(itemIndex),
+		BreadcrumbNavigation: getBreadcrumbNavigation(itemIndex, item),
+		TopDocs:              getTopDocuments(itemIndex, pathProvider, converter, item),
 	}
 
 	return viewModel
 }
 
-func getTopDocuments(index *index.Index, pathProvider paths.Pather, converter conversion.Converter, item *model.Item) []*viewmodel.Model {
+func getTopDocuments(itemIndex *index.ItemIndex, pathProvider paths.Pather, converter conversion.Converter, item *model.Item) []*viewmodel.Model {
 	childModels := make([]*viewmodel.Model, 0)
 
-	childItems := index.GetChilds(item.Route())
+	childItems := itemIndex.GetChilds(item.Route())
 
 	for _, childItem := range childItems {
 
@@ -116,7 +141,7 @@ func getTopDocuments(index *index.Index, pathProvider paths.Pather, converter co
 		}
 
 		// todo: choose the right level, don't just take all childs
-		childModel := getViewModel(index, pathProvider, converter, childItem)
+		childModel := getViewModel(itemIndex, pathProvider, converter, childItem)
 		childModels = append(childModels, &childModel)
 	}
 
@@ -134,10 +159,10 @@ func getBaseModel(item *model.Item) viewmodel.Base {
 	}
 }
 
-func getChildModels(index *index.Index, item *model.Item) []*viewmodel.Base {
+func getChildModels(itemIndex *index.ItemIndex, item *model.Item) []*viewmodel.Base {
 	childModels := make([]*viewmodel.Base, 0)
 
-	childItems := index.GetChilds(item.Route())
+	childItems := itemIndex.GetChilds(item.Route())
 	for _, childItem := range childItems {
 		baseModel := getBaseModel(childItem)
 		childModels = append(childModels, &baseModel)
@@ -146,14 +171,14 @@ func getChildModels(index *index.Index, item *model.Item) []*viewmodel.Base {
 	return childModels
 }
 
-func getToplevelNavigation(index *index.Index) *viewmodel.ToplevelNavigation {
+func getToplevelNavigation(itemIndex *index.ItemIndex) *viewmodel.ToplevelNavigation {
 	root, err := route.NewFromRequest("")
 	if err != nil {
 		return nil
 	}
 
 	toplevelEntries := make([]*viewmodel.ToplevelEntry, 0)
-	for _, child := range index.GetChilds(root) {
+	for _, child := range itemIndex.GetChilds(root) {
 
 		// skip all childs which are not first level
 		if child.Route().Level() != 1 {
@@ -172,7 +197,7 @@ func getToplevelNavigation(index *index.Index) *viewmodel.ToplevelNavigation {
 	}
 }
 
-func getBreadcrumbNavigation(index *index.Index, item *model.Item) *viewmodel.BreadcrumbNavigation {
+func getBreadcrumbNavigation(itemIndex *index.ItemIndex, item *model.Item) *viewmodel.BreadcrumbNavigation {
 
 	// create a new bread crumb navigation
 	navigation := &viewmodel.BreadcrumbNavigation{
@@ -185,8 +210,8 @@ func getBreadcrumbNavigation(index *index.Index, item *model.Item) *viewmodel.Br
 	}
 
 	// recurse if there is a parent
-	if parent := index.GetParent(item.Route()); parent != nil {
-		navigation.Entries = append(navigation.Entries, getBreadcrumbNavigation(index, parent).Entries...)
+	if parent := itemIndex.GetParent(item.Route()); parent != nil {
+		navigation.Entries = append(navigation.Entries, getBreadcrumbNavigation(itemIndex, parent).Entries...)
 	}
 
 	// append a new navigation entry and return it

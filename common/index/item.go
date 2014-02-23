@@ -5,33 +5,37 @@
 package index
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
 )
 
-func New(logger logger.Logger) *Index {
-	return &Index{
+func CreateItemIndex(logger logger.Logger) *ItemIndex {
+	return &ItemIndex{
 		logger: logger,
 		items:  make(map[route.Route]*model.Item),
 	}
 }
 
-type Index struct {
+type ItemIndex struct {
 	logger logger.Logger
 	items  map[route.Route]*model.Item
 }
 
-func (index *Index) IsMatch(route route.Route) (item *model.Item, isMatch bool) {
+func (index *ItemIndex) IsMatch(route route.Route) (item *model.Item, isMatch bool) {
 	item, isMatch = index.items[route]
 	return
 }
 
-func (index *Index) IsFileMatch(route route.Route) (*model.File, bool) {
+func (index *ItemIndex) IsFileMatch(route route.Route) (*model.File, bool) {
+
+	fmt.Printf("Checking if %q is a file match\n", route)
 
 	// skip all virtual parents
 	parent := index.GetParent(&route)
 	for parent != nil && parent.IsVirtual() {
+		fmt.Printf("Parent is %q (IsVirtual: %s)\n", parent.Route(), parent.IsVirtual())
 		parent = index.GetParent(parent.Route())
 	}
 
@@ -49,7 +53,7 @@ func (index *Index) IsFileMatch(route route.Route) (*model.File, bool) {
 	return nil, false
 }
 
-func (index *Index) GetParent(childRoute *route.Route) *model.Item {
+func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
 
 	// already at the root
 	if childRoute.Level() == 0 {
@@ -63,6 +67,7 @@ func (index *Index) GetParent(childRoute *route.Route) *model.Item {
 		}
 
 		// return the parent
+		fmt.Printf("%q is a parent of %q\n", parentRoute, childRoute)
 		return parentItem
 	}
 
@@ -100,7 +105,7 @@ func newVirtualItem(route *route.Route) (*model.Item, error) {
 	return item, nil
 }
 
-func (index *Index) GetChilds(route *route.Route) []*model.Item {
+func (index *ItemIndex) GetChilds(route *route.Route) []*model.Item {
 
 	// locate first and second level childs
 	childs := make([]*model.Item, 0)
@@ -118,7 +123,7 @@ func (index *Index) GetChilds(route *route.Route) []*model.Item {
 	return childs
 }
 
-func (index *Index) Routes() []route.Route {
+func (index *ItemIndex) Routes() []route.Route {
 	routes := make([]route.Route, 0)
 	for route, _ := range index.items {
 		routes = append(routes, route)
@@ -126,7 +131,7 @@ func (index *Index) Routes() []route.Route {
 	return routes
 }
 
-func (index *Index) Add(item *model.Item) {
+func (index *ItemIndex) Add(item *model.Item) {
 	index.logger.Debug("Adding item %q to index", item)
 	index.items[*item.Route()] = item
 }

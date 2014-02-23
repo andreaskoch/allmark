@@ -10,18 +10,18 @@ import (
 )
 
 // Create a new absolute web path provider
-func newAbsoluteWebPathProvider(logger logger.Logger, index *index.Index, prefix string) *AbsoluteWebPathProvider {
+func newAbsoluteWebPathProvider(logger logger.Logger, itemIndex *index.ItemIndex, prefix string) *AbsoluteWebPathProvider {
 	return &AbsoluteWebPathProvider{
-		prefix: prefix,
-		logger: logger,
-		index:  index,
+		prefix:    prefix,
+		logger:    logger,
+		itemIndex: itemIndex,
 	}
 }
 
 type AbsoluteWebPathProvider struct {
-	prefix string
-	logger logger.Logger
-	index  *index.Index
+	prefix    string
+	logger    logger.Logger
+	itemIndex *index.ItemIndex
 }
 
 // Get the absolute path for the supplied item

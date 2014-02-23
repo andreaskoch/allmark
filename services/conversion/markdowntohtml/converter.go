@@ -96,7 +96,6 @@ func rewireLinks(pathProvider paths.Pather, item *model.Item, markdown string) s
 
 		// assemble the new link
 		newLinkText := fmt.Sprintf("[%s](%s)", descriptionText, matchingFilePath)
-		fmt.Println("Replacing", originalText, newLinkText)
 
 		// replace the old text
 		markdown = strings.Replace(markdown, originalText, newLinkText, 1)

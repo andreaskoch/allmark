@@ -11,22 +11,22 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 )
 
-func NewFactory(logger logger.Logger, index *index.Index) *PatherFactory {
+func NewFactory(logger logger.Logger, itemIndex *index.ItemIndex) *PatherFactory {
 	return &PatherFactory{
-		logger: logger,
-		index:  index,
+		logger:    logger,
+		itemIndex: itemIndex,
 	}
 }
 
 type PatherFactory struct {
-	logger logger.Logger
-	index  *index.Index
+	logger    logger.Logger
+	itemIndex *index.ItemIndex
 }
 
 func (factory *PatherFactory) Absolute(prefix string) paths.Pather {
-	return newAbsoluteWebPathProvider(factory.logger, factory.index, prefix)
+	return newAbsoluteWebPathProvider(factory.logger, factory.itemIndex, prefix)
 }
 
 func (factory *PatherFactory) Relative(baseRoute *route.Route) paths.Pather {
-	return newRelativeWebPathProvider(factory.logger, factory.index, baseRoute)
+	return newRelativeWebPathProvider(factory.logger, factory.itemIndex, baseRoute)
 }

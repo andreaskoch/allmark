@@ -97,7 +97,7 @@ func (parser *Parser) convertFiles(dataaccessFiles []*dataaccess.File) []*model.
 
 	for _, file := range dataaccessFiles {
 
-		fileModel, err := model.NewFile(file)
+		fileModel, err := model.NewFromDataAccess(file)
 		if err != nil {
 			parser.logger.Warn("Unable to convert file %q.", file)
 			continue

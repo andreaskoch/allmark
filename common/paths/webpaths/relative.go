@@ -12,24 +12,24 @@ import (
 )
 
 // Create a new relative web path provider
-func newRelativeWebPathProvider(logger logger.Logger, index *index.Index, baseRoute *route.Route) *RelativeWebPathProvider {
+func newRelativeWebPathProvider(logger logger.Logger, itemIndex *index.ItemIndex, baseRoute *route.Route) *RelativeWebPathProvider {
 	return &RelativeWebPathProvider{
 		logger:    logger,
-		index:     index,
+		itemIndex: itemIndex,
 		baseRoute: baseRoute,
 	}
 }
 
 type RelativeWebPathProvider struct {
 	logger    logger.Logger
-	index     *index.Index
+	itemIndex *index.ItemIndex
 	baseRoute *route.Route
 }
 
 // Get the path relative for the supplied item
 func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 	baseRouteString := webPathProvider.baseRoute.Value()
-	baseRouteChilds := webPathProvider.index.GetChilds(webPathProvider.baseRoute)
+	baseRouteChilds := webPathProvider.itemIndex.GetChilds(webPathProvider.baseRoute)
 
 	for _, child := range baseRouteChilds {
 

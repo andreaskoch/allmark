@@ -48,6 +48,11 @@ func main() {
 		logger.Fatal("Unable to instantiate a server. Error: %s", err)
 	}
 
+	// serve theme files
+	baseFolder := config.MetaDataFolder()
+	themeFolder := config.ThemeFolder()
+	server.ServeFolder(baseFolder, themeFolder)
+
 	// read the repository
 	itemEvents := repository.GetItems()
 	for itemEvent := range itemEvents {
@@ -69,7 +74,7 @@ func main() {
 		}
 
 		// send item to server
-		server.Serve(item)
+		server.ServeItem(item)
 	}
 
 	// start the server

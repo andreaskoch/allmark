@@ -9,14 +9,8 @@ import (
 	"net/http"
 )
 
-func GetRequestedPathFromRequest(r *http.Request) string {
-	requestedRoute, err := route.NewFromRequest(r.URL.Path)
-	if err != nil {
-		panic(err)
-	}
-
-	requestedPath := requestedRoute.Value()
-	return requestedPath
+func GetRouteFromRequest(r *http.Request) (*route.Route, error) {
+	return route.NewFromRequest(r.URL.Path)
 }
 
 func GetHostnameFromRequest(r *http.Request) string {
