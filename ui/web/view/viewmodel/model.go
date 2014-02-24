@@ -9,9 +9,10 @@ import (
 )
 
 type Base struct {
-	Type  string `json:"type"`
-	Level int    `json:"level"`
-	Route string `json:"route"`
+	Type    string `json:"type"`
+	Level   int    `json:"level"`
+	Route   string `json:"route"`
+	BaseUrl string `json:"baseUrl"`
 
 	Title       string `json:"title"`
 	Description string `json:"description"`
@@ -42,10 +43,11 @@ type Model struct {
 func Error(title, content, route string) *Model {
 	return &Model{
 		Base: Base{
-			Level: 0,
-			Title: title,
-			Route: route,
-			Type:  "error",
+			Level:   0,
+			Title:   title,
+			Route:   route,
+			Type:    "error",
+			BaseUrl: "/",
 		},
 		Content: content,
 	}

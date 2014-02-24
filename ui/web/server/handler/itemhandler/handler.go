@@ -150,13 +150,23 @@ func getTopDocuments(itemIndex *index.ItemIndex, pathProvider paths.Pather, conv
 
 func getBaseModel(item *model.Item) viewmodel.Base {
 	return viewmodel.Base{
-		Type:  item.Type.String(),
-		Route: item.Route().Value(),
-		Level: item.Route().Level(),
+		Type:    item.Type.String(),
+		Route:   item.Route().Value(),
+		Level:   item.Route().Level(),
+		BaseUrl: getBaseUrlFromItem(item.Route()),
 
 		Title:       item.Title,
 		Description: item.Description,
 	}
+}
+
+func getBaseUrlFromItem(route *route.Route) string {
+	url := route.Value()
+	if url != "" {
+		return "/" + url + "/"
+	}
+
+	return "/"
 }
 
 func getChildModels(itemIndex *index.ItemIndex, item *model.Item) []*viewmodel.Base {
@@ -187,7 +197,7 @@ func getToplevelNavigation(itemIndex *index.ItemIndex) *viewmodel.ToplevelNaviga
 
 		toplevelEntries = append(toplevelEntries, &viewmodel.ToplevelEntry{
 			Title: child.Title,
-			Path:  child.Route().Value(),
+			Path:  "/" + child.Route().Value(),
 		})
 
 	}
@@ -218,7 +228,7 @@ func getBreadcrumbNavigation(itemIndex *index.ItemIndex, item *model.Item) *view
 	navigation.Entries = append(navigation.Entries, &viewmodel.Breadcrumb{
 		Title: item.Title,
 		Level: item.Route().Level(),
-		Path:  item.Route().Value(),
+		Path:  "/" + item.Route().Value(),
 	})
 
 	return navigation

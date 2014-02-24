@@ -40,12 +40,11 @@ func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 
 		// intersect the child route with the base route to get full path
 		childRouteString := child.Route().Value()
-		path := "/" + strings.TrimPrefix(childRouteString, baseRouteString)
+		path := strings.TrimPrefix(strings.TrimPrefix(childRouteString, baseRouteString), "/")
 
 		return path
 	}
 
-	// path could not be resolved
-	webPathProvider.logger.Warn("The path %q could not be resolved", itemPath)
-	return itemPath
+	// path could not be resolved, try to trim the path
+	return strings.TrimPrefix(strings.TrimPrefix(itemPath, baseRouteString), "/")
 }
