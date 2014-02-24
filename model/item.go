@@ -7,6 +7,7 @@ package model
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/route"
+	"sort"
 	"strings"
 )
 
@@ -101,4 +102,32 @@ func (item *Item) GetFile(fileRoute route.Route) *File {
 	}
 
 	return nil
+}
+
+type SortItemBy func(item1, item2 *Item) bool
+
+func (by SortItemBy) Sort(items []*Item) {
+	sorter := &itemSorter{
+		items: items,
+		by:    by,
+	}
+
+	sort.Sort(sorter)
+}
+
+type itemSorter struct {
+	items []*Item
+	by    SortItemBy
+}
+
+func (sorter *itemSorter) Len() int {
+	return len(sorter.items)
+}
+
+func (sorter *itemSorter) Swap(i, j int) {
+	sorter.items[i], sorter.items[j] = sorter.items[j], sorter.items[i]
+}
+
+func (sorter *itemSorter) Less(i, j int) bool {
+	return sorter.by(sorter.items[i], sorter.items[j])
 }
