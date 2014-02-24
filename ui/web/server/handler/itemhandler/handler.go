@@ -11,8 +11,8 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
-	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion"
+	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
@@ -21,23 +21,26 @@ import (
 )
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
+
+	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter)
+
 	return &ItemHandler{
-		logger:        logger,
-		itemIndex:     itemIndex,
-		fileIndex:     fileIndex,
-		config:        config,
-		patherFactory: patherFactory,
-		converter:     converter,
+		logger:                logger,
+		itemIndex:             itemIndex,
+		fileIndex:             fileIndex,
+		config:                config,
+		patherFactory:         patherFactory,
+		viewModelOrchestrator: viewModelOrchestrator,
 	}
 }
 
 type ItemHandler struct {
-	logger        logger.Logger
-	itemIndex     *index.ItemIndex
-	fileIndex     *index.FileIndex
-	config        *config.Config
-	patherFactory paths.PatherFactory
-	converter     conversion.Converter
+	logger                logger.Logger
+	itemIndex             *index.ItemIndex
+	fileIndex             *index.FileIndex
+	config                *config.Config
+	patherFactory         paths.PatherFactory
+	viewModelOrchestrator orchestrator.ViewModelOrchestrator
 }
 
 func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -79,7 +82,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 
 			// create the view model
 			pathProvider := handler.patherFactory.Relative(item.Route())
-			viewModel := getViewModel(handler.itemIndex, pathProvider, handler.converter, item)
+			viewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, item)
 
 			// render the view model
 			render(w, viewModel)
@@ -103,135 +106,6 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		fmt.Fprintln(w, fmt.Sprintf("item %q not found.", requestRoute))
 		return
 	}
-}
-
-func getViewModel(itemIndex *index.ItemIndex, pathProvider paths.Pather, converter conversion.Converter, item *model.Item) viewmodel.Model {
-
-	// convert content
-	convertedContent, err := converter.Convert(pathProvider, item)
-	if err != nil {
-		return viewmodel.Model{}
-	}
-
-	// create a view model
-	viewModel := viewmodel.Model{
-		Base: getBaseModel(item),
-
-		Content: convertedContent,
-
-		Childs:               getChildModels(itemIndex, item),
-		ToplevelNavigation:   getToplevelNavigation(itemIndex),
-		BreadcrumbNavigation: getBreadcrumbNavigation(itemIndex, item),
-		TopDocs:              getTopDocuments(itemIndex, pathProvider, converter, item),
-	}
-
-	return viewModel
-}
-
-func getTopDocuments(itemIndex *index.ItemIndex, pathProvider paths.Pather, converter conversion.Converter, item *model.Item) []*viewmodel.Model {
-	childModels := make([]*viewmodel.Model, 0)
-
-	childItems := itemIndex.GetChilds(item.Route())
-
-	for _, childItem := range childItems {
-
-		// skip virtual items
-		if childItem.IsVirtual() {
-			continue
-		}
-
-		// todo: choose the right level, don't just take all childs
-		childModel := getViewModel(itemIndex, pathProvider, converter, childItem)
-		childModels = append(childModels, &childModel)
-	}
-
-	return childModels
-}
-
-func getBaseModel(item *model.Item) viewmodel.Base {
-	return viewmodel.Base{
-		Type:    item.Type.String(),
-		Route:   item.Route().Value(),
-		Level:   item.Route().Level(),
-		BaseUrl: getBaseUrlFromItem(item.Route()),
-
-		Title:       item.Title,
-		Description: item.Description,
-	}
-}
-
-func getBaseUrlFromItem(route *route.Route) string {
-	url := route.Value()
-	if url != "" {
-		return "/" + url + "/"
-	}
-
-	return "/"
-}
-
-func getChildModels(itemIndex *index.ItemIndex, item *model.Item) []*viewmodel.Base {
-	childModels := make([]*viewmodel.Base, 0)
-
-	childItems := itemIndex.GetChilds(item.Route())
-	for _, childItem := range childItems {
-		baseModel := getBaseModel(childItem)
-		childModels = append(childModels, &baseModel)
-	}
-
-	return childModels
-}
-
-func getToplevelNavigation(itemIndex *index.ItemIndex) *viewmodel.ToplevelNavigation {
-	root, err := route.NewFromRequest("")
-	if err != nil {
-		return nil
-	}
-
-	toplevelEntries := make([]*viewmodel.ToplevelEntry, 0)
-	for _, child := range itemIndex.GetChilds(root) {
-
-		// skip all childs which are not first level
-		if child.Route().Level() != 1 {
-			continue
-		}
-
-		toplevelEntries = append(toplevelEntries, &viewmodel.ToplevelEntry{
-			Title: child.Title,
-			Path:  "/" + child.Route().Value(),
-		})
-
-	}
-
-	return &viewmodel.ToplevelNavigation{
-		Entries: toplevelEntries,
-	}
-}
-
-func getBreadcrumbNavigation(itemIndex *index.ItemIndex, item *model.Item) *viewmodel.BreadcrumbNavigation {
-
-	// create a new bread crumb navigation
-	navigation := &viewmodel.BreadcrumbNavigation{
-		Entries: make([]*viewmodel.Breadcrumb, 0),
-	}
-
-	// abort if item or model is nil
-	if item == nil {
-		return navigation
-	}
-
-	// recurse if there is a parent
-	if parent := itemIndex.GetParent(item.Route()); parent != nil {
-		navigation.Entries = append(navigation.Entries, getBreadcrumbNavigation(itemIndex, parent).Entries...)
-	}
-
-	// append a new navigation entry and return it
-	navigation.Entries = append(navigation.Entries, &viewmodel.Breadcrumb{
-		Title: item.Title,
-		Level: item.Route().Level(),
-		Path:  "/" + item.Route().Value(),
-	})
-
-	return navigation
 }
 
 func render(writer io.Writer, viewModel viewmodel.Model) {
