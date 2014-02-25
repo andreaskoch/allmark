@@ -42,27 +42,51 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 		Childs:               orchestrator.getChildModels(item),
 		ToplevelNavigation:   orchestrator.getToplevelNavigation(),
 		BreadcrumbNavigation: orchestrator.getBreadcrumbNavigation(item),
-		TopDocs:              orchestrator.getTopDocuments(pathProvider, item),
+		TopDocs:              orchestrator.getTopDocuments(pathProvider, item.Route()),
 	}
 
 	return viewModel
 }
 
-func (orchestrator *ViewModelOrchestrator) getTopDocuments(pathProvider paths.Pather, item *model.Item) []*viewmodel.Model {
-	childModels := make([]*viewmodel.Model, 0)
+func (orchestrator *ViewModelOrchestrator) getTopDocuments(pathProvider paths.Pather, route *route.Route) []*viewmodel.Model {
 
-	childItems := orchestrator.itemIndex.GetChilds(item.Route())
+	routeLevel := route.Level()
+	maxRouteLevel := orchestrator.itemIndex.MaxLevel()
+	childItems := orchestrator.itemIndex.GetChilds(route)
 
-	for _, childItem := range childItems {
+	numberOfTopDocuments := 3
+	childModels := make([]*viewmodel.Model, 0, numberOfTopDocuments)
 
-		// skip virtual items
-		if childItem.IsVirtual() {
-			continue
+	nextLevelIncrement := 1
+
+NextLevelLoop:
+	for nextLevelIncrement < maxRouteLevel {
+
+		for _, childItem := range childItems {
+
+			// ignore item which are not in the right level
+			if childItem.Route().Level() != (routeLevel + nextLevelIncrement) {
+				continue
+			}
+
+			// abort if we have found enough items
+			if len(childModels) >= cap(childModels) {
+				break NextLevelLoop
+			}
+
+			// create viewmodel and append to list
+			childModel := orchestrator.GetViewModel(pathProvider, childItem)
+			childModels = append(childModels, &childModel)
 		}
 
-		// todo: choose the right level, don't just take all childs
-		childModel := orchestrator.GetViewModel(pathProvider, childItem)
-		childModels = append(childModels, &childModel)
+		// abort if there has been at least one item in the current level
+		if len(childModels) > 0 {
+			break
+		}
+
+		// try the next deeper level if there have no been no items for the current level
+		nextLevelIncrement++
+
 	}
 
 	return childModels

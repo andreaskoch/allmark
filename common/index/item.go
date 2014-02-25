@@ -134,6 +134,20 @@ func (index *ItemIndex) Routes() []route.Route {
 	return routes
 }
 
+// Get the maxium level of all routes in this index (default: 0)
+func (index *ItemIndex) MaxLevel() int {
+	maxDepth := 0
+
+	for route, _ := range index.items {
+		itemLevel := route.Level()
+		if itemLevel > maxDepth {
+			maxDepth = itemLevel
+		}
+	}
+
+	return maxDepth
+}
+
 func (index *ItemIndex) Add(item *model.Item) {
 	index.logger.Debug("Adding item %q to index", item)
 	index.items[*item.Route()] = item
