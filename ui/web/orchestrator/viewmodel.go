@@ -74,9 +74,17 @@ NextLevelLoop:
 				break NextLevelLoop
 			}
 
-			// create viewmodel and append to list
-			childModel := orchestrator.GetViewModel(pathProvider, childItem)
-			childModels = append(childModels, &childModel)
+			if !childItem.IsVirtual() {
+
+				// create viewmodel and append to list
+				childModel := orchestrator.GetViewModel(pathProvider, childItem)
+				childModels = append(childModels, &childModel)
+				continue
+
+			}
+
+			// the child is virtual: get the top documents of the child
+			childModels = append(childModels, orchestrator.getTopDocuments(pathProvider, childItem.Route())...)
 		}
 
 		// abort if there has been at least one item in the current level
