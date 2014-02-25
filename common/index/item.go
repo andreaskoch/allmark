@@ -107,7 +107,7 @@ func newVirtualItem(route *route.Route) (*model.Item, error) {
 
 func (index *ItemIndex) GetChilds(route *route.Route) []*model.Item {
 
-	// locate first and second level childs
+	// routeLevel := route.Level()
 	childs := make([]*model.Item, 0)
 
 	for itemRoute, item := range index.items {
@@ -120,10 +120,52 @@ func (index *ItemIndex) GetChilds(route *route.Route) []*model.Item {
 		childs = append(childs, item)
 	}
 
+	// insert virtual items
+	childs = index.FillGapsWithVirtualItems(route, childs)
+
 	// sort the items by ascending by route
 	model.SortItemBy(sortItemsByRoute).Sort(childs)
 
 	return childs
+}
+
+func (index *ItemIndex) FillGapsWithVirtualItems(baseRoute *route.Route, items []*model.Item) []*model.Item {
+	baseRouteLevel := baseRoute.Level()
+
+	itemsByRouteLevel := make(map[int]*model.Item)
+	for _, item := range items {
+		routeLevel := item.Route().Level()
+
+		// store the route by its level
+		itemsByRouteLevel[routeLevel] = item
+	}
+
+	// locate the gabs and fill them
+	newItems := items
+	for level, item := range itemsByRouteLevel {
+
+		// skip the base route level
+		if level == baseRouteLevel {
+			continue
+		}
+
+		// there cannot be a parent for level zero
+		if level == 0 {
+			continue
+		}
+
+		// check if there is a parent for the current item/level
+		if _, hasParentInList := itemsByRouteLevel[level-1]; !hasParentInList {
+
+			// get a (virtual) parent from the index
+			if newParent := index.GetParent(item.Route()); newParent != nil {
+				newItems = append(newItems, newParent)
+			}
+
+		}
+	}
+
+	return newItems
 }
 
 func (index *ItemIndex) Routes() []route.Route {
@@ -134,18 +176,32 @@ func (index *ItemIndex) Routes() []route.Route {
 	return routes
 }
 
+func (index *ItemIndex) Items() []*model.Item {
+	items := make([]*model.Item, 0, len(index.items))
+
+	for _, item := range index.items {
+		items = append(items, item)
+	}
+
+	// sort the items by ascending by route
+	model.SortItemBy(sortItemsByRoute).Sort(items)
+
+	return items
+}
+
 // Get the maxium level of all routes in this index (default: 0)
 func (index *ItemIndex) MaxLevel() int {
-	maxDepth := 0
 
-	for route, _ := range index.items {
-		itemLevel := route.Level()
-		if itemLevel > maxDepth {
-			maxDepth = itemLevel
+	maxLevel := 0
+
+	for _, item := range index.items {
+		itemLevel := item.Route().Level()
+		if itemLevel > maxLevel {
+			maxLevel = itemLevel
 		}
 	}
 
-	return maxDepth
+	return maxLevel
 }
 
 func (index *ItemIndex) Add(item *model.Item) {
