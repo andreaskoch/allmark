@@ -5,7 +5,6 @@
 package index
 
 import (
-	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
@@ -30,12 +29,9 @@ func (index *ItemIndex) IsMatch(route route.Route) (item *model.Item, isMatch bo
 
 func (index *ItemIndex) IsFileMatch(route route.Route) (*model.File, bool) {
 
-	fmt.Printf("Checking if %q is a file match\n", route)
-
 	// skip all virtual parents
 	parent := index.GetParent(&route)
 	for parent != nil && parent.IsVirtual() {
-		fmt.Printf("Parent is %q (IsVirtual: %s)\n", parent.Route(), parent.IsVirtual())
 		parent = index.GetParent(parent.Route())
 	}
 
@@ -67,7 +63,6 @@ func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
 		}
 
 		// return the parent
-		fmt.Printf("%q is a parent of %q\n", parentRoute, childRoute)
 		return parentItem
 	}
 

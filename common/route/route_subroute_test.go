@@ -49,7 +49,6 @@ func Test_SubRoute_TwoLevelRoute_RequestSecondLevel_SecondLevelIsReturned(t *tes
 	result, _ := route.SubRoute(level)
 
 	// assert
-	fmt.Println("result", result)
 	if result == nil || result.Value() != expected {
 		t.Errorf("The level-%d sub route should be %q, but was %q.", level, expected, result.Value())
 	}
