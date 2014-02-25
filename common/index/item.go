@@ -120,8 +120,8 @@ func (index *ItemIndex) GetChilds(route *route.Route) []*model.Item {
 		childs = append(childs, item)
 	}
 
-	// sort the items by date and folder name
-	model.SortItemBy(dateAndName).Sort(childs)
+	// sort the items by ascending by route
+	model.SortItemBy(sortItemsByRoute).Sort(childs)
 
 	return childs
 }
@@ -140,14 +140,9 @@ func (index *ItemIndex) Add(item *model.Item) {
 }
 
 // sort the items by date and name
-func dateAndName(item1, item2 *model.Item) bool {
+func sortItemsByRoute(item1, item2 *model.Item) bool {
 
-	if item1.MetaData == nil || item2.MetaData == nil || item1.MetaData.CreationDate.Equal(item2.MetaData.CreationDate) {
-		// ascending by route
-		return item1.Route().Value() < item2.Route().Value()
+	// ascending by route
+	return item1.Route().Value() < item2.Route().Value()
 
-	}
-
-	// descending by date
-	return item1.MetaData.CreationDate.After(item2.MetaData.CreationDate)
 }
