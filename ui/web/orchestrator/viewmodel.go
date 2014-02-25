@@ -42,62 +42,51 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 		Childs:               orchestrator.getChildModels(item),
 		ToplevelNavigation:   orchestrator.getToplevelNavigation(),
 		BreadcrumbNavigation: orchestrator.getBreadcrumbNavigation(item),
-		TopDocs:              orchestrator.getTopDocuments(pathProvider, item.Route()),
+		TopDocs:              orchestrator.getTopDocuments(5, pathProvider, item.Route()),
 	}
 
 	return viewModel
 }
 
-func (orchestrator *ViewModelOrchestrator) getTopDocuments(pathProvider paths.Pather, route *route.Route) []*viewmodel.Model {
+func (orchestrator *ViewModelOrchestrator) getTopDocuments(numberOfTopDocuments int, pathProvider paths.Pather, route *route.Route) []*viewmodel.Model {
 
 	routeLevel := route.Level()
-	maxRouteLevel := orchestrator.itemIndex.MaxLevel()
 	childItems := orchestrator.itemIndex.GetChilds(route)
 
-	numberOfTopDocuments := 3
-	childModels := make([]*viewmodel.Model, 0, numberOfTopDocuments)
+	// determine the candidates for the top-documents
+	candidateModels := make([]*viewmodel.Model, 0)
 
-	nextLevelIncrement := 1
+	for _, childItem := range childItems {
 
-NextLevelLoop:
-	for nextLevelIncrement < maxRouteLevel {
+		// ignore item which are not in the right level
+		if childItem.Route().Level() != (routeLevel + 1) {
+			continue
+		}
 
-		for _, childItem := range childItems {
-
-			// ignore item which are not in the right level
-			if childItem.Route().Level() != (routeLevel + nextLevelIncrement) {
-				continue
-			}
-
-			// abort if we have found enough items
-			if len(childModels) >= cap(childModels) {
-				break NextLevelLoop
-			}
-
-			if !childItem.IsVirtual() {
-
-				// create viewmodel and append to list
-				childModel := orchestrator.GetViewModel(pathProvider, childItem)
-				childModels = append(childModels, &childModel)
-				continue
-
-			}
+		if childItem.IsVirtual() {
 
 			// the child is virtual: get the top documents of the child
-			childModels = append(childModels, orchestrator.getTopDocuments(pathProvider, childItem.Route())...)
-		}
+			candidateModels = append(candidateModels, orchestrator.getTopDocuments(numberOfTopDocuments, pathProvider, childItem.Route())...)
 
-		// abort if there has been at least one item in the current level
-		if len(childModels) > 0 {
-			break
-		}
+		} else {
 
-		// try the next deeper level if there have no been no items for the current level
-		nextLevelIncrement++
+			// create viewmodel and append to list
+			childModel := orchestrator.GetViewModel(pathProvider, childItem)
+			candidateModels = append(candidateModels, &childModel)
+
+		}
 
 	}
 
-	return childModels
+	// sort the candidates
+	viewmodel.SortModelBy(sortModelsByDateAndRoute).Sort(candidateModels)
+
+	// take the top models only
+	if len(candidateModels) <= numberOfTopDocuments {
+		return candidateModels
+	}
+
+	return candidateModels[:numberOfTopDocuments]
 }
 
 func getBaseModel(item *model.Item) viewmodel.Base {
@@ -184,4 +173,14 @@ func (orchestrator *ViewModelOrchestrator) getBreadcrumbNavigation(item *model.I
 	})
 
 	return navigation
+}
+
+func sortModelsByDateAndRoute(model1, model2 *viewmodel.Model) bool {
+
+	// ascending by route
+	if model1.LastModifiedDate != "" && model2.LastModifiedDate != "" {
+		return model1.LastModifiedDate > model2.LastModifiedDate
+	}
+
+	return model1.Route > model2.Route
 }
