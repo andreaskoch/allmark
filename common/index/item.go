@@ -23,8 +23,28 @@ type ItemIndex struct {
 }
 
 func (index *ItemIndex) IsMatch(route route.Route) (item *model.Item, isMatch bool) {
-	item, isMatch = index.items[route]
-	return
+
+	// check for a direct match
+	if item, isMatch = index.items[route]; isMatch {
+		return item, isMatch
+	}
+
+	// the route has childs we can create a virtual item for it
+	if hasChilds := len(index.GetChilds(&route)) > 0; hasChilds {
+
+		// if there is an indirect match we can return a virtual item
+		virtualItem, err := newVirtualItem(route)
+		if err != nil {
+			index.logger.Error("Could not create a virtual item for route %q. Error: %s", route, err)
+			return nil, false
+		}
+
+		return virtualItem, true
+
+	}
+
+	// no match
+	return nil, false
 }
 
 func (index *ItemIndex) IsFileMatch(route route.Route) (*model.File, bool) {
@@ -73,7 +93,7 @@ func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
 	}
 
 	// no parent item found - create a virtual parent
-	virtualParent, err := newVirtualItem(parentRoute)
+	virtualParent, err := newVirtualItem(*parentRoute)
 	if err != nil {
 
 		// error while creating a virtual parent
@@ -86,10 +106,10 @@ func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
 	return virtualParent
 }
 
-func newVirtualItem(route *route.Route) (*model.Item, error) {
+func newVirtualItem(route route.Route) (*model.Item, error) {
 
 	// create a virtual item
-	item, err := model.NewVirtualItem(route)
+	item, err := model.NewVirtualItem(&route)
 	if err != nil {
 		return nil, err
 	}
