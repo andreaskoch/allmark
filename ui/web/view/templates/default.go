@@ -344,7 +344,7 @@ const errorTemplate = `
 
 var sitemapContentTemplate = fmt.Sprintf(`
 <li>
-	<a href="{{.Route}}" {{ if .Description }}title="{{.Description}}"{{ end }}>{{.Title}}</a>
+	<a href="{{.Path}}" {{ if .Description }}title="{{.Description}}"{{ end }}>{{.Title}}</a>
 
 	{{ if .Childs }}	
 	<ol>

@@ -109,6 +109,15 @@ func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
 	return virtualParent
 }
 
+func (index *ItemIndex) Root() *model.Item {
+	root, err := route.New()
+	if err != nil {
+		return nil
+	}
+
+	return index.items[*root]
+}
+
 func (index *ItemIndex) GetAllChilds(route *route.Route) []*model.Item {
 	return index.getChilds(route, true)
 }

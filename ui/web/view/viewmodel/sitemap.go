@@ -5,8 +5,8 @@
 package viewmodel
 
 type Sitemap struct {
-	AbsoluteRoute string     `json:"absoluteRoute"`
-	Title         string     `json:"title"`
-	Description   string     `json:"description"`
-	Childs        []*Sitemap `json:"childs"`
+	Path        string    `json:"path"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Childs      []Sitemap `json:"childs"`
 }

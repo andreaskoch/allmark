@@ -5,10 +5,10 @@
 package orchestrator
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/paths"
-	// "github.com/andreaskoch/allmark2/common/route"
-	// "github.com/andreaskoch/allmark2/model"
+	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
@@ -24,18 +24,37 @@ type SitemapOrchestrator struct {
 
 func (orchestrator *SitemapOrchestrator) GetSitemap(pathProvider paths.Pather) viewmodel.Sitemap {
 
-	// orchestrator.itemIndex.Walk(func(item *model.Item) {
+	rootItem := orchestrator.itemIndex.Root()
+	if rootItem == nil {
+		panic("J")
+	}
 
-	// 	viewModel := viewmodel.Sitemap{
-	// 		Type:    item.Type.String(),
-	// 		Route:   item.Route().Value(),
-	// 		Level:   item.Route().Level(),
-	// 		BaseUrl: getBaseUrlFromItem(item.Route()),
+	rootModel := viewmodel.Sitemap{
+		Title:       rootItem.Title,
+		Description: rootItem.Description,
+		Childs:      getSitemapEntries(orchestrator.itemIndex, *rootItem.Route()),
+	}
 
-	// 		Title:       item.Title,
-	// 		Description: item.Description,
-	// 	}
-	// })
+	return rootModel
+}
 
-	return viewmodel.Sitemap{}
+func getSitemapEntries(index *index.ItemIndex, startRoute route.Route) []viewmodel.Sitemap {
+
+	childs := make([]viewmodel.Sitemap, 0)
+	for _, child := range index.GetChilds(&startRoute) {
+
+		fmt.Println(child)
+
+		childRoute := child.Route()
+
+		childModel := viewmodel.Sitemap{
+			Title:       child.Title,
+			Description: child.Description,
+			Childs:      getSitemapEntries(index, *childRoute),
+		}
+
+		childs = append(childs, childModel)
+	}
+
+	return childs
 }

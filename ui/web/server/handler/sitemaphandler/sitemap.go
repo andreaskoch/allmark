@@ -66,7 +66,7 @@ func (handler *SitemapHandler) Func() func(w http.ResponseWriter, r *http.Reques
 		// render the sitemap content
 		pathProvider := handler.patherFactory.Absolute("")
 		sitemapContentModel := handler.sitemapOrchestrator.GetSitemap(pathProvider)
-		sitemapContent := renderSitemapEntry(sitemapContentTemplate, &sitemapContentModel)
+		sitemapContent := renderSitemapEntry(sitemapContentTemplate, sitemapContentModel)
 
 		sitemapPageModel := viewmodel.Model{
 			Content: sitemapContent,
@@ -82,7 +82,7 @@ func (handler *SitemapHandler) Func() func(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func renderSitemapEntry(templ *template.Template, sitemapModel *viewmodel.Sitemap) string {
+func renderSitemapEntry(templ *template.Template, sitemapModel viewmodel.Sitemap) string {
 
 	// render
 	buffer := new(bytes.Buffer)
@@ -94,7 +94,6 @@ func renderSitemapEntry(templ *template.Template, sitemapModel *viewmodel.Sitema
 	if len(sitemapModel.Childs) > 0 {
 
 		// render all childs
-
 		childCode := ""
 		for _, child := range sitemapModel.Childs {
 			childCode += "\n" + renderSitemapEntry(templ, child)
