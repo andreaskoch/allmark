@@ -12,12 +12,17 @@ import (
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/debughandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/itemhandler"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/sitemaphandler"
 )
 
-func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
-	return itemhandler.New(logger, config, itemIndex, fileIndex, patherFactory, converter)
+func NewSitemapHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) Handler {
+	return sitemaphandler.New(logger, config, itemIndex, patherFactory)
 }
 
 func NewDebugHandler(logger logger.Logger, itemIndex *index.ItemIndex, fileIndex *index.FileIndex) Handler {
 	return debughandler.New(logger, itemIndex, fileIndex)
+}
+
+func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
+	return itemhandler.New(logger, config, itemIndex, fileIndex, patherFactory, converter)
 }

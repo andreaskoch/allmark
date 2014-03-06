@@ -22,6 +22,7 @@ import (
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
 
+	templateProvider := templates.NewProvider(".")
 	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter)
 
 	return &ItemHandler{
@@ -30,6 +31,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 		fileIndex:             fileIndex,
 		config:                config,
 		patherFactory:         patherFactory,
+		templateProvider:      templateProvider,
 		viewModelOrchestrator: viewModelOrchestrator,
 	}
 }
@@ -40,6 +42,7 @@ type ItemHandler struct {
 	fileIndex             *index.FileIndex
 	config                *config.Config
 	patherFactory         paths.PatherFactory
+	templateProvider      *templates.Provider
 	viewModelOrchestrator orchestrator.ViewModelOrchestrator
 }
 
@@ -85,7 +88,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			viewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, item)
 
 			// render the view model
-			render(w, viewModel)
+			handler.render(w, viewModel)
 			return
 		}
 
@@ -108,22 +111,19 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func render(writer io.Writer, viewModel viewmodel.Model) {
-
-	templateProvider := templates.NewProvider(".")
+func (handler *ItemHandler) render(writer io.Writer, viewModel viewmodel.Model) {
 
 	// get a template
-	if template, err := templateProvider.GetFullTemplate(viewModel.Type); err == nil {
+	template, err := handler.templateProvider.GetFullTemplate(viewModel.Type)
+	if err != nil {
+		handler.logger.Error("No template for item of type %q.", viewModel.Type)
+		return
+	}
 
-		err := template.Execute(writer, viewModel)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-	} else {
-
-		fmt.Fprintf(writer, "No template for item of type %q.", viewModel.Type)
-
+	// render template
+	if err := handlerutil.RenderTemplate(viewModel, template, writer); err != nil {
+		handler.logger.Error("%s", err)
+		return
 	}
 
 }

@@ -30,7 +30,7 @@ func (index *ItemIndex) IsMatch(route route.Route) (item *model.Item, isMatch bo
 	}
 
 	// the route has childs we can create a virtual item for it
-	if hasChilds := len(index.GetChilds(&route)) > 0; hasChilds {
+	if hasChilds := len(index.GetAllChilds(&route)) > 0; hasChilds {
 
 		// if there is an indirect match we can return a virtual item
 		virtualItem, err := newVirtualItem(route)
@@ -102,85 +102,48 @@ func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
 
 	}
 
+	// store the virtual parent in the index
+	index.items[*parentRoute] = virtualParent
+
 	// return the virtual parent
 	return virtualParent
 }
 
-func newVirtualItem(route route.Route) (*model.Item, error) {
-
-	// create a virtual item
-	item, err := model.NewVirtualItem(&route)
-	if err != nil {
-		return nil, err
-	}
-
-	// set the item title
-	item.Title = route.FolderName()
-
-	return item, nil
+func (index *ItemIndex) GetAllChilds(route *route.Route) []*model.Item {
+	return index.getChilds(route, true)
 }
 
 func (index *ItemIndex) GetChilds(route *route.Route) []*model.Item {
+	return index.getChilds(route, false)
+}
+
+func (index *ItemIndex) getChilds(route *route.Route, recurse bool) []*model.Item {
+
+	routeLevel := route.Level()
+	nextLevel := routeLevel + 1
 
 	// routeLevel := route.Level()
 	childs := make([]*model.Item, 0)
 
-	for itemRoute, item := range index.items {
+	for childRoute, child := range index.items {
 
-		// skip all items which are not a child
-		if !itemRoute.IsChildOf(route) {
+		// skip all deeper-level childs if recursion is disabled
+		if !recurse && childRoute.Level() != nextLevel {
 			continue
 		}
 
-		childs = append(childs, item)
-	}
+		// skip all items which are not a child
+		if !childRoute.IsChildOf(route) {
+			continue
+		}
 
-	// insert virtual items
-	childs = index.FillGapsWithVirtualItems(route, childs)
+		childs = append(childs, child)
+	}
 
 	// sort the items by ascending by route
 	model.SortItemBy(sortItemsByRoute).Sort(childs)
 
 	return childs
-}
-
-func (index *ItemIndex) FillGapsWithVirtualItems(baseRoute *route.Route, items []*model.Item) []*model.Item {
-	baseRouteLevel := baseRoute.Level()
-
-	itemsByRouteLevel := make(map[int]*model.Item)
-	for _, item := range items {
-		routeLevel := item.Route().Level()
-
-		// store the route by its level
-		itemsByRouteLevel[routeLevel] = item
-	}
-
-	// locate the gabs and fill them
-	newItems := items
-	for level, item := range itemsByRouteLevel {
-
-		// skip the base route level
-		if level == baseRouteLevel {
-			continue
-		}
-
-		// there cannot be a parent for level zero
-		if level == 0 {
-			continue
-		}
-
-		// check if there is a parent for the current item/level
-		if _, hasParentInList := itemsByRouteLevel[level-1]; !hasParentInList {
-
-			// get a (virtual) parent from the index
-			if newParent := index.GetParent(item.Route()); newParent != nil {
-				newItems = append(newItems, newParent)
-			}
-
-		}
-	}
-
-	return newItems
 }
 
 func (index *ItemIndex) Routes() []route.Route {
@@ -221,7 +184,53 @@ func (index *ItemIndex) MaxLevel() int {
 
 func (index *ItemIndex) Add(item *model.Item) {
 	index.logger.Debug("Adding item %q to index", item)
-	index.items[*item.Route()] = item
+
+	// the the item to the index
+	itemRoute := *item.Route()
+	index.items[itemRoute] = item
+
+	// insert virtual items if required
+	index.fillGapsWithVirtualItems(itemRoute)
+}
+
+func (index *ItemIndex) fillGapsWithVirtualItems(baseRoute route.Route) {
+
+	// validate the input
+	if baseRoute.Level() == 0 {
+		return
+	}
+
+	parentRoute := baseRoute.Parent()
+	for parentRoute != nil && parentRoute.Level() > 0 {
+
+		if _, exists := index.items[*parentRoute]; !exists {
+
+			if virtualParentItem, err := newVirtualItem(*parentRoute); err != nil {
+
+				// add the virtual item to the index
+				index.items[*parentRoute] = virtualParentItem
+
+			}
+		}
+
+		// move up
+		parentRoute = parentRoute.Parent()
+
+	}
+}
+
+func newVirtualItem(route route.Route) (*model.Item, error) {
+
+	// create a virtual item
+	item, err := model.NewVirtualItem(&route)
+	if err != nil {
+		return nil, err
+	}
+
+	// set the item title
+	item.Title = route.FolderName()
+
+	return item, nil
 }
 
 // sort the items by date and name

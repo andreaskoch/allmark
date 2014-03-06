@@ -29,7 +29,7 @@ type RelativeWebPathProvider struct {
 // Get the path relative for the supplied item
 func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 	baseRouteString := webPathProvider.baseRoute.Value()
-	baseRouteChilds := webPathProvider.itemIndex.GetChilds(webPathProvider.baseRoute)
+	baseRouteChilds := webPathProvider.itemIndex.GetAllChilds(webPathProvider.baseRoute)
 
 	for _, child := range baseRouteChilds {
 

@@ -69,6 +69,16 @@ func NewFromRequest(requestPath string) (*Route, error) {
 	}, nil
 }
 
+func New() (*Route, error) {
+
+	// normalize the request path
+	normalizedRequestPath := normalize("")
+
+	return &Route{
+		normalizedRequestPath,
+	}, nil
+}
+
 func Combine(route1, route2 *Route) (*Route, error) {
 	return NewFromRequest(route1.Value() + "/" + route2.Value())
 }

@@ -39,7 +39,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 
 		Content: convertedContent,
 
-		Childs:               orchestrator.getChildModels(item),
+		Childs:               orchestrator.getChildModels(item.Route()),
 		ToplevelNavigation:   orchestrator.getToplevelNavigation(),
 		BreadcrumbNavigation: orchestrator.getBreadcrumbNavigation(item),
 		TopDocs:              orchestrator.getTopDocuments(5, pathProvider, item.Route()),
@@ -50,18 +50,12 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 
 func (orchestrator *ViewModelOrchestrator) getTopDocuments(numberOfTopDocuments int, pathProvider paths.Pather, route *route.Route) []*viewmodel.Model {
 
-	routeLevel := route.Level()
-	childItems := orchestrator.itemIndex.GetChilds(route)
+	childItems := orchestrator.itemIndex.GetAllChilds(route)
 
 	// determine the candidates for the top-documents
 	candidateModels := make([]*viewmodel.Model, 0)
 
 	for _, childItem := range childItems {
-
-		// ignore item which are not in the right level
-		if childItem.Route().Level() != (routeLevel + 1) {
-			continue
-		}
 
 		if childItem.IsVirtual() {
 
@@ -89,31 +83,10 @@ func (orchestrator *ViewModelOrchestrator) getTopDocuments(numberOfTopDocuments 
 	return candidateModels[:numberOfTopDocuments]
 }
 
-func getBaseModel(item *model.Item) viewmodel.Base {
-	return viewmodel.Base{
-		Type:    item.Type.String(),
-		Route:   item.Route().Value(),
-		Level:   item.Route().Level(),
-		BaseUrl: getBaseUrlFromItem(item.Route()),
-
-		Title:       item.Title,
-		Description: item.Description,
-	}
-}
-
-func getBaseUrlFromItem(route *route.Route) string {
-	url := route.Value()
-	if url != "" {
-		return "/" + url + "/"
-	}
-
-	return "/"
-}
-
-func (orchestrator *ViewModelOrchestrator) getChildModels(item *model.Item) []*viewmodel.Base {
+func (orchestrator *ViewModelOrchestrator) getChildModels(route *route.Route) []*viewmodel.Base {
 	childModels := make([]*viewmodel.Base, 0)
 
-	childItems := orchestrator.itemIndex.GetChilds(item.Route())
+	childItems := orchestrator.itemIndex.GetChilds(route)
 	for _, childItem := range childItems {
 		baseModel := getBaseModel(childItem)
 		childModels = append(childModels, &baseModel)
@@ -130,11 +103,6 @@ func (orchestrator *ViewModelOrchestrator) getToplevelNavigation() *viewmodel.To
 
 	toplevelEntries := make([]*viewmodel.ToplevelEntry, 0)
 	for _, child := range orchestrator.itemIndex.GetChilds(root) {
-
-		// skip all childs which are not first level
-		if child.Route().Level() != 1 {
-			continue
-		}
 
 		toplevelEntries = append(toplevelEntries, &viewmodel.ToplevelEntry{
 			Title: child.Title,
@@ -173,14 +141,4 @@ func (orchestrator *ViewModelOrchestrator) getBreadcrumbNavigation(item *model.I
 	})
 
 	return navigation
-}
-
-func sortModelsByDateAndRoute(model1, model2 *viewmodel.Model) bool {
-
-	// ascending by route
-	if model1.LastModifiedDate != "" && model2.LastModifiedDate != "" {
-		return model1.LastModifiedDate > model2.LastModifiedDate
-	}
-
-	return model1.Route > model2.Route
 }
