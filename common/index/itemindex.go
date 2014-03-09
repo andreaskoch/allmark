@@ -199,10 +199,10 @@ func (index *ItemIndex) Add(item *model.Item) {
 	index.items[itemRoute] = item
 
 	// insert virtual items if required
-	index.fillGapsWithVirtualItems(itemRoute)
+	fillGapsWithVirtualItems(index, itemRoute)
 }
 
-func (index *ItemIndex) fillGapsWithVirtualItems(baseRoute route.Route) {
+func fillGapsWithVirtualItems(index *ItemIndex, baseRoute route.Route) {
 
 	// validate the input
 	if baseRoute.Level() == 0 {
