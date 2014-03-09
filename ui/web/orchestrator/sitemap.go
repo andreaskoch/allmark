@@ -5,7 +5,6 @@
 package orchestrator
 
 import (
-	"fmt"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
@@ -26,7 +25,7 @@ func (orchestrator *SitemapOrchestrator) GetSitemap(pathProvider paths.Pather) v
 
 	rootItem := orchestrator.itemIndex.Root()
 	if rootItem == nil {
-		panic("J")
+		panic("No root item found")
 	}
 
 	rootModel := viewmodel.Sitemap{
@@ -42,8 +41,6 @@ func getSitemapEntries(index *index.ItemIndex, startRoute route.Route) []viewmod
 
 	childs := make([]viewmodel.Sitemap, 0)
 	for _, child := range index.GetChilds(&startRoute) {
-
-		fmt.Println(child)
 
 		childRoute := child.Route()
 
