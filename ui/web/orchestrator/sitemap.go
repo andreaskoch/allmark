@@ -32,6 +32,7 @@ func (orchestrator *SitemapOrchestrator) GetSitemap(pathProvider paths.Pather) v
 		Title:       rootItem.Title,
 		Description: rootItem.Description,
 		Childs:      getSitemapEntries(orchestrator.itemIndex, *rootItem.Route()),
+		Path:        "/",
 	}
 
 	return rootModel
@@ -48,6 +49,7 @@ func getSitemapEntries(index *index.ItemIndex, startRoute route.Route) []viewmod
 			Title:       child.Title,
 			Description: child.Description,
 			Childs:      getSitemapEntries(index, *childRoute),
+			Path:        child.Route().Value(),
 		}
 
 		childs = append(childs, childModel)

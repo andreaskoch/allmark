@@ -29,34 +29,32 @@ func (index *ItemIndex) IsMatch(route route.Route) (item *model.Item, isMatch bo
 		return item, isMatch
 	}
 
-	// the route has childs we can create a virtual item for it
-	if hasChilds := len(index.GetAllChilds(&route)) > 0; hasChilds {
-
-		// if there is an indirect match we can return a virtual item
-		virtualItem, err := newVirtualItem(route)
-		if err != nil {
-			index.logger.Error("Could not create a virtual item for route %q. Error: %s", route, err)
-			return nil, false
-		}
-
-		return virtualItem, true
-
-	}
-
 	// no match
 	return nil, false
 }
 
 func (index *ItemIndex) IsFileMatch(route route.Route) (*model.File, bool) {
 
-	// skip all virtual parents
-	parent := index.GetParent(&route)
-	for parent != nil && parent.IsVirtual() {
-		parent = index.GetParent(parent.Route())
+	var parent *model.Item
+	parentRoute := &route
+	for parentRoute != nil && parentRoute.Level() > 0 {
+
+		parent, _ = index.IsMatch(*parentRoute)
+		if parent == nil || parent.IsVirtual() {
+
+			// next level
+			parentRoute = parentRoute.Parent()
+			continue
+
+		}
+
+		// found a non-virtual parent
+		break
+
 	}
 
 	// abort if there is no non-virtual parent
-	if parent == nil {
+	if parent == nil || parent.IsVirtual() {
 		return nil, false
 	}
 
@@ -71,42 +69,27 @@ func (index *ItemIndex) IsFileMatch(route route.Route) (*model.File, bool) {
 
 func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
 
-	// already at the root
+	if childRoute == nil {
+		return nil
+	}
+
+	// abort if the supplied route is already a root
 	if childRoute.Level() == 0 {
 		return nil
 	}
 
-	// locate the parent item
-	for parentRoute, parentItem := range index.items {
-		if !parentRoute.IsParentOf(childRoute) {
-			continue
-		}
-
-		// return the parent
-		return parentItem
-	}
-
-	// check if there is a parent
+	// get the parent route
 	parentRoute := childRoute.Parent()
 	if parentRoute == nil {
-		return nil // we are already at the root
-	}
-
-	// no parent item found - create a virtual parent
-	virtualParent, err := newVirtualItem(*parentRoute)
-	if err != nil {
-
-		// error while creating a virtual parent
-		index.logger.Warn("Unable to create a virtual parent for the route %q. Error: %s", parentRoute, err)
 		return nil
-
 	}
 
-	// store the virtual parent in the index
-	index.items[*parentRoute] = virtualParent
+	item, isMatch := index.IsMatch(*parentRoute)
+	if !isMatch {
+		return nil
+	}
 
-	// return the virtual parent
-	return virtualParent
+	return item
 }
 
 func (index *ItemIndex) Root() *model.Item {
@@ -199,13 +182,14 @@ func (index *ItemIndex) Add(item *model.Item) {
 	index.items[itemRoute] = item
 
 	// insert virtual items if required
-	fillGapsWithVirtualItems(index, itemRoute)
+	index.fillGapsWithVirtualItems(itemRoute)
 }
 
-func fillGapsWithVirtualItems(index *ItemIndex, baseRoute route.Route) {
+func (index *ItemIndex) fillGapsWithVirtualItems(baseRoute route.Route) {
 
 	// validate the input
 	if baseRoute.Level() == 0 {
+		index.logger.Debug("%q is at level 0", baseRoute)
 		return
 	}
 
@@ -214,12 +198,16 @@ func fillGapsWithVirtualItems(index *ItemIndex, baseRoute route.Route) {
 
 		if _, exists := index.items[*parentRoute]; !exists {
 
-			if virtualParentItem, err := newVirtualItem(*parentRoute); err != nil {
+			index.logger.Debug("Adding virtual item %q to index", parentRoute)
 
-				// add the virtual item to the index
-				index.items[*parentRoute] = virtualParentItem
-
+			virtualParentItem, err := newVirtualItem(*parentRoute)
+			if err != nil {
+				panic(err)
 			}
+
+			// add the virtual item to the index
+			index.items[*parentRoute] = virtualParentItem
+
 		}
 
 		// move up
