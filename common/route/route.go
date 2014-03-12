@@ -69,14 +69,14 @@ func NewFromRequest(requestPath string) (*Route, error) {
 	}, nil
 }
 
-func New() (*Route, error) {
+func New() *Route {
 
 	// normalize the request path
 	normalizedRequestPath := normalize("")
 
 	return &Route{
 		normalizedRequestPath,
-	}, nil
+	}
 }
 
 func Combine(route1, route2 *Route) (*Route, error) {
@@ -89,6 +89,10 @@ func (route *Route) String() string {
 
 func (route *Route) Value() string {
 	return route.value
+}
+
+func (route *Route) IsEmpty() bool {
+	return len(route.value) == 0
 }
 
 func (route *Route) FolderName() string {
@@ -159,11 +163,16 @@ func (route *Route) IsMatch(path string) bool {
 }
 
 func (route *Route) Parent() *Route {
+
+	if route.IsEmpty() {
+		return nil
+	}
+
 	routeValue := route.Value()
 
-	// check if the route contains a slash, if not there is no parent
+	// if there is no slash, the parent must be the root
 	if !strings.Contains(routeValue, "/") {
-		return nil // no parent available
+		return New()
 	}
 
 	positionOfLastSlash := strings.LastIndex(routeValue, "/")

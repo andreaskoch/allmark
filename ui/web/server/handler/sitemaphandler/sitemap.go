@@ -5,13 +5,12 @@
 package sitemaphandler
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
-	// "github.com/andreaskoch/allmark2/common/route"
-	"bytes"
 	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
@@ -74,8 +73,7 @@ func (handler *SitemapHandler) Func() func(w http.ResponseWriter, r *http.Reques
 
 		sitemapPageModel.Title = "Sitemap"
 		sitemapPageModel.Description = "A list of all items in this repository."
-		// sitemapPageModel.ToplevelNavigation = rootItem.ToplevelNavigation
-		// sitemapPageModel.BreadcrumbNavigation = rootItem.BreadcrumbNavigation
+		sitemapPageModel.ToplevelNavigation = orchestrator.GetToplevelNavigation(handler.itemIndex)
 		sitemapPageModel.Type = "sitemap"
 
 		handlerutil.RenderTemplate(sitemapPageModel, sitemapTemplate, w)

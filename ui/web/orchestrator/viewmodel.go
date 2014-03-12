@@ -40,8 +40,8 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 		Content: convertedContent,
 
 		Childs:               orchestrator.getChildModels(item.Route()),
-		ToplevelNavigation:   orchestrator.getToplevelNavigation(),
-		BreadcrumbNavigation: orchestrator.getBreadcrumbNavigation(item),
+		ToplevelNavigation:   GetToplevelNavigation(orchestrator.itemIndex),
+		BreadcrumbNavigation: GetBreadcrumbNavigation(orchestrator.itemIndex, item),
 		TopDocs:              orchestrator.getTopDocuments(5, pathProvider, item.Route()),
 	}
 
@@ -93,52 +93,4 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(route *route.Route) []
 	}
 
 	return childModels
-}
-
-func (orchestrator *ViewModelOrchestrator) getToplevelNavigation() *viewmodel.ToplevelNavigation {
-	root, err := route.NewFromRequest("")
-	if err != nil {
-		return nil
-	}
-
-	toplevelEntries := make([]*viewmodel.ToplevelEntry, 0)
-	for _, child := range orchestrator.itemIndex.GetChilds(root) {
-
-		toplevelEntries = append(toplevelEntries, &viewmodel.ToplevelEntry{
-			Title: child.Title,
-			Path:  "/" + child.Route().Value(),
-		})
-
-	}
-
-	return &viewmodel.ToplevelNavigation{
-		Entries: toplevelEntries,
-	}
-}
-
-func (orchestrator *ViewModelOrchestrator) getBreadcrumbNavigation(item *model.Item) *viewmodel.BreadcrumbNavigation {
-
-	// create a new bread crumb navigation
-	navigation := &viewmodel.BreadcrumbNavigation{
-		Entries: make([]*viewmodel.Breadcrumb, 0),
-	}
-
-	// abort if item or model is nil
-	if item == nil {
-		return navigation
-	}
-
-	// recurse if there is a parent
-	if parent := orchestrator.itemIndex.GetParent(item.Route()); parent != nil {
-		navigation.Entries = append(navigation.Entries, orchestrator.getBreadcrumbNavigation(parent).Entries...)
-	}
-
-	// append a new navigation entry and return it
-	navigation.Entries = append(navigation.Entries, &viewmodel.Breadcrumb{
-		Title: item.Title,
-		Level: item.Route().Level(),
-		Path:  "/" + item.Route().Value(),
-	})
-
-	return navigation
 }

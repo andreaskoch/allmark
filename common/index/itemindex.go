@@ -93,11 +93,7 @@ func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
 }
 
 func (index *ItemIndex) Root() *model.Item {
-	root, err := route.New()
-	if err != nil {
-		return nil
-	}
-
+	root := route.New()
 	return index.items[*root]
 }
 
