@@ -16,12 +16,17 @@ const (
 	ChildTemplatePlaceholder = "@childtemplate"
 
 	// Template names
-	MasterTemplateName         = "master"
-	ErrorTemplateName          = "error"
+	MasterTemplateName = "master"
+	ErrorTemplateName  = "error"
+
 	SitemapTemplateName        = "sitemap"
 	SitemapContentTemplateName = "sitemapcontent"
-	TagmapTemplateName         = "tagmap"
-	TagmapContentTemplateName  = "tagmapcontent"
+
+	XmlSitemapTemplateName        = "xmlsitemap"
+	XmlSitemapContentTemplateName = "xmlsitemapcontent"
+
+	TagmapTemplateName        = "tagmap"
+	TagmapContentTemplateName = "tagmapcontent"
 )
 
 type Provider struct {
@@ -46,6 +51,9 @@ func NewProvider(templateFolder string) *Provider {
 
 	templates[SitemapTemplateName] = NewTemplate(templateFolder, SitemapTemplateName, sitemapTemplate, templateModified)
 	templates[SitemapContentTemplateName] = NewTemplate(templateFolder, SitemapContentTemplateName, sitemapContentTemplate, templateModified)
+
+	templates[XmlSitemapTemplateName] = NewTemplate(templateFolder, XmlSitemapTemplateName, xmlSitemapTemplate, templateModified)
+	templates[XmlSitemapContentTemplateName] = NewTemplate(templateFolder, XmlSitemapContentTemplateName, xmlSitemapContentTemplate, templateModified)
 
 	templates[model.TypeDocument.String()] = NewTemplate(templateFolder, model.TypeDocument.String(), documentTemplate, templateModified)
 	templates[model.TypeLocation.String()] = NewTemplate(templateFolder, model.TypeLocation.String(), locationTemplate, templateModified)
