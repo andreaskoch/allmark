@@ -10,8 +10,8 @@ import (
 
 type MetaData struct {
 	Language         string
-	CreationDate     time.Time
-	LastModifiedDate time.Time
+	CreationDate     *time.Time
+	LastModifiedDate *time.Time
 	Tags             Tags
 	Alias            string
 	Author           string
@@ -21,11 +21,7 @@ type MetaData struct {
 
 func NewMetaData() *MetaData {
 
-	now := time.Now()
-
 	return &MetaData{
-		Language:         "en",
-		CreationDate:     now,
-		LastModifiedDate: now,
+		Language: "en",
 	}
 }

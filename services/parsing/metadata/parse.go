@@ -100,7 +100,9 @@ func parseCreationDate(metaData *model.MetaData, fallbackDate time.Time, lines [
 	found, value, remainingLines := getSingleLineMetaData([]string{"created at", "date"}, lines)
 	if found {
 		date, _ := dateutil.ParseIso8601Date(value, fallbackDate)
-		metaData.CreationDate = date
+		metaData.CreationDate = &date
+	} else {
+		metaData.LastModifiedDate = &fallbackDate
 	}
 
 	return remainingLines
@@ -110,7 +112,9 @@ func parseLastModifiedDate(metaData *model.MetaData, fallbackDate time.Time, lin
 	found, value, remainingLines := getSingleLineMetaData([]string{"modified at", "modified"}, lines)
 	if found {
 		date, _ := dateutil.ParseIso8601Date(value, fallbackDate)
-		metaData.LastModifiedDate = date
+		metaData.LastModifiedDate = &date
+	} else {
+		metaData.LastModifiedDate = &fallbackDate
 	}
 
 	return remainingLines

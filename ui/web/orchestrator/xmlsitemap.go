@@ -35,10 +35,18 @@ func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(pathProvider paths
 			continue
 		}
 
+		// item location
 		location := pathProvider.Path(child.Route().Value())
 
+		// last modified date
+		lastModifiedDate := ""
+		if child.MetaData != nil && child.MetaData.LastModifiedDate != nil {
+			lastModifiedDate = child.MetaData.LastModifiedDate.Format("2006-01-02")
+		}
+
 		childs = append(childs, viewmodel.XmlSitemapEntry{
-			Loc: location,
+			Loc:          location,
+			LastModified: lastModifiedDate,
 		})
 	}
 

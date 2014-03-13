@@ -14,6 +14,8 @@ var xmlSitemapTemplate = fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 </urlset>`, ChildTemplatePlaceholder)
 
 var xmlSitemapContentTemplate = `<url>
-<loc>{{ .Loc }}</loc>
-<lastmod>{{ .LastModified }}</lastmod>
+	<loc>{{.Loc}}</loc>
+	{{if .LastModified}}<lastmod>{{.LastModified}}</lastmod>{{end}}
+	<changefreq>never</changefreq>
+	<priority>1.0</priority>
 </url>`

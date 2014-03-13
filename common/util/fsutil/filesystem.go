@@ -169,7 +169,8 @@ func GetSubDirectories(path string) []string {
 func GetModificationTime(path string) (time.Time, error) {
 	info, err := os.Stat(path)
 	if err != nil {
-		return time.Now(), err
+		var t time.Time
+		return t, err
 	}
 
 	return info.ModTime(), nil

@@ -14,7 +14,6 @@ import (
 	"github.com/andreaskoch/allmark2/services/parsing/message"
 	"github.com/andreaskoch/allmark2/services/parsing/presentation"
 	"github.com/andreaskoch/allmark2/services/parsing/typedetection"
-	"time"
 )
 
 type Parser struct {
@@ -47,9 +46,6 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 
 	// capture the last modified date
 	lastModifiedDate, err := contentProvider.LastModified()
-	if err != nil {
-		lastModifiedDate = time.Now() // fallback to the current time
-	}
 
 	// fetch the item data
 	data, _ := contentProvider.Data()
