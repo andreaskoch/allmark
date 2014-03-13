@@ -31,7 +31,7 @@ func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(pathProvider paths
 	for _, child := range orchestrator.itemIndex.GetAllChilds(rootItem.Route()) {
 
 		childs = append(childs, viewmodel.XmlSitemapEntry{
-			Loc: child.Route().Value(),
+			Loc: pathProvider.Path(child.Route().Value()),
 		})
 	}
 

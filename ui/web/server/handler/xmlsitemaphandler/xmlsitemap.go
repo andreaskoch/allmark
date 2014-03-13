@@ -64,8 +64,12 @@ func (handler *XmlSitemapHandler) Func() func(w http.ResponseWriter, r *http.Req
 			return
 		}
 
+		// prepare a path provider which includes the hostname
+		hostname := getHostnameFromRequest(r)
+		addressPrefix := fmt.Sprintf("http://%s", hostname)
+		pathProvider := handler.patherFactory.Absolute(addressPrefix)
+
 		// render the sitemap content
-		pathProvider := handler.patherFactory.Absolute("")
 		entries := handler.xmlSitemapOrchestrator.GetSitemapEntires(pathProvider)
 
 		sitemapContent := renderSitemapEntries(xmlSitemapContentTemplate, entries)
@@ -74,6 +78,10 @@ func (handler *XmlSitemapHandler) Func() func(w http.ResponseWriter, r *http.Req
 
 		fmt.Fprintf(w, "%s", sitemapWrapper)
 	}
+}
+
+func getHostnameFromRequest(r *http.Request) string {
+	return r.Host
 }
 
 func renderSitemapWrapper(templ *template.Template) string {
