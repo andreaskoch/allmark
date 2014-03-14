@@ -25,6 +25,10 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 	templateProvider := templates.NewProvider(".")
 	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter)
 
+	rewrites := []RequestRewrite{
+		NewRewrite("^favicon.ico", "theme/favicon.ico"),
+	}
+
 	return &ItemHandler{
 		logger:                logger,
 		itemIndex:             itemIndex,
@@ -33,6 +37,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 		patherFactory:         patherFactory,
 		templateProvider:      templateProvider,
 		viewModelOrchestrator: viewModelOrchestrator,
+		rewrites:              rewrites,
 	}
 }
 
@@ -44,6 +49,7 @@ type ItemHandler struct {
 	patherFactory         paths.PatherFactory
 	templateProvider      *templates.Provider
 	viewModelOrchestrator orchestrator.ViewModelOrchestrator
+	rewrites              []RequestRewrite
 }
 
 func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -69,11 +75,18 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		if isThemeFile := requestRoute.IsChildOf(themeRoute); isThemeFile {
 
 			if file, found := handler.fileIndex.IsMatch(*requestRoute); found {
+
 				fileContentProvider := file.ContentProvider()
 				data, err := fileContentProvider.Data()
 				if err != nil {
 					return
 				}
+
+				// detect content type
+				contentType := http.DetectContentType(data)
+
+				// set headers
+				w.Header().Set("Content-Type", contentType)
 
 				fmt.Fprintf(w, "%s", data)
 				return
@@ -102,8 +115,42 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 				return
 			}
 
+			// detect content type
+			contentType := http.DetectContentType(data)
+
+			// set headers
+			w.Header().Set("Content-Type", contentType)
+
 			fmt.Fprintf(w, "%s", data)
 			return
+		}
+
+		// stage 4: check if there is rewrite for the the request
+		for _, rewrite := range handler.rewrites {
+
+			isMatch, target := rewrite.Match(*requestRoute)
+			if !isMatch {
+				continue
+			}
+
+			if file, found := handler.fileIndex.IsMatch(target); found {
+				contentProvider := file.ContentProvider()
+
+				// read the file data
+				data, err := contentProvider.Data()
+				if err != nil {
+					return
+				}
+
+				// detect content type
+				contentType := http.DetectContentType(data)
+
+				// set headers
+				w.Header().Set("Content-Type", contentType)
+
+				fmt.Fprintf(w, "%s", data)
+				return
+			}
 		}
 
 		fmt.Fprintln(w, fmt.Sprintf("item %q not found.", requestRoute))
