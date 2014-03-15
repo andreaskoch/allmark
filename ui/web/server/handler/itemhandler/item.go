@@ -7,6 +7,7 @@ package itemhandler
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
+	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
@@ -17,7 +18,9 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 	"io"
+	"mime"
 	"net/http"
+	"path/filepath"
 )
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
@@ -58,7 +61,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		// get the request route
 		requestRoute, err := handlerutil.GetRouteFromRequest(r)
 		if err != nil {
-			fmt.Fprintln(w, "%s", err)
+			handler.logger.Error("Unable to get route from request. Error: %s", err)
 			return
 		}
 
@@ -75,20 +78,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		if isThemeFile := requestRoute.IsChildOf(themeRoute); isThemeFile {
 
 			if file, found := handler.fileIndex.IsMatch(*requestRoute); found {
-
-				fileContentProvider := file.ContentProvider()
-				data, err := fileContentProvider.Data()
-				if err != nil {
-					return
-				}
-
-				// detect content type
-				contentType := http.DetectContentType(data)
-
-				// set headers
-				w.Header().Set("Content-Type", contentType)
-
-				fmt.Fprintf(w, "%s", data)
+				handler.serveContent(requestRoute.Value(), file.ContentProvider(), w)
 				return
 			}
 		}
@@ -107,21 +97,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 
 		// stage 3: check if there is a file for the request
 		if file, found := handler.itemIndex.IsFileMatch(*requestRoute); found {
-			contentProvider := file.ContentProvider()
-
-			// read the file data
-			data, err := contentProvider.Data()
-			if err != nil {
-				return
-			}
-
-			// detect content type
-			contentType := http.DetectContentType(data)
-
-			// set headers
-			w.Header().Set("Content-Type", contentType)
-
-			fmt.Fprintf(w, "%s", data)
+			handler.serveContent(requestRoute.Value(), file.ContentProvider(), w)
 			return
 		}
 
@@ -134,21 +110,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			}
 
 			if file, found := handler.fileIndex.IsMatch(target); found {
-				contentProvider := file.ContentProvider()
-
-				// read the file data
-				data, err := contentProvider.Data()
-				if err != nil {
-					return
-				}
-
-				// detect content type
-				contentType := http.DetectContentType(data)
-
-				// set headers
-				w.Header().Set("Content-Type", contentType)
-
-				fmt.Fprintf(w, "%s", data)
+				handler.serveContent(target.Value(), file.ContentProvider(), w)
 				return
 			}
 		}
@@ -173,4 +135,27 @@ func (handler *ItemHandler) render(writer io.Writer, viewModel viewmodel.Model) 
 		return
 	}
 
+}
+
+func (handler *ItemHandler) serveContent(filename string, contentProvider *content.ContentProvider, w http.ResponseWriter) {
+	// read the file data
+	data, err := contentProvider.Data()
+	if err != nil {
+		handler.logger.Error("Unable to read the content: %s", err)
+		return
+	}
+
+	// content type detection
+	// derive content type from file extension
+	fileExtension := filepath.Ext(filename)
+	contentType := mime.TypeByExtension(fileExtension)
+	if contentType == "" {
+		// fallback: derive content type from data
+		contentType = http.DetectContentType(data)
+	}
+
+	// set headers
+	w.Header().Set("Content-Type", contentType)
+
+	fmt.Fprintf(w, "%s", data)
 }
