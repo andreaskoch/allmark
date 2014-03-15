@@ -16,22 +16,22 @@ type ItemType int
 func (itemType ItemType) String() string {
 	switch itemType {
 	case TypeDocument:
-		return "Document"
+		return "document"
 
 	case TypePresentation:
-		return "Presentation"
+		return "presentation"
 
 	case TypeMessage:
-		return "Message"
+		return "message"
 
 	case TypeLocation:
-		return "Location"
+		return "location"
 
 	case TypeRepository:
-		return "Repository"
+		return "repository"
 
 	default:
-		return "Unknown"
+		return "unknown"
 
 	}
 
