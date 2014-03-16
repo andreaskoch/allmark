@@ -17,6 +17,7 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler"
+	"github.com/gorilla/mux"
 	"math"
 	"net/http"
 	"os"
@@ -26,7 +27,7 @@ import (
 const (
 
 	// Dynamic Routes
-	ItemHandlerRoute       = "/"
+	ItemHandlerRoute       = "/{path:.*}"
 	TagmapHandlerRoute     = "/tags.html"
 	SitemapHandlerRoute    = "/sitemap.html"
 	XmlSitemapHandlerRoute = "/sitemap.xml"
@@ -113,19 +114,20 @@ func (server *Server) Start() chan error {
 	go func() {
 		server.isRunning = true
 
-		// register the handlers
-		http.HandleFunc(RobotsTxtHandlerRoute, handler.NewRobotsTxtHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
-		http.HandleFunc(XmlSitemapHandlerRoute, handler.NewXmlSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
-		http.HandleFunc(SitemapHandlerRoute, handler.NewSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
-		http.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex, server.fileIndex).Func())
-		http.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.fileIndex, server.patherFactory, server.converter).Func())
-		http.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.fileIndex, server.patherFactory, server.converter).Func())
+		// register requst routers
+		requestRouter := mux.NewRouter()
+		requestRouter.HandleFunc(RobotsTxtHandlerRoute, handler.NewRobotsTxtHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
+		requestRouter.HandleFunc(XmlSitemapHandlerRoute, handler.NewXmlSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
+		requestRouter.HandleFunc(SitemapHandlerRoute, handler.NewSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
+		requestRouter.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex, server.fileIndex).Func())
+		requestRouter.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.fileIndex, server.patherFactory, server.converter).Func())
+		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.fileIndex, server.patherFactory, server.converter).Func())
 
 		// start http server: http
 		httpBinding := server.getHttpBinding()
 		server.logger.Info("Starting http server %q\n", httpBinding)
 
-		if err := http.ListenAndServe(httpBinding, nil); err != nil {
+		if err := http.ListenAndServe(httpBinding, requestRouter); err != nil {
 			result <- fmt.Errorf("Server failed with error: %v", err)
 		} else {
 			result <- nil
