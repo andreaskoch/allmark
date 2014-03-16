@@ -5,7 +5,7 @@
 package rsshandler
 
 import (
-	// "fmt"
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	// "github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/index"
@@ -14,7 +14,7 @@ import (
 	// "github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
-	// "github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	// "github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 	// "io"
@@ -50,5 +50,12 @@ type RssHandler struct {
 func (handler *RssHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		// read the page url-parameter
+		page, pageParameterIsAvailable := handlerutil.GetPageParameterFromUrl(*r.URL)
+		if !pageParameterIsAvailable || page == 0 {
+			page = 1
+		}
+
+		fmt.Fprintf(w, "%s", page)
 	}
 }

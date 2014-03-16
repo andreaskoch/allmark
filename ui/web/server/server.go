@@ -31,7 +31,7 @@ const (
 	TagmapHandlerRoute     = "/tags.html"
 	SitemapHandlerRoute    = "/sitemap.html"
 	XmlSitemapHandlerRoute = "/sitemap.xml"
-	RssHandlerRoute        = "/rss.xml"
+	RssHandlerRoute        = "/feed.rss"
 	RobotsTxtHandlerRoute  = "/robots.txt"
 	DebugHandlerRoute      = "/debug/index"
 	WebSocketHandlerRoute  = "/ws"
