@@ -25,6 +25,9 @@ const (
 	XmlSitemapTemplateName        = "xmlsitemap"
 	XmlSitemapContentTemplateName = "xmlsitemapcontent"
 
+	RssFeedTemplateName        = "rssfeed"
+	RssFeedContentTemplateName = "rssfeedcontent"
+
 	TagmapTemplateName        = "tagmap"
 	TagmapContentTemplateName = "tagmapcontent"
 )
@@ -54,6 +57,9 @@ func NewProvider(templateFolder string) *Provider {
 
 	templates[XmlSitemapTemplateName] = NewTemplate(templateFolder, XmlSitemapTemplateName, xmlSitemapTemplate, templateModified)
 	templates[XmlSitemapContentTemplateName] = NewTemplate(templateFolder, XmlSitemapContentTemplateName, xmlSitemapContentTemplate, templateModified)
+
+	templates[RssFeedTemplateName] = NewTemplate(templateFolder, RssFeedTemplateName, rssFeedTemplate, templateModified)
+	templates[RssFeedContentTemplateName] = NewTemplate(templateFolder, RssFeedContentTemplateName, rssFeedContentTemplate, templateModified)
 
 	templates[model.TypeDocument.String()] = NewTemplate(templateFolder, model.TypeDocument.String(), documentTemplate, templateModified)
 	templates[model.TypeLocation.String()] = NewTemplate(templateFolder, model.TypeLocation.String(), locationTemplate, templateModified)
