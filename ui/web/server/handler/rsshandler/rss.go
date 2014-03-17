@@ -21,6 +21,8 @@ import (
 	"text/template"
 )
 
+var itemsPerPage = 5
+
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *RssHandler {
 
 	templateProvider := templates.NewProvider(".")
@@ -79,7 +81,7 @@ func (handler *RssHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// render the sitemap content
-		entries := handler.feedOrchestrator.GetEntries(pathProvider, page)
+		entries := handler.feedOrchestrator.GetEntries(pathProvider, itemsPerPage, page)
 
 		sitemapContent := renderFeedEntries(feedContentTemplate, entries)
 

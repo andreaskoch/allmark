@@ -34,18 +34,35 @@ func (orchestrator *FeedOrchestrator) GetRootEntry(pathProvider paths.Pather) vi
 	return orchestrator.createFeedEntryModel(pathProvider, rootItem)
 }
 
-func (orchestrator *FeedOrchestrator) GetEntries(pathProvider paths.Pather, page int) []viewmodel.FeedEntry {
+func (orchestrator *FeedOrchestrator) GetEntries(pathProvider paths.Pather, itemsPerPage, page int) []viewmodel.FeedEntry {
+
+	// validate page number
+	if page < 1 {
+		panic("Invalid page number")
+	}
 
 	rootItem := orchestrator.itemIndex.Root()
 	if rootItem == nil {
 		panic("No root item found")
 	}
 
+	// determine start item
+	startItemNumber := itemsPerPage * (page - 1)
+
+	// determine end item
+	endItemNumber := itemsPerPage * page
+
 	childs := make([]viewmodel.FeedEntry, 0)
 	for _, child := range orchestrator.itemIndex.GetAllChilds(rootItem.Route()) {
 
 		// skip virtual items
 		if child.IsVirtual() {
+			continue
+		}
+
+		// paging
+		currentNumberOfItems := len(childs)
+		if currentNumberOfItems < startItemNumber || currentNumberOfItems >= endItemNumber {
 			continue
 		}
 
