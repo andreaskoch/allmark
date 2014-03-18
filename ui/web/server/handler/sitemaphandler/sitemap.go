@@ -74,6 +74,7 @@ func (handler *SitemapHandler) Func() func(w http.ResponseWriter, r *http.Reques
 		sitemapPageModel.Title = "Sitemap"
 		sitemapPageModel.Description = "A list of all items in this repository."
 		sitemapPageModel.ToplevelNavigation = orchestrator.GetToplevelNavigation(handler.itemIndex)
+		sitemapPageModel.BreadcrumbNavigation = orchestrator.GetBreadcrumbNavigation(handler.itemIndex, handler.itemIndex.Root())
 		sitemapPageModel.Type = "sitemap"
 
 		handlerutil.RenderTemplate(sitemapPageModel, sitemapTemplate, w)
