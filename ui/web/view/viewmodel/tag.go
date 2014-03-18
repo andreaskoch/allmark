@@ -8,10 +8,6 @@ import (
 	"sort"
 )
 
-type TagMap struct {
-	Tags []*Tag
-}
-
 type Tag struct {
 	Name          string   `json:"name"`
 	AbsoluteRoute string   `json:"absoluteRoute"`

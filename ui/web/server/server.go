@@ -118,6 +118,7 @@ func (server *Server) Start() chan error {
 		requestRouter := mux.NewRouter()
 		requestRouter.HandleFunc(RobotsTxtHandlerRoute, handler.NewRobotsTxtHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(XmlSitemapHandlerRoute, handler.NewXmlSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
+		requestRouter.HandleFunc(TagmapHandlerRoute, handler.NewTagsHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(SitemapHandlerRoute, handler.NewSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex, server.fileIndex).Func())
 		requestRouter.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.fileIndex, server.patherFactory, server.converter).Func())
