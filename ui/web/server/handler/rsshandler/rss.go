@@ -13,6 +13,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/errorhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
@@ -26,6 +27,7 @@ var itemsPerPage = 5
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *RssHandler {
 
 	templateProvider := templates.NewProvider(".")
+	error404Handler := errorhandler.New(logger, config, itemIndex)
 	feedOrchestrator := orchestrator.NewFeedOrchestrator(itemIndex, converter)
 
 	return &RssHandler{
@@ -34,6 +36,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 		config:           config,
 		patherFactory:    patherFactory,
 		templateProvider: templateProvider,
+		error404Handler:  error404Handler,
 		feedOrchestrator: feedOrchestrator,
 	}
 }
@@ -44,6 +47,7 @@ type RssHandler struct {
 	config           *config.Config
 	patherFactory    paths.PatherFactory
 	templateProvider *templates.Provider
+	error404Handler  *errorhandler.ErrorHandler
 	feedOrchestrator orchestrator.FeedOrchestrator
 }
 
@@ -82,6 +86,13 @@ func (handler *RssHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		// render the sitemap content
 		entries := handler.feedOrchestrator.GetEntries(pathProvider, itemsPerPage, page)
+
+		// display error 404 non-existing page has been requested
+		if page > 1 && len(entries) == 0 {
+			error404Handler := handler.error404Handler.Func()
+			error404Handler(w, r)
+			return
+		}
 
 		sitemapContent := renderFeedEntries(feedContentTemplate, entries)
 

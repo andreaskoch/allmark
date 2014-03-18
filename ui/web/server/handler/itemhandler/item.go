@@ -14,6 +14,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/errorhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
@@ -27,6 +28,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 
 	templateProvider := templates.NewProvider(".")
 	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter)
+	error404Handler := errorhandler.New(logger, config, itemIndex)
 
 	rewrites := []RequestRewrite{
 		NewRewrite("^favicon.ico", "theme/favicon.ico"),
@@ -39,6 +41,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 		config:                config,
 		patherFactory:         patherFactory,
 		templateProvider:      templateProvider,
+		error404Handler:       error404Handler,
 		viewModelOrchestrator: viewModelOrchestrator,
 		rewrites:              rewrites,
 	}
@@ -51,6 +54,7 @@ type ItemHandler struct {
 	config                *config.Config
 	patherFactory         paths.PatherFactory
 	templateProvider      *templates.Provider
+	error404Handler       *errorhandler.ErrorHandler
 	viewModelOrchestrator orchestrator.ViewModelOrchestrator
 	rewrites              []RequestRewrite
 }
@@ -115,8 +119,9 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			}
 		}
 
-		fmt.Fprintln(w, fmt.Sprintf("item %q not found.", requestRoute))
-		return
+		// display a 404 error page
+		error404Handler := handler.error404Handler.Func()
+		error404Handler(w, r)
 	}
 }
 

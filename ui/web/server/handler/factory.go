@@ -11,12 +11,17 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/debughandler"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/errorhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/itemhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/robotstxthandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/rsshandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/sitemaphandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/xmlsitemaphandler"
 )
+
+func NewErrorHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex) Handler {
+	return errorhandler.New(logger, config, itemIndex)
+}
 
 func NewRobotsTxtHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) Handler {
 	return robotstxthandler.New(logger, config, itemIndex, patherFactory)
