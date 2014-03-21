@@ -17,8 +17,6 @@ type Base struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 
-	Tags []*Tag `json:"tags"`
-
 	LanguageTag      string `json:"languageTag"`
 	CreationDate     string `json:"creationdate"`
 	LastModifiedDate string `json:"lastmodifieddate"`
@@ -35,7 +33,9 @@ type Model struct {
 	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
 	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
 
-	TagCloud    *TagCloud    `json:"tagCloud"`
+	Tags     []*Tag    `json:"tags"`
+	TagCloud *TagCloud `json:"tagCloud"`
+
 	Locations   []*Model     `json:"locations"`
 	GeoLocation *GeoLocation `json:"geoLocation"`
 }

@@ -30,7 +30,7 @@ const documentTemplate = `
 	<ul class="tags">
 	{{range .Tags}}
 	<li class="tag">
-		<a href="{{.Route}}" title="{{.Description}}">{{.Name}}</a>
+		<a href="{{.Route}}">{{.Name}}</a>
 	</li>
 	{{end}}
 	</ul>

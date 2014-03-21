@@ -43,6 +43,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 		ToplevelNavigation:   GetToplevelNavigation(orchestrator.itemIndex),
 		BreadcrumbNavigation: GetBreadcrumbNavigation(orchestrator.itemIndex, item),
 		TopDocs:              orchestrator.getTopDocuments(5, pathProvider, item.Route()),
+		Tags:                 orchestrator.getTags(item, pathProvider),
 	}
 
 	return viewModel
@@ -93,4 +94,28 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(route *route.Route) []
 	}
 
 	return childModels
+}
+
+func (orchestrator *ViewModelOrchestrator) getTags(item *model.Item, pathProvider paths.Pather) []*viewmodel.Tag {
+
+	tags := make([]*viewmodel.Tag, 0)
+
+	// abort if the item has no tags
+	if item == nil || item.MetaData == nil {
+		return tags
+	}
+
+	for _, tag := range item.MetaData.Tags {
+
+		// create view model
+		tagModel := &viewmodel.Tag{
+			Name:  tag.Name(),
+			Route: pathProvider.Path(tag.Name()),
+		}
+
+		// append to list
+		tags = append(tags, tagModel)
+	}
+
+	return tags
 }
