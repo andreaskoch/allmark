@@ -9,10 +9,9 @@ import (
 )
 
 type Tag struct {
-	Name          string   `json:"name"`
-	AbsoluteRoute string   `json:"absoluteRoute"`
-	Description   string   `json:"description"`
-	Childs        []*Model `json:"childs"`
+	Name   string   `json:"name"`
+	Route  string   `json:"route"`
+	Childs []*Model `json:"childs"`
 }
 
 type SortTagBy func(tag1, tag2 *Tag) bool

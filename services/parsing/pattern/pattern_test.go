@@ -252,6 +252,25 @@ func Test_GetSingleLineMetaDataKeyAndValue_KeyValue(t *testing.T) {
 	}
 }
 
+func Test_GetSingleLineMetaDataKeyAndValue_KeyMultipleValues(t *testing.T) {
+	// arrange
+	key := "tags"
+	value := "tag1, tag2, tag3"
+	input := fmt.Sprintf("%s: %s", key, value)
+
+	// act
+	resultKey, resultValue := GetSingleLineMetaDataKeyAndValue(input)
+
+	// assert
+	if resultKey != key {
+		t.Errorf("The result key should be %s but was %s.", key, resultKey)
+	}
+
+	if resultValue != value {
+		t.Errorf("The result value should be %s but was %s.", key, resultValue)
+	}
+}
+
 func Test_GetSingleLineMetaDataKeyAndValue_NoKeyValue(t *testing.T) {
 	// arrange
 	input := "Yada Yada"

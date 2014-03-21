@@ -62,8 +62,13 @@ func (handler *TagsHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		tagMapItems := ""
 		pathProvider := handler.patherFactory.Absolute("")
 		tags := handler.tagsOrchestrator.GetTags(pathProvider)
-		for _, tag := range tags {
-			tagMapItems += renderTagmapEntry(tagmapContentTemplate, tag)
+
+		if len(tags) > 0 {
+			for _, tag := range tags {
+				tagMapItems += renderTagmapEntry(tagmapContentTemplate, tag)
+			}
+		} else {
+			tagMapItems = "-- There are currently not tagged items --"
 		}
 
 		tagmapViewModel := viewmodel.Model{

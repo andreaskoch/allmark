@@ -38,5 +38,5 @@ func (tag *Tag) Equals(otherTag Tag) bool {
 }
 
 func normalizeTagName(name string) string {
-	return strings.ToLower(strings.TrimSpace(name))
+	return strings.TrimSpace(name)
 }

@@ -226,7 +226,7 @@ func newVirtualItem(route route.Route) (*model.Item, error) {
 	return item, nil
 }
 
-// sort the items by date and name
+// sort the items by name
 func sortItemsByRoute(item1, item2 *model.Item) bool {
 
 	// ascending by route

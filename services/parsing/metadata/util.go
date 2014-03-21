@@ -32,11 +32,11 @@ func getSingleLineMetaData(keyNames []string, lines []string) (keyFound bool, va
 	// search for the supplied key
 	for _, line := range lines {
 		if !keyFound {
-			key, value := pattern.GetSingleLineMetaDataKeyAndValue(line)
-			isKeyValuePair := !(key == "" && value == "")
+			matchedKey, matchedValue := pattern.GetSingleLineMetaDataKeyAndValue(line)
+			isKeyValuePair := !(matchedKey == "" && matchedValue == "")
 
-			if isKeyValuePair && keyNamesMatch(key, keyNames) {
-				value = strings.TrimSpace(value)
+			if isKeyValuePair && keyNamesMatch(matchedKey, keyNames) {
+				value = strings.TrimSpace(matchedValue)
 				keyFound = true
 			}
 		}

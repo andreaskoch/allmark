@@ -5,25 +5,17 @@
 package templates
 
 var tagmapContentTemplate = `
-{{ if .Tags }}
-<ul class="tags">
-{{range .Tags}}
 <li class="tag">
-	<a name="{{.Name}}" title="{{.Description}}">{{.Name}}</a>
+	<a name="{{.Name}}">{{.Name}}</a>
 	<ol class="childs">
 		{{range .Childs}}
 		<li class="child">
 			<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
 			<p class="child-description">{{.Description}}</p>
 		</li>
-		{{end}}
+		{{end}} 
 	</ol>
 </li>
-{{end}}
-</ul>
-{{else}}
-There are currently no tags.
-{{end}}
 `
 
 const tagmapTemplate = `
@@ -38,6 +30,8 @@ const tagmapTemplate = `
 </section>
 
 <section class="content">
+<ul class="tags">
 {{.Content}}
+</ul>
 </section>
 `

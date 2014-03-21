@@ -67,6 +67,7 @@ func parseAlias(metaData *model.MetaData, fallback string, lines []string) (rema
 func parseTags(metaData *model.MetaData, lines []string) (remainingLines []string) {
 
 	found, value, remainingLines := getSingleLineMetaData([]string{"tags"}, lines)
+
 	if found {
 		rawTags := strings.Split(value, ",")
 		metaData.Tags, _ = model.NewTagsFromNames(rawTags)
