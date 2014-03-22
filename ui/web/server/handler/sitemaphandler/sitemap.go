@@ -22,60 +22,69 @@ import (
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *SitemapHandler {
 
+	// templates
 	templateProvider := templates.NewProvider(".")
+
+	// navigation
+	navigationPathProvider := patherFactory.Absolute("/")
+	navigationOrchestrator := orchestrator.NewNavigationOrchestrator(itemIndex, navigationPathProvider)
+
+	// sitemap
 	sitemapOrchestrator := orchestrator.NewSitemapOrchestrator(itemIndex)
 
 	return &SitemapHandler{
-		logger:              logger,
-		itemIndex:           itemIndex,
-		config:              config,
-		patherFactory:       patherFactory,
-		templateProvider:    templateProvider,
-		sitemapOrchestrator: sitemapOrchestrator,
+		logger:                 logger,
+		itemIndex:              itemIndex,
+		config:                 config,
+		patherFactory:          patherFactory,
+		templateProvider:       templateProvider,
+		navigationOrchestrator: navigationOrchestrator,
+		sitemapOrchestrator:    sitemapOrchestrator,
 	}
 }
 
 type SitemapHandler struct {
-	logger              logger.Logger
-	itemIndex           *index.ItemIndex
-	config              *config.Config
-	patherFactory       paths.PatherFactory
-	templateProvider    *templates.Provider
-	sitemapOrchestrator orchestrator.SitemapOrchestrator
+	logger                 logger.Logger
+	itemIndex              *index.ItemIndex
+	config                 *config.Config
+	patherFactory          paths.PatherFactory
+	templateProvider       *templates.Provider
+	navigationOrchestrator orchestrator.NavigationOrchestrator
+	sitemapOrchestrator    orchestrator.SitemapOrchestrator
 }
 
-func (handler *SitemapHandler) Func() func(w http.ResponseWriter, r *http.Request) {
+func (self *SitemapHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// get the sitemap content template
-		sitemapContentTemplate, err := handler.templateProvider.GetSubTemplate(templates.SitemapContentTemplateName)
+		sitemapContentTemplate, err := self.templateProvider.GetSubTemplate(templates.SitemapContentTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Content template not found. Error: %s", err)
 			return
 		}
 
 		// get the sitemap template
-		sitemapTemplate, err := handler.templateProvider.GetFullTemplate(templates.SitemapTemplateName)
+		sitemapTemplate, err := self.templateProvider.GetFullTemplate(templates.SitemapTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
 		// render the sitemap content
-		pathProvider := handler.patherFactory.Absolute("")
-		sitemapContentModel := handler.sitemapOrchestrator.GetSitemap(pathProvider)
+		pathProvider := self.patherFactory.Absolute("")
+		sitemapContentModel := self.sitemapOrchestrator.GetSitemap(pathProvider)
 		sitemapContent := renderSitemapEntry(sitemapContentTemplate, sitemapContentModel)
 
 		sitemapPageModel := viewmodel.Model{
 			Content: sitemapContent,
 		}
 
+		sitemapPageModel.Type = "sitemap"
 		sitemapPageModel.Title = "Sitemap"
 		sitemapPageModel.Description = "A list of all items in this repository."
-		sitemapPageModel.ToplevelNavigation = orchestrator.GetToplevelNavigation(handler.itemIndex)
-		sitemapPageModel.BreadcrumbNavigation = orchestrator.GetBreadcrumbNavigation(handler.itemIndex, handler.itemIndex.Root())
-		sitemapPageModel.Type = "sitemap"
+		sitemapPageModel.ToplevelNavigation = self.navigationOrchestrator.GetToplevelNavigation()
+		sitemapPageModel.BreadcrumbNavigation = self.navigationOrchestrator.GetBreadcrumbNavigation(self.itemIndex.Root())
 
 		handlerutil.RenderTemplate(sitemapPageModel, sitemapTemplate, w)
 	}

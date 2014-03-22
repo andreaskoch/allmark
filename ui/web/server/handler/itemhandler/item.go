@@ -26,13 +26,24 @@ import (
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
 
+	// templates
+	templateProvider := templates.NewProvider(".")
+
+	// tags
 	tagPathProvider := patherFactory.Absolute("/tags.html#")
 	tagsOrchestrator := orchestrator.NewTagsOrchestrator(itemIndex, tagPathProvider)
 
-	templateProvider := templates.NewProvider(".")
-	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter, &tagsOrchestrator)
-	error404Handler := errorhandler.New(logger, config, itemIndex)
+	// navigation
+	navigationPathProvider := patherFactory.Absolute("/")
+	navigationOrchestrator := orchestrator.NewNavigationOrchestrator(itemIndex, navigationPathProvider)
 
+	// error
+	error404Handler := errorhandler.New(logger, config, itemIndex, patherFactory)
+
+	// viewmodel
+	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter, &navigationOrchestrator, &tagsOrchestrator)
+
+	// rewrites
 	rewrites := []RequestRewrite{
 		NewRewrite("^favicon.ico", "theme/favicon.ico"),
 	}

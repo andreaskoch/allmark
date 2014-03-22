@@ -21,48 +21,56 @@ import (
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *TagsHandler {
 
+	// templates
 	templateProvider := templates.NewProvider(".")
 
+	// navigation
+	navigationPathProvider := patherFactory.Absolute("/")
+	navigationOrchestrator := orchestrator.NewNavigationOrchestrator(itemIndex, navigationPathProvider)
+
+	// tags
 	tagPathProvider := patherFactory.Absolute("/tags.html#")
 	tagsOrchestrator := orchestrator.NewTagsOrchestrator(itemIndex, tagPathProvider)
 
 	return &TagsHandler{
-		logger:           logger,
-		itemIndex:        itemIndex,
-		config:           config,
-		patherFactory:    patherFactory,
-		templateProvider: templateProvider,
-		tagsOrchestrator: tagsOrchestrator,
+		logger:                 logger,
+		itemIndex:              itemIndex,
+		config:                 config,
+		patherFactory:          patherFactory,
+		templateProvider:       templateProvider,
+		navigationOrchestrator: navigationOrchestrator,
+		tagsOrchestrator:       tagsOrchestrator,
 	}
 }
 
 type TagsHandler struct {
-	logger           logger.Logger
-	itemIndex        *index.ItemIndex
-	config           *config.Config
-	patherFactory    paths.PatherFactory
-	templateProvider *templates.Provider
-	tagsOrchestrator orchestrator.TagsOrchestrator
+	logger                 logger.Logger
+	itemIndex              *index.ItemIndex
+	config                 *config.Config
+	patherFactory          paths.PatherFactory
+	templateProvider       *templates.Provider
+	navigationOrchestrator orchestrator.NavigationOrchestrator
+	tagsOrchestrator       orchestrator.TagsOrchestrator
 }
 
-func (handler *TagsHandler) Func() func(w http.ResponseWriter, r *http.Request) {
+func (self *TagsHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		tagmapTemplate, err := handler.templateProvider.GetFullTemplate(templates.TagmapTemplateName)
+		tagmapTemplate, err := self.templateProvider.GetFullTemplate(templates.TagmapTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
-		tagmapContentTemplate, err := handler.templateProvider.GetSubTemplate(templates.TagmapContentTemplateName)
+		tagmapContentTemplate, err := self.templateProvider.GetSubTemplate(templates.TagmapContentTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Content template not found. Error: %s", err)
 			return
 		}
 
 		tagMapItems := ""
-		tags := handler.tagsOrchestrator.GetTags()
+		tags := self.tagsOrchestrator.GetTags()
 
 		if len(tags) > 0 {
 			for _, tag := range tags {
@@ -79,9 +87,9 @@ func (handler *TagsHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		tagmapViewModel.Type = "tagmap"
 		tagmapViewModel.Title = "Tags"
 		tagmapViewModel.Description = "A list of all tags in this repository."
-		tagmapViewModel.ToplevelNavigation = orchestrator.GetToplevelNavigation(handler.itemIndex)
-		tagmapViewModel.BreadcrumbNavigation = orchestrator.GetBreadcrumbNavigation(handler.itemIndex, handler.itemIndex.Root())
-		tagmapViewModel.TagCloud = handler.tagsOrchestrator.GetTagCloud()
+		tagmapViewModel.ToplevelNavigation = self.navigationOrchestrator.GetToplevelNavigation()
+		tagmapViewModel.BreadcrumbNavigation = self.navigationOrchestrator.GetBreadcrumbNavigation(self.itemIndex.Root())
+		tagmapViewModel.TagCloud = self.tagsOrchestrator.GetTagCloud()
 
 		handlerutil.RenderTemplate(tagmapViewModel, tagmapTemplate, w)
 	}

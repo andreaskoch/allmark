@@ -26,8 +26,13 @@ var itemsPerPage = 5
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *RssHandler {
 
+	// templates
 	templateProvider := templates.NewProvider(".")
-	error404Handler := errorhandler.New(logger, config, itemIndex)
+
+	// errors
+	error404Handler := errorhandler.New(logger, config, itemIndex, patherFactory)
+
+	// feed
 	feedOrchestrator := orchestrator.NewFeedOrchestrator(itemIndex, converter)
 
 	return &RssHandler{

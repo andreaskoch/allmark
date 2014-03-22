@@ -20,8 +20,8 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/xmlsitemaphandler"
 )
 
-func NewErrorHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex) Handler {
-	return errorhandler.New(logger, config, itemIndex)
+func NewErrorHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) Handler {
+	return errorhandler.New(logger, config, itemIndex, patherFactory)
 }
 
 func NewRobotsTxtHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) Handler {

@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
@@ -16,23 +17,30 @@ import (
 	"net/http"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex) *ErrorHandler {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *ErrorHandler {
 
+	// templates
 	templateProvider := templates.NewProvider(".")
 
+	// navigation
+	navigationPathProvider := patherFactory.Absolute("/")
+	navigationOrchestrator := orchestrator.NewNavigationOrchestrator(itemIndex, navigationPathProvider)
+
 	return &ErrorHandler{
-		logger:           logger,
-		itemIndex:        itemIndex,
-		config:           config,
-		templateProvider: templateProvider,
+		logger:                 logger,
+		itemIndex:              itemIndex,
+		config:                 config,
+		templateProvider:       templateProvider,
+		navigationOrchestrator: navigationOrchestrator,
 	}
 }
 
 type ErrorHandler struct {
-	logger           logger.Logger
-	itemIndex        *index.ItemIndex
-	config           *config.Config
-	templateProvider *templates.Provider
+	logger                 logger.Logger
+	itemIndex              *index.ItemIndex
+	config                 *config.Config
+	templateProvider       *templates.Provider
+	navigationOrchestrator orchestrator.NavigationOrchestrator
 }
 
 func (handler *ErrorHandler) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -54,8 +62,8 @@ func (handler *ErrorHandler) Func() func(w http.ResponseWriter, r *http.Request)
 		errorModel.Type = "error"
 		errorModel.Title = "Not found"
 		errorModel.Description = "The requested resource was not found."
-		errorModel.ToplevelNavigation = orchestrator.GetToplevelNavigation(handler.itemIndex)
-		errorModel.BreadcrumbNavigation = orchestrator.GetBreadcrumbNavigation(handler.itemIndex, handler.itemIndex.Root())
+		errorModel.ToplevelNavigation = handler.navigationOrchestrator.GetToplevelNavigation()
+		errorModel.BreadcrumbNavigation = handler.navigationOrchestrator.GetBreadcrumbNavigation(handler.itemIndex.Root())
 
 		// set 404 status code
 		w.WriteHeader(http.StatusNotFound)

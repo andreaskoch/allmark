@@ -13,18 +13,20 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
-func NewViewModelOrchestrator(itemIndex *index.ItemIndex, converter conversion.Converter, tagOrchestrator *TagsOrchestrator) ViewModelOrchestrator {
+func NewViewModelOrchestrator(itemIndex *index.ItemIndex, converter conversion.Converter, navigationOrchestrator *NavigationOrchestrator, tagOrchestrator *TagsOrchestrator) ViewModelOrchestrator {
 	return ViewModelOrchestrator{
-		itemIndex:       itemIndex,
-		converter:       converter,
-		tagOrchestrator: tagOrchestrator,
+		itemIndex:              itemIndex,
+		converter:              converter,
+		navigationOrchestrator: navigationOrchestrator,
+		tagOrchestrator:        tagOrchestrator,
 	}
 }
 
 type ViewModelOrchestrator struct {
-	itemIndex       *index.ItemIndex
-	converter       conversion.Converter
-	tagOrchestrator *TagsOrchestrator
+	itemIndex              *index.ItemIndex
+	converter              conversion.Converter
+	navigationOrchestrator *NavigationOrchestrator
+	tagOrchestrator        *TagsOrchestrator
 }
 
 func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pather, item *model.Item) viewmodel.Model {
@@ -42,8 +44,8 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 		Childs:  orchestrator.getChildModels(item.Route()),
 
 		// navigation
-		ToplevelNavigation:   GetToplevelNavigation(orchestrator.itemIndex),
-		BreadcrumbNavigation: GetBreadcrumbNavigation(orchestrator.itemIndex, item),
+		ToplevelNavigation:   orchestrator.navigationOrchestrator.GetToplevelNavigation(),
+		BreadcrumbNavigation: orchestrator.navigationOrchestrator.GetBreadcrumbNavigation(item),
 
 		// documents
 		TopDocs: orchestrator.getTopDocuments(5, pathProvider, item.Route()),
