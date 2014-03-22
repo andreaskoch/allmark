@@ -80,6 +80,7 @@ func (handler *TagsHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		tagmapViewModel.Title = "Tags"
 		tagmapViewModel.Description = "A list of all tags in this repository."
 		tagmapViewModel.ToplevelNavigation = orchestrator.GetToplevelNavigation(handler.itemIndex)
+		tagmapViewModel.BreadcrumbNavigation = orchestrator.GetBreadcrumbNavigation(handler.itemIndex, handler.itemIndex.Root())
 		tagmapViewModel.TagCloud = handler.tagsOrchestrator.GetTagCloud()
 
 		handlerutil.RenderTemplate(tagmapViewModel, tagmapTemplate, w)
