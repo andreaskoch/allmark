@@ -11,17 +11,19 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
-func NewTagsOrchestrator(itemIndex *index.ItemIndex) TagsOrchestrator {
+func NewTagsOrchestrator(itemIndex *index.ItemIndex, pathProvider paths.Pather) TagsOrchestrator {
 	return TagsOrchestrator{
-		itemIndex: itemIndex,
+		itemIndex:    itemIndex,
+		pathProvider: pathProvider,
 	}
 }
 
 type TagsOrchestrator struct {
-	itemIndex *index.ItemIndex
+	itemIndex    *index.ItemIndex
+	pathProvider paths.Pather
 }
 
-func (orchestrator *TagsOrchestrator) GetTags(pathProvider paths.Pather) []*viewmodel.Tag {
+func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 
 	// items by tag
 	itemsByTag := make(map[string][]*viewmodel.Model)
@@ -56,7 +58,7 @@ func (orchestrator *TagsOrchestrator) GetTags(pathProvider paths.Pather) []*view
 		// create view model
 		tagModel := &viewmodel.Tag{
 			Name:   tag,
-			Route:  pathProvider.Path(tag),
+			Route:  orchestrator.pathProvider.Path(tag),
 			Childs: items,
 		}
 
@@ -66,6 +68,30 @@ func (orchestrator *TagsOrchestrator) GetTags(pathProvider paths.Pather) []*view
 
 	// sort the tags
 	viewmodel.SortTagBy(tagsByName).Sort(tags)
+
+	return tags
+}
+
+func (orchestrator *TagsOrchestrator) getItemTags(item *model.Item) []*viewmodel.Tag {
+
+	tags := make([]*viewmodel.Tag, 0)
+
+	// abort if the item has no tags
+	if item == nil || item.MetaData == nil {
+		return tags
+	}
+
+	for _, tag := range item.MetaData.Tags {
+
+		// create view model
+		tagModel := &viewmodel.Tag{
+			Name:  tag.Name(),
+			Route: orchestrator.pathProvider.Path(tag.Name()),
+		}
+
+		// append to list
+		tags = append(tags, tagModel)
+	}
 
 	return tags
 }

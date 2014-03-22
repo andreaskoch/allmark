@@ -26,8 +26,11 @@ import (
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
 
+	tagPathProvider := patherFactory.Absolute("/tags.html#")
+	tagsOrchestrator := orchestrator.NewTagsOrchestrator(itemIndex, tagPathProvider)
+
 	templateProvider := templates.NewProvider(".")
-	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter)
+	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter, &tagsOrchestrator)
 	error404Handler := errorhandler.New(logger, config, itemIndex)
 
 	rewrites := []RequestRewrite{

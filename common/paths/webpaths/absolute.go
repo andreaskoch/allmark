@@ -26,5 +26,5 @@ type AbsoluteWebPathProvider struct {
 
 // Get the absolute path for the supplied item
 func (webPathProvider *AbsoluteWebPathProvider) Path(itemPath string) string {
-	return webPathProvider.prefix + "/" + itemPath
+	return webPathProvider.prefix + itemPath
 }

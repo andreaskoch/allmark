@@ -6,7 +6,7 @@ package templates
 
 var tagmapContentTemplate = `
 <li class="tag">
-	<a name="{{.Name}}">{{.Name}}</a>
+	<a name="{{.Name}}" href={{.Route}}>{{.Name}}</a>
 	<ol class="childs">
 		{{range .Childs}}
 		<li class="child">

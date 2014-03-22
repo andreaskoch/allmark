@@ -70,7 +70,7 @@ func (handler *RssHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		// prepare a path provider which includes the hostname
 		hostname := handlerutil.GetHostnameFromRequest(r)
-		addressPrefix := fmt.Sprintf("http://%s", hostname)
+		addressPrefix := fmt.Sprintf("http://%s/", hostname)
 		pathProvider := handler.patherFactory.Absolute(addressPrefix)
 
 		// root entry / channel item

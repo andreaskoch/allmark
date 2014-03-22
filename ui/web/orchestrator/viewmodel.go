@@ -13,16 +13,18 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
-func NewViewModelOrchestrator(itemIndex *index.ItemIndex, converter conversion.Converter) ViewModelOrchestrator {
+func NewViewModelOrchestrator(itemIndex *index.ItemIndex, converter conversion.Converter, tagOrchestrator *TagsOrchestrator) ViewModelOrchestrator {
 	return ViewModelOrchestrator{
-		itemIndex: itemIndex,
-		converter: converter,
+		itemIndex:       itemIndex,
+		converter:       converter,
+		tagOrchestrator: tagOrchestrator,
 	}
 }
 
 type ViewModelOrchestrator struct {
-	itemIndex *index.ItemIndex
-	converter conversion.Converter
+	itemIndex       *index.ItemIndex
+	converter       conversion.Converter
+	tagOrchestrator *TagsOrchestrator
 }
 
 func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pather, item *model.Item) viewmodel.Model {
@@ -43,7 +45,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 		ToplevelNavigation:   GetToplevelNavigation(orchestrator.itemIndex),
 		BreadcrumbNavigation: GetBreadcrumbNavigation(orchestrator.itemIndex, item),
 		TopDocs:              orchestrator.getTopDocuments(5, pathProvider, item.Route()),
-		Tags:                 orchestrator.getTags(item, pathProvider),
+		Tags:                 orchestrator.tagOrchestrator.getItemTags(item),
 	}
 
 	return viewModel
@@ -94,28 +96,4 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(route *route.Route) []
 	}
 
 	return childModels
-}
-
-func (orchestrator *ViewModelOrchestrator) getTags(item *model.Item, pathProvider paths.Pather) []*viewmodel.Tag {
-
-	tags := make([]*viewmodel.Tag, 0)
-
-	// abort if the item has no tags
-	if item == nil || item.MetaData == nil {
-		return tags
-	}
-
-	for _, tag := range item.MetaData.Tags {
-
-		// create view model
-		tagModel := &viewmodel.Tag{
-			Name:  tag.Name(),
-			Route: pathProvider.Path(tag.Name()),
-		}
-
-		// append to list
-		tags = append(tags, tagModel)
-	}
-
-	return tags
 }

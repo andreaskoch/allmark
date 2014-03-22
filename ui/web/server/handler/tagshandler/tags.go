@@ -22,7 +22,9 @@ import (
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *TagsHandler {
 
 	templateProvider := templates.NewProvider(".")
-	tagsOrchestrator := orchestrator.NewTagsOrchestrator(itemIndex)
+
+	tagPathProvider := patherFactory.Absolute("/tags.html#")
+	tagsOrchestrator := orchestrator.NewTagsOrchestrator(itemIndex, tagPathProvider)
 
 	return &TagsHandler{
 		logger:           logger,
@@ -60,8 +62,7 @@ func (handler *TagsHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		}
 
 		tagMapItems := ""
-		pathProvider := handler.patherFactory.Absolute("")
-		tags := handler.tagsOrchestrator.GetTags(pathProvider)
+		tags := handler.tagsOrchestrator.GetTags()
 
 		if len(tags) > 0 {
 			for _, tag := range tags {
