@@ -29,6 +29,18 @@ const tagmapTemplate = `
 {{.Description}}
 </section>
 
+{{if .TagCloud}}
+<section class="tagcloud">
+	<div class="tags">
+	{{range .TagCloud}}
+	<span class="level-{{.Level}}">
+		<a href="{{.Route}}">{{.Name}}</a>
+	</span>
+	{{end}}
+	</div>
+</section>
+{{end}}
+
 <section class="content">
 <ul class="tags">
 {{.Content}}

@@ -76,10 +76,11 @@ func (handler *TagsHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			Content: tagMapItems,
 		}
 
+		tagmapViewModel.Type = "tagmap"
 		tagmapViewModel.Title = "Tags"
 		tagmapViewModel.Description = "A list of all tags in this repository."
 		tagmapViewModel.ToplevelNavigation = orchestrator.GetToplevelNavigation(handler.itemIndex)
-		tagmapViewModel.Type = "tagmap"
+		tagmapViewModel.TagCloud = handler.tagsOrchestrator.GetTagCloud()
 
 		handlerutil.RenderTemplate(tagmapViewModel, tagmapTemplate, w)
 	}
