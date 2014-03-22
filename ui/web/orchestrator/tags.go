@@ -5,10 +5,18 @@
 package orchestrator
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
+	"math"
+)
+
+var (
+
+	// the maximum number of cloud entry levels
+	tagCloudEntryLevels = 6
 )
 
 func NewTagsOrchestrator(itemIndex *index.ItemIndex, pathProvider paths.Pather) TagsOrchestrator {
@@ -72,7 +80,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 	return tags
 }
 
-func (orchestrator *TagsOrchestrator) getItemTags(item *model.Item) []*viewmodel.Tag {
+func (orchestrator *TagsOrchestrator) GetItemTags(item *model.Item) []*viewmodel.Tag {
 
 	tags := make([]*viewmodel.Tag, 0)
 
@@ -96,7 +104,88 @@ func (orchestrator *TagsOrchestrator) getItemTags(item *model.Item) []*viewmodel
 	return tags
 }
 
+func (orchestrator *TagsOrchestrator) GetTagCloud() *viewmodel.TagCloud {
+	cloud := make(viewmodel.TagCloud, 0)
+
+	minNumberOfItems := 1
+	maxNumberOfItems := 1
+
+	for _, tag := range orchestrator.GetTags() {
+
+		// calculate the number of items per tag
+		numberItemsPerTag := len(tag.Childs)
+
+		// update the maximum number of items per tag
+		if numberItemsPerTag > maxNumberOfItems {
+			maxNumberOfItems = numberItemsPerTag
+		}
+
+		// update the minimum number of items per tag
+		if numberItemsPerTag < minNumberOfItems {
+			minNumberOfItems = numberItemsPerTag
+		}
+
+		// create a new tag cloud entry
+		tagCloudEntry := viewmodel.TagCloudEntry{
+			Name:           tag.Name,
+			Route:          orchestrator.pathProvider.Path(tag.Name),
+			NumberOfChilds: numberItemsPerTag,
+		}
+
+		cloud = append(cloud, &tagCloudEntry)
+	}
+
+	// update the tag cloud entry levels according
+	// to the recorded min and max number of items
+	for index, entry := range cloud {
+		// calculate the entry level
+		cloud[index].Level = getTagCloudEntryLevel(entry.NumberOfChilds, minNumberOfItems, maxNumberOfItems, tagCloudEntryLevels)
+	}
+
+	// sort tags by name
+	viewmodel.SortTagCloudBy(tagCloudEntriesByName).Sort(cloud)
+
+	return &cloud
+}
+
+func getTagCloudEntryLevel(numberOfChilds, minNumberOfChilds, maxNumberOfChilds, levelCount int) int {
+
+	// check the number of childs for negative numbers
+	if numberOfChilds < 1 {
+		panic(fmt.Sprintf("The number of childs '%v' cannot be less than 1.", numberOfChilds))
+	}
+
+	// check max boundary
+	if numberOfChilds > maxNumberOfChilds {
+		panic(fmt.Sprintf("The number of childs '%v' cannot be greater than the maximum number of childs '%v'.", numberOfChilds, maxNumberOfChilds))
+	}
+
+	// check min boundary
+	if numberOfChilds < minNumberOfChilds {
+		panic(fmt.Sprintf("The number of childs '%v' cannot be smaller than the minimum number of childs '%v'.", numberOfChilds, minNumberOfChilds))
+	}
+
+	// check the level count
+	if levelCount < 0 {
+		panic(fmt.Sprintf("The level count must be greater than 0.", levelCount))
+	}
+
+	// calculate the ratio between the "number of childs" to the "maximum number" of childs (0, 1]
+	ratioNumberOfChildsToMaxNumberOfChilds := float64(numberOfChilds) / float64(maxNumberOfChilds)
+	inverseRation := 1 - ratioNumberOfChildsToMaxNumberOfChilds
+
+	// calculate the level
+	level := int(math.Floor(inverseRation*float64(levelCount))) + 1
+
+	return level
+}
+
 // sort tags by name
 func tagsByName(tag1, tag2 *viewmodel.Tag) bool {
 	return tag1.Name < tag2.Name
+}
+
+// sort tag cloud entries by name
+func tagCloudEntriesByName(tagCloudEntry1, tagCloudEntry2 *viewmodel.TagCloudEntry) bool {
+	return tagCloudEntry1.Name < tagCloudEntry2.Name
 }

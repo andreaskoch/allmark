@@ -37,15 +37,20 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 
 	// create a view model
 	viewModel := viewmodel.Model{
-		Base: getBaseModel(item),
-
+		Base:    getBaseModel(item),
 		Content: convertedContent,
+		Childs:  orchestrator.getChildModels(item.Route()),
 
-		Childs:               orchestrator.getChildModels(item.Route()),
+		// navigation
 		ToplevelNavigation:   GetToplevelNavigation(orchestrator.itemIndex),
 		BreadcrumbNavigation: GetBreadcrumbNavigation(orchestrator.itemIndex, item),
-		TopDocs:              orchestrator.getTopDocuments(5, pathProvider, item.Route()),
-		Tags:                 orchestrator.tagOrchestrator.getItemTags(item),
+
+		// documents
+		TopDocs: orchestrator.getTopDocuments(5, pathProvider, item.Route()),
+
+		// tags
+		Tags:     orchestrator.tagOrchestrator.GetItemTags(item),
+		TagCloud: orchestrator.tagOrchestrator.GetTagCloud(),
 	}
 
 	return viewModel
