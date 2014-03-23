@@ -88,7 +88,6 @@ func getMatchingFiles(baseRoute *route.Route, files []*model.File) []*model.File
 
 		// check if the file is a child of the supplied path
 		if !file.Route().IsChildOf(baseRoute) {
-			fmt.Printf("%q is not a child of %q.\n", file.Route(), baseRoute)
 			continue
 		}
 

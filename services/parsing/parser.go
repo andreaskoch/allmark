@@ -61,21 +61,21 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 	case model.TypeDocument, model.TypeLocation, model.TypeRepository:
 		{
 			if err := document.Parse(itemModel, lastModifiedDate, lines); err != nil {
-				return nil, fmt.Errorf("Unable to parse item %q. Error: %s", item, err)
+				return nil, fmt.Errorf("Unable to parse item %q (Type: %s, Error: %s)", item, itemModel.Type, err.Error())
 			}
 		}
 
 	case model.TypePresentation:
 		{
 			if err := presentation.Parse(itemModel, lastModifiedDate, lines); err != nil {
-				return nil, fmt.Errorf("Unable to parse item %q. Error: %s", item, err)
+				return nil, fmt.Errorf("Unable to parse item %q (Type: %s, Error: %s)", item, itemModel.Type, err.Error())
 			}
 		}
 
 	case model.TypeMessage:
 		{
 			if err := message.Parse(itemModel, lastModifiedDate, lines); err != nil {
-				return nil, fmt.Errorf("Unable to parse item %q. Error: %s", item, err)
+				return nil, fmt.Errorf("Unable to parse item %q (Type: %s, Error: %s)", item, itemModel.Type, err.Error())
 			}
 		}
 

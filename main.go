@@ -8,6 +8,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger/console"
+	"github.com/andreaskoch/allmark2/common/logger/loglevel"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml"
@@ -20,7 +21,7 @@ func main() {
 	repositoryPath := fsutil.GetWorkingDirectory()
 
 	// logger
-	logger := console.New()
+	logger := console.New(loglevel.Info)
 
 	// config
 	config := config.Get(repositoryPath)
@@ -62,7 +63,7 @@ func main() {
 		// parse item
 		item, err := parser.Parse(itemEvent.Item)
 		if err != nil {
-			logger.Warn("Unable to parse item %q. Error: %s", itemEvent.Item, err)
+			logger.Warn("%s", err.Error())
 			continue
 		}
 
@@ -73,7 +74,7 @@ func main() {
 	// server
 	server, err := server.New(logger, config, converter, itemIndex)
 	if err != nil {
-		logger.Fatal("Unable to instantiate a server. Error: %s", err)
+		logger.Fatal("Unable to instantiate a server. Error: %s", err.Error())
 	}
 
 	// start the server
