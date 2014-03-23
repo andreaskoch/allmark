@@ -11,7 +11,6 @@ import (
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
-	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/errorhandler"
@@ -24,7 +23,7 @@ import (
 	"path/filepath"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
 
 	// templates
 	templateProvider := templates.NewProvider(".")
@@ -51,7 +50,6 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 	return &ItemHandler{
 		logger:                logger,
 		itemIndex:             itemIndex,
-		fileIndex:             fileIndex,
 		config:                config,
 		patherFactory:         patherFactory,
 		templateProvider:      templateProvider,
@@ -64,7 +62,6 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 type ItemHandler struct {
 	logger                logger.Logger
 	itemIndex             *index.ItemIndex
-	fileIndex             *index.FileIndex
 	config                *config.Config
 	patherFactory         paths.PatherFactory
 	templateProvider      *templates.Provider
@@ -86,22 +83,7 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		// make sure the request body is closed
 		defer r.Body.Close()
 
-		// stage 1: check for theme files
-		themeRoute, err := route.NewFromRequest("theme")
-		if err != nil {
-			fmt.Fprintln(w, "%s", err)
-			return
-		}
-
-		if isThemeFile := requestRoute.IsChildOf(themeRoute); isThemeFile {
-
-			if file, found := handler.fileIndex.IsMatch(*requestRoute); found {
-				handler.serveContent(requestRoute.Value(), file.ContentProvider(), w)
-				return
-			}
-		}
-
-		// stage 2: check if there is a item for the request
+		// stage 1: check if there is a item for the request
 		if item, found := handler.itemIndex.IsMatch(*requestRoute); found {
 
 			// create the view model
@@ -113,24 +95,10 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		// stage 3: check if there is a file for the request
+		// stage 2: check if there is a file for the request
 		if file, found := handler.itemIndex.IsFileMatch(*requestRoute); found {
 			handler.serveContent(requestRoute.Value(), file.ContentProvider(), w)
 			return
-		}
-
-		// stage 4: check if there is rewrite for the the request
-		for _, rewrite := range handler.rewrites {
-
-			isMatch, target := rewrite.Match(*requestRoute)
-			if !isMatch {
-				continue
-			}
-
-			if file, found := handler.fileIndex.IsMatch(target); found {
-				handler.serveContent(target.Value(), file.ContentProvider(), w)
-				return
-			}
 		}
 
 		// display a 404 error page

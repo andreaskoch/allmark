@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/paths/webpaths"
+	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler"
 	"github.com/gorilla/mux"
@@ -31,18 +32,10 @@ const (
 	WebSocketHandlerRoute  = "/ws"
 
 	// Static Routes
-	ThemeFolderRoute = "/theme/"
+	ThemeFolderRoute = "/theme"
 )
 
 func New(logger logger.Logger, config *config.Config, converter conversion.Converter, itemIndex *index.ItemIndex) (*Server, error) {
-
-	// file index
-	fileIndex := index.CreateFileIndex(logger)
-
-	// serve theme files
-	baseFolder := config.MetaDataFolder()
-	themeFolder := config.ThemeFolder()
-	fileIndex.AddFolder(baseFolder, themeFolder)
 
 	// pather factory
 	patherFactory := webpaths.NewFactory(logger, itemIndex)
@@ -53,7 +46,6 @@ func New(logger logger.Logger, config *config.Config, converter conversion.Conve
 		patherFactory: patherFactory,
 		converter:     converter,
 		itemIndex:     itemIndex,
-		fileIndex:     fileIndex,
 	}, nil
 
 }
@@ -65,7 +57,6 @@ type Server struct {
 	logger        logger.Logger
 	converter     conversion.Converter
 	itemIndex     *index.ItemIndex
-	fileIndex     *index.FileIndex
 	patherFactory paths.PatherFactory
 }
 
@@ -81,14 +72,24 @@ func (server *Server) Start() chan error {
 
 		// register requst routers
 		requestRouter := mux.NewRouter()
+
+		// serve auxiliary dynamic files
 		requestRouter.HandleFunc(RobotsTxtHandlerRoute, handler.NewRobotsTxtHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(XmlSitemapHandlerRoute, handler.NewXmlSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(TagmapHandlerRoute, handler.NewTagsHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(SitemapHandlerRoute, handler.NewSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
-		requestRouter.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex, server.fileIndex).Func())
+		requestRouter.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex).Func())
 		requestRouter.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
 		requestRouter.HandleFunc(SearchHandlerRoute, handler.NewSearchHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
-		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.fileIndex, server.patherFactory, server.converter).Func())
+
+		// serve static files
+		if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
+			s := http.StripPrefix(ThemeFolderRoute, http.FileServer(http.Dir(themeFolder)))
+			requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)
+		}
+
+		// serve items
+		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
 
 		// start http server: http
 		httpBinding := server.getHttpBinding()

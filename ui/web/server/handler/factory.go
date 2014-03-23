@@ -49,10 +49,10 @@ func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index
 	return rsshandler.New(logger, config, itemIndex, patherFactory, converter)
 }
 
-func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
-	return itemhandler.New(logger, config, itemIndex, fileIndex, patherFactory, converter)
+func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
+	return itemhandler.New(logger, config, itemIndex, patherFactory, converter)
 }
 
-func NewDebugHandler(logger logger.Logger, itemIndex *index.ItemIndex, fileIndex *index.FileIndex) Handler {
-	return debughandler.New(logger, itemIndex, fileIndex)
+func NewDebugHandler(logger logger.Logger, itemIndex *index.ItemIndex) Handler {
+	return debughandler.New(logger, itemIndex)
 }
