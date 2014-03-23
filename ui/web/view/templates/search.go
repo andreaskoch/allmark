@@ -8,7 +8,7 @@ var searchContentTemplate = `
 <ol>
 	{{ range .Results }}
 	<li>
-			<a href="/{{.Route}}">{{.Title}}</a>
+			<a href="{{.Route}}">{{.Title}}</a>
 			<p>{{.Description}}</p>
 	</li>
 	{{ end }}

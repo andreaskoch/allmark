@@ -5,8 +5,8 @@
 package orchestrator
 
 import (
-	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/paths"
+	"github.com/andreaskoch/allmark2/services/search"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
@@ -14,16 +14,16 @@ var (
 	itemsPerPage = 5
 )
 
-func NewSearchOrchestrator(itemIndex *index.ItemIndex, pathProvider paths.Pather) SearchOrchestrator {
+func NewSearchOrchestrator(fullTextIndex *search.FullTextIndex, pathProvider paths.Pather) SearchOrchestrator {
 	return SearchOrchestrator{
-		itemIndex:    itemIndex,
-		pathProvider: pathProvider,
+		fullTextIndex: fullTextIndex,
+		pathProvider:  pathProvider,
 	}
 }
 
 type SearchOrchestrator struct {
-	itemIndex    *index.ItemIndex
-	pathProvider paths.Pather
+	fullTextIndex *search.FullTextIndex
+	pathProvider  paths.Pather
 }
 
 func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page int) viewmodel.Search {
@@ -41,7 +41,7 @@ func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page i
 
 	// collect the search results
 	searchResults := make([]viewmodel.SearchResult, 0)
-	for _, searchResult := range orchestrator.itemIndex.Search(keywords) {
+	for _, searchResult := range orchestrator.fullTextIndex.Search(keywords) {
 
 		// paging
 		currentNumberOfItems := len(searchResults)
@@ -60,7 +60,7 @@ func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page i
 	}
 }
 
-func (orchestrator *SearchOrchestrator) createSearchResultModel(searchResult index.SearchResult) viewmodel.SearchResult {
+func (orchestrator *SearchOrchestrator) createSearchResultModel(searchResult search.SearchResult) viewmodel.SearchResult {
 
 	item := searchResult.Item
 

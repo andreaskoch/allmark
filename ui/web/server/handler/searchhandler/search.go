@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
+	"github.com/andreaskoch/allmark2/services/search"
 	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
@@ -21,7 +22,7 @@ import (
 
 var itemsPerPage = 5
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *SearchHandler {
+func New(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, fullTextIndex *search.FullTextIndex) *SearchHandler {
 
 	// templates
 	templateProvider := templates.NewProvider(".")
@@ -32,7 +33,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 
 	// search
 	searchResultPathProvider := patherFactory.Absolute("/")
-	searchOrchestrator := orchestrator.NewSearchOrchestrator(itemIndex, searchResultPathProvider)
+	searchOrchestrator := orchestrator.NewSearchOrchestrator(fullTextIndex, searchResultPathProvider)
 
 	return &SearchHandler{
 		logger:                 logger,

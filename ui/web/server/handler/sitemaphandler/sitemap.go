@@ -72,7 +72,7 @@ func (self *SitemapHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		}
 
 		// render the sitemap content
-		pathProvider := self.patherFactory.Absolute("")
+		pathProvider := self.patherFactory.Absolute("/")
 		sitemapContentModel := self.sitemapOrchestrator.GetSitemap(pathProvider)
 		sitemapContent := renderSitemapEntry(sitemapContentTemplate, sitemapContentModel)
 

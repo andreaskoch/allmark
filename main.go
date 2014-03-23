@@ -13,6 +13,7 @@ import (
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml"
 	"github.com/andreaskoch/allmark2/services/parsing"
+	"github.com/andreaskoch/allmark2/services/search"
 	"github.com/andreaskoch/allmark2/ui/web/server"
 )
 
@@ -47,6 +48,9 @@ func main() {
 	// item index
 	itemIndex := index.CreateItemIndex(logger)
 
+	// search
+	fullTextIndex := search.NewIndex(logger, itemIndex)
+
 	// read the repository
 	itemEvents := repository.GetItems()
 	for itemEvent := range itemEvents {
@@ -71,8 +75,11 @@ func main() {
 		itemIndex.Add(item)
 	}
 
+	// update the full-text search index
+	fullTextIndex.Update()
+
 	// server
-	server, err := server.New(logger, config, converter, itemIndex)
+	server, err := server.New(logger, config, itemIndex, converter, fullTextIndex)
 	if err != nil {
 		logger.Fatal("Unable to instantiate a server. Error: %s", err.Error())
 	}

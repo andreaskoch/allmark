@@ -7,9 +7,7 @@ package index
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
-	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/model"
-	"github.com/bradleypeabody/fulltext"
 )
 
 func CreateItemIndex(logger logger.Logger) *ItemIndex {
@@ -181,82 +179,6 @@ func (index *ItemIndex) Add(item *model.Item) {
 
 	// insert virtual items if required
 	index.fillGapsWithVirtualItems(itemRoute)
-
-	// fulltext search
-	idx, err := fulltext.NewIndexer("")
-	if err != nil {
-		panic(err)
-	}
-	defer idx.Close()
-
-	// for each document you want to add, you do something like this:
-	doc := fulltext.IndexDoc{
-		Id:         []byte(itemRoute.Value()), // unique identifier (the path to a webpage works...)
-		StoreValue: []byte(item.Title),        // bytes you want to be able to retrieve from search results
-		IndexValue: []byte(item.Title),        // bytes you want to be split into words and indexed
-	}
-	idx.AddDoc(doc) // add it
-
-	// when done, write out to final index
-	f, err := fsutil.OpenFile("index")
-	if err != nil {
-		panic(err)
-	}
-
-	err = idx.FinalizeAndWrite(f)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (index *ItemIndex) Search(keyword string) []SearchResult {
-
-	searcher, err := fulltext.NewSearcher("index")
-	if err != nil {
-		panic(err)
-	}
-
-	defer searcher.Close()
-
-	searchResult, err := searcher.SimpleSearch(keyword, 5)
-	if err != nil {
-		panic(err)
-	}
-
-	index.logger.Debug("%s", keyword)
-	index.logger.Debug("%s", len(searchResult.Items))
-
-	searchResults := make([]SearchResult, 0)
-
-	for k, v := range searchResult.Items {
-		index.logger.Info("----------- #:%d\n", k)
-		index.logger.Info("Id: %s\n", v.Id)
-		index.logger.Info("Score: %d\n", v.Score)
-		index.logger.Info("StoreValue: %s\n", v.StoreValue)
-
-		route, err := route.NewFromRequest(string(v.Id))
-		if err != nil {
-			index.logger.Warn("%s", err)
-			continue
-		}
-
-		if item, isMatch := index.IsMatch(*route); isMatch {
-			searchResults = append(searchResults, SearchResult{
-				Score:      v.Score,
-				StoreValue: string(v.StoreValue),
-				Item:       item,
-			})
-		}
-
-	}
-
-	return searchResults
-}
-
-type SearchResult struct {
-	Score      int64
-	StoreValue string
-	Item       *model.Item
 }
 
 func (index *ItemIndex) fillGapsWithVirtualItems(baseRoute route.Route) {

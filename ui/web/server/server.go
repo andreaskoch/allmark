@@ -13,6 +13,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths/webpaths"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/services/conversion"
+	"github.com/andreaskoch/allmark2/services/search"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler"
 	"github.com/gorilla/mux"
 	"math"
@@ -35,7 +36,7 @@ const (
 	ThemeFolderRoute = "/theme"
 )
 
-func New(logger logger.Logger, config *config.Config, converter conversion.Converter, itemIndex *index.ItemIndex) (*Server, error) {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, converter conversion.Converter, fullTextIndex *search.FullTextIndex) (*Server, error) {
 
 	// pather factory
 	patherFactory := webpaths.NewFactory(logger, itemIndex)
@@ -44,8 +45,9 @@ func New(logger logger.Logger, config *config.Config, converter conversion.Conve
 		config:        config,
 		logger:        logger,
 		patherFactory: patherFactory,
-		converter:     converter,
 		itemIndex:     itemIndex,
+		converter:     converter,
+		fullTextIndex: fullTextIndex,
 	}, nil
 
 }
@@ -55,9 +57,10 @@ type Server struct {
 
 	config        *config.Config
 	logger        logger.Logger
-	converter     conversion.Converter
-	itemIndex     *index.ItemIndex
 	patherFactory paths.PatherFactory
+	itemIndex     *index.ItemIndex
+	converter     conversion.Converter
+	fullTextIndex *search.FullTextIndex
 }
 
 func (server *Server) IsRunning() bool {
@@ -80,7 +83,7 @@ func (server *Server) Start() chan error {
 		requestRouter.HandleFunc(SitemapHandlerRoute, handler.NewSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex).Func())
 		requestRouter.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
-		requestRouter.HandleFunc(SearchHandlerRoute, handler.NewSearchHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
+		requestRouter.HandleFunc(SearchHandlerRoute, handler.NewSearchHandler(server.logger, server.config, server.patherFactory, server.itemIndex, server.fullTextIndex).Func())
 
 		// serve static files
 		if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {

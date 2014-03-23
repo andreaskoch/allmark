@@ -76,7 +76,7 @@ const documentTemplate = `
 <ol class="list">
 {{range .Childs}}
 <li class="child">
-	<a href="/{{.Route}}" class="child-title child-link">{{.Title}}</a>
+	<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
 	<p class="child-description">{{.Description}}</p>
 </li>
 {{end}}
