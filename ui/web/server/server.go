@@ -7,25 +7,18 @@ package server
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
-	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/paths/webpaths"
-	"github.com/andreaskoch/allmark2/common/route"
-	"github.com/andreaskoch/allmark2/common/util/fsutil"
-	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler"
 	"github.com/gorilla/mux"
 	"math"
 	"net/http"
-	"os"
-	"path/filepath"
 )
 
 const (
-
 	// Dynamic Routes
 	ItemHandlerRoute       = "/{path:.*}"
 	TagmapHandlerRoute     = "/tags.html"
@@ -41,10 +34,9 @@ const (
 	ThemeFolderRoute = "/theme/"
 )
 
-func New(logger logger.Logger, config *config.Config, converter conversion.Converter) (*Server, error) {
+func New(logger logger.Logger, config *config.Config, converter conversion.Converter, itemIndex *index.ItemIndex, fileIndex *index.FileIndex) (*Server, error) {
 
-	itemIndex := index.CreateItemIndex(logger)
-	fileIndex := index.CreateFileIndex(logger)
+	// pather factory
 	patherFactory := webpaths.NewFactory(logger, itemIndex)
 
 	return &Server{
@@ -55,6 +47,7 @@ func New(logger logger.Logger, config *config.Config, converter conversion.Conve
 		itemIndex:     itemIndex,
 		fileIndex:     fileIndex,
 	}, nil
+
 }
 
 type Server struct {
@@ -62,47 +55,10 @@ type Server struct {
 
 	config        *config.Config
 	logger        logger.Logger
-	patherFactory paths.PatherFactory
 	converter     conversion.Converter
 	itemIndex     *index.ItemIndex
 	fileIndex     *index.FileIndex
-}
-
-func (server *Server) ServeItem(item *model.Item) {
-	server.logger.Debug("Serving item %q", item)
-	server.itemIndex.Add(item)
-}
-
-func (server *Server) ServeFolder(baseFolder, folderPath string) {
-	if !fsutil.DirectoryExists(folderPath) {
-		return
-	}
-
-	parentRoute, err := route.NewFromRequest("")
-	if err != nil {
-		panic(err)
-	}
-
-	filepath.Walk(folderPath, func(folderEntryPath string, folderEntryInfo os.FileInfo, err error) error {
-
-		if folderEntryInfo.IsDir() {
-			return nil
-		}
-
-		fileRoute, err := route.NewFromFilePath(baseFolder, folderEntryPath)
-		if err != nil {
-			return err
-		}
-
-		file, err := model.NewFromPath(fileRoute, parentRoute, content.FileProvider(folderEntryPath, fileRoute))
-		if err != nil {
-			return err
-		}
-
-		server.fileIndex.Add(file)
-
-		return nil
-	})
+	patherFactory paths.PatherFactory
 }
 
 func (server *Server) IsRunning() bool {

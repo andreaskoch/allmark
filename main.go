@@ -6,6 +6,7 @@ package main
 
 import (
 	"github.com/andreaskoch/allmark2/common/config"
+	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
@@ -42,8 +43,14 @@ func main() {
 		logger.Fatal("Unable to instantiate a converter. Error: %s", err)
 	}
 
+	// item index
+	itemIndex := index.CreateItemIndex(logger)
+
+	// file index
+	fileIndex := index.CreateFileIndex(logger)
+
 	// server
-	server, err := server.New(logger, config, converter)
+	server, err := server.New(logger, config, converter, itemIndex, fileIndex)
 	if err != nil {
 		logger.Fatal("Unable to instantiate a server. Error: %s", err)
 	}
@@ -51,7 +58,7 @@ func main() {
 	// serve theme files
 	baseFolder := config.MetaDataFolder()
 	themeFolder := config.ThemeFolder()
-	server.ServeFolder(baseFolder, themeFolder)
+	fileIndex.AddFolder(baseFolder, themeFolder)
 
 	// read the repository
 	itemEvents := repository.GetItems()
@@ -73,8 +80,8 @@ func main() {
 			continue
 		}
 
-		// send item to server
-		server.ServeItem(item)
+		// register the item at the index
+		itemIndex.Add(item)
 	}
 
 	// start the server
