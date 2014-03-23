@@ -34,7 +34,15 @@ const (
 	ThemeFolderRoute = "/theme/"
 )
 
-func New(logger logger.Logger, config *config.Config, converter conversion.Converter, itemIndex *index.ItemIndex, fileIndex *index.FileIndex) (*Server, error) {
+func New(logger logger.Logger, config *config.Config, converter conversion.Converter, itemIndex *index.ItemIndex) (*Server, error) {
+
+	// file index
+	fileIndex := index.CreateFileIndex(logger)
+
+	// serve theme files
+	baseFolder := config.MetaDataFolder()
+	themeFolder := config.ThemeFolder()
+	fileIndex.AddFolder(baseFolder, themeFolder)
 
 	// pather factory
 	patherFactory := webpaths.NewFactory(logger, itemIndex)
@@ -78,7 +86,7 @@ func (server *Server) Start() chan error {
 		requestRouter.HandleFunc(TagmapHandlerRoute, handler.NewTagsHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(SitemapHandlerRoute, handler.NewSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex, server.fileIndex).Func())
-		requestRouter.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.fileIndex, server.patherFactory, server.converter).Func())
+		requestRouter.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
 		requestRouter.HandleFunc(SearchHandlerRoute, handler.NewSearchHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.fileIndex, server.patherFactory, server.converter).Func())
 

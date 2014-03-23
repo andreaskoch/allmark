@@ -46,20 +46,6 @@ func main() {
 	// item index
 	itemIndex := index.CreateItemIndex(logger)
 
-	// file index
-	fileIndex := index.CreateFileIndex(logger)
-
-	// server
-	server, err := server.New(logger, config, converter, itemIndex, fileIndex)
-	if err != nil {
-		logger.Fatal("Unable to instantiate a server. Error: %s", err)
-	}
-
-	// serve theme files
-	baseFolder := config.MetaDataFolder()
-	themeFolder := config.ThemeFolder()
-	fileIndex.AddFolder(baseFolder, themeFolder)
-
 	// read the repository
 	itemEvents := repository.GetItems()
 	for itemEvent := range itemEvents {
@@ -82,6 +68,12 @@ func main() {
 
 		// register the item at the index
 		itemIndex.Add(item)
+	}
+
+	// server
+	server, err := server.New(logger, config, converter, itemIndex)
+	if err != nil {
+		logger.Fatal("Unable to instantiate a server. Error: %s", err)
 	}
 
 	// start the server

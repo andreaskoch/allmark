@@ -45,8 +45,8 @@ func NewSearchHandler(logger logger.Logger, config *config.Config, itemIndex *in
 	return searchhandler.New(logger, config, itemIndex, patherFactory)
 }
 
-func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
-	return rsshandler.New(logger, config, itemIndex, fileIndex, patherFactory, converter)
+func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
+	return rsshandler.New(logger, config, itemIndex, patherFactory, converter)
 }
 
 func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
