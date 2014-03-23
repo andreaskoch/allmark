@@ -4,9 +4,16 @@
 
 package viewmodel
 
-type FeedEntry struct {
+type Search struct {
+	Query        string
+	Page         int
+	ItemsPerPage int
+	Results      []SearchResult
+}
+
+type SearchResult struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
-	Link        string `json:"link"`
+	Route       string `json:"route"`
 	PubDate     string `json:"pubDate"`
 }

@@ -30,6 +30,9 @@ const (
 
 	TagmapTemplateName        = "tagmap"
 	TagmapContentTemplateName = "tagmapcontent"
+
+	SearchTemplateName        = "search"
+	SearchContentTemplateName = "searchcontent"
 )
 
 type Provider struct {
@@ -60,6 +63,9 @@ func NewProvider(templateFolder string) *Provider {
 
 	templates[RssFeedTemplateName] = NewTemplate(templateFolder, RssFeedTemplateName, rssFeedTemplate, templateModified)
 	templates[RssFeedContentTemplateName] = NewTemplate(templateFolder, RssFeedContentTemplateName, rssFeedContentTemplate, templateModified)
+
+	templates[SearchTemplateName] = NewTemplate(templateFolder, SearchTemplateName, searchTemplate, templateModified)
+	templates[SearchContentTemplateName] = NewTemplate(templateFolder, SearchContentTemplateName, searchContentTemplate, templateModified)
 
 	templates[model.TypeDocument.String()] = NewTemplate(templateFolder, model.TypeDocument.String(), documentTemplate, templateModified)
 	templates[model.TypeLocation.String()] = NewTemplate(templateFolder, model.TypeLocation.String(), locationTemplate, templateModified)

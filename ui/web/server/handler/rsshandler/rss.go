@@ -67,7 +67,7 @@ func (handler *RssHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// get the sitemap template
-		xmlSitemapTemplate, err := handler.templateProvider.GetSubTemplate(templates.RssFeedTemplateName)
+		feedTemplate, err := handler.templateProvider.GetSubTemplate(templates.RssFeedTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
@@ -80,7 +80,7 @@ func (handler *RssHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		// root entry / channel item
 		rootEntry := handler.feedOrchestrator.GetRootEntry(pathProvider)
-		feedWrapper := renderFeedWrapper(xmlSitemapTemplate, rootEntry)
+		feedWrapper := renderFeedWrapper(feedTemplate, rootEntry)
 
 		// get the sitemap content template
 		feedContentTemplate, err := handler.templateProvider.GetSubTemplate(templates.RssFeedContentTemplateName)

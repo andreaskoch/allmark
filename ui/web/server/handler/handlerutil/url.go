@@ -26,3 +26,12 @@ func GetPageParameterFromUrl(url url.URL) (page int, parameterIsAvailable bool) 
 
 	return int(page64), true
 }
+
+func GetQueryParameterFromUrl(url url.URL) (query string, parameterIsAvailable bool) {
+	queryParam := url.Query().Get("q")
+	if queryParam == "" {
+		return "", false
+	}
+
+	return queryParam, true
+}

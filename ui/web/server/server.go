@@ -34,6 +34,7 @@ const (
 	RssHandlerRoute        = "/feed.rss"
 	RobotsTxtHandlerRoute  = "/robots.txt"
 	DebugHandlerRoute      = "/debug/index"
+	SearchHandlerRoute     = "/search"
 	WebSocketHandlerRoute  = "/ws"
 
 	// Static Routes
@@ -122,6 +123,7 @@ func (server *Server) Start() chan error {
 		requestRouter.HandleFunc(SitemapHandlerRoute, handler.NewSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex, server.fileIndex).Func())
 		requestRouter.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.fileIndex, server.patherFactory, server.converter).Func())
+		requestRouter.HandleFunc(SearchHandlerRoute, handler.NewSearchHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.fileIndex, server.patherFactory, server.converter).Func())
 
 		// start http server: http

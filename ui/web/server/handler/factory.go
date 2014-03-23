@@ -15,6 +15,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/itemhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/robotstxthandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/rsshandler"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/searchhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/sitemaphandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/tagshandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/xmlsitemaphandler"
@@ -38,6 +39,10 @@ func NewTagsHandler(logger logger.Logger, config *config.Config, itemIndex *inde
 
 func NewSitemapHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) Handler {
 	return sitemaphandler.New(logger, config, itemIndex, patherFactory)
+}
+
+func NewSearchHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) Handler {
+	return searchhandler.New(logger, config, itemIndex, patherFactory)
 }
 
 func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, fileIndex *index.FileIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {

@@ -53,6 +53,14 @@ func CreateDirectory(path string) bool {
 	return err == nil
 }
 
+func OpenFile(filepath string) (*os.File, error) {
+	if !FileExists(filepath) {
+		CreateFile(filepath)
+	}
+
+	return os.OpenFile(filepath, os.O_RDWR, 0644)
+}
+
 func CreateFile(filePath string) (success bool, err error) {
 
 	// make sure the parent directory exists
