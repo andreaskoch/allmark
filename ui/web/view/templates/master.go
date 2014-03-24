@@ -66,6 +66,13 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 </nav>
 {{end}}
 
+<nav class="search">
+	<form action="search" method="GET">
+		<input type="text" name="q" placeholder="search">
+		<input type="submit" value="Search">
+	</form>
+</nav>
+
 <article class="{{.Type}} level-{{.Level}}">
 %s
 </article>
