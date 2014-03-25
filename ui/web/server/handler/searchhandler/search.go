@@ -17,6 +17,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 	"net/http"
+	"strings"
 	"text/template"
 )
 
@@ -76,19 +77,21 @@ func (handler *SearchHandler) Func() func(w http.ResponseWriter, r *http.Request
 			return
 		}
 
-		// get the search result content template
-		searchResultContentTemplate, err := handler.templateProvider.GetSubTemplate(templates.SearchContentTemplateName)
-		if err != nil {
-			fmt.Fprintf(w, "Template not found. Error: %s", err)
-			return
-		}
+		sitemapPageModel := viewmodel.Model{}
 
-		// root entry / channel item
-		searchResultModel := handler.searchOrchestrator.GetSearchResults(query, page)
-		searchResults := render(searchResultContentTemplate, searchResultModel)
+		// get the search results
+		if strings.TrimSpace(query) != "" {
 
-		sitemapPageModel := viewmodel.Model{
-			Content: searchResults,
+			// get the search result content template
+			searchResultContentTemplate, err := handler.templateProvider.GetSubTemplate(templates.SearchContentTemplateName)
+			if err != nil {
+				fmt.Fprintf(w, "Template not found. Error: %s", err)
+				return
+			}
+
+			// root entry / channel item
+			searchResultModel := handler.searchOrchestrator.GetSearchResults(query, page)
+			sitemapPageModel.Content = render(searchResultContentTemplate, searchResultModel)
 		}
 
 		sitemapPageModel.Type = "search"

@@ -8,6 +8,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/services/search"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
+	"strings"
 )
 
 var (
@@ -30,7 +31,11 @@ func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page i
 
 	// validate page number
 	if page < 1 {
-		panic("Invalid page number")
+		panic("Invalid page number.")
+	}
+
+	if strings.TrimSpace(keywords) == "" {
+		panic("An empty search phrase is not permitted.")
 	}
 
 	// determine start item
