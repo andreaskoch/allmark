@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/bradleypeabody/fulltext"
+	"strings"
 )
 
 func NewIndex(logger logger.Logger, itemIndex *index.ItemIndex) *FullTextIndex {
@@ -63,12 +64,13 @@ func getContent(item *model.Item) []byte {
 
 	content := item.Title
 	content += " " + item.Description
+	content += " " + strings.Join(item.Route().Components(), " ")
 	content += " " + item.Content
 
 	return []byte(content)
 }
 
-func (index *FullTextIndex) Search(keyword string) []SearchResult {
+func (index *FullTextIndex) Search(keyword string, maxiumNumberOfResults int) []SearchResult {
 
 	searcher, err := fulltext.NewSearcher(index.filepath)
 	if err != nil {
@@ -77,13 +79,10 @@ func (index *FullTextIndex) Search(keyword string) []SearchResult {
 
 	defer searcher.Close()
 
-	searchResult, err := searcher.SimpleSearch(keyword, 5)
+	searchResult, err := searcher.SimpleSearch(keyword, maxiumNumberOfResults)
 	if err != nil {
 		panic(err)
 	}
-
-	index.logger.Debug("%s", keyword)
-	index.logger.Debug("%s", len(searchResult.Items))
 
 	searchResults := make([]SearchResult, 0)
 

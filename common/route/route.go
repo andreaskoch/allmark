@@ -87,6 +87,14 @@ func (route *Route) String() string {
 	return route.value
 }
 
+func (route *Route) PrettyValue() string {
+	return strings.Replace(route.value, "+", " ", -1)
+}
+
+func (route *Route) Components() []string {
+	return strings.Split(route.PrettyValue(), " /")
+}
+
 func (route *Route) Value() string {
 	return route.value
 }

@@ -44,6 +44,10 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 {{ if .ToplevelNavigation}}
 <nav class="toplevel">
+	<form class="search" action="/search" method="GET">
+		<input type="text" name="q" placeholder="search">
+	</form>
+
 	<ul>
 	{{range .ToplevelNavigation.Entries}}
 	<li>
@@ -66,13 +70,6 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 </nav>
 {{end}}
 
-<nav class="search">
-	<form action="/search" method="GET">
-		<input type="text" name="q" placeholder="search">
-		<input type="submit" value="Search">
-	</form>
-</nav>
-
 <article class="{{.Type}} level-{{.Level}}">
 %s
 </article>
@@ -80,6 +77,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <footer>
 	<nav>
 		<ul>
+			<li><a href="/search">Search</a></li>
 			<li><a href="/tags.html">Tags</a></li>
 			<li><a href="/sitemap.html">Sitemap</a></li>
 			<li><a href="/feed.rss">RSS Feed</a></li>

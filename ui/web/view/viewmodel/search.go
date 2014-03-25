@@ -5,15 +5,19 @@
 package viewmodel
 
 type Search struct {
-	Query        string
-	Page         int
-	ItemsPerPage int
-	Results      []SearchResult
+	Query   string         `json:"query"`
+	Results []SearchResult `json:"results"`
+
+	Page         int `json:"page"`
+	ItemsPerPage int `json:"itemPerPage"`
+
+	ResultCount      int `json:"resultCount"`
+	TotalResultCount int `json:"totalResultCount"`
 }
 
 type SearchResult struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Route       string `json:"route"`
-	PubDate     string `json:"pubDate"`
+	Path        string `json:"path"`
 }

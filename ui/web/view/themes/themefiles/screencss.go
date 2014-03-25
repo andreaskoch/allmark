@@ -266,7 +266,20 @@ body>nav.toplevel {
     clear: both;
 }
 
+body>nav.toplevel>.search {
+    display: inline;
+    margin-right: 10px;
+}
+
+body>nav.toplevel>.search>input {
+    width: 7em;
+    text-align: right;
+    font-family: "Helvetia", "Verdana", "Sans-Serif";
+    color: #000000;
+}
+
 body>nav.toplevel>ul {
+    display: inline;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -560,6 +573,33 @@ section.video>h1 {
 
 .tagmap>.content>.tags>.tag>.childs>.child {
     margin: 0.7em 0 0;
+}
+
+.search>.content>header {
+    margin: 10px 0 10px 0;
+}
+
+.search>.content>ol {
+}
+
+.search>.content>ol>li {
+    margin: 0 0 15px 0;
+    width: 35em;
+}
+
+.search>.content>ol>li>.title {
+    margin: 0px;
+    font-size: 1.1em;
+}
+
+.search>.content>ol>li>.description {
+    margin: 0px;
+    font-size: 1.0em;
+}
+
+.search>.content>ol>li>.path {
+    margin: 0px;
+    font-size: 0.8em;
 }
 
 @media only screen and (max-height: 500px) {

@@ -94,6 +94,20 @@ func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
 
 func (index *ItemIndex) Root() *model.Item {
 	root := route.New()
+
+	if _, isMatch := index.IsMatch(*root); !isMatch {
+
+		// create a virtual root
+		virtualRoot, err := newVirtualItem(*root)
+		if err != nil {
+			index.logger.Error("%s", err.Error())
+			return nil
+		}
+
+		// write the new virtual root to the index
+		index.items[*root] = virtualRoot
+	}
+
 	return index.items[*root]
 }
 

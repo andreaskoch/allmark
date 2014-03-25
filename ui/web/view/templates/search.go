@@ -5,21 +5,32 @@
 package templates
 
 var searchContentTemplate = `
-<nav class="search">
+<nav>
 	<form action="/search" method="GET">
 		<input type="text" name="q" placeholder="search" value="{{.Query}}">
 		<input type="submit" value="Search">
 	</form>
 </nav>
 
+{{if .ResultCount}}
+<header>
+	Displaying {{.ResultCount}} of {{.TotalResultCount}} search results for "{{.Query}}":
+</header>
+
 <ol>
 	{{ range .Results }}
 	<li>
-			<a href="{{.Route}}">{{.Title}}</a>
-			<p>{{.Description}}</p>
+			<a class="title" href="{{.Route}}">{{.Title}}</a>
+			<p class="description">{{.Description}}</p>
+			<span class="path">{{.Path}}</span>
 	</li>
 	{{ end }}
-</ol>`
+</ol>
+{{else}}
+	{{if .Query}}
+	No results found for "{{.Query}}".
+	{{end}}
+{{end}}`
 
 const searchTemplate = `
 <header>
