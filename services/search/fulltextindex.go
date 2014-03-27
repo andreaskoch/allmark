@@ -25,8 +25,6 @@ func NewIndex(logger logger.Logger, itemIndex *index.ItemIndex) *FullTextIndex {
 
 	defer file.Close()
 
-	logger.Error("%s", file.Name())
-
 	return &FullTextIndex{
 		logger:    logger,
 		itemIndex: itemIndex,
