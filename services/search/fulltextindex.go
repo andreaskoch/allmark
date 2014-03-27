@@ -11,14 +11,26 @@ import (
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/bradleypeabody/fulltext"
+	"io/ioutil"
+	"os"
 	"strings"
 )
 
 func NewIndex(logger logger.Logger, itemIndex *index.ItemIndex) *FullTextIndex {
+
+	file, err := ioutil.TempFile(os.TempDir(), "allmark-fulltext-search-index")
+	if err != nil {
+		panic(err)
+	}
+
+	defer file.Close()
+
+	logger.Error("%s", file.Name())
+
 	return &FullTextIndex{
 		logger:    logger,
 		itemIndex: itemIndex,
-		filepath:  "index",
+		filepath:  file.Name(),
 	}
 }
 
@@ -53,6 +65,8 @@ func (index *FullTextIndex) Update() {
 	if err != nil {
 		panic(err)
 	}
+
+	defer f.Close()
 
 	err = idx.FinalizeAndWrite(f)
 	if err != nil {
