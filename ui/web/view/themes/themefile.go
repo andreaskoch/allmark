@@ -7,7 +7,7 @@ package themes
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/andreaskoch/allmark/util"
+	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"io/ioutil"
 	"path/filepath"
 )
@@ -38,14 +38,14 @@ type ThemeFile struct {
 }
 
 func (themeFile *ThemeFile) StoreOnDisc(baseFolder string) (success bool, err error) {
-	if !util.CreateDirectory(baseFolder) {
+	if !fsutil.CreateDirectory(baseFolder) {
 		return false, fmt.Errorf("Unable to create the base folder for the themes: %q", baseFolder)
 	}
 
 	filePath := filepath.Join(baseFolder, themeFile.path)
 	directory := filepath.Dir(filePath)
 
-	if !util.CreateDirectory(directory) {
+	if !fsutil.CreateDirectory(directory) {
 		return false, fmt.Errorf("Unable to create folder %q for theme file %q.", directory, filePath)
 	}
 

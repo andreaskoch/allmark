@@ -6,7 +6,7 @@ package templates
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark/util"
+	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/go-fswatch"
 	"io/ioutil"
 	"os"
@@ -34,7 +34,7 @@ func NewTemplate(templateFolder, name, text string, modified chan bool) *Templat
 	}
 
 	// look for changes
-	if util.FileExists(templateFilePath) {
+	if fsutil.FileExists(templateFilePath) {
 		go func() {
 			fileWatcher := fswatch.NewFileWatcher(template.path).Start()
 
@@ -80,7 +80,7 @@ func (template *Template) Name() string {
 
 func (template *Template) Text() string {
 
-	if !util.FileExists(template.path) {
+	if !fsutil.FileExists(template.path) {
 		return template.text
 	}
 
@@ -104,7 +104,7 @@ func (template *Template) StoreOnDisc() (success bool, err error) {
 	path := template.path
 
 	// make sure the directory exists
-	if success, _ := util.CreateFile(path); !success {
+	if success, _ := fsutil.CreateFile(path); !success {
 		return false, fmt.Errorf("Could not create the file %q.", path)
 	}
 
