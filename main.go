@@ -5,6 +5,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger/console"
@@ -12,80 +13,167 @@ import (
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml"
+	"github.com/andreaskoch/allmark2/services/initialization"
 	"github.com/andreaskoch/allmark2/services/parsing"
 	"github.com/andreaskoch/allmark2/services/search"
 	"github.com/andreaskoch/allmark2/ui/web/server"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
+const (
+	CommandNameInit  = "init"
+	CommandNameServe = "serve"
 )
 
 func main() {
 
-	repositoryPath := fsutil.GetWorkingDirectory()
+	serve := func(repositoryPath string) {
 
-	// logger
-	logger := console.New(loglevel.Info)
+		// logger
+		logger := console.New(loglevel.Info)
 
-	// config
-	config := config.Get(repositoryPath)
+		// config
+		config := config.Get(repositoryPath)
 
-	// data access
-	repository, err := filesystem.NewRepository(logger, repositoryPath)
-	if err != nil {
-		logger.Fatal("Unable to create a repository. Error: %s", err)
-	}
-
-	// parser
-	parser, err := parsing.New(logger)
-	if err != nil {
-		logger.Fatal("Unable to instantiate a parser. Error: %s", err)
-	}
-
-	// converter
-	converter, err := markdowntohtml.New(logger)
-	if err != nil {
-		logger.Fatal("Unable to instantiate a converter. Error: %s", err)
-	}
-
-	// item index
-	itemIndex := index.CreateItemIndex(logger)
-
-	// search
-	fullTextIndex := search.NewIndex(logger, itemIndex)
-
-	// read the repository
-	itemEvents := repository.GetItems()
-	for itemEvent := range itemEvents {
-
-		// validate event
-		if itemEvent.Error != nil {
-			logger.Warn("%s", itemEvent.Error)
-		}
-
-		if itemEvent.Item == nil {
-			continue
-		}
-
-		// parse item
-		item, err := parser.Parse(itemEvent.Item)
+		// data access
+		repository, err := filesystem.NewRepository(logger, repositoryPath)
 		if err != nil {
-			logger.Warn("%s", err.Error())
-			continue
+			logger.Fatal("Unable to create a repository. Error: %s", err)
 		}
 
-		// register the item at the index
-		itemIndex.Add(item)
+		// parser
+		parser, err := parsing.New(logger)
+		if err != nil {
+			logger.Fatal("Unable to instantiate a parser. Error: %s", err)
+		}
+
+		// converter
+		converter, err := markdowntohtml.New(logger)
+		if err != nil {
+			logger.Fatal("Unable to instantiate a converter. Error: %s", err)
+		}
+
+		// item index
+		itemIndex := index.CreateItemIndex(logger)
+
+		// search
+		itemSearch := search.NewItemSearch(logger, itemIndex)
+
+		// read the repository
+		itemEvents := repository.GetItems()
+		for itemEvent := range itemEvents {
+
+			// validate event
+			if itemEvent.Error != nil {
+				logger.Warn("%s", itemEvent.Error)
+			}
+
+			if itemEvent.Item == nil {
+				continue
+			}
+
+			// parse item
+			item, err := parser.Parse(itemEvent.Item)
+			if err != nil {
+				logger.Warn("%s", err.Error())
+				continue
+			}
+
+			// register the item at the index
+			itemIndex.Add(item)
+		}
+
+		// update the full-text search index
+		itemSearch.Update()
+
+		// server
+		server, err := server.New(logger, config, itemIndex, converter, itemSearch)
+		if err != nil {
+			logger.Fatal("Unable to instantiate a server. Error: %s", err.Error())
+		}
+
+		// start the server
+		if result := <-server.Start(); result != nil {
+			logger.Info("%s", result)
+		}
 	}
 
-	// update the full-text search index
-	fullTextIndex.Update()
-
-	// server
-	server, err := server.New(logger, config, itemIndex, converter, fullTextIndex)
-	if err != nil {
-		logger.Fatal("Unable to instantiate a server. Error: %s", err.Error())
+	init := func(repositoryPath string) {
+		if success, err := initialization.Initialize(repositoryPath); !success {
+			fmt.Println(err)
+		}
 	}
 
-	// start the server
-	if result := <-server.Start(); result != nil {
-		logger.Info("%s", result)
+	parseCommandLineArguments(os.Args, func(commandName, repositoryPath string) (commandWasFound bool) {
+		switch strings.ToLower(commandName) {
+		case CommandNameInit:
+			init(repositoryPath)
+
+		case CommandNameServe:
+			serve(repositoryPath)
+
+		default:
+			return false
+		}
+
+		return true
+	})
+}
+
+func parseCommandLineArguments(args []string, commandHandler func(commandName, repositoryPath string) (commandWasFound bool)) {
+
+	// check if the mandatory amount of
+	// command line parameters has been
+	// supplied. If not, print usage information.
+	if len(args) < 2 {
+		printUsageInformation(args)
+		return
 	}
+
+	// Read the repository path parameters
+	var repositoryPath string
+	if len(args) > 2 {
+
+		// use supplied repository path
+		repositoryPath = args[2]
+
+		if isFile, _ := fsutil.IsFile(repositoryPath); isFile {
+			repositoryPath = filepath.Dir(repositoryPath)
+		}
+
+	} else {
+
+		// use the current directory
+		repositoryPath = fsutil.GetWorkingDirectory()
+
+	}
+
+	// validate the supplied repository paths
+	if !fsutil.PathExists(repositoryPath) {
+		fmt.Fprintf(os.Stderr, "The specified repository paths %q is does not exist.", repositoryPath)
+		return
+	}
+
+	// Read the command parameter and execute the command handler
+	commandName := strings.ToLower(args[1])
+	if commandWasFound := commandHandler(commandName, repositoryPath); !commandWasFound {
+		printUsageInformation(args)
+	}
+}
+
+// Print usage information
+func printUsageInformation(args []string) {
+	executeableName := args[0]
+
+	fmt.Fprintf(os.Stderr, "%s - %s\n", executeableName, "A markdown web server and renderer")
+	fmt.Fprintf(os.Stderr, "\nUsage:\n%s %s %s\n", executeableName, "<command>", "<repository path>")
+	fmt.Fprintf(os.Stderr, "\nAvailable commands:\n")
+	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameInit, "Initialize the configuration")
+	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameServe, "Start serving the supplied repository via HTTP")
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "Fork me on GitHub %q\n", "https://github.com/andreaskoch/allmark")
+
+	os.Exit(2)
 }

@@ -36,7 +36,7 @@ const (
 	ThemeFolderRoute = "/theme"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, converter conversion.Converter, fullTextIndex *search.FullTextIndex) (*Server, error) {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, converter conversion.Converter, searcher *search.ItemSearch) (*Server, error) {
 
 	// pather factory
 	patherFactory := webpaths.NewFactory(logger, itemIndex)
@@ -47,7 +47,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 		patherFactory: patherFactory,
 		itemIndex:     itemIndex,
 		converter:     converter,
-		fullTextIndex: fullTextIndex,
+		searcher:      searcher,
 	}, nil
 
 }
@@ -60,7 +60,7 @@ type Server struct {
 	patherFactory paths.PatherFactory
 	itemIndex     *index.ItemIndex
 	converter     conversion.Converter
-	fullTextIndex *search.FullTextIndex
+	searcher      *search.ItemSearch
 }
 
 func (server *Server) IsRunning() bool {
@@ -83,9 +83,10 @@ func (server *Server) Start() chan error {
 		requestRouter.HandleFunc(SitemapHandlerRoute, handler.NewSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex).Func())
 		requestRouter.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
-		requestRouter.HandleFunc(SearchHandlerRoute, handler.NewSearchHandler(server.logger, server.config, server.patherFactory, server.itemIndex, server.fullTextIndex).Func())
+		requestRouter.HandleFunc(SearchHandlerRoute, handler.NewSearchHandler(server.logger, server.config, server.patherFactory, server.itemIndex, server.searcher).Func())
 
 		// serve static files
+		fmt.Println(server.config.ThemeFolder())
 		if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
 			s := http.StripPrefix(ThemeFolderRoute, http.FileServer(http.Dir(themeFolder)))
 			requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)

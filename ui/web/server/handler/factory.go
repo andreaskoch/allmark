@@ -42,8 +42,8 @@ func NewSitemapHandler(logger logger.Logger, config *config.Config, itemIndex *i
 	return sitemaphandler.New(logger, config, itemIndex, patherFactory)
 }
 
-func NewSearchHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, fullTextIndex *search.FullTextIndex) Handler {
-	return searchhandler.New(logger, config, patherFactory, itemIndex, fullTextIndex)
+func NewSearchHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) Handler {
+	return searchhandler.New(logger, config, patherFactory, itemIndex, searcher)
 }
 
 func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
