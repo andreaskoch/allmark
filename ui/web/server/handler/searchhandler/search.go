@@ -13,13 +13,10 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/services/search"
 	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
-	"github.com/andreaskoch/allmark2/ui/web/server/handler/errorhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
-	html "html/template"
 	"net/http"
-	"strings"
 	"text/template"
 )
 
@@ -29,9 +26,6 @@ func New(logger logger.Logger, config *config.Config, patherFactory paths.Pather
 
 	// templates
 	templateProvider := templates.NewProvider(".")
-
-	// errors
-	error404Handler := errorhandler.New(logger, config, itemIndex, patherFactory)
 
 	// navigation
 	navigationPathProvider := patherFactory.Absolute("/")
@@ -47,7 +41,6 @@ func New(logger logger.Logger, config *config.Config, patherFactory paths.Pather
 		config:                 config,
 		patherFactory:          patherFactory,
 		templateProvider:       templateProvider,
-		error404Handler:        error404Handler,
 		navigationOrchestrator: navigationOrchestrator,
 		searchOrchestrator:     searchOrchestrator,
 	}
@@ -59,7 +52,6 @@ type SearchHandler struct {
 	config                 *config.Config
 	patherFactory          paths.PatherFactory
 	templateProvider       *templates.Provider
-	error404Handler        *errorhandler.ErrorHandler
 	navigationOrchestrator orchestrator.NavigationOrchestrator
 	searchOrchestrator     orchestrator.SearchOrchestrator
 }
@@ -84,13 +76,6 @@ func (handler *SearchHandler) Func() func(w http.ResponseWriter, r *http.Request
 			return
 		}
 
-		viewModel := viewmodel.Model{}
-		viewModel.Type = "search"
-		viewModel.Title = getPageTitle(query)
-		viewModel.Description = getDescription(query)
-		viewModel.ToplevelNavigation = handler.navigationOrchestrator.GetToplevelNavigation()
-		viewModel.BreadcrumbNavigation = handler.navigationOrchestrator.GetBreadcrumbNavigation(handler.itemIndex.Root())
-
 		// get the search result content template
 		searchResultContentTemplate, err := handler.templateProvider.GetSubTemplate(templates.SearchContentTemplateName)
 		if err != nil {
@@ -98,36 +83,22 @@ func (handler *SearchHandler) Func() func(w http.ResponseWriter, r *http.Request
 			return
 		}
 
-		// get the search results
+		// root entry / channel item
 		searchResultModel := handler.searchOrchestrator.GetSearchResults(query, page)
+		searchResults := render(searchResultContentTemplate, searchResultModel)
 
-		// display error 404 non-existing page has been requested
-		if searchResultModel.ResultCount == 0 && page > 1 {
-			error404Handler := handler.error404Handler.Func()
-			error404Handler(w, r)
-			return
+		sitemapPageModel := viewmodel.Model{
+			Content: searchResults,
 		}
 
-		viewModel.Content = render(searchResultContentTemplate, searchResultModel)
+		sitemapPageModel.Type = "search"
+		sitemapPageModel.Title = "Search"
+		sitemapPageModel.Description = "Search results"
+		sitemapPageModel.ToplevelNavigation = handler.navigationOrchestrator.GetToplevelNavigation()
+		sitemapPageModel.BreadcrumbNavigation = handler.navigationOrchestrator.GetBreadcrumbNavigation(handler.itemIndex.Root())
 
-		handlerutil.RenderTemplate(viewModel, searchTemplate, w)
+		handlerutil.RenderTemplate(sitemapPageModel, searchTemplate, w)
 	}
-}
-
-func getPageTitle(query string) string {
-	if strings.TrimSpace(query) == "" {
-		return "Search"
-	}
-
-	return fmt.Sprintf("%s | Search", html.HTMLEscapeString(query))
-}
-
-func getDescription(query string) string {
-	if strings.TrimSpace(query) == "" {
-		return "Search this repository."
-	}
-
-	return fmt.Sprintf("Search results for %q.", html.HTMLEscapeString(query))
 }
 
 func render(templ *template.Template, searchModel viewmodel.Search) string {

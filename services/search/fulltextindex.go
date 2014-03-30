@@ -11,24 +11,13 @@ import (
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/bradleypeabody/fulltext"
-	"io/ioutil"
-	"os"
-	"strings"
 )
 
 func NewIndex(logger logger.Logger, itemIndex *index.ItemIndex) *FullTextIndex {
-
-	file, err := ioutil.TempFile(os.TempDir(), "allmark-fulltext-search-index")
-	if err != nil {
-		panic(err)
-	}
-
-	defer file.Close()
-
 	return &FullTextIndex{
 		logger:    logger,
 		itemIndex: itemIndex,
-		filepath:  file.Name(),
+		filepath:  "index",
 	}
 }
 
@@ -64,8 +53,6 @@ func (index *FullTextIndex) Update() {
 		panic(err)
 	}
 
-	defer f.Close()
-
 	err = idx.FinalizeAndWrite(f)
 	if err != nil {
 		panic(err)
@@ -76,13 +63,12 @@ func getContent(item *model.Item) []byte {
 
 	content := item.Title
 	content += " " + item.Description
-	content += " " + strings.Join(item.Route().Components(), " ")
 	content += " " + item.Content
 
 	return []byte(content)
 }
 
-func (index *FullTextIndex) Search(keyword string, maxiumNumberOfResults int) []SearchResult {
+func (index *FullTextIndex) Search(keyword string) []SearchResult {
 
 	searcher, err := fulltext.NewSearcher(index.filepath)
 	if err != nil {
@@ -91,10 +77,13 @@ func (index *FullTextIndex) Search(keyword string, maxiumNumberOfResults int) []
 
 	defer searcher.Close()
 
-	searchResult, err := searcher.SimpleSearch(keyword, maxiumNumberOfResults)
+	searchResult, err := searcher.SimpleSearch(keyword, 5)
 	if err != nil {
 		panic(err)
 	}
+
+	index.logger.Debug("%s", keyword)
+	index.logger.Debug("%s", len(searchResult.Items))
 
 	searchResults := make([]SearchResult, 0)
 

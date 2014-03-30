@@ -8,11 +8,10 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/services/search"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
-	"strings"
 )
 
 var (
-	itemsPerPage = 10
+	itemsPerPage = 5
 )
 
 func NewSearchOrchestrator(fullTextIndex *search.FullTextIndex, pathProvider paths.Pather) SearchOrchestrator {
@@ -31,7 +30,7 @@ func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page i
 
 	// validate page number
 	if page < 1 {
-		panic("Invalid page number.")
+		panic("Invalid page number")
 	}
 
 	// determine start item
@@ -42,40 +41,22 @@ func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page i
 
 	// collect the search results
 	searchResults := make([]viewmodel.SearchResult, 0)
+	for _, searchResult := range orchestrator.fullTextIndex.Search(keywords) {
 
-	maximumNumberOfResults := 100
-	totalResultCount := 0
-
-	if strings.TrimSpace(keywords) != "" {
-
-		// execute the search
-		searchResultItems := orchestrator.fullTextIndex.Search(keywords, maximumNumberOfResults)
-
-		// count the number of search results
-		totalResultCount = len(searchResultItems)
-
-		// prepare the result models
-		for currentNumberOfItems, searchResult := range searchResultItems {
-
-			// paging
-			if currentNumberOfItems < startItemNumber || currentNumberOfItems >= endItemNumber {
-				continue
-			}
-
-			searchResults = append(searchResults, orchestrator.createSearchResultModel(searchResult))
+		// paging
+		currentNumberOfItems := len(searchResults)
+		if currentNumberOfItems < startItemNumber || currentNumberOfItems >= endItemNumber {
+			continue
 		}
 
+		searchResults = append(searchResults, orchestrator.createSearchResultModel(searchResult))
 	}
 
 	return viewmodel.Search{
-		Query:   keywords,
-		Results: searchResults,
-
+		Query:        keywords,
 		Page:         page,
 		ItemsPerPage: itemsPerPage,
-
-		ResultCount:      len(searchResults),
-		TotalResultCount: totalResultCount,
+		Results:      searchResults,
 	}
 }
 
@@ -86,10 +67,16 @@ func (orchestrator *SearchOrchestrator) createSearchResultModel(searchResult sea
 	// item location
 	location := orchestrator.pathProvider.Path(item.Route().Value())
 
+	// last modified date
+	lastModifiedDate := ""
+	if item.MetaData != nil && item.MetaData.LastModifiedDate != nil {
+		lastModifiedDate = item.MetaData.LastModifiedDate.Format("2006-01-02")
+	}
+
 	return viewmodel.SearchResult{
 		Title:       item.Title,
-		Description: item.Description,
+		Description: searchResult.StoreValue,
 		Route:       location,
-		Path:        item.Route().PrettyValue(),
+		PubDate:     lastModifiedDate,
 	}
 }
