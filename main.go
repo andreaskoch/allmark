@@ -55,8 +55,11 @@ func main() {
 			logger.Fatal("Unable to instantiate a converter. Error: %s", err)
 		}
 
+		// repository (fallback) name
+		repositoryName := filepath.Base(repositoryPath)
+
 		// item index
-		itemIndex := index.CreateItemIndex(logger)
+		itemIndex := index.CreateItemIndex(logger, repositoryName)
 
 		// search
 		itemSearch := search.NewItemSearch(logger, itemIndex)

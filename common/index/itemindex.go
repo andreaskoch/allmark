@@ -10,16 +10,18 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 )
 
-func CreateItemIndex(logger logger.Logger) *ItemIndex {
+func CreateItemIndex(logger logger.Logger, repositoryName string) *ItemIndex {
 	return &ItemIndex{
-		logger: logger,
-		items:  make(map[route.Route]*model.Item),
+		logger:         logger,
+		repositoryName: repositoryName,
+		items:          make(map[route.Route]*model.Item),
 	}
 }
 
 type ItemIndex struct {
-	logger logger.Logger
-	items  map[route.Route]*model.Item
+	logger         logger.Logger
+	repositoryName string
+	items          map[route.Route]*model.Item
 }
 
 func (index *ItemIndex) IsMatch(route route.Route) (item *model.Item, isMatch bool) {
@@ -103,6 +105,9 @@ func (index *ItemIndex) Root() *model.Item {
 			index.logger.Error("%s", err.Error())
 			return nil
 		}
+
+		// use the repository name as the title of the root item
+		virtualRoot.Title = index.repositoryName
 
 		// write the new virtual root to the index
 		index.items[*root] = virtualRoot
