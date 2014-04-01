@@ -109,7 +109,7 @@ func (route *Route) FolderName() string {
 		return route.value
 	}
 
-	return route.value[lastSlashPosition:]
+	return strings.TrimPrefix(route.value[lastSlashPosition:], "/")
 }
 
 func (route *Route) Level() int {
