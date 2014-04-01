@@ -60,25 +60,28 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 
 func (orchestrator *ViewModelOrchestrator) getTopDocuments(numberOfTopDocuments int, pathProvider paths.Pather, route *route.Route) []*viewmodel.Model {
 
+	baseRouteLevel := route.Level()
+	nextRouteLevel := baseRouteLevel + 1
 	childItems := orchestrator.itemIndex.GetAllChilds(route)
 
 	// determine the candidates for the top-documents
 	candidateModels := make([]*viewmodel.Model, 0)
 
-	for _, childItem := range childItems {
+	for len(candidateModels) == 0 && nextRouteLevel != baseRouteLevel+3 {
 
-		if childItem.IsVirtual() {
+		for _, childItem := range childItems {
 
-			// the child is virtual: get the top documents of the child
-			candidateModels = append(candidateModels, orchestrator.getTopDocuments(numberOfTopDocuments, pathProvider, childItem.Route())...)
-
-		} else {
+			if childItem.Route().Level() != nextRouteLevel {
+				continue
+			}
 
 			// create viewmodel and append to list
 			childModel := orchestrator.GetViewModel(pathProvider, childItem)
 			candidateModels = append(candidateModels, &childModel)
 
 		}
+
+		nextRouteLevel++
 
 	}
 
