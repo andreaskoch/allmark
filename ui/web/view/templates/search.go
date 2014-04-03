@@ -17,9 +17,9 @@ var searchContentTemplate = `
 	Displaying {{.ResultCount}} of {{.TotalResultCount}} search results for "{{.Query}}":
 </header>
 
-<ol>
+<ol start="{{.StartIndex}}">
 	{{ range .Results }}
-	<li>
+	<li data-index="{{.Index}}">
 			<a class="title" href="{{.Route}}">{{.Title}}</a>
 			<p class="description">{{.Description}}</p>
 			<span class="path">{{.Path}}</span>

@@ -9,6 +9,8 @@ import (
 )
 
 type SearchResult struct {
+	Number int
+
 	Score      int64
 	StoreValue string
 	Item       *model.Item

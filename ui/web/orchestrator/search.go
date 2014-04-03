@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	itemsPerPage = 10
+	itemsPerPage = 50
 )
 
 func NewSearchOrchestrator(searcher *search.ItemSearch, pathProvider paths.Pather) SearchOrchestrator {
@@ -74,6 +74,7 @@ func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page i
 		Page:         page,
 		ItemsPerPage: itemsPerPage,
 
+		StartIndex:       getStartIndex(itemsPerPage, page),
 		ResultCount:      len(searchResults),
 		TotalResultCount: totalResultCount,
 	}
@@ -87,9 +88,15 @@ func (orchestrator *SearchOrchestrator) createSearchResultModel(searchResult sea
 	location := orchestrator.pathProvider.Path(item.Route().Value())
 
 	return viewmodel.SearchResult{
+		Index: searchResult.Number,
+
 		Title:       item.Title,
 		Description: item.Description,
 		Route:       location,
 		Path:        item.Route().PrettyValue(),
 	}
+}
+
+func getStartIndex(itemsPerPage, pageNumber int) int {
+	return pageNumber*itemsPerPage - itemsPerPage + 1
 }

@@ -11,11 +11,14 @@ type Search struct {
 	Page         int `json:"page"`
 	ItemsPerPage int `json:"itemPerPage"`
 
+	StartIndex       int `json:"startIndex"`
 	ResultCount      int `json:"resultCount"`
 	TotalResultCount int `json:"totalResultCount"`
 }
 
 type SearchResult struct {
+	Index int `json:"index"`
+
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Route       string `json:"route"`

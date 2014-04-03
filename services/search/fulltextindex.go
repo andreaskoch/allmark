@@ -86,7 +86,7 @@ func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) [
 
 	searchResults := make([]SearchResult, 0)
 
-	for _, v := range searchResult.Items {
+	for number, v := range searchResult.Items {
 
 		route, err := route.NewFromRequest(string(v.Id))
 		if err != nil {
@@ -96,6 +96,8 @@ func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) [
 
 		if item, isMatch := index.itemIndex.IsMatch(*route); isMatch {
 			searchResults = append(searchResults, SearchResult{
+				Number: number + 1,
+
 				Score:      v.Score,
 				StoreValue: string(v.StoreValue),
 				Item:       item,
