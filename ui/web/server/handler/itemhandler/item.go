@@ -18,9 +18,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 	"io"
-	"mime"
 	"net/http"
-	"path/filepath"
 )
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
@@ -132,17 +130,15 @@ func (handler *ItemHandler) serveContent(filename string, contentProvider *conte
 		return
 	}
 
-	// content type detection
-	// derive content type from file extension
-	fileExtension := filepath.Ext(filename)
-	contentType := mime.TypeByExtension(fileExtension)
-	if contentType == "" {
-		// fallback: derive content type from data
-		contentType = http.DetectContentType(data)
+	// mime type
+	mimeType, err := contentProvider.MimeType()
+	if err != nil {
+		handler.logger.Error("Unable to determine mime type: %s", err)
+		return
 	}
 
 	// set headers
-	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Type", mimeType)
 
 	fmt.Fprintf(w, "%s", data)
 }
