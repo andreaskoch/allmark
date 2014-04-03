@@ -8,13 +8,16 @@ import (
 	"time"
 )
 
-func NewProvider(data DataProviderFunc, hash HashProviderFunc, lastModified LastModifiedProviderFunc) *ContentProvider {
+func NewProvider(mimeType MimeTypeProviderFunc, data DataProviderFunc, hash HashProviderFunc, lastModified LastModifiedProviderFunc) *ContentProvider {
 	return &ContentProvider{
+		mimeTypeProviderFunc:     mimeType,
 		dataProviderFunc:         data,
 		hashProviderFunc:         hash,
 		lastModifiedProviderFunc: lastModified,
 	}
 }
+
+type MimeTypeProviderFunc func() (string, error)
 
 type LastModifiedProviderFunc func() (time.Time, error)
 
@@ -23,6 +26,7 @@ type DataProviderFunc func() ([]byte, error)
 type HashProviderFunc func() (string, error)
 
 type ContentProvider struct {
+	mimeTypeProviderFunc     MimeTypeProviderFunc
 	dataProviderFunc         DataProviderFunc
 	hashProviderFunc         HashProviderFunc
 	lastModifiedProviderFunc LastModifiedProviderFunc
@@ -38,4 +42,8 @@ func (provider *ContentProvider) Hash() (string, error) {
 
 func (provider *ContentProvider) LastModified() (time.Time, error) {
 	return provider.lastModifiedProviderFunc()
+}
+
+func (provider *ContentProvider) MimeType() (string, error) {
+	return provider.mimeTypeProviderFunc()
 }
