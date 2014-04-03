@@ -38,7 +38,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 	for _, item := range orchestrator.itemIndex.Items() {
 
 		itemViewModel := &viewmodel.Model{
-			Base: getBaseModel(item),
+			Base: getBaseModel(item, orchestrator.pathProvider),
 		}
 
 		tags := []model.Tag{}

@@ -39,9 +39,9 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 
 	// create a view model
 	viewModel := viewmodel.Model{
-		Base:    getBaseModel(item),
+		Base:    getBaseModel(item, pathProvider),
 		Content: convertedContent,
-		Childs:  orchestrator.getChildModels(item.Route()),
+		Childs:  orchestrator.getChildModels(item.Route(), pathProvider),
 
 		// navigation
 		ToplevelNavigation:   orchestrator.navigationOrchestrator.GetToplevelNavigation(),
@@ -96,12 +96,12 @@ func (orchestrator *ViewModelOrchestrator) getTopDocuments(numberOfTopDocuments 
 	return candidateModels[:numberOfTopDocuments]
 }
 
-func (orchestrator *ViewModelOrchestrator) getChildModels(route *route.Route) []*viewmodel.Base {
+func (orchestrator *ViewModelOrchestrator) getChildModels(route *route.Route, pathProvider paths.Pather) []*viewmodel.Base {
 	childModels := make([]*viewmodel.Base, 0)
 
 	childItems := orchestrator.itemIndex.GetChilds(route)
 	for _, childItem := range childItems {
-		baseModel := getBaseModel(childItem)
+		baseModel := getBaseModel(childItem, pathProvider)
 		childModels = append(childModels, &baseModel)
 	}
 
