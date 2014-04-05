@@ -38,6 +38,9 @@ func init() {
 			newFileFromText("deck.css", themefiles.DeckCss),
 			newFileFromText("presentation.js", themefiles.PresentationJs),
 
+			// auto-suggest
+			newFileFromText("typeahead.js", themefiles.TypeAheadJs),
+
 			// code highlighting
 			newFileFromBase64("codehighlighting/highlight.js", themefiles.HighlightJs),
 			newFileFromBase64("codehighlighting/highlight.css", themefiles.HighlightCss),

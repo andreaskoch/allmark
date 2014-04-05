@@ -86,6 +86,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 </footer>
 
 <script src="/theme/jquery.js"></script>
+<script src="/theme/typeahead.js"></script>
 <script src="/theme/autoupdate.js"></script>
 <script src="/theme/pdf.js"></script>
 <script src="/theme/pdf-preview.js"></script>
