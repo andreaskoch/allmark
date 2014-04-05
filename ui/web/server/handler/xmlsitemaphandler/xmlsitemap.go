@@ -22,7 +22,7 @@ import (
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *XmlSitemapHandler {
 
-	templateProvider := templates.NewProvider(".")
+	templateProvider := templates.NewProvider(config.TemplatesFolder())
 	xmlSitemapOrchestrator := orchestrator.NewXmlSitemapOrchestrator(itemIndex)
 
 	return &XmlSitemapHandler{

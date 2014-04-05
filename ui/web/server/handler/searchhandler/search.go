@@ -28,7 +28,7 @@ var itemsPerPage = 5
 func New(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) *SearchHandler {
 
 	// templates
-	templateProvider := templates.NewProvider(".")
+	templateProvider := templates.NewProvider(config.TemplatesFolder())
 
 	// errors
 	error404Handler := errorhandler.New(logger, config, itemIndex, patherFactory)

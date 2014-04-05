@@ -20,7 +20,7 @@ import (
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *ErrorHandler {
 
 	// templates
-	templateProvider := templates.NewProvider(".")
+	templateProvider := templates.NewProvider(config.TemplatesFolder())
 
 	// navigation
 	navigationPathProvider := patherFactory.Absolute("/")

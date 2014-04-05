@@ -24,7 +24,7 @@ import (
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
 
 	// templates
-	templateProvider := templates.NewProvider(".")
+	templateProvider := templates.NewProvider(config.TemplatesFolder())
 
 	// tags
 	tagPathProvider := patherFactory.Absolute("/tags.html#")
