@@ -23,8 +23,6 @@ import (
 	"text/template"
 )
 
-var itemsPerPage = 5
-
 func New(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) *SearchHandler {
 
 	// templates

@@ -19,6 +19,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/searchhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/sitemaphandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/tagshandler"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/typeaheadhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/xmlsitemaphandler"
 )
 
@@ -44,6 +45,10 @@ func NewSitemapHandler(logger logger.Logger, config *config.Config, itemIndex *i
 
 func NewSearchHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) Handler {
 	return searchhandler.New(logger, config, patherFactory, itemIndex, searcher)
+}
+
+func NewTypeAheadHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) Handler {
+	return typeaheadhandler.New(logger, config, patherFactory, itemIndex, searcher)
 }
 
 func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {

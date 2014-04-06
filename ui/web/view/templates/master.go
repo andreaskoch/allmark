@@ -87,7 +87,34 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 <script src="/theme/jquery.js"></script>
 <script src="/theme/typeahead.js"></script>
-<script src="/theme/autoupdate.js"></script>
+<script>
+	var typeAheadDataSource = new Bloodhound({
+		datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+		queryTokenizer: Bloodhound.tokenizers.whitespace,
+		remote: '/typeahead?q=%QUERY'
+	});
+
+	typeAheadDataSource.initialize();
+
+	$('.typeahead').typeahead(
+		{
+			minLength: 3,
+			items: 5,
+			highlight: true,
+		},
+		{
+			name: 'typeahead',
+			displayKey: 'value',
+			source: typeAheadDataSource.ttAdapter(),
+			template: {
+
+			}
+		}
+	).on('typeahead:selected', function(event, datum) {
+    	window.location = datum.route
+	});
+</script>
+<!-- <script src="/theme/autoupdate.js"></script> -->>
 <script src="/theme/pdf.js"></script>
 <script src="/theme/pdf-preview.js"></script>
 <script src="/theme/codehighlighting/highlight.js"></script>

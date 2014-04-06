@@ -30,6 +30,7 @@ const (
 	RobotsTxtHandlerRoute  = "/robots.txt"
 	DebugHandlerRoute      = "/debug/index"
 	SearchHandlerRoute     = "/search"
+	TypeAheadHandlerRoute  = "/typeahead"
 	WebSocketHandlerRoute  = "/ws"
 
 	// Static Routes
@@ -84,6 +85,7 @@ func (server *Server) Start() chan error {
 		requestRouter.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex).Func())
 		requestRouter.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
 		requestRouter.HandleFunc(SearchHandlerRoute, handler.NewSearchHandler(server.logger, server.config, server.patherFactory, server.itemIndex, server.searcher).Func())
+		requestRouter.HandleFunc(TypeAheadHandlerRoute, handler.NewTypeAheadHandler(server.logger, server.config, server.patherFactory, server.itemIndex, server.searcher).Func())
 
 		// serve static files
 		fmt.Println(server.config.ThemeFolder())
