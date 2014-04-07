@@ -45,7 +45,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 {{ if .ToplevelNavigation}}
 <nav class="toplevel">
 	<form class="search" action="/search" method="GET">
-		<input type="text" name="q" placeholder="search">
+		<input class="typeahead" type="text" name="q" placeholder="search">
 	</form>
 
 	<ul>
@@ -88,14 +88,6 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <script src="/theme/jquery.js"></script>
 <script src="/theme/typeahead.js"></script>
 <script>
-	var typeAheadDataSource = new Bloodhound({
-		datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-		queryTokenizer: Bloodhound.tokenizers.whitespace,
-		remote: '/typeahead?q=%QUERY'
-	});
-
-	typeAheadDataSource.initialize();
-
 	$('.typeahead').typeahead(
 		{
 			minLength: 3,
@@ -105,9 +97,10 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 		{
 			name: 'typeahead',
 			displayKey: 'value',
-			source: typeAheadDataSource.ttAdapter(),
-			template: {
-
+			source: function (query, process) {
+				return $.get('/search.json', { q: query }, function (data) {
+				    return process(data);
+				});
 			}
 		}
 	).on('typeahead:selected', function(event, datum) {
