@@ -46,6 +46,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <nav class="toplevel">
 	<form class="search" action="/search" method="GET">
 		<input class="typeahead" type="text" name="q" placeholder="search">
+		<input type="submit" style="visibility:hidden; position: fixed;"/>
 	</form>
 
 	<ul>
@@ -98,16 +99,16 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 			name: 'typeahead',
 			displayKey: 'value',
 			source: function (query, process) {
-				return $.get('/search.json', { q: query }, function (data) {
+				return $.get('/typeahead', { q: query }, function (data) {
 				    return process(data);
 				});
 			}
 		}
 	).on('typeahead:selected', function(event, datum) {
-    	window.location = datum.route
+    	window.location = datum.route;
 	});
 </script>
-<!-- <script src="/theme/autoupdate.js"></script> -->>
+<!-- <script src="/theme/autoupdate.js"></script> -->
 <script src="/theme/pdf.js"></script>
 <script src="/theme/pdf-preview.js"></script>
 <script src="/theme/codehighlighting/highlight.js"></script>
