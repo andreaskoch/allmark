@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package orchestrator
+package typeaheadorchestrator
 
 import (
 	"github.com/andreaskoch/allmark2/common/paths"
@@ -11,19 +11,19 @@ import (
 	"strings"
 )
 
-func NewTypeAheadOrchestrator(searcher *search.ItemSearch, pathProvider paths.Pather) TypeAheadOrchestrator {
-	return TypeAheadOrchestrator{
+func NewSearchOrchestrator(searcher *search.ItemSearch, pathProvider paths.Pather) SearchOrchestrator {
+	return SearchOrchestrator{
 		searcher:     searcher,
 		pathProvider: pathProvider,
 	}
 }
 
-type TypeAheadOrchestrator struct {
+type SearchOrchestrator struct {
 	searcher     *search.ItemSearch
 	pathProvider paths.Pather
 }
 
-func (orchestrator *TypeAheadOrchestrator) GetSuggestions(keywords string) []typeaheadviewmodel.SearchResult {
+func (orchestrator *SearchOrchestrator) GetSuggestions(keywords string) []typeaheadviewmodel.SearchResult {
 
 	// collect the search results
 	typeAheadResults := make([]typeaheadviewmodel.SearchResult, 0)
@@ -45,7 +45,7 @@ func (orchestrator *TypeAheadOrchestrator) GetSuggestions(keywords string) []typ
 	return typeAheadResults
 }
 
-func (orchestrator *TypeAheadOrchestrator) createTypeAheadResultModel(searchResult search.SearchResult) typeaheadviewmodel.SearchResult {
+func (orchestrator *SearchOrchestrator) createTypeAheadResultModel(searchResult search.SearchResult) typeaheadviewmodel.SearchResult {
 
 	item := searchResult.Item
 

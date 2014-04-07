@@ -47,8 +47,12 @@ func NewSearchHandler(logger logger.Logger, config *config.Config, patherFactory
 	return searchhandler.New(logger, config, patherFactory, itemIndex, searcher)
 }
 
-func NewTypeAheadHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) Handler {
-	return typeaheadhandler.New(logger, config, patherFactory, itemIndex, searcher)
+func NewTypeAheadSearchHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) Handler {
+	return typeaheadhandler.NewSearchHandler(logger, config, patherFactory, itemIndex, searcher)
+}
+
+func NewTypeAheadTitlesHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex) Handler {
+	return typeaheadhandler.NewTitlesHandler(logger, config, patherFactory, itemIndex)
 }
 
 func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {

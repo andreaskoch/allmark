@@ -18,13 +18,13 @@ import (
 	"net/http"
 )
 
-func New(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) *TypeAheadHandler {
+func NewSearchHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) *SearchHandler {
 
 	// search
 	searchResultPathProvider := patherFactory.Absolute("/")
 	typeAheadOrchestrator := orchestrator.NewTypeAheadOrchestrator(searcher, searchResultPathProvider)
 
-	return &TypeAheadHandler{
+	return &SearchHandler{
 		logger:                logger,
 		itemIndex:             itemIndex,
 		config:                config,
@@ -33,7 +33,7 @@ func New(logger logger.Logger, config *config.Config, patherFactory paths.Pather
 	}
 }
 
-type TypeAheadHandler struct {
+type SearchHandler struct {
 	logger                logger.Logger
 	itemIndex             *index.ItemIndex
 	config                *config.Config
@@ -41,7 +41,7 @@ type TypeAheadHandler struct {
 	typeAheadOrchestrator orchestrator.TypeAheadOrchestrator
 }
 
-func (handler *TypeAheadHandler) Func() func(w http.ResponseWriter, r *http.Request) {
+func (handler *SearchHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -49,18 +49,18 @@ func (handler *TypeAheadHandler) Func() func(w http.ResponseWriter, r *http.Requ
 		query, _ := handlerutil.GetQueryParameterFromUrl(*r.URL)
 
 		// get the suggestions
-		typeAheadResults := handler.typeAheadOrchestrator.GetSuggestions(query)
+		searchResults := handler.typeAheadOrchestrator.GetSuggestions(query)
 
 		// set content type to json
 		w.Header().Set("Content-Type", "application/json")
 
 		// convert to json
-		writeTypeAheadResults(w, typeAheadResults)
+		writeSearchResults(w, searchResults)
 	}
 }
 
-func writeTypeAheadResults(writer io.Writer, typeAheadResults []typeaheadviewmodel.SearchResult) error {
-	bytes, err := json.MarshalIndent(typeAheadResults, "", "\t")
+func writeSearchResults(writer io.Writer, searchResults []typeaheadviewmodel.SearchResult) error {
+	bytes, err := json.MarshalIndent(searchResults, "", "\t")
 	if err != nil {
 		return err
 	}
