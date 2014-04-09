@@ -27,8 +27,9 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
 
 	// tags
+	itemPathProvider := patherFactory.Absolute("/")
 	tagPathProvider := patherFactory.Absolute("/tags.html#")
-	tagsOrchestrator := orchestrator.NewTagsOrchestrator(itemIndex, tagPathProvider)
+	tagsOrchestrator := orchestrator.NewTagsOrchestrator(itemIndex, tagPathProvider, itemPathProvider)
 
 	// navigation
 	navigationPathProvider := patherFactory.Absolute("/")

@@ -19,16 +19,18 @@ var (
 	tagCloudEntryLevels = 6
 )
 
-func NewTagsOrchestrator(itemIndex *index.ItemIndex, pathProvider paths.Pather) TagsOrchestrator {
+func NewTagsOrchestrator(itemIndex *index.ItemIndex, tagPathProvider, itemPathProvider paths.Pather) TagsOrchestrator {
 	return TagsOrchestrator{
-		itemIndex:    itemIndex,
-		pathProvider: pathProvider,
+		itemIndex:        itemIndex,
+		tagPathProvider:  tagPathProvider,
+		itemPathProvider: itemPathProvider,
 	}
 }
 
 type TagsOrchestrator struct {
-	itemIndex    *index.ItemIndex
-	pathProvider paths.Pather
+	itemIndex        *index.ItemIndex
+	tagPathProvider  paths.Pather
+	itemPathProvider paths.Pather
 }
 
 func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
@@ -38,7 +40,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 	for _, item := range orchestrator.itemIndex.Items() {
 
 		itemViewModel := &viewmodel.Model{
-			Base: getBaseModel(item, orchestrator.pathProvider),
+			Base: getBaseModel(item, orchestrator.itemPathProvider),
 		}
 
 		tags := []model.Tag{}
@@ -66,7 +68,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 		// create view model
 		tagModel := &viewmodel.Tag{
 			Name:   tag,
-			Route:  orchestrator.pathProvider.Path(tag),
+			Route:  orchestrator.tagPathProvider.Path(tag),
 			Childs: items,
 		}
 
@@ -94,7 +96,7 @@ func (orchestrator *TagsOrchestrator) GetItemTags(item *model.Item) []*viewmodel
 		// create view model
 		tagModel := &viewmodel.Tag{
 			Name:  tag.Name(),
-			Route: orchestrator.pathProvider.Path(tag.Name()),
+			Route: orchestrator.tagPathProvider.Path(tag.Name()),
 		}
 
 		// append to list
@@ -128,7 +130,7 @@ func (orchestrator *TagsOrchestrator) GetTagCloud() *viewmodel.TagCloud {
 		// create a new tag cloud entry
 		tagCloudEntry := viewmodel.TagCloudEntry{
 			Name:           tag.Name,
-			Route:          orchestrator.pathProvider.Path(tag.Name),
+			Route:          orchestrator.tagPathProvider.Path(tag.Name),
 			NumberOfChilds: numberItemsPerTag,
 		}
 
