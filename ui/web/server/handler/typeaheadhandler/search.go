@@ -11,7 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/services/search"
-	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
+	"github.com/andreaskoch/allmark2/ui/web/orchestrator/typeaheadorchestrator"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel/typeaheadviewmodel"
 	"io"
@@ -22,23 +22,23 @@ func NewSearchHandler(logger logger.Logger, config *config.Config, patherFactory
 
 	// search
 	searchResultPathProvider := patherFactory.Absolute("/")
-	typeAheadOrchestrator := orchestrator.NewTypeAheadOrchestrator(searcher, searchResultPathProvider)
+	searchOrchestrator := typeaheadorchestrator.NewSearchOrchestrator(searcher, searchResultPathProvider)
 
 	return &SearchHandler{
-		logger:                logger,
-		itemIndex:             itemIndex,
-		config:                config,
-		patherFactory:         patherFactory,
-		typeAheadOrchestrator: typeAheadOrchestrator,
+		logger:             logger,
+		itemIndex:          itemIndex,
+		config:             config,
+		patherFactory:      patherFactory,
+		searchOrchestrator: &searchOrchestrator,
 	}
 }
 
 type SearchHandler struct {
-	logger                logger.Logger
-	itemIndex             *index.ItemIndex
-	config                *config.Config
-	patherFactory         paths.PatherFactory
-	typeAheadOrchestrator orchestrator.TypeAheadOrchestrator
+	logger             logger.Logger
+	itemIndex          *index.ItemIndex
+	config             *config.Config
+	patherFactory      paths.PatherFactory
+	searchOrchestrator *typeaheadorchestrator.SearchOrchestrator
 }
 
 func (handler *SearchHandler) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +49,7 @@ func (handler *SearchHandler) Func() func(w http.ResponseWriter, r *http.Request
 		query, _ := handlerutil.GetQueryParameterFromUrl(*r.URL)
 
 		// get the suggestions
-		searchResults := handler.typeAheadOrchestrator.GetSuggestions(query)
+		searchResults := handler.searchOrchestrator.GetSuggestions(query)
 
 		// set content type to json
 		w.Header().Set("Content-Type", "application/json")
