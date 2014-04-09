@@ -58,7 +58,7 @@ func (orchestrator *SearchOrchestrator) createTypeAheadResultModel(searchResult 
 		Title:       item.Title,
 		Description: item.Description,
 		Route:       location,
-		Path:        item.Route().PrettyValue(),
+		Path:        item.Route().OriginalValue(),
 
 		Value:  item.Title,
 		Tokens: strings.Split(searchResult.StoreValue, " "),

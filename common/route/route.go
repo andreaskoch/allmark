@@ -17,8 +17,8 @@ var (
 )
 
 type Route struct {
-	value        string
-	originalPath string
+	value         string
+	originalValue string
 }
 
 func NewFromItemPath(basePath, itemPath string) (*Route, error) {
@@ -40,8 +40,8 @@ func NewFromItemPath(basePath, itemPath string) (*Route, error) {
 	routeValue = strings.TrimLeft(routeValue, "/")
 
 	return &Route{
-		value:        toUrl(routeValue),
-		originalPath: routeValue,
+		value:         toUrl(routeValue),
+		originalValue: routeValue,
 	}, nil
 }
 
@@ -61,8 +61,8 @@ func NewFromFilePath(basePath, itemPath string) (*Route, error) {
 	routeValue = strings.TrimLeft(routeValue, "/")
 
 	return &Route{
-		value:        toUrl(routeValue),
-		originalPath: routeValue,
+		value:         toUrl(routeValue),
+		originalValue: routeValue,
 	}, nil
 }
 
@@ -72,8 +72,8 @@ func NewFromRequest(requestPath string) (*Route, error) {
 	routeValue := normalize(requestPath)
 
 	return &Route{
-		value:        toUrl(routeValue),
-		originalPath: routeValue,
+		value:         toUrl(routeValue),
+		originalValue: routeValue,
 	}, nil
 }
 
@@ -83,26 +83,26 @@ func New() *Route {
 	routeValue := normalize("")
 
 	return &Route{
-		value:        toUrl(routeValue),
-		originalPath: routeValue,
+		value:         toUrl(routeValue),
+		originalValue: routeValue,
 	}
 }
 
 // combines two routes
 func Combine(route1, route2 *Route) (*Route, error) {
-	return NewFromRequest(route1.Value() + "/" + route2.Value())
+	return NewFromRequest(route1.OriginalValue() + "/" + route2.OriginalValue())
 }
 
 func (route *Route) String() string {
-	return route.value
+	return route.originalValue
 }
 
-func (route *Route) PrettyValue() string {
-	return strings.Replace(route.value, "+", " ", -1)
+func (route *Route) OriginalValue() string {
+	return route.originalValue
 }
 
 func (route *Route) Components() []string {
-	return strings.Split(route.PrettyValue(), " /")
+	return strings.Split(route.OriginalValue(), " /")
 }
 
 func (route *Route) Value() string {
@@ -114,12 +114,12 @@ func (route *Route) IsEmpty() bool {
 }
 
 func (route *Route) FolderName() string {
-	lastSlashPosition := strings.LastIndex(route.value, "/")
+	lastSlashPosition := strings.LastIndex(route.originalValue, "/")
 	if lastSlashPosition == -1 {
-		return route.value
+		return route.originalValue
 	}
 
-	return strings.TrimPrefix(route.value[lastSlashPosition:], "/")
+	return strings.TrimPrefix(route.originalValue[lastSlashPosition:], "/")
 }
 
 func (route *Route) Level() int {
@@ -259,6 +259,8 @@ func normalize(path string) string {
 		return ""
 	}
 
+	path = fromUrl(path)
+
 	// replace all backslashes with a (single) forward slash
 	path = regexpBackSlashPattern.ReplaceAllString(path, "/")
 
@@ -281,11 +283,24 @@ func normalize(path string) string {
 func toUrl(path string) string {
 
 	// replace duplicate spaces with a (single) url safe character
-	path = regexpWhitespacePattern.ReplaceAllString(path, "+")
+	path = strings.Replace(path, " ", "+", -1)
 
 	// replace brackets
-	path = strings.Replace(path, "(", "", -1)
-	path = strings.Replace(path, ")", "", -1)
+	path = strings.Replace(path, "(", "%28", -1)
+	path = strings.Replace(path, ")", "%29", -1)
+
+	return path
+}
+
+// Returns an "url-safe" version of the supplied path
+func fromUrl(path string) string {
+
+	// replace duplicate spaces with a (single) url safe character
+	path = strings.Replace(path, "+", " ", -1)
+
+	// replace brackets
+	path = strings.Replace(path, "%28", "(", -1)
+	path = strings.Replace(path, "%29", ")", -1)
 
 	return path
 }

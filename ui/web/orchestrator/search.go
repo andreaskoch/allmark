@@ -93,7 +93,7 @@ func (orchestrator *SearchOrchestrator) createSearchResultModel(searchResult sea
 		Title:       item.Title,
 		Description: item.Description,
 		Route:       location,
-		Path:        item.Route().PrettyValue(),
+		Path:        item.Route().OriginalValue(),
 	}
 }
 
