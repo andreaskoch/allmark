@@ -5,7 +5,6 @@
 package route
 
 import (
-	"fmt"
 	"testing"
 )
 

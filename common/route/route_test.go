@@ -108,26 +108,11 @@ func Test_normalize_NormalizeSlashes(t *testing.T) {
 	}
 }
 
-// Testing the normalize function: Replace white space with url safe characters.
-func Test_normalize_ReplaceWhitespaceWithUrlSafeCharacters(t *testing.T) {
-	// arrange
-	inputPath := "documents/A Test"
-	expectedResult := "documents/A+Test"
-
-	// act
-	result := normalize(inputPath)
-
-	// assert
-	if result != expectedResult {
-		t.Errorf("Should have replaced all white space characters with url safe characters (Expected: %s, Actual: %s)", expectedResult, result)
-	}
-}
-
-// Testing the normalize function: Replace all double white spaces with a single url safe character.
-func Test_normalize_ReplaceDoubleWhitespaceWithASingleUrlSafeCharacters(t *testing.T) {
+// Testing the urlSafe function: Replace all double white spaces
+func Test_normalize_ReplaceDoubleWhitespace(t *testing.T) {
 	// arrange
 	inputPath := "my    documents/A  Test"
-	expectedResult := "my+documents/A+Test"
+	expectedResult := "my documents/A Test"
 
 	// act
 	result := normalize(inputPath)
@@ -135,5 +120,20 @@ func Test_normalize_ReplaceDoubleWhitespaceWithASingleUrlSafeCharacters(t *testi
 	// assert
 	if result != expectedResult {
 		t.Errorf("Should have replaced all double white spaces with a single url safe characters (Expected: %s, Actual: %s)", expectedResult, result)
+	}
+}
+
+// Testing the toUrl function: Replace white space with url safe characters.
+func Test_toUrl_ReplaceWhitespaceWithUrlSafeCharacters(t *testing.T) {
+	// arrange
+	inputPath := "documents/A Test"
+	expectedResult := "documents/A+Test"
+
+	// act
+	result := toUrl(inputPath)
+
+	// assert
+	if result != expectedResult {
+		t.Errorf("Should have replaced all white space characters with url safe characters (Expected: %s, Actual: %s)", expectedResult, result)
 	}
 }

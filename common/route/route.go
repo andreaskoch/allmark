@@ -17,7 +17,8 @@ var (
 )
 
 type Route struct {
-	value string
+	value        string
+	originalPath string
 }
 
 func NewFromItemPath(basePath, itemPath string) (*Route, error) {
@@ -38,7 +39,10 @@ func NewFromItemPath(basePath, itemPath string) (*Route, error) {
 	// trim leading slashes
 	routeValue = strings.TrimLeft(routeValue, "/")
 
-	return &Route{routeValue}, nil
+	return &Route{
+		value:        toUrl(routeValue),
+		originalPath: routeValue,
+	}, nil
 }
 
 func NewFromFilePath(basePath, itemPath string) (*Route, error) {
@@ -56,29 +60,35 @@ func NewFromFilePath(basePath, itemPath string) (*Route, error) {
 	// trim leading slashes
 	routeValue = strings.TrimLeft(routeValue, "/")
 
-	return &Route{routeValue}, nil
+	return &Route{
+		value:        toUrl(routeValue),
+		originalPath: routeValue,
+	}, nil
 }
 
 func NewFromRequest(requestPath string) (*Route, error) {
 
 	// normalize the request path
-	normalizedRequestPath := normalize(requestPath)
+	routeValue := normalize(requestPath)
 
 	return &Route{
-		normalizedRequestPath,
+		value:        toUrl(routeValue),
+		originalPath: routeValue,
 	}, nil
 }
 
 func New() *Route {
 
 	// normalize the request path
-	normalizedRequestPath := normalize("")
+	routeValue := normalize("")
 
 	return &Route{
-		normalizedRequestPath,
+		value:        toUrl(routeValue),
+		originalPath: routeValue,
 	}
 }
 
+// combines two routes
 func Combine(route1, route2 *Route) (*Route, error) {
 	return NewFromRequest(route1.Value() + "/" + route2.Value())
 }
@@ -186,7 +196,12 @@ func (route *Route) Parent() *Route {
 	positionOfLastSlash := strings.LastIndex(routeValue, "/")
 	parentRouteValue := routeValue[:positionOfLastSlash]
 
-	return &Route{parentRouteValue}
+	parentRoute, err := NewFromRequest(parentRouteValue)
+	if err != nil {
+		return nil
+	}
+
+	return parentRoute
 }
 
 // Check if the the current route is direct parent for the supplied (child) route.
@@ -233,7 +248,7 @@ func (child *Route) IsChildOf(parent *Route) bool {
 	return true
 }
 
-// Normalize the supplied path to be used for an Item or File
+// Returns a normalized version of the supplied path
 func normalize(path string) string {
 
 	// trim spaces
@@ -255,6 +270,15 @@ func normalize(path string) string {
 
 	// remove trailing slashes
 	path = strings.TrimRight(path, "/")
+
+	// replace duplicate spaces
+	path = regexpWhitespacePattern.ReplaceAllString(path, " ")
+
+	return path
+}
+
+// Returns an "url-safe" version of the supplied path
+func toUrl(path string) string {
 
 	// replace duplicate spaces with a (single) url safe character
 	path = regexpWhitespacePattern.ReplaceAllString(path, "+")
