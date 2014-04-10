@@ -266,16 +266,16 @@ body>nav.toplevel {
     clear: both;
 }
 
-body>nav.toplevel>.search {
-    display: inline;
-    margin-right: 10px;
+body>nav.search {
+    float: right;
 }
 
-body>nav.toplevel>.search>input {
-    width: 7em;
-    text-align: right;
+body>nav.search .typeahead {
+    width: 20em;
     font-family: "Helvetia", "Verdana", "Sans-Serif";
     color: #000000;
+    text-align: left;
+    padding: 0px 10px;
 }
 
 .typeahead,
@@ -368,6 +368,7 @@ body>nav.toplevel>ul>li>a:hover {
 }
 
 body>nav.breadcrumb {
+    clear: both;
     font-size: 0.8em;
 }
 

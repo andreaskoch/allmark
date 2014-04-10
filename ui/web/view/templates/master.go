@@ -44,11 +44,6 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 {{ if .ToplevelNavigation}}
 <nav class="toplevel">
-	<form class="search" action="/search" method="GET">
-		<input class="typeahead" type="text" name="q" placeholder="search">
-		<input type="submit" style="visibility:hidden; position: fixed;"/>
-	</form>
-
 	<ul>
 	{{range .ToplevelNavigation.Entries}}
 	<li>
@@ -58,6 +53,13 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	</ul>
 </nav>
 {{end}}
+
+<nav class="search">
+	<form action="/search" method="GET">
+		<input class="typeahead" type="text" name="q" placeholder="search">
+		<input type="submit" style="visibility:hidden; position: fixed;"/>
+	</form>
+</nav>
 
 {{ if .BreadcrumbNavigation}}
 <nav class="breadcrumb">
