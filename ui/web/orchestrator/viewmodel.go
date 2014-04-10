@@ -85,9 +85,6 @@ func (orchestrator *ViewModelOrchestrator) getTopDocuments(numberOfTopDocuments 
 
 	}
 
-	// sort the candidates
-	viewmodel.SortModelBy(sortModelsByDateAndRoute).Sort(candidateModels)
-
 	// take the top models only
 	if len(candidateModels) <= numberOfTopDocuments {
 		return candidateModels

@@ -31,13 +31,3 @@ func getBaseModel(item *model.Item, pathProvider paths.Pather) viewmodel.Base {
 		Description: item.Description,
 	}
 }
-
-func sortModelsByDateAndRoute(model1, model2 *viewmodel.Model) bool {
-
-	// ascending by route
-	if model1.LastModifiedDate != "" && model2.LastModifiedDate != "" {
-		return model1.LastModifiedDate > model2.LastModifiedDate
-	}
-
-	return model1.Route > model2.Route
-}

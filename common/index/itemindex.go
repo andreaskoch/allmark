@@ -249,6 +249,6 @@ func newVirtualItem(route route.Route) (*model.Item, error) {
 func sortItemsByRoute(item1, item2 *model.Item) bool {
 
 	// ascending by route
-	return item1.Route().Value() < item2.Route().Value()
+	return item1.Route().Value() > item2.Route().Value()
 
 }

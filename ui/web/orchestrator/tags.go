@@ -62,9 +62,6 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 	tags := make([]*viewmodel.Tag, 0)
 	for tag, items := range itemsByTag {
 
-		// sort items
-		viewmodel.SortModelBy(sortModelsByDateAndRoute).Sort(items)
-
 		// create view model
 		tagModel := &viewmodel.Tag{
 			Name:   tag,
