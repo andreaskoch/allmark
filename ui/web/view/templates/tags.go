@@ -29,6 +29,8 @@ const tagmapTemplate = `
 {{.Description}}
 </section>
 
+<section class="content">
+
 {{if .TagCloud}}
 <section class="tagcloud">
 	<div class="tags">
@@ -41,9 +43,9 @@ const tagmapTemplate = `
 </section>
 {{end}}
 
-<section class="content">
 <ul class="tags">
 {{.Content}}
 </ul>
+
 </section>
 `

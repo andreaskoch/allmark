@@ -610,6 +610,44 @@ section.video>h1 {
     list-style-type: decimal;
 }
 
+.tagcloud {
+    margin: 0px 20px 35px 20px;
+}
+
+.tagcloud>.tags>span {
+    line-height: 1.0em;
+    padding: 3px 6px;
+    margin: 0px 5px;
+}
+
+.tagmap>.content>.tagcloud>.tags>span>a {
+    color: #00;
+}
+
+.tagmap>.content>.tagcloud>.tags>span.level-1 {
+    font-size: 2em;
+}
+
+.tagmap>.content>.tagcloud>.tags>span.level-2 {
+    font-size: 1.8em;
+}
+
+.tagmap>.content>.tagcloud>.tags>span.level-3 {
+    font-size: 1.6em;
+}
+
+.tagmap>.content>.tagcloud>.tags>span.level-4 {
+    font-size: 1.4em;
+}
+
+.tagmap>.content>.tagcloud>.tags>span.level-5 {
+    font-size: 1.2em;
+}
+
+.tagmap>.content>.tagcloud>.tags>span.level-6 {
+    font-size: 1.0em;
+}
+
 .tagmap>.content>.tags {
     list-style-type: none;
 }
