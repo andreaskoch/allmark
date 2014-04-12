@@ -7,7 +7,7 @@ package templates
 var searchContentTemplate = `
 <nav>
 	<form action="/search" method="GET">
-		<input type="text" name="q" placeholder="search" value="{{.Query}}">
+		<input type="text" name="q" placeholder="search" value="{{.Query}}" autocomplete="off">
 		<input type="submit" value="Search">
 	</form>
 </nav>

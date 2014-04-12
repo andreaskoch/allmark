@@ -56,7 +56,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 <nav class="search">
 	<form action="/search" method="GET">
-		<input class="typeahead" type="text" name="q" placeholder="search">
+		<input class="typeahead" type="text" name="q" placeholder="search" autocomplete="off">
 		<input type="submit" style="visibility:hidden; position: fixed;"/>
 	</form>
 </nav>
