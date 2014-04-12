@@ -23,7 +23,7 @@ const PdfPreviewJs = `
             }
 
             // pdf file path
-            var pdfFilePath = $(pdfLinkElement).attr("href");
+            var pdfFilePath = $('base').attr('href') + $(pdfLinkElement).attr("href");
             if (typeof(pdfFilePath) !== 'string' || pdfFilePath.length == 0) {
                 // abort: file path is not set
                 return;

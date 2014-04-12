@@ -13,6 +13,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/audio"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/files"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/markdown"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pdf"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/video"
 	"regexp"
 	"strings"
@@ -53,7 +54,14 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	videoConverter := video.New(pathProvider, item.Files())
 	content, videoConversionError := videoConverter.Convert(content)
 	if videoConversionError != nil {
-		converter.logger.Warn("Error while converting video extensions. Error: %s", audioConversionError)
+		converter.logger.Warn("Error while converting video extensions. Error: %s", videoConversionError)
+	}
+
+	// markdown extension: pdf
+	pdfConverter := pdf.New(pathProvider, item.Files())
+	content, pdfConversionError := pdfConverter.Convert(content)
+	if pdfConversionError != nil {
+		converter.logger.Warn("Error while converting pdf extensions. Error: %s", pdfConversionError)
 	}
 
 	// markdown extension: files
