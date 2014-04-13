@@ -41,11 +41,6 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 	// viewmodel
 	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter, &navigationOrchestrator, &tagsOrchestrator)
 
-	// rewrites
-	rewrites := []RequestRewrite{
-		NewRewrite("^favicon.ico", "theme/favicon.ico"),
-	}
-
 	return &ItemHandler{
 		logger:                logger,
 		itemIndex:             itemIndex,
@@ -54,7 +49,6 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 		templateProvider:      templateProvider,
 		error404Handler:       error404Handler,
 		viewModelOrchestrator: viewModelOrchestrator,
-		rewrites:              rewrites,
 	}
 }
 
@@ -66,7 +60,6 @@ type ItemHandler struct {
 	templateProvider      *templates.Provider
 	error404Handler       *errorhandler.ErrorHandler
 	viewModelOrchestrator orchestrator.ViewModelOrchestrator
-	rewrites              []RequestRewrite
 }
 
 func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) {
