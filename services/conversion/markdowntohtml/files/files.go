@@ -16,7 +16,7 @@ import (
 
 var (
 	// files: [*description text*](*folder path*)
-	filesPattern = regexp.MustCompile(`files: \[([^\]]+)\]\(([^)]+)\)`)
+	markdownPattern = regexp.MustCompile(`files: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
 func New(pathProvider paths.Pather, files []*model.File) *FilesExtension {
@@ -38,7 +38,7 @@ func (converter *FilesExtension) Convert(markdown string) (convertedContent stri
 	for {
 
 		// search for files-extension code
-		found, matches := pattern.IsMatch(convertedContent, filesPattern)
+		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
 		if !found || (found && len(matches) != 3) {
 			break // abort. no (more) files-extension code found
 		}

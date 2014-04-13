@@ -17,7 +17,7 @@ import (
 
 var (
 	// imagegallery: [*description text*](*folder path*)
-	imageGalleryPattern = regexp.MustCompile(`imagegallery: \[([^\]]+)\]\(([^)]+)\)`)
+	markdownPattern = regexp.MustCompile(`imagegallery: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
 func New(pathProvider paths.Pather, files []*model.File) *FilePreviewExtension {
@@ -38,7 +38,7 @@ func (converter *FilePreviewExtension) Convert(markdown string) (convertedConten
 
 	for {
 
-		found, matches := pattern.IsMatch(convertedContent, imageGalleryPattern)
+		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
 		if !found || (found && len(matches) != 3) {
 			break
 		}

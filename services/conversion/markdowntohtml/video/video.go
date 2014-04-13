@@ -17,7 +17,7 @@ import (
 
 var (
 	// video: [*description text*](*a link to a youtube video or to a video file*)
-	videoPattern = regexp.MustCompile(`video: \[([^\]]+)\]\(([^)]+)\)`)
+	markdownPattern = regexp.MustCompile(`video: \[([^\]]+)\]\(([^)]+)\)`)
 
 	// youtube video link pattern
 	youTubeVideoPattern = regexp.MustCompile(`http[s]?://www\.youtube\.com/watch\?v=([^&]+)`)
@@ -44,7 +44,7 @@ func (converter *VideoExtension) Convert(markdown string) (convertedContent stri
 
 	for {
 
-		found, matches := pattern.IsMatch(convertedContent, videoPattern)
+		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
 		if !found || (found && len(matches) != 3) {
 			break
 		}

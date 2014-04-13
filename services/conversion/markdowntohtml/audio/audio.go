@@ -17,7 +17,7 @@ import (
 
 var (
 	// audio: [*description text*](*a link to an audio file*)
-	audioPattern = regexp.MustCompile(`audio: \[([^\]]+)\]\(([^)]+)\)`)
+	markdownPattern = regexp.MustCompile(`audio: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
 func New(pathProvider paths.Pather, files []*model.File) *AudioExtension {
@@ -38,7 +38,7 @@ func (converter *AudioExtension) Convert(markdown string) (convertedContent stri
 
 	for {
 
-		found, matches := pattern.IsMatch(convertedContent, audioPattern)
+		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
 		if !found || (found && len(matches) != 3) {
 			break
 		}

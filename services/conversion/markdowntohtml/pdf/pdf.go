@@ -16,7 +16,7 @@ import (
 
 var (
 	// pdf: [*description text*](*some pdf file*)
-	pdfPattern = regexp.MustCompile(`pdf: \[([^\]]+)\]\(([^)]+)\)`)
+	markdownPattern = regexp.MustCompile(`pdf: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
 func New(pathProvider paths.Pather, files []*model.File) *PDFExtension {
@@ -37,7 +37,7 @@ func (converter *PDFExtension) Convert(markdown string) (convertedContent string
 
 	for {
 
-		found, matches := pattern.IsMatch(convertedContent, pdfPattern)
+		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
 		if !found || (found && len(matches) != 3) {
 			break
 		}
