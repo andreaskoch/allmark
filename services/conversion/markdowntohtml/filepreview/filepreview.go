@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pattern"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/util"
 	"html"
 	"regexp"
 	"strings"
@@ -47,29 +48,41 @@ func (converter *FilePreviewExtension) Convert(markdown string) (convertedConten
 		title := strings.TrimSpace(matches[1])
 		path := strings.TrimSpace(matches[2])
 
-		// get the file that matches the path
-		file := converter.getMatchingFile(path)
-		if file != nil {
+		// get the code
+		renderedCode := converter.getPreviewCode(title, path)
 
-			filepath := converter.pathProvider.Path(file.Route().Value())
+		// replace markdown
+		convertedContent = strings.Replace(convertedContent, originalText, renderedCode, 1)
+	}
 
-			// get the code
-			renderedCode := getPreviewCode(title, filepath, file)
+	return convertedContent, nil
+}
 
-			// replace markdown
-			convertedContent = strings.Replace(convertedContent, originalText, renderedCode, 1)
+func (converter *FilePreviewExtension) getPreviewCode(title, path string) string {
 
-		} else {
+	// get the file that matches the path
+	file := converter.getMatchingFile(path)
+	if file != nil {
 
-			// fallback
-			fallback := getFallback(title, path)
-			convertedContent = strings.Replace(convertedContent, originalText, fallback, 1)
+		filepath := converter.pathProvider.Path(file.Route().Value())
 
+		if content, contentType, err := util.GetFileContent(file); err == nil {
+
+			// escape html entities
+			escapedContent := html.EscapeString(content)
+
+			return fmt.Sprintf(`<section class="filepreview filepreview-%s">
+			<h1><a href="%s" target="_blank" title="%s">%s</a></h1>
+			<pre>
+				<code class="%s">%s</code>
+			</pre>
+			</section>`, contentType, filepath, title, title, contentType, escapedContent)
 		}
 
 	}
 
-	return convertedContent, nil
+	// fallback
+	return util.GetFallbackLink(title, path)
 }
 
 func (converter *FilePreviewExtension) getMatchingFile(path string) *model.File {
@@ -80,44 +93,4 @@ func (converter *FilePreviewExtension) getMatchingFile(path string) *model.File 
 	}
 
 	return nil
-}
-
-func getPreviewCode(title, path string, file *model.File) string {
-
-	if content, contentType, err := getFileContent(file); err == nil {
-		return fmt.Sprintf(`<section class="filepreview filepreview-%s">
-			<h1><a href="%s" target="_blank" title="%s">%s</a></h1>
-			<pre>
-				<code class="%s">%s</code>
-			</pre>
-		</section>`, contentType, path, title, title, contentType, content)
-	}
-
-	// fallback
-	return getFallback(title, path)
-}
-
-func getFallback(title, path string) string {
-	return fmt.Sprintf(`<a href="%s" target="_blank" title="%s">%s</a>`, path, title, title)
-}
-
-func getFileContent(file *model.File) (fileContent string, contentType string, err error) {
-
-	// get the file content
-	contentProvider := file.ContentProvider()
-	data, err := contentProvider.Data()
-	if err != nil {
-		return
-	}
-
-	fileContent = string(data)                   // convert data to string
-	fileContent = html.EscapeString(fileContent) // escape html charachters
-
-	// get the mime type
-	contentType, err = contentProvider.MimeType()
-	if err != nil {
-		return
-	}
-
-	return fileContent, contentType, nil
 }
