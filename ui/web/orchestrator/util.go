@@ -20,8 +20,11 @@ func getBaseUrlFromItem(route *route.Route) string {
 	return "/"
 }
 
-func getBaseModel(item *model.Item, pathProvider paths.Pather) viewmodel.Base {
+func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.Base {
 	return viewmodel.Base{
+		RepositoryName:        root.Title,
+		RepositoryDescription: root.Description,
+
 		Type:    item.Type.String(),
 		Route:   pathProvider.Path(item.Route().Value()),
 		Level:   item.Route().Level(),

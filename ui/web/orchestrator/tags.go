@@ -35,12 +35,17 @@ type TagsOrchestrator struct {
 
 func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 
+	rootItem := orchestrator.itemIndex.Root()
+	if rootItem == nil {
+		panic("No root item found")
+	}
+
 	// items by tag
 	itemsByTag := make(map[string][]*viewmodel.Model)
 	for _, item := range orchestrator.itemIndex.Items() {
 
 		itemViewModel := &viewmodel.Model{
-			Base: getBaseModel(item, orchestrator.itemPathProvider),
+			Base: getBaseModel(rootItem, item, orchestrator.itemPathProvider),
 		}
 
 		tags := []model.Tag{}

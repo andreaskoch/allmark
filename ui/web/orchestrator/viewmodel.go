@@ -31,6 +31,12 @@ type ViewModelOrchestrator struct {
 
 func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pather, item *model.Item) viewmodel.Model {
 
+	// get the root item
+	root := orchestrator.itemIndex.Root()
+	if root == nil {
+		return viewmodel.Model{}
+	}
+
 	// convert content
 	convertedContent, err := orchestrator.converter.Convert(pathProvider, item)
 	if err != nil {
@@ -39,7 +45,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 
 	// create a view model
 	viewModel := viewmodel.Model{
-		Base:    getBaseModel(item, pathProvider),
+		Base:    getBaseModel(root, item, pathProvider),
 		Content: convertedContent,
 		Childs:  orchestrator.getChildModels(item.Route(), pathProvider),
 
@@ -94,11 +100,16 @@ func (orchestrator *ViewModelOrchestrator) getTopDocuments(numberOfTopDocuments 
 }
 
 func (orchestrator *ViewModelOrchestrator) getChildModels(route *route.Route, pathProvider paths.Pather) []*viewmodel.Base {
-	childModels := make([]*viewmodel.Base, 0)
 
+	rootItem := orchestrator.itemIndex.Root()
+	if rootItem == nil {
+		panic("No root item found")
+	}
+
+	childModels := make([]*viewmodel.Base, 0)
 	childItems := orchestrator.itemIndex.GetChilds(route)
 	for _, childItem := range childItems {
-		baseModel := getBaseModel(childItem, pathProvider)
+		baseModel := getBaseModel(rootItem, childItem, pathProvider)
 		childModels = append(childModels, &baseModel)
 	}
 
