@@ -7,6 +7,7 @@ package util
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/model"
+	"strings"
 )
 
 func GetFallbackLink(title, path string) string {
@@ -31,4 +32,59 @@ func GetFileContent(file *model.File) (fileContent string, contentType string, e
 	}
 
 	return fileContent, contentType, nil
+}
+
+func IsImageFile(file *model.File) bool {
+	mimetype, err := GetMimeType(file)
+	if err != nil {
+		return false
+	}
+
+	return strings.HasPrefix(mimetype, "image/")
+}
+
+func IsTextFile(file *model.File) bool {
+	mimetype, err := GetMimeType(file)
+	if err != nil {
+		return false
+	}
+
+	return strings.HasPrefix(mimetype, "text/")
+}
+
+func IsAudioFile(file *model.File) bool {
+	mimetype, err := GetMimeType(file)
+	if err != nil {
+		return false
+	}
+
+	return strings.HasPrefix(mimetype, "audio/")
+}
+
+func IsVideoFile(file *model.File) bool {
+	mimetype, err := GetMimeType(file)
+	if err != nil {
+		return false
+	}
+
+	return strings.HasPrefix(mimetype, "video/")
+}
+
+func IsPDFFile(file *model.File) bool {
+	mimetype, err := GetMimeType(file)
+	if err != nil {
+		return false
+	}
+
+	return mimetype == "application/pdf"
+}
+
+func GetMimeType(file *model.File) (string, error) {
+	contentProvider := file.ContentProvider()
+	mimetype, err := contentProvider.MimeType()
+	if err != nil {
+		return "", err
+	}
+
+	return mimetype, nil
 }

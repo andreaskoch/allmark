@@ -87,7 +87,7 @@ func (converter *FilePreviewExtension) getPreviewCode(title, path string) string
 
 func (converter *FilePreviewExtension) getMatchingFile(path string) *model.File {
 	for _, file := range converter.files {
-		if file.Route().IsMatch(path) {
+		if file.Route().IsMatch(path) && util.IsTextFile(file) {
 			return file
 		}
 	}

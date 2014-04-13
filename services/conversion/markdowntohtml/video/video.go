@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pattern"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/util"
 	"mime"
 	"regexp"
 	"strings"
@@ -53,11 +54,8 @@ func (converter *VideoExtension) Convert(markdown string) (convertedContent stri
 		title := strings.TrimSpace(matches[1])
 		path := strings.TrimSpace(matches[2])
 
-		// fix the path
-		path = converter.pathProvider.Path(path)
-
 		// get the code
-		renderedCode := getVideoCode(title, path)
+		renderedCode := converter.getVideoCode(title, path)
 
 		// replace markdown
 		convertedContent = strings.Replace(convertedContent, originalText, renderedCode, 1)
@@ -67,19 +65,39 @@ func (converter *VideoExtension) Convert(markdown string) (convertedContent stri
 	return convertedContent, nil
 }
 
-func getVideoCode(title, path string) string {
+func (converter *VideoExtension) getMatchingFile(path string) *model.File {
+	for _, file := range converter.files {
+		if file.Route().IsMatch(path) && util.IsVideoFile(file) {
+			return file
+		}
+	}
 
-	// youtube
+	return nil
+}
+
+func (converter *VideoExtension) getVideoCode(title, path string) string {
+
+	// internal video file
+	if audioFile := converter.getMatchingFile(path); audioFile != nil {
+
+		if mimeType, err := util.GetMimeType(audioFile); err == nil {
+			filepath := converter.pathProvider.Path(audioFile.Route().Value())
+			return renderVideoFileLink(title, filepath, mimeType)
+		}
+
+	}
+
+	// external: youtube
 	if isYouTube, videoId := isYouTubeLink(path); isYouTube {
 		return renderYouTubeVideo(title, videoId)
 	}
 
-	// vimeo
+	// external: vimeo
 	if isVimeo, videoId := isVimeoLink(path); isVimeo {
 		return renderVimeoVideo(title, videoId)
 	}
 
-	// html5 video file
+	// external: html5 video file
 	if isVideoFile, mimeType := isVideoFileLink(path); isVideoFile {
 		return renderVideoFileLink(title, path, mimeType)
 	}

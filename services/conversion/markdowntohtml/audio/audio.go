@@ -9,7 +9,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pattern"
-	"mime"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/util"
 	"regexp"
 	"strings"
 )
@@ -47,11 +47,8 @@ func (converter *AudioExtension) Convert(markdown string) (convertedContent stri
 		title := strings.TrimSpace(matches[1])
 		path := strings.TrimSpace(matches[2])
 
-		// fix the path
-		path = converter.pathProvider.Path(path)
-
 		// get the code
-		renderedCode := getAudioCode(title, path)
+		renderedCode := converter.getAudioCode(title, path)
 
 		// replace markdown
 		convertedContent = strings.Replace(convertedContent, originalText, renderedCode, 1)
@@ -61,37 +58,37 @@ func (converter *AudioExtension) Convert(markdown string) (convertedContent stri
 	return convertedContent, nil
 }
 
-func getAudioCode(title, path string) string {
+func (converter *AudioExtension) getMatchingFile(path string) *model.File {
+	for _, file := range converter.files {
+		if file.Route().IsMatch(path) && util.IsAudioFile(file) {
+			return file
+		}
+	}
+
+	return nil
+}
+
+func (converter *AudioExtension) getAudioCode(title, path string) string {
 
 	// html5 audio file
-	if isAudioFile, mimeType := isAudioFileLink(path); isAudioFile {
-		return getAudioFileLink(title, path, mimeType)
+	if audioFile := converter.getMatchingFile(path); audioFile != nil {
+
+		if mimeType, err := util.GetMimeType(audioFile); err == nil {
+			filepath := converter.pathProvider.Path(audioFile.Route().Value())
+			return getAudioFileLink(title, filepath, mimeType)
+		}
+
 	}
 
 	// fallback
 	return fmt.Sprintf(`<a href="%s" target="_blank" title="%s">%s</a>`, path, title, title)
 }
 
-func isAudioFileLink(link string) (isAudioFile bool, mimeType string) {
-	normalizedLink := strings.ToLower(link)
-	fileExtension := normalizedLink[strings.LastIndex(normalizedLink, "."):]
-	mimeType = mime.TypeByExtension(fileExtension)
-
-	switch fileExtension {
-	case ".mp3", ".ogg":
-		return true, mimeType
-	default:
-		return false, ""
-	}
-
-	panic("Unreachable")
-}
-
-func getAudioFileLink(title, link, mimetype string) string {
+func getAudioFileLink(title, link, mimeType string) string {
 	return fmt.Sprintf(`<section class="audio audio-file">
 		<h1><a href="%s" target="_blank" title="%s">%s</a></h1>
 		<audio controls>
 			<source src="%s" type="%s">
 		</audio>
-	</section>`, link, title, title, link, mimetype)
+	</section>`, link, title, title, link, mimeType)
 }

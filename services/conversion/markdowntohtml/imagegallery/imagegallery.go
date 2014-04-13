@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pattern"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/util"
 	"regexp"
 	"strings"
 )
@@ -84,6 +85,11 @@ func (converter *FilePreviewExtension) getImageLinksByPath(galleryTitle, path st
 
 		// skip files which are not a child of the supplied path
 		if !file.Route().IsChildOf(galleryRoute) {
+			continue
+		}
+
+		// skip files which are not images
+		if !util.IsImageFile(file) {
 			continue
 		}
 
