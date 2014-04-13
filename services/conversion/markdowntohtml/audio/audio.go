@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pattern"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/util"
+	"mime"
 	"regexp"
 	"strings"
 )
@@ -70,7 +71,7 @@ func (converter *AudioExtension) getMatchingFile(path string) *model.File {
 
 func (converter *AudioExtension) getAudioCode(title, path string) string {
 
-	// html5 audio file
+	// internal video file
 	if audioFile := converter.getMatchingFile(path); audioFile != nil {
 
 		if mimeType, err := util.GetMimeType(audioFile); err == nil {
@@ -78,6 +79,11 @@ func (converter *AudioExtension) getAudioCode(title, path string) string {
 			return getAudioFileLink(title, filepath, mimeType)
 		}
 
+	}
+
+	// external audio file
+	if isAudioFile, mimeType := isAudioFileLink(path); isAudioFile {
+		return getAudioFileLink(title, path, mimeType)
 	}
 
 	// fallback
@@ -91,4 +97,19 @@ func getAudioFileLink(title, link, mimeType string) string {
 			<source src="%s" type="%s">
 		</audio>
 	</section>`, link, title, title, link, mimeType)
+}
+
+func isAudioFileLink(link string) (isAudioFile bool, mimeType string) {
+	normalizedLink := strings.ToLower(link)
+	fileExtension := normalizedLink[strings.LastIndex(normalizedLink, "."):]
+	mimeType = mime.TypeByExtension(fileExtension)
+
+	switch fileExtension {
+	case ".mp3", ".ogg":
+		return true, mimeType
+	default:
+		return false, ""
+	}
+
+	panic("Unreachable")
 }
