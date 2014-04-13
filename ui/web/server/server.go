@@ -22,15 +22,16 @@ import (
 
 const (
 	// Dynamic Routes
-	ItemHandlerRoute       = "/{path:.*}"
-	TagmapHandlerRoute     = "/tags.html"
-	SitemapHandlerRoute    = "/sitemap.html"
-	XmlSitemapHandlerRoute = "/sitemap.xml"
-	RssHandlerRoute        = "/feed.rss"
-	RobotsTxtHandlerRoute  = "/robots.txt"
-	DebugHandlerRoute      = "/debug/index"
-	SearchHandlerRoute     = "/search"
-	WebSocketHandlerRoute  = "/ws"
+	ItemHandlerRoute                  = "/{path:.*}"
+	TagmapHandlerRoute                = "/tags.html"
+	SitemapHandlerRoute               = "/sitemap.html"
+	XmlSitemapHandlerRoute            = "/sitemap.xml"
+	RssHandlerRoute                   = "/feed.rss"
+	RobotsTxtHandlerRoute             = "/robots.txt"
+	DebugHandlerRoute                 = "/debug/index"
+	WebSocketHandlerRoute             = "/ws"
+	SearchHandlerRoute                = "/search"
+	OpenSearchDescriptionHandlerRoute = "/opensearch.xml"
 
 	TypeAheadSearchHandlerRoute = "/search.json"
 	TypeAheadTitlesHandlerRoute = "/titles.json"
@@ -87,7 +88,7 @@ func (server *Server) Start() chan error {
 		requestRouter.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex).Func())
 		requestRouter.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
 		requestRouter.HandleFunc(SearchHandlerRoute, handler.NewSearchHandler(server.logger, server.config, server.patherFactory, server.itemIndex, server.searcher).Func())
-
+		requestRouter.HandleFunc(OpenSearchDescriptionHandlerRoute, handler.NewOpenSearchDescriptionHandler(server.logger, server.config, server.patherFactory, server.itemIndex).Func())
 		requestRouter.HandleFunc(TypeAheadSearchHandlerRoute, handler.NewTypeAheadSearchHandler(server.logger, server.config, server.patherFactory, server.itemIndex, server.searcher).Func())
 		requestRouter.HandleFunc(TypeAheadTitlesHandlerRoute, handler.NewTypeAheadTitlesHandler(server.logger, server.config, server.patherFactory, server.itemIndex).Func())
 

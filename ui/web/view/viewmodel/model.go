@@ -9,6 +9,9 @@ import (
 )
 
 type Base struct {
+	RepositoryName        string `json:"repositoryName"`
+	RepositoryDescription string `json:"repositoryDescription"`
+
 	Type    string `json:"type"`
 	Level   int    `json:"level"`
 	Route   string `json:"route"`

@@ -19,6 +19,8 @@ const (
 	MasterTemplateName = "master"
 	ErrorTemplateName  = "error"
 
+	OpenSearchDescriptionTemplateName = "opensearchdescription"
+
 	SitemapTemplateName        = "sitemap"
 	SitemapContentTemplateName = "sitemapcontent"
 
@@ -51,6 +53,8 @@ func NewProvider(templateFolder string) *Provider {
 
 	templates[MasterTemplateName] = NewTemplate(templateFolder, MasterTemplateName, masterTemplate, templateModified)
 	templates[ErrorTemplateName] = NewTemplate(templateFolder, ErrorTemplateName, errorTemplate, templateModified)
+
+	templates[OpenSearchDescriptionTemplateName] = NewTemplate(templateFolder, OpenSearchDescriptionTemplateName, openSearchDescriptionTemplate, templateModified)
 
 	templates[TagmapTemplateName] = NewTemplate(templateFolder, TagmapTemplateName, tagmapTemplate, templateModified)
 	templates[TagmapContentTemplateName] = NewTemplate(templateFolder, TagmapContentTemplateName, tagmapContentTemplate, templateModified)
