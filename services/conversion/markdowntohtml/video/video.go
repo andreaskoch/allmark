@@ -103,7 +103,7 @@ func (converter *VideoExtension) getVideoCode(title, path string) string {
 	}
 
 	// return the fallback handler
-	return fmt.Sprintf(`<a href="%s" target="_blank" title="%s">%s</a>`, path, title, title)
+	return util.GetFallbackLink(title, path)
 }
 
 func isYouTubeLink(link string) (isYouTubeLink bool, videoId string) {

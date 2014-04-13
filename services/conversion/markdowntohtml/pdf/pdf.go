@@ -78,7 +78,7 @@ func (converter *PDFExtension) getPDFCode(title, path string) string {
 	}
 
 	// fallback
-	return fmt.Sprintf(`<a href="%s" target="_blank" title="%s">%s</a>`, path, title, title)
+	return util.GetFallbackLink(title, path)
 }
 
 func getPDFFileLink(title, link string) string {

@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/audio"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/csvtable"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/filepreview"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/files"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/imagegallery"
@@ -85,6 +86,13 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	content, imagegalleryConversionError := imagegalleryConverter.Convert(content)
 	if imagegalleryConversionError != nil {
 		converter.logger.Warn("Error while converting image gallery extensions. Error: %s", imagegalleryConversionError)
+	}
+
+	// markdown extension: csv table
+	csvTableConverter := csvtable.New(pathProvider, item.Files())
+	content, csvTableConversionError := csvTableConverter.Convert(content)
+	if csvTableConversionError != nil {
+		converter.logger.Warn("Error while converting csv table extensions. Error: %s", csvTableConversionError)
 	}
 
 	// fix links
