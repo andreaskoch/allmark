@@ -63,7 +63,7 @@ func (converter *FilesExtension) Convert(markdown string) (convertedContent stri
 		pathsOfMatchingFiles := getFilePaths(matchingFiles, converter.pathProvider)
 
 		// create a file system from the file paths
-		rootFolderTitle := baseRoute.FolderName()
+		rootFolderTitle := baseRoute.LastComponentName()
 		rootFolder := NewRootFilesystemEntry(rootFolderTitle)
 		rootFolder = getFileSystemFromLinks(rootFolder, pathsOfMatchingFiles)
 

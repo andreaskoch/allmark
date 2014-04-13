@@ -240,7 +240,7 @@ func newVirtualItem(route route.Route) (*model.Item, error) {
 	}
 
 	// set the item title
-	item.Title = route.FolderName()
+	item.Title = route.LastComponentName()
 
 	return item, nil
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/audio"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/filepreview"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/files"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/imagegallery"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/markdown"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pdf"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/video"
@@ -77,6 +78,13 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	content, filePreviewConversionError := filePreviewConverter.Convert(content)
 	if filePreviewConversionError != nil {
 		converter.logger.Warn("Error while converting file preview extensions. Error: %s", filePreviewConversionError)
+	}
+
+	// markdown extension: imagegallery
+	imagegalleryConverter := imagegallery.New(pathProvider, item.Files())
+	content, imagegalleryConversionError := imagegalleryConverter.Convert(content)
+	if imagegalleryConversionError != nil {
+		converter.logger.Warn("Error while converting image gallery extensions. Error: %s", imagegalleryConversionError)
 	}
 
 	// fix links

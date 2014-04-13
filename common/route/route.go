@@ -113,7 +113,7 @@ func (route *Route) IsEmpty() bool {
 	return len(route.value) == 0
 }
 
-func (route *Route) FolderName() string {
+func (route *Route) LastComponentName() string {
 	lastSlashPosition := strings.LastIndex(route.originalValue, "/")
 	if lastSlashPosition == -1 {
 		return route.originalValue
