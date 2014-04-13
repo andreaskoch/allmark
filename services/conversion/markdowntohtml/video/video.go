@@ -59,7 +59,7 @@ func (converter *VideoExtension) Convert(markdown string) (convertedContent stri
 		// get the code
 		renderedCode := getVideoCode(title, path)
 
-		// replace markdown with link list
+		// replace markdown
 		convertedContent = strings.Replace(convertedContent, originalText, renderedCode, 1)
 
 	}

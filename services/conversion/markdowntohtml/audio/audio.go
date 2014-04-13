@@ -53,7 +53,7 @@ func (converter *AudioExtension) Convert(markdown string) (convertedContent stri
 		// get the code
 		renderedCode := getAudioCode(title, path)
 
-		// replace markdown with link list
+		// replace markdown
 		convertedContent = strings.Replace(convertedContent, originalText, renderedCode, 1)
 
 	}

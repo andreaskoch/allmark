@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/audio"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/filepreview"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/files"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/markdown"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pdf"
@@ -69,6 +70,13 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	content, filesConversionError := filesConverter.Convert(content)
 	if filesConversionError != nil {
 		converter.logger.Warn("Error while converting files extensions. Error: %s", filesConversionError)
+	}
+
+	// markdown extension: filepreview
+	filePreviewConverter := filepreview.New(pathProvider, item.Files())
+	content, filePreviewConversionError := filePreviewConverter.Convert(content)
+	if filePreviewConversionError != nil {
+		converter.logger.Warn("Error while converting file preview extensions. Error: %s", filePreviewConversionError)
 	}
 
 	// fix links
