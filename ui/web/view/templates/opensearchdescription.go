@@ -10,7 +10,7 @@ const openSearchDescriptionTemplate = `<?xml version="1.0" encoding="UTF-8"?>
   <Description>{{.Description}}</Description>
   <Tags>{{.Tags}}</Tags>
   <Contact />
-  <Image height="16" width="16" type="image/vnd.microsoft.icon">{{.FavIconUrl}}</Image>
+  <Image height="16" width="16" type="image/x-icon">{{.FavIconUrl}}</Image>
   <Url type="text/html" template="{{.SearchUrl}}" />
   <OutputEncoding>UTF-8</OutputEncoding>
   <InputEncoding>UTF-8</InputEncoding>
