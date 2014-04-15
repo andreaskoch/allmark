@@ -17,6 +17,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/imagegallery"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/markdown"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pdf"
+	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/presentation"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/video"
 	"regexp"
 	"strings"
@@ -100,6 +101,13 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 
 	// markdown to html
 	content = markdown.Convert(content)
+
+	// presentation
+	presentationConverter := presentation.New(pathProvider, item.Files())
+	content, presentationConversionError := presentationConverter.Convert(content)
+	if presentationConversionError != nil {
+		converter.logger.Warn("Error while converting presentation extensions. Error: %s", presentationConversionError)
+	}
 
 	return content, nil
 }
