@@ -102,7 +102,7 @@ func (route *Route) OriginalValue() string {
 }
 
 func (route *Route) Components() []string {
-	return strings.Split(route.OriginalValue(), " /")
+	return strings.Split(route.OriginalValue(), "/")
 }
 
 func (route *Route) Value() string {

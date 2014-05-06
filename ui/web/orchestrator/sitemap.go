@@ -41,7 +41,7 @@ func (orchestrator *SitemapOrchestrator) GetSitemap(pathProvider paths.Pather) v
 func getSitemapEntries(index *index.ItemIndex, startRoute route.Route) []viewmodel.Sitemap {
 
 	childs := make([]viewmodel.Sitemap, 0)
-	for _, child := range index.GetChilds(&startRoute) {
+	for _, child := range index.GetDirectChilds(&startRoute) {
 
 		childRoute := child.Route()
 

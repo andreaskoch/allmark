@@ -8,6 +8,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/model"
 	"strings"
 )
 
@@ -29,22 +30,27 @@ type RelativeWebPathProvider struct {
 // Get the path relative for the supplied item
 func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 	baseRouteString := webPathProvider.baseRoute.Value()
-	baseRouteChilds := webPathProvider.itemIndex.GetAllChilds(webPathProvider.baseRoute)
 
-	for _, child := range baseRouteChilds {
-
-		// ignore childs which don't match
-		if !child.Route().IsMatch(itemPath) {
-			continue
-		}
-
-		// intersect the child route with the base route to get full path
-		childRouteString := child.Route().Value()
-		path := strings.TrimPrefix(strings.TrimPrefix(childRouteString, baseRouteString), "/")
-
-		return path
+	// filter expression which includes only childs with matching routes
+	onlyMatchingItemsExpression := func(child *model.Item) bool {
+		return child.Route().IsMatch(itemPath)
 	}
 
-	// path could not be resolved, try to trim the path
-	return strings.TrimPrefix(strings.TrimPrefix(itemPath, baseRouteString), "/")
+	// get all childs which have a matching route
+	baseRouteChilds := webPathProvider.itemIndex.GetAllChilds(webPathProvider.baseRoute, onlyMatchingItemsExpression)
+
+	// abort if no matching routes have been found
+	if noMatchingChildsFound := len(baseRouteChilds) == 0; noMatchingChildsFound {
+		// path could not be resolved, try to trim the path
+		return strings.TrimPrefix(strings.TrimPrefix(itemPath, baseRouteString), "/")
+	}
+
+	// use only the first child
+	child := baseRouteChilds[0]
+
+	// intersect the child route with the base route to get full path
+	childRouteString := child.Route().Value()
+	path := strings.TrimPrefix(strings.TrimPrefix(childRouteString, baseRouteString), "/")
+
+	return path
 }

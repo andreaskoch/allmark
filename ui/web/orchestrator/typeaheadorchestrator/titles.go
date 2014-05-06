@@ -31,7 +31,7 @@ func (orchestrator *TitlesOrchestrator) GetTitles() []typeaheadviewmodel.Title {
 	}
 
 	titleModels := make([]typeaheadviewmodel.Title, 0)
-	for _, child := range orchestrator.itemIndex.GetAllChilds(rootItem.Route()) {
+	for _, child := range orchestrator.itemIndex.Items() {
 
 		titleModels = append(titleModels, typeaheadviewmodel.Title{
 			Value:  child.Title,

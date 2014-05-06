@@ -14,20 +14,27 @@ func CreateItemIndex(logger logger.Logger, repositoryName string) *ItemIndex {
 	return &ItemIndex{
 		logger:         logger,
 		repositoryName: repositoryName,
-		items:          make(map[route.Route]*model.Item),
+
+		itemList: make([]*model.Item, 0),
+		routeMap: make(map[string]*model.Item),
+		itemTree: NewItemTree(),
 	}
 }
 
 type ItemIndex struct {
 	logger         logger.Logger
 	repositoryName string
-	items          map[route.Route]*model.Item
+
+	// indizes
+	itemList []*model.Item
+	routeMap map[string]*model.Item // route -> item,
+	itemTree *ItemTree
 }
 
 func (index *ItemIndex) IsMatch(route route.Route) (item *model.Item, isMatch bool) {
 
 	// check for a direct match
-	if item, isMatch = index.items[route]; isMatch {
+	if item, isMatch = index.routeMap[route.Value()]; isMatch {
 		return item, isMatch
 	}
 
@@ -95,57 +102,44 @@ func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
 }
 
 func (index *ItemIndex) Root() *model.Item {
+
 	root := route.New()
-
 	if _, isMatch := index.IsMatch(*root); !isMatch {
-
-		// create a virtual root
-		virtualRoot, err := newVirtualItem(*root)
-		if err != nil {
-			index.logger.Error("%s", err.Error())
-			return nil
-		}
-
-		// use the repository name as the title of the root item
-		virtualRoot.Title = index.repositoryName
-
-		// write the new virtual root to the index
-		index.items[*root] = virtualRoot
+		index.addVirtualItem(*root)
 	}
 
-	return index.items[*root]
+	return index.itemTree.Root()
 }
 
-func (index *ItemIndex) GetAllChilds(route *route.Route) []*model.Item {
-	return index.getChilds(route, true)
-}
+// Get all childs that match the given expression
+func (index *ItemIndex) GetAllChilds(route *route.Route, expression func(item *model.Item) bool) []*model.Item {
 
-func (index *ItemIndex) GetChilds(route *route.Route) []*model.Item {
-	return index.getChilds(route, false)
-}
-
-func (index *ItemIndex) getChilds(route *route.Route, recurse bool) []*model.Item {
-
-	routeLevel := route.Level()
-	nextLevel := routeLevel + 1
-
-	// routeLevel := route.Level()
 	childs := make([]*model.Item, 0)
 
-	for childRoute, child := range index.items {
+	// get all direct childs of the supplied route
+	directChilds := index.GetDirectChilds(route)
 
-		// skip all deeper-level childs if recursion is disabled
-		if !recurse && childRoute.Level() != nextLevel {
+	for _, child := range directChilds {
+
+		// evaluate expression
+		if !expression(child) {
 			continue
 		}
 
-		// skip all items which are not a child
-		if !childRoute.IsChildOf(route) {
-			continue
-		}
-
+		// append child
 		childs = append(childs, child)
+
+		// recurse
+		childs = append(childs, index.GetAllChilds(child.Route(), expression)...)
+
 	}
+
+	return childs
+}
+
+func (index *ItemIndex) GetDirectChilds(route *route.Route) []*model.Item {
+	// get all mathching childs
+	childs := index.itemTree.GetChildItems(route)
 
 	// sort the items by ascending by route
 	model.SortItemBy(sortItemsByRoute).Sort(childs)
@@ -153,54 +147,54 @@ func (index *ItemIndex) getChilds(route *route.Route, recurse bool) []*model.Ite
 	return childs
 }
 
-func (index *ItemIndex) Routes() []route.Route {
-	routes := make([]route.Route, 0)
-	for route, _ := range index.items {
-		routes = append(routes, route)
-	}
-	return routes
-}
-
+// Get a list of all item in this index.
 func (index *ItemIndex) Items() []*model.Item {
-	items := make([]*model.Item, 0, len(index.items))
-
-	for _, item := range index.items {
-		items = append(items, item)
-	}
-
-	// sort the items by ascending by route
-	model.SortItemBy(sortItemsByRoute).Sort(items)
-
+	items := index.itemList
 	return items
 }
 
-// Get the maxium level of all routes in this index (default: 0)
-func (index *ItemIndex) MaxLevel() int {
-
-	maxLevel := 0
-
-	for _, item := range index.items {
-		itemLevel := item.Route().Level()
-		if itemLevel > maxLevel {
-			maxLevel = itemLevel
-		}
+func (index *ItemIndex) GetItemByRoute(route *route.Route) (bool, *model.Item) {
+	routeValue := route.Value()
+	if item, exists := index.routeMap[routeValue]; exists {
+		return true, item
 	}
 
-	return maxLevel
+	return false, nil
 }
 
 func (index *ItemIndex) Add(item *model.Item) {
+
+	// abort if item is invalid
+	if item == nil {
+		index.logger.Warn("Cannot add an invalid item to the index.")
+		return
+	}
+
 	index.logger.Debug("Adding item %q to index", item)
 
-	// the the item to the index
-	itemRoute := *item.Route()
-	index.items[itemRoute] = item
+	// the the item to the indizes
+	index.insertItemToItemList(item)
+	index.insertItemToRouteMap(item)
+	index.insertItemToTree(item)
 
 	// insert virtual items if required
-	index.fillGapsWithVirtualItems(itemRoute)
+	index.addVirtualItem(*item.Route())
 }
 
-func (index *ItemIndex) fillGapsWithVirtualItems(baseRoute route.Route) {
+func (index *ItemIndex) insertItemToItemList(item *model.Item) {
+	index.itemList = append(index.itemList, item)
+}
+
+func (index *ItemIndex) insertItemToRouteMap(item *model.Item) {
+	itemRoute := item.Route().Value()
+	index.routeMap[itemRoute] = item
+}
+
+func (index *ItemIndex) insertItemToTree(item *model.Item) {
+	index.itemTree.InsertItem(item)
+}
+
+func (index *ItemIndex) addVirtualItem(baseRoute route.Route) {
 
 	// validate the input
 	if baseRoute.Level() == 0 {
@@ -209,32 +203,38 @@ func (index *ItemIndex) fillGapsWithVirtualItems(baseRoute route.Route) {
 	}
 
 	parentRoute := baseRoute.Parent()
-	for parentRoute != nil && parentRoute.Level() > 0 {
+	if _, exists := index.IsMatch(*parentRoute); !exists {
 
-		if _, exists := index.items[*parentRoute]; !exists {
-
-			index.logger.Debug("Adding virtual item %q to index", parentRoute)
-
-			virtualParentItem, err := newVirtualItem(*parentRoute)
-			if err != nil {
-				panic(err)
-			}
-
-			// add the virtual item to the index
-			index.items[*parentRoute] = virtualParentItem
-
+		// create a new virtual item
+		index.logger.Debug("Adding virtual item %q to index", parentRoute)
+		virtualParentItem, err := newVirtualItem(*parentRoute)
+		if err != nil {
+			panic(err)
 		}
 
-		// move up
-		parentRoute = parentRoute.Parent()
+		// use the repository name as the title if the item it the root
+		if isRoot := parentRoute.Level() == 0; isRoot {
+			virtualParentItem.Title = index.repositoryName
+		}
 
+		// add the virtual item to the index
+		index.Add(virtualParentItem)
 	}
 }
 
 func newVirtualItem(route route.Route) (*model.Item, error) {
 
+	// determine the item type
+	itemType := model.TypeDocument
+	if route.Level() == 0 {
+
+		// root item get the type "repository"
+		itemType = model.TypeRepository
+
+	}
+
 	// create a virtual item
-	item, err := model.NewVirtualItem(&route)
+	item, err := model.NewVirtualItem(&route, itemType)
 	if err != nil {
 		return nil, err
 	}

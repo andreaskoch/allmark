@@ -28,7 +28,7 @@ func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(pathProvider paths
 	}
 
 	childs := make([]viewmodel.XmlSitemapEntry, 0)
-	for _, child := range orchestrator.itemIndex.GetAllChilds(rootItem.Route()) {
+	for _, child := range orchestrator.itemIndex.Items() {
 
 		// skip virtual items
 		if child.IsVirtual() {

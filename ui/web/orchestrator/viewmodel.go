@@ -67,29 +67,36 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 func (orchestrator *ViewModelOrchestrator) getTopDocuments(numberOfTopDocuments int, pathProvider paths.Pather, route *route.Route) []*viewmodel.Model {
 
 	baseRouteLevel := route.Level()
-	nextRouteLevel := baseRouteLevel + 1
-	childItems := orchestrator.itemIndex.GetAllChilds(route)
 
 	// determine the candidates for the top-documents
 	candidateModels := make([]*viewmodel.Model, 0)
 
-	for len(candidateModels) == 0 && nextRouteLevel != baseRouteLevel+3 {
+	// include only the next or over-next level childs
+	nextLevelChildExpression := func(child *model.Item) bool {
+		childLevel := child.Route().Level()
 
-		for _, childItem := range childItems {
+		isNextLevel := childLevel == baseRouteLevel+1
+		isOverNextLevel := childLevel == baseRouteLevel+2
 
-			if childItem.Route().Level() != nextRouteLevel {
-				continue
-			}
+		return isNextLevel || isOverNextLevel
+	}
 
-			// create viewmodel and append to list
-			childModel := orchestrator.GetViewModel(pathProvider, childItem)
-			candidateModels = append(candidateModels, &childModel)
+	childs := orchestrator.itemIndex.GetAllChilds(route, nextLevelChildExpression)
+	for _, child := range childs {
 
+		// filter out virtual items
+		if child.IsVirtual() {
+			continue
 		}
 
-		nextRouteLevel++
+		// create viewmodel and append to list
+		childModel := orchestrator.GetViewModel(pathProvider, child)
+		candidateModels = append(candidateModels, &childModel)
 
 	}
+
+	// sort the candidate models
+	viewmodel.SortModelBy(sortModelsByDate).Sort(candidateModels)
 
 	// take the top models only
 	if len(candidateModels) <= numberOfTopDocuments {
@@ -107,11 +114,18 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(route *route.Route, pa
 	}
 
 	childModels := make([]*viewmodel.Base, 0)
-	childItems := orchestrator.itemIndex.GetChilds(route)
+	childItems := orchestrator.itemIndex.GetDirectChilds(route)
 	for _, childItem := range childItems {
 		baseModel := getBaseModel(rootItem, childItem, pathProvider)
 		childModels = append(childModels, &baseModel)
 	}
 
 	return childModels
+}
+
+// sort the models by date and name
+func sortModelsByDate(model1, model2 *viewmodel.Model) bool {
+
+	return model1.CreationDate > model2.CreationDate
+
 }

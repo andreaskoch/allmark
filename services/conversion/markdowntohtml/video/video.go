@@ -78,10 +78,10 @@ func (converter *VideoExtension) getMatchingFile(path string) *model.File {
 func (converter *VideoExtension) getVideoCode(title, path string) string {
 
 	// internal video file
-	if audioFile := converter.getMatchingFile(path); audioFile != nil {
+	if videoFile := converter.getMatchingFile(path); videoFile != nil {
 
-		if mimeType, err := util.GetMimeType(audioFile); err == nil {
-			filepath := converter.pathProvider.Path(audioFile.Route().Value())
+		if mimeType, err := util.GetMimeType(videoFile); err == nil {
+			filepath := converter.pathProvider.Path(videoFile.Route().Value())
 			return renderVideoFileLink(title, filepath, mimeType)
 		}
 

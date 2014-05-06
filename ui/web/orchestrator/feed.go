@@ -53,7 +53,7 @@ func (orchestrator *FeedOrchestrator) GetEntries(pathProvider paths.Pather, item
 	endItemNumber := itemsPerPage * page
 
 	childs := make([]viewmodel.FeedEntry, 0)
-	for _, child := range orchestrator.itemIndex.GetAllChilds(rootItem.Route()) {
+	for _, child := range orchestrator.itemIndex.Items() {
 
 		// skip virtual items
 		if child.IsVirtual() {

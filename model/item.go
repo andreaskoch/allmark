@@ -61,10 +61,11 @@ type Item struct {
 	MetaData *MetaData
 }
 
-func NewVirtualItem(route *route.Route) (*Item, error) {
+func NewVirtualItem(route *route.Route, itemType ItemType) (*Item, error) {
 	return &Item{
 		isVirtual: true,
 		route:     route,
+		Type:      itemType,
 	}, nil
 }
 

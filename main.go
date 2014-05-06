@@ -32,7 +32,7 @@ func main() {
 	serve := func(repositoryPath string) {
 
 		// logger
-		logger := console.New(loglevel.Info)
+		logger := console.New(loglevel.Debug)
 
 		// config
 		config := config.Get(repositoryPath)

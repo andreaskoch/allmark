@@ -40,6 +40,7 @@ func init() {
 
 			// auto-suggest
 			newFileFromText("typeahead.js", themefiles.TypeAheadJs),
+			newFileFromText("search.js", themefiles.SearchJs),
 
 			// code highlighting
 			newFileFromBase64("codehighlighting/highlight.js", themefiles.HighlightJs),

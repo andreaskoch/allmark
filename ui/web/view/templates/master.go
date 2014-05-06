@@ -92,54 +92,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 <script src="/theme/jquery.js"></script>
 <script src="/theme/typeahead.js"></script>
-<script>
-	// data source: titles
-	var titlesDataSource = new Bloodhound({
-		datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-		queryTokenizer: Bloodhound.tokenizers.whitespace,
-		limit: 10,
-		prefetch: {
-			url: '/titles.json',
-		}
-	});
-
-	titlesDataSource.initialize();
-
-	// data source: search
-	var searchDataSource = new Bloodhound({
-		datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-		queryTokenizer: Bloodhound.tokenizers.whitespace,
-		remote: '/search.json?q=%QUERY'
-	});
-
-	searchDataSource.initialize();
-
-	$('.typeahead').typeahead(
-		{
-			minLength: 1,
-			items: 10,
-			highlight: true,
-		},
-		{
-			name: 'item-titles',
-			displayKey: 'value',
-			source: titlesDataSource.ttAdapter(),
-			templates: {
-				header: '<h3>Items</h3>'
-			}
-		},
-		{
-			name: 'searchresults',
-			displayKey: 'value',
-			source: searchDataSource.ttAdapter(),
-			templates: {
-				header: '<h3>Search Results</h3>'
-			}			
-		}
-	).on('typeahead:selected', function(event, datum) {
-		window.location = datum.route;
-	});
-</script>
+<script src="/theme/search.js"></script>
 <!-- <script src="/theme/autoupdate.js"></script> -->
 <script src="/theme/pdf.js"></script>
 <script src="/theme/pdf-preview.js"></script>

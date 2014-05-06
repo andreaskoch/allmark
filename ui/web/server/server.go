@@ -93,7 +93,6 @@ func (server *Server) Start() chan error {
 		requestRouter.HandleFunc(TypeAheadTitlesHandlerRoute, handler.NewTypeAheadTitlesHandler(server.logger, server.config, server.patherFactory, server.itemIndex).Func())
 
 		// serve static files
-		fmt.Println(server.config.ThemeFolder())
 		if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
 			s := http.StripPrefix(ThemeFolderRoute, http.FileServer(http.Dir(themeFolder)))
 			requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)

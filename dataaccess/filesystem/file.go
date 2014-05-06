@@ -58,7 +58,7 @@ func newFile(repository *Repository, itemDirectory, filePath string) (*dataacces
 	}
 
 	// route
-	route, err := route.NewFromFilePath(itemDirectory, filePath)
+	route, err := route.NewFromFilePath(repository.Path(), filePath)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot create a File for the file path %q. Error: %s", filePath, err)
 	}
