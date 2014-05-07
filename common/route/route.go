@@ -11,9 +11,10 @@ import (
 )
 
 var (
-	regexpWhitespacePattern         = regexp.MustCompile(`\s+`)
-	regexpBackSlashPattern          = regexp.MustCompile(`\\+`)
-	regexpdoubleForwardSlashPattern = regexp.MustCompile(`/+`)
+	regexpWhitespacePattern          = regexp.MustCompile(`\s+`)
+	regexpBackSlashPattern           = regexp.MustCompile(`\\+`)
+	regexpdoubleForwardSlashPattern  = regexp.MustCompile(`/+`)
+	regexpForbiddenCharactersPattern = regexp.MustCompile(`[&%§\)\(}{\]\["|]`)
 )
 
 type Route struct {
@@ -260,6 +261,9 @@ func normalize(path string) string {
 	}
 
 	path = fromUrl(path)
+
+	// replace all forbidden characters
+	path = regexpForbiddenCharactersPattern.ReplaceAllString(path, "")
 
 	// replace all backslashes with a (single) forward slash
 	path = regexpBackSlashPattern.ReplaceAllString(path, "/")
