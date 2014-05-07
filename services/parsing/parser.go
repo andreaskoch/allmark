@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/model"
+	"github.com/andreaskoch/allmark2/services/parsing/cleanup"
 	"github.com/andreaskoch/allmark2/services/parsing/document"
 	"github.com/andreaskoch/allmark2/services/parsing/message"
 	"github.com/andreaskoch/allmark2/services/parsing/presentation"
@@ -54,6 +55,9 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 	// - replace \r\n with \n
 
 	lines := getLines(bytes.NewReader(data))
+
+	// cleanup the markdown before parsing it
+	lines = cleanup.Cleanup(lines)
 
 	// detect the item type
 	switch itemModel.Type = typedetection.DetectType(lines); itemModel.Type {
