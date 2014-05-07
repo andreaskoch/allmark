@@ -16,7 +16,7 @@ import (
 func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseError error) {
 
 	// parse as document
-	if err := document.Parse(item, lastModifiedDate, lines); err != nil {
+	if _, err := document.Parse(item, lastModifiedDate, lines); err != nil {
 		return fmt.Errorf("Unable to parse item %q. Error: %s", item, err)
 	}
 

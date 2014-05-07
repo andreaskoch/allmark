@@ -81,6 +81,10 @@ func (item *Item) String() string {
 	return fmt.Sprintf("%s", item.route)
 }
 
+func (item *Item) FolderName() string {
+	return item.route.LastComponentName()
+}
+
 func (item *Item) IsVirtual() bool {
 	return item.isVirtual
 }

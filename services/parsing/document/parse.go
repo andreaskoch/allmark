@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseError error) {
+func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (warning, err error) {
 
 	// title
 	titleLineNumber := len(lines)
@@ -25,22 +25,29 @@ func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseE
 		}
 
 		// search for the title
-		isTitle, title := pattern.IsTitle(line)
-		if !isTitle {
-			return fmt.Errorf("The line %q does not contain a title.", line)
+		if isTitle, title := pattern.IsTitle(line); isTitle {
+			// capture the line number of the title
+			titleLineNumber = lineNumber
+
+			// save the title to the item
+			item.Title = strings.TrimSpace(title)
+
+		} else {
+
+			// assign a fallback title
+			item.Title = item.FolderName()
+
+			// reuse this line for the description or content
+			titleLineNumber = -1
+
 		}
 
-		// capture the line number of the title
-		titleLineNumber = lineNumber
-
-		// save the title to the item
-		item.Title = strings.TrimSpace(title)
 		break
 	}
 
 	// abort if there are no more lines
 	if len(lines) < titleLineNumber+1 {
-		return // there are no more lines, but having no description is ok
+		return nil, nil
 	}
 
 	// description
@@ -53,16 +60,21 @@ func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseE
 		}
 
 		// search for the description
-		isDescription, description := pattern.IsDescription(line)
-		if !isDescription {
-			return fmt.Errorf("The line %q does not contain a description.", line)
+		if isDescription, description := pattern.IsDescription(line); isDescription {
+
+			// capture the line number of the description
+			descriptionLineNumber = lineNumber
+
+			// save the description to the item
+			item.Description = strings.TrimSpace(description)
+
+		} else {
+
+			// reuse this line for the content. 2 because a description is supposed to be followed by an empty line
+			descriptionLineNumber = lineNumber - 2
+
 		}
 
-		// capture the line number of the description
-		descriptionLineNumber = lineNumber
-
-		// save the description to the item
-		item.Description = strings.TrimSpace(description)
 		break
 	}
 
@@ -84,7 +96,7 @@ func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseE
 
 	// meta data
 	if err := metadata.Parse(item, lastModifiedDate, lines); err != nil {
-		return fmt.Errorf("Unable to parse the meta data of item %q. Error: %s", item, err)
+		return fmt.Errorf("Unable to parse the meta data of item %q. Error: %s", item, err), nil
 	}
 
 	return
