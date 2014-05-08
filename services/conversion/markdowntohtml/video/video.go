@@ -77,33 +77,49 @@ func (converter *VideoExtension) getMatchingFile(path string) *model.File {
 
 func (converter *VideoExtension) getVideoCode(title, path string) string {
 
-	// internal video file
-	if videoFile := converter.getMatchingFile(path); videoFile != nil {
+	fallback := util.GetFallbackLink(title, path)
 
-		if mimeType, err := util.GetMimeType(videoFile); err == nil {
-			filepath := converter.pathProvider.Path(videoFile.Route().Value())
-			return renderVideoFileLink(title, filepath, mimeType)
+	// check if the supplied path is a link to a video
+	isVideoFile, _ := isVideoFileLink(path)
+	if !isVideoFile {
+		return fallback
+	}
+
+	// internal video file
+	if isInternalLink(path) {
+
+		if videoFile := converter.getMatchingFile(path); videoFile != nil {
+
+			fmt.Println(videoFile.Route())
+
+			if mimeType, err := util.GetMimeType(videoFile); err == nil {
+				filepath := converter.pathProvider.Path(videoFile.Route().Value())
+				return renderVideoFileLink(title, filepath, mimeType)
+			}
+
+		}
+
+	} else {
+
+		// external: youtube
+		if isYouTube, videoId := isYouTubeLink(path); isYouTube {
+			return renderYouTubeVideo(title, videoId)
+		}
+
+		// external: vimeo
+		if isVimeo, videoId := isVimeoLink(path); isVimeo {
+			return renderVimeoVideo(title, videoId)
+		}
+
+		// external: html5 video file
+		if isVideoFile, mimeType := isVideoFileLink(path); isVideoFile {
+			return renderVideoFileLink(title, path, mimeType)
 		}
 
 	}
 
-	// external: youtube
-	if isYouTube, videoId := isYouTubeLink(path); isYouTube {
-		return renderYouTubeVideo(title, videoId)
-	}
-
-	// external: vimeo
-	if isVimeo, videoId := isVimeoLink(path); isVimeo {
-		return renderVimeoVideo(title, videoId)
-	}
-
-	// external: html5 video file
-	if isVideoFile, mimeType := isVideoFileLink(path); isVideoFile {
-		return renderVideoFileLink(title, path, mimeType)
-	}
-
 	// return the fallback handler
-	return util.GetFallbackLink(title, path)
+	return fallback
 }
 
 func isYouTubeLink(link string) (isYouTubeLink bool, videoId string) {
@@ -137,6 +153,12 @@ func renderVimeoVideo(title, videoId string) string {
 }
 
 func isVideoFileLink(link string) (isVideoFile bool, mimeType string) {
+
+	// abort if the link does not contain a dot
+	if !strings.Contains(link, ".") {
+		return false, ""
+	}
+
 	normalizedLink := strings.ToLower(link)
 	fileExtension := normalizedLink[strings.LastIndex(normalizedLink, "."):]
 	mimeType = mime.TypeByExtension(fileExtension)
@@ -149,6 +171,15 @@ func isVideoFileLink(link string) (isVideoFile bool, mimeType string) {
 	}
 
 	panic("Unreachable")
+}
+
+func isInternalLink(link string) bool {
+	return !isExternalLink(link)
+}
+
+func isExternalLink(link string) bool {
+	lowercase := strings.TrimSpace(strings.ToLower(link))
+	return strings.HasPrefix("http://", lowercase) || strings.HasPrefix("htts://", lowercase)
 }
 
 func renderVideoFileLink(title, link, mimetype string) string {
