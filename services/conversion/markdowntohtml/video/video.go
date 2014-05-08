@@ -90,8 +90,6 @@ func (converter *VideoExtension) getVideoCode(title, path string) string {
 
 		if videoFile := converter.getMatchingFile(path); videoFile != nil {
 
-			fmt.Println(videoFile.Route())
-
 			if mimeType, err := util.GetMimeType(videoFile); err == nil {
 				filepath := converter.pathProvider.Path(videoFile.Route().Value())
 				return renderVideoFileLink(title, filepath, mimeType)
