@@ -103,10 +103,15 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	content = markdown.Convert(content)
 
 	// presentation
-	presentationConverter := presentation.New(pathProvider, item.Files())
-	content, presentationConversionError := presentationConverter.Convert(content)
-	if presentationConversionError != nil {
-		converter.logger.Warn("Error while converting presentation extensions. Error: %s", presentationConversionError)
+	if item.Type == model.TypePresentation {
+
+		content := content
+		presentationConverter := presentation.New(pathProvider, item.Files())
+		content, presentationConversionError := presentationConverter.Convert(content)
+		if presentationConversionError != nil {
+			converter.logger.Warn("Error while converting presentation extensions. Error: %s", presentationConversionError)
+		}
+
 	}
 
 	return content, nil
