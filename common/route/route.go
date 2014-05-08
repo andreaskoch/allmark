@@ -287,7 +287,7 @@ func normalize(path string) string {
 func toUrl(path string) string {
 
 	// replace duplicate spaces with a (single) url safe character
-	path = strings.Replace(path, " ", "+", -1)
+	path = strings.Replace(path, " ", "-", -1)
 
 	// replace brackets
 	path = strings.Replace(path, "(", "%28", -1)
@@ -300,7 +300,7 @@ func toUrl(path string) string {
 func fromUrl(path string) string {
 
 	// replace duplicate spaces with a (single) url safe character
-	path = strings.Replace(path, "+", " ", -1)
+	path = strings.Replace(path, "-", " ", -1)
 
 	// replace brackets
 	path = strings.Replace(path, "%28", "(", -1)
