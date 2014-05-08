@@ -173,10 +173,10 @@ func (route *Route) SubRoute(level int) (*Route, error) {
 
 func (route *Route) IsMatch(path string) bool {
 	cleanedRoute := strings.ToLower(route.Value())
-	cleanedPath := strings.TrimSpace(strings.ToLower(path))
+	normalizedPath := strings.ToLower(toUrl(normalize(path)))
 
 	// check if the current route ends with the supplied path
-	routeEndsWithSpecifiedPath := strings.HasSuffix(cleanedRoute, cleanedPath)
+	routeEndsWithSpecifiedPath := strings.HasSuffix(cleanedRoute, normalizedPath)
 
 	return routeEndsWithSpecifiedPath
 }
