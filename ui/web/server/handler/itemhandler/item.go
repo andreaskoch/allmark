@@ -17,7 +17,6 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 	"io"
 	"net/http"
-	"time"
 )
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
@@ -89,10 +88,12 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		// stage 2: check if there is a file for the request
 		if file, found := handler.itemIndex.IsFileMatch(*requestRoute); found {
 
-			var modtime time.Time
 			filename := requestRoute.Value()
-			file.ContentProvider().Data(func(content io.ReadSeeker) error {
-				http.ServeContent(w, r, filename, modtime, content)
+			contentProvider := file.ContentProvider()
+			lastModifiedTime, _ := contentProvider.LastModified()
+
+			contentProvider.Data(func(content io.ReadSeeker) error {
+				http.ServeContent(w, r, filename, lastModifiedTime, content)
 				return nil
 			})
 
