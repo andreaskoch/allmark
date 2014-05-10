@@ -45,6 +45,7 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 
 	converter.logger.Debug("Converting item %q.", item)
 
+	itemRoute := *item.Route()
 	content := item.Content
 
 	// markdown extension: audio
@@ -69,7 +70,7 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	}
 
 	// markdown extension: files
-	filesConverter := files.New(pathProvider, item.Files())
+	filesConverter := files.New(pathProvider, itemRoute, item.Files())
 	content, filesConversionError := filesConverter.Convert(content)
 	if filesConversionError != nil {
 		converter.logger.Warn("Error while converting files extensions. Error: %s", filesConversionError)
@@ -83,7 +84,7 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	}
 
 	// markdown extension: imagegallery
-	imagegalleryConverter := imagegallery.New(pathProvider, *item.Route(), item.Files())
+	imagegalleryConverter := imagegallery.New(pathProvider, itemRoute, item.Files())
 	content, imagegalleryConversionError := imagegalleryConverter.Convert(content)
 	if imagegalleryConversionError != nil {
 		converter.logger.Warn("Error while converting image gallery extensions. Error: %s", imagegalleryConversionError)

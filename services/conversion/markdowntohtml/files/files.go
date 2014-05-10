@@ -19,15 +19,17 @@ var (
 	markdownPattern = regexp.MustCompile(`files: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func New(pathProvider paths.Pather, files []*model.File) *FilesExtension {
+func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File) *FilesExtension {
 	return &FilesExtension{
 		pathProvider: pathProvider,
+		base:         baseRoute,
 		files:        files,
 	}
 }
 
 type FilesExtension struct {
 	pathProvider paths.Pather
+	base         route.Route
 	files        []*model.File
 }
 
@@ -52,18 +54,24 @@ func (converter *FilesExtension) Convert(markdown string) (convertedContent stri
 		path = converter.pathProvider.Path(path)
 
 		// create the base route from the path
-		baseRoute, err := route.NewFromRequest(path)
+		folderRoute, err := route.NewFromRequest(path)
 		if err != nil {
 			// abort. an error occured.
 			return markdown, fmt.Errorf("Could not create a route from the path %q. Error: %s", path, err)
 		}
 
+		fullFolderRoute, err := route.Combine(&converter.base, folderRoute)
+		if err != nil {
+			// abort. an error occured.
+			return markdown, fmt.Errorf("Could not comnbine the routes %q and %q. Error: %s", converter.base, folderRoute, err)
+		}
+
 		// get all matching files
-		matchingFiles := getMatchingFiles(baseRoute, converter.files)
+		matchingFiles := getMatchingFiles(fullFolderRoute, converter.files)
 		pathsOfMatchingFiles := getFilePaths(matchingFiles, converter.pathProvider)
 
 		// create a file system from the file paths
-		rootFolderTitle := baseRoute.LastComponentName()
+		rootFolderTitle := folderRoute.LastComponentName()
 		rootFolder := NewRootFilesystemEntry(rootFolderTitle)
 		rootFolder = getFileSystemFromLinks(rootFolder, pathsOfMatchingFiles)
 
