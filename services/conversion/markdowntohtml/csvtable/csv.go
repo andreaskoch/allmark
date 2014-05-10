@@ -130,22 +130,30 @@ func (converter *CsvTableExtension) getTableCode(title, path string) string {
 }
 
 func readCSV(file *model.File) (data [][]string, err error) {
+	separator := ';'
 	contentProvider := file.ContentProvider()
-	bytesBuffer := new(bytes.Buffer)
 
 	// get the file content
+	bytesBuffer := new(bytes.Buffer)
 	dataWriter := bufio.NewWriter(bytesBuffer)
+
 	contentReader := func(content io.ReadSeeker) error {
+
+		// read the first line to determine the column separator
+		bufferedReader := bufio.NewReader(content)
+		firstLine, _ := bufferedReader.ReadString('\n')
+		separator = determineCSVColumnSeparator(firstLine, ';')
+
+		// copy the (whole) content to the buffer
+		content.Seek(0, 0) // make sure the reader is at the beginning
 		_, err := io.Copy(dataWriter, content)
+
 		return err
 	}
 
 	if dataError := contentProvider.Data(contentReader); dataError != nil {
 		return
 	}
-
-	// determine the separator
-	separator := determineCSVColumnSeparator(bytesBuffer, ';')
 
 	// read the csv
 	csvReader := csv.NewReader(bytesBuffer)
@@ -154,13 +162,7 @@ func readCSV(file *model.File) (data [][]string, err error) {
 	return csvReader.ReadAll()
 }
 
-func determineCSVColumnSeparator(data io.Reader, fallback rune) rune {
-
-	reader := bufio.NewReader(data)
-	line, _, err := reader.ReadLine()
-	if err != nil {
-		return fallback
-	}
+func determineCSVColumnSeparator(line string, fallback rune) rune {
 
 	for _, character := range line {
 		switch character {
