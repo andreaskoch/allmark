@@ -54,3 +54,7 @@ func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 
 	return path
 }
+
+func (webPathProvider *RelativeWebPathProvider) Base() route.Route {
+	return *webPathProvider.baseRoute
+}

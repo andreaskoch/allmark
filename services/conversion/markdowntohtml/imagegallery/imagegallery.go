@@ -75,7 +75,15 @@ func (converter *FilePreviewExtension) getImageLinksByPath(galleryTitle, path st
 
 	galleryRoute, err := route.NewFromRequest(path)
 	if err != nil {
-		panic(err)
+		// todo: log error
+		return []string{}
+	}
+
+	baseRoute := converter.pathProvider.Base()
+	fullGalleryRoute, err := route.Combine(&baseRoute, galleryRoute)
+	if err != nil {
+		// todo: log error
+		return []string{}
 	}
 
 	numberOfFiles := len(converter.files)
@@ -84,7 +92,7 @@ func (converter *FilePreviewExtension) getImageLinksByPath(galleryTitle, path st
 	for index, file := range converter.files {
 
 		// skip files which are not a child of the supplied path
-		if !file.Route().IsChildOf(galleryRoute) {
+		if !file.Route().IsChildOf(fullGalleryRoute) {
 			continue
 		}
 

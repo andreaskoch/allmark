@@ -7,6 +7,7 @@ package webpaths
 import (
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/route"
 )
 
 // Create a new absolute web path provider
@@ -27,4 +28,8 @@ type AbsoluteWebPathProvider struct {
 // Get the absolute path for the supplied item
 func (webPathProvider *AbsoluteWebPathProvider) Path(itemPath string) string {
 	return webPathProvider.prefix + itemPath
+}
+
+func (webPathProvider *AbsoluteWebPathProvider) Base() route.Route {
+	return *route.New()
 }

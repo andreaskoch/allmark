@@ -4,8 +4,14 @@
 
 package paths
 
+import (
+	"github.com/andreaskoch/allmark2/common/route"
+)
+
 type Pather interface {
 
 	// Get the path for the supplied item
 	Path(itemPath string) string
+
+	Base() route.Route
 }
