@@ -71,23 +71,31 @@ func (converter *AudioExtension) getMatchingFile(path string) *model.File {
 
 func (converter *AudioExtension) getAudioCode(title, path string) string {
 
-	// internal video file
-	if audioFile := converter.getMatchingFile(path); audioFile != nil {
+	fallback := util.GetFallbackLink(title, path)
 
-		if mimeType, err := util.GetMimeType(audioFile); err == nil {
-			filepath := converter.pathProvider.Path(audioFile.Route().Value())
-			return getAudioFileLink(title, filepath, mimeType)
+	// internal audio file
+	if util.IsInternalLink(path) {
+
+		if audioFile := converter.getMatchingFile(path); audioFile != nil {
+
+			if mimeType, err := util.GetMimeType(audioFile); err == nil {
+				filepath := converter.pathProvider.Path(audioFile.Route().Value())
+				return getAudioFileLink(title, filepath, mimeType)
+			}
+
+		}
+
+	} else {
+
+		// external audio file
+		if isAudioFile, mimeType := isAudioFileLink(path); isAudioFile {
+			return getAudioFileLink(title, path, mimeType)
 		}
 
 	}
 
-	// external audio file
-	if isAudioFile, mimeType := isAudioFileLink(path); isAudioFile {
-		return getAudioFileLink(title, path, mimeType)
-	}
-
 	// fallback
-	return fmt.Sprintf(`<a href="%s" target="_blank" title="%s">%s</a>`, path, title, title)
+	return fallback
 }
 
 func getAudioFileLink(title, link, mimeType string) string {
@@ -100,12 +108,18 @@ func getAudioFileLink(title, link, mimeType string) string {
 }
 
 func isAudioFileLink(link string) (isAudioFile bool, mimeType string) {
+
+	// abort if the link does not contain a dot
+	if !strings.Contains(link, ".") {
+		return false, ""
+	}
+
 	normalizedLink := strings.ToLower(link)
 	fileExtension := normalizedLink[strings.LastIndex(normalizedLink, "."):]
 	mimeType = mime.TypeByExtension(fileExtension)
 
 	switch fileExtension {
-	case ".mp3", ".ogg":
+	case ".mp3", ".ogg", ".wav":
 		return true, mimeType
 	default:
 		return false, ""

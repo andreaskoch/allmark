@@ -79,14 +79,8 @@ func (converter *VideoExtension) getVideoCode(title, path string) string {
 
 	fallback := util.GetFallbackLink(title, path)
 
-	// check if the supplied path is a link to a video
-	isVideoFile, _ := isVideoFileLink(path)
-	if !isVideoFile {
-		return fallback
-	}
-
 	// internal video file
-	if isInternalLink(path) {
+	if util.IsInternalLink(path) {
 
 		if videoFile := converter.getMatchingFile(path); videoFile != nil {
 
@@ -169,15 +163,6 @@ func isVideoFileLink(link string) (isVideoFile bool, mimeType string) {
 	}
 
 	panic("Unreachable")
-}
-
-func isInternalLink(link string) bool {
-	return !isExternalLink(link)
-}
-
-func isExternalLink(link string) bool {
-	lowercase := strings.TrimSpace(strings.ToLower(link))
-	return strings.HasPrefix("http://", lowercase) || strings.HasPrefix("htts://", lowercase)
 }
 
 func renderVideoFileLink(title, link, mimetype string) string {
