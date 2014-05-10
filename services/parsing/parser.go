@@ -5,6 +5,7 @@
 package parsing
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
@@ -49,7 +50,13 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 	lastModifiedDate, err := contentProvider.LastModified()
 
 	// fetch the item data
-	data, _ := contentProvider.Data()
+	byteBuffer := new(bytes.Buffer)
+	dataWriter := bufio.NewWriter(byteBuffer)
+	if err := contentProvider.Data(dataWriter); err != nil {
+		return nil, err
+	}
+
+	data := byteBuffer.Bytes()
 
 	// todo: cleanup data
 	// - replace \r\n with \n

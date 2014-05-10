@@ -130,21 +130,20 @@ func (converter *CsvTableExtension) getTableCode(title, path string) string {
 }
 
 func readCSV(file *model.File) (data [][]string, err error) {
+	contentProvider := file.ContentProvider()
+	bytesBuffer := new(bytes.Buffer)
 
 	// get the file content
-	contentProvider := file.ContentProvider()
-	csvData, err := contentProvider.Data()
-	if err != nil {
+	dataWriter := bufio.NewWriter(bytesBuffer)
+	if dataError := contentProvider.Data(dataWriter); dataError != nil {
 		return
 	}
 
 	// determine the separator
-	csvSeparatorReader := bytes.NewReader(csvData)
-	separator := determineCSVColumnSeparator(csvSeparatorReader, ';')
+	separator := determineCSVColumnSeparator(bytesBuffer, ';')
 
 	// read the csv
-	csvDataReader := bytes.NewReader(csvData)
-	csvReader := csv.NewReader(csvDataReader)
+	csvReader := csv.NewReader(bytesBuffer)
 	csvReader.Comma = separator
 
 	return csvReader.ReadAll()

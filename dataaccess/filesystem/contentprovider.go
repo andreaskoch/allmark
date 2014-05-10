@@ -5,12 +5,14 @@
 package filesystem
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/common/util/hashutil"
+	"io"
 	"io/ioutil"
 	"mime"
 	"net/http"
@@ -27,8 +29,19 @@ func newContentProvider(path string, route *route.Route) *content.ContentProvide
 	}
 
 	// content provider
-	dataProvider := func() ([]byte, error) {
-		return getData(path)
+	dataProvider := func(writer io.Writer) error {
+
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+
+		defer file.Close()
+
+		reader := bufio.NewReader(file)
+		io.Copy(writer, reader)
+
+		return nil
 	}
 
 	// hash provider

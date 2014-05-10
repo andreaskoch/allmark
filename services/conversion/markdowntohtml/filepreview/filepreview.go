@@ -5,6 +5,8 @@
 package filepreview
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/model"
@@ -66,10 +68,13 @@ func (converter *FilePreviewExtension) getPreviewCode(title, path string) string
 
 		filepath := converter.pathProvider.Path(file.Route().Value())
 
-		if content, contentType, err := util.GetFileContent(file); err == nil {
+		bytesBuffer := new(bytes.Buffer)
+		dataWriter := bufio.NewWriter(bytesBuffer)
+
+		if contentType, err := util.WriteFileContent(file, dataWriter); err == nil {
 
 			// escape html entities
-			escapedContent := html.EscapeString(content)
+			escapedContent := html.EscapeString(bytesBuffer.String())
 
 			return fmt.Sprintf(`<section class="filepreview filepreview-%s">
 			<h1><a href="%s" target="_blank" title="%s">%s</a></h1>

@@ -5,7 +5,6 @@
 package itemhandler
 
 import (
-	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/index"
@@ -117,13 +116,6 @@ func (handler *ItemHandler) render(writer io.Writer, viewModel viewmodel.Model) 
 }
 
 func (handler *ItemHandler) serveContent(filename string, contentProvider *content.ContentProvider, w http.ResponseWriter) {
-	// read the file data
-	data, err := contentProvider.Data()
-	if err != nil {
-		handler.logger.Error("Unable to read the content: %s", err)
-		return
-	}
-
 	// mime type
 	mimeType, err := contentProvider.MimeType()
 	if err != nil {
@@ -134,5 +126,9 @@ func (handler *ItemHandler) serveContent(filename string, contentProvider *conte
 	// set headers
 	w.Header().Set("Content-Type", mimeType)
 
-	fmt.Fprintf(w, "%s", data)
+	// read the file data
+	if err := contentProvider.Data(w); err != nil {
+		handler.logger.Error("Unable to read the content: %s", err)
+		return
+	}
 }
