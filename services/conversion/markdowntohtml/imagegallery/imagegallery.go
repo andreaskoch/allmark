@@ -20,15 +20,17 @@ var (
 	markdownPattern = regexp.MustCompile(`imagegallery: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func New(pathProvider paths.Pather, files []*model.File) *FilePreviewExtension {
+func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File) *FilePreviewExtension {
 	return &FilePreviewExtension{
 		pathProvider: pathProvider,
+		base:         baseRoute,
 		files:        files,
 	}
 }
 
 type FilePreviewExtension struct {
 	pathProvider paths.Pather
+	base         route.Route
 	files        []*model.File
 }
 
@@ -79,7 +81,7 @@ func (converter *FilePreviewExtension) getImageLinksByPath(galleryTitle, path st
 		return []string{}
 	}
 
-	baseRoute := converter.pathProvider.Base()
+	baseRoute := converter.base
 	fullGalleryRoute, err := route.Combine(&baseRoute, galleryRoute)
 	if err != nil {
 		// todo: log error

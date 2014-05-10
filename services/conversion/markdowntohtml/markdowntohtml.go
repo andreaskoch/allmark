@@ -83,7 +83,7 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	}
 
 	// markdown extension: imagegallery
-	imagegalleryConverter := imagegallery.New(pathProvider, item.Files())
+	imagegalleryConverter := imagegallery.New(pathProvider, *item.Route(), item.Files())
 	content, imagegalleryConversionError := imagegalleryConverter.Convert(content)
 	if imagegalleryConversionError != nil {
 		converter.logger.Warn("Error while converting image gallery extensions. Error: %s", imagegalleryConversionError)
