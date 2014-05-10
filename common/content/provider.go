@@ -22,7 +22,7 @@ type MimeTypeProviderFunc func() (string, error)
 
 type LastModifiedProviderFunc func() (time.Time, error)
 
-type DataProviderFunc func(writer io.Writer) error
+type DataProviderFunc func(contentReader func(content io.ReadSeeker) error) error
 
 type HashProviderFunc func() (string, error)
 
@@ -33,8 +33,8 @@ type ContentProvider struct {
 	lastModifiedProviderFunc LastModifiedProviderFunc
 }
 
-func (provider *ContentProvider) Data(writer io.Writer) error {
-	return provider.dataProviderFunc(writer)
+func (provider *ContentProvider) Data(contentReader func(content io.ReadSeeker) error) error {
+	return provider.dataProviderFunc(contentReader)
 }
 
 func (provider *ContentProvider) Hash() (string, error) {

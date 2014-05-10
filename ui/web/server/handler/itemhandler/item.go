@@ -6,7 +6,6 @@ package itemhandler
 
 import (
 	"github.com/andreaskoch/allmark2/common/config"
-	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
@@ -18,6 +17,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 	"io"
 	"net/http"
+	"time"
 )
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
@@ -88,7 +88,14 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 
 		// stage 2: check if there is a file for the request
 		if file, found := handler.itemIndex.IsFileMatch(*requestRoute); found {
-			handler.serveContent(requestRoute.Value(), file.ContentProvider(), w)
+
+			var modtime time.Time
+			filename := requestRoute.Value()
+			file.ContentProvider().Data(func(content io.ReadSeeker) error {
+				http.ServeContent(w, r, filename, modtime, content)
+				return nil
+			})
+
 			return
 		}
 
@@ -113,22 +120,4 @@ func (handler *ItemHandler) render(writer io.Writer, viewModel viewmodel.Model) 
 		return
 	}
 
-}
-
-func (handler *ItemHandler) serveContent(filename string, contentProvider *content.ContentProvider, w http.ResponseWriter) {
-	// mime type
-	mimeType, err := contentProvider.MimeType()
-	if err != nil {
-		handler.logger.Error("Unable to determine mime type: %s", err)
-		return
-	}
-
-	// set headers
-	w.Header().Set("Content-Type", mimeType)
-
-	// read the file data
-	if err := contentProvider.Data(w); err != nil {
-		handler.logger.Error("Unable to read the content: %s", err)
-		return
-	}
 }

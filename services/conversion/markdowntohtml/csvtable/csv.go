@@ -135,7 +135,12 @@ func readCSV(file *model.File) (data [][]string, err error) {
 
 	// get the file content
 	dataWriter := bufio.NewWriter(bytesBuffer)
-	if dataError := contentProvider.Data(dataWriter); dataError != nil {
+	contentReader := func(content io.ReadSeeker) error {
+		_, err := io.Copy(dataWriter, content)
+		return err
+	}
+
+	if dataError := contentProvider.Data(contentReader); dataError != nil {
 		return
 	}
 

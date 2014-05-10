@@ -16,6 +16,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/parsing/message"
 	"github.com/andreaskoch/allmark2/services/parsing/presentation"
 	"github.com/andreaskoch/allmark2/services/parsing/typedetection"
+	"io"
 )
 
 type Parser struct {
@@ -52,7 +53,12 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 	// fetch the item data
 	byteBuffer := new(bytes.Buffer)
 	dataWriter := bufio.NewWriter(byteBuffer)
-	if err := contentProvider.Data(dataWriter); err != nil {
+	contentReader := func(content io.ReadSeeker) error {
+		_, err := io.Copy(dataWriter, content)
+		return err
+	}
+
+	if err := contentProvider.Data(contentReader); err != nil {
 		return nil, err
 	}
 

@@ -28,7 +28,7 @@ func newContentProvider(path string, route *route.Route) *content.ContentProvide
 	}
 
 	// content provider
-	dataProvider := func(writer io.Writer) error {
+	dataProvider := func(callback func(content io.ReadSeeker) error) error {
 
 		file, err := os.Open(path)
 		if err != nil {
@@ -37,9 +37,7 @@ func newContentProvider(path string, route *route.Route) *content.ContentProvide
 
 		defer file.Close()
 
-		io.Copy(writer, file)
-
-		return nil
+		return callback(file)
 	}
 
 	// hash provider

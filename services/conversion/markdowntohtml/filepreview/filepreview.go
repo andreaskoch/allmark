@@ -13,6 +13,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pattern"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/util"
 	"html"
+	"io"
 	"regexp"
 	"strings"
 )
@@ -68,10 +69,25 @@ func (converter *FilePreviewExtension) getPreviewCode(title, path string) string
 
 		filepath := converter.pathProvider.Path(file.Route().Value())
 
+		// get the file content provider
+		contentProvider := file.ContentProvider()
+
+		// determine the content type
+		contentType, err := contentProvider.MimeType()
+		if err != nil {
+			// could not determine the mime type
+			return util.GetFallbackLink(title, path)
+		}
+
+		// prepare reading the file data
 		bytesBuffer := new(bytes.Buffer)
 		dataWriter := bufio.NewWriter(bytesBuffer)
+		contentReader := func(content io.ReadSeeker) error {
+			_, err := io.Copy(dataWriter, content)
+			return err
+		}
 
-		if contentType, err := util.WriteFileContent(file, dataWriter); err == nil {
+		if err := contentProvider.Data(contentReader); err == nil {
 
 			// escape html entities
 			escapedContent := html.EscapeString(bytesBuffer.String())

@@ -7,29 +7,11 @@ package util
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/model"
-	"io"
 	"strings"
 )
 
 func GetFallbackLink(title, path string) string {
 	return fmt.Sprintf(`<a href="%s" target="_blank" title="%s">%s</a>`, path, title, title)
-}
-
-func WriteFileContent(file *model.File, writer io.Writer) (string, error) {
-
-	// get the file content
-	contentProvider := file.ContentProvider()
-	if err := contentProvider.Data(writer); err != nil {
-		return "", err
-	}
-
-	// get the mime type
-	contentType, err := contentProvider.MimeType()
-	if err != nil {
-		return "", err
-	}
-
-	return contentType, nil
 }
 
 func IsImageFile(file *model.File) bool {
