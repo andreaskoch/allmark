@@ -5,7 +5,6 @@
 package filesystem
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/content"
@@ -38,8 +37,7 @@ func newContentProvider(path string, route *route.Route) *content.ContentProvide
 
 		defer file.Close()
 
-		reader := bufio.NewReader(file)
-		io.Copy(writer, reader)
+		io.Copy(writer, file)
 
 		return nil
 	}
