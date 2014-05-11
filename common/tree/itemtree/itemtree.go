@@ -7,6 +7,7 @@ package itemtree
 import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/tree"
+	"github.com/andreaskoch/allmark2/common/tree/treeutil"
 	"github.com/andreaskoch/allmark2/model"
 )
 
@@ -36,7 +37,7 @@ func (nodeTree *ItemTree) InsertItem(item *model.Item) {
 	}
 
 	// convert the route to a path
-	path := routeToPath(item.Route())
+	path := treeutil.RouteToPath(item.Route())
 
 	nodeTree.Tree.Insert(path, item)
 }
@@ -78,7 +79,7 @@ func (nodeTree *ItemTree) getNode(route *route.Route) *tree.Node {
 	}
 
 	// convert the route to a path
-	path := routeToPath(route)
+	path := treeutil.RouteToPath(route)
 
 	// locate the node
 	node := nodeTree.Tree.GetNode(path)
@@ -91,12 +92,4 @@ func (nodeTree *ItemTree) getNode(route *route.Route) *tree.Node {
 
 func nodeToItem(node *tree.Node) *model.Item {
 	return node.Value().(*model.Item)
-}
-
-func routeToPath(route *route.Route) tree.Path {
-	if route == nil {
-		return tree.NewPath()
-	}
-
-	return tree.NewPath(route.Components()...)
 }
