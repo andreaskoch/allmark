@@ -12,7 +12,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
-func NewFeedOrchestrator(itemIndex *index.ItemIndex, converter conversion.Converter) FeedOrchestrator {
+func NewFeedOrchestrator(itemIndex *index.Index, converter conversion.Converter) FeedOrchestrator {
 	return FeedOrchestrator{
 		itemIndex: itemIndex,
 		converter: converter,
@@ -20,7 +20,7 @@ func NewFeedOrchestrator(itemIndex *index.ItemIndex, converter conversion.Conver
 }
 
 type FeedOrchestrator struct {
-	itemIndex *index.ItemIndex
+	itemIndex *index.Index
 	converter conversion.Converter
 }
 

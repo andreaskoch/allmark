@@ -19,7 +19,7 @@ var (
 	tagCloudEntryLevels = 6
 )
 
-func NewTagsOrchestrator(itemIndex *index.ItemIndex, tagPathProvider, itemPathProvider paths.Pather) TagsOrchestrator {
+func NewTagsOrchestrator(itemIndex *index.Index, tagPathProvider, itemPathProvider paths.Pather) TagsOrchestrator {
 	return TagsOrchestrator{
 		itemIndex:        itemIndex,
 		tagPathProvider:  tagPathProvider,
@@ -28,7 +28,7 @@ func NewTagsOrchestrator(itemIndex *index.ItemIndex, tagPathProvider, itemPathPr
 }
 
 type TagsOrchestrator struct {
-	itemIndex        *index.ItemIndex
+	itemIndex        *index.Index
 	tagPathProvider  paths.Pather
 	itemPathProvider paths.Pather
 }

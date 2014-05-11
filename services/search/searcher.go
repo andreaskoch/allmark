@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func NewItemSearch(logger logger.Logger, itemIndex *index.ItemIndex) *ItemSearch {
+func NewItemSearch(logger logger.Logger, itemIndex *index.Index) *ItemSearch {
 
 	return &ItemSearch{
 		logger:    logger,
@@ -60,7 +60,7 @@ func content(item *model.Item) []string {
 
 type ItemSearch struct {
 	logger    logger.Logger
-	itemIndex *index.ItemIndex
+	itemIndex *index.Index
 
 	routesFullTextIndex      *FullTextIndex
 	tagsFullTextIndex        *FullTextIndex

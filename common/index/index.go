@@ -11,8 +11,8 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 )
 
-func New(logger logger.Logger, repositoryName string) *ItemIndex {
-	return &ItemIndex{
+func New(logger logger.Logger, repositoryName string) *Index {
+	return &Index{
 		logger:         logger,
 		repositoryName: repositoryName,
 
@@ -22,7 +22,7 @@ func New(logger logger.Logger, repositoryName string) *ItemIndex {
 	}
 }
 
-type ItemIndex struct {
+type Index struct {
 	logger         logger.Logger
 	repositoryName string
 
@@ -32,7 +32,7 @@ type ItemIndex struct {
 	itemTree *itemtree.ItemTree
 }
 
-func (index *ItemIndex) IsMatch(route route.Route) (item *model.Item, isMatch bool) {
+func (index *Index) IsMatch(route route.Route) (item *model.Item, isMatch bool) {
 
 	// check for a direct match
 	if item, isMatch = index.routeMap[route.Value()]; isMatch {
@@ -43,7 +43,7 @@ func (index *ItemIndex) IsMatch(route route.Route) (item *model.Item, isMatch bo
 	return nil, false
 }
 
-func (index *ItemIndex) IsFileMatch(route route.Route) (*model.File, bool) {
+func (index *Index) IsFileMatch(route route.Route) (*model.File, bool) {
 
 	var parent *model.Item
 	parentRoute := &route
@@ -77,7 +77,7 @@ func (index *ItemIndex) IsFileMatch(route route.Route) (*model.File, bool) {
 	return nil, false
 }
 
-func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
+func (index *Index) GetParent(childRoute *route.Route) *model.Item {
 
 	if childRoute == nil {
 		return nil
@@ -102,7 +102,7 @@ func (index *ItemIndex) GetParent(childRoute *route.Route) *model.Item {
 	return item
 }
 
-func (index *ItemIndex) Root() *model.Item {
+func (index *Index) Root() *model.Item {
 
 	root := route.New()
 	if _, isMatch := index.IsMatch(*root); !isMatch {
@@ -113,7 +113,7 @@ func (index *ItemIndex) Root() *model.Item {
 }
 
 // Get all childs that match the given expression
-func (index *ItemIndex) GetAllChilds(route *route.Route, expression func(item *model.Item) bool) []*model.Item {
+func (index *Index) GetAllChilds(route *route.Route, expression func(item *model.Item) bool) []*model.Item {
 
 	childs := make([]*model.Item, 0)
 
@@ -138,7 +138,7 @@ func (index *ItemIndex) GetAllChilds(route *route.Route, expression func(item *m
 	return childs
 }
 
-func (index *ItemIndex) GetDirectChilds(route *route.Route) []*model.Item {
+func (index *Index) GetDirectChilds(route *route.Route) []*model.Item {
 	// get all mathching childs
 	childs := index.itemTree.GetChildItems(route)
 
@@ -149,12 +149,12 @@ func (index *ItemIndex) GetDirectChilds(route *route.Route) []*model.Item {
 }
 
 // Get a list of all item in this index.
-func (index *ItemIndex) Items() []*model.Item {
+func (index *Index) Items() []*model.Item {
 	items := index.itemList
 	return items
 }
 
-func (index *ItemIndex) GetItemByRoute(route *route.Route) (bool, *model.Item) {
+func (index *Index) GetItemByRoute(route *route.Route) (bool, *model.Item) {
 	routeValue := route.Value()
 	if item, exists := index.routeMap[routeValue]; exists {
 		return true, item
@@ -163,7 +163,7 @@ func (index *ItemIndex) GetItemByRoute(route *route.Route) (bool, *model.Item) {
 	return false, nil
 }
 
-func (index *ItemIndex) Add(item *model.Item) {
+func (index *Index) Add(item *model.Item) {
 
 	// abort if item is invalid
 	if item == nil {
@@ -182,20 +182,20 @@ func (index *ItemIndex) Add(item *model.Item) {
 	index.addVirtualItem(*item.Route())
 }
 
-func (index *ItemIndex) insertItemToItemList(item *model.Item) {
+func (index *Index) insertItemToItemList(item *model.Item) {
 	index.itemList = append(index.itemList, item)
 }
 
-func (index *ItemIndex) insertItemToRouteMap(item *model.Item) {
+func (index *Index) insertItemToRouteMap(item *model.Item) {
 	itemRoute := item.Route().Value()
 	index.routeMap[itemRoute] = item
 }
 
-func (index *ItemIndex) insertItemToTree(item *model.Item) {
+func (index *Index) insertItemToTree(item *model.Item) {
 	index.itemTree.InsertItem(item)
 }
 
-func (index *ItemIndex) addVirtualItem(baseRoute route.Route) {
+func (index *Index) addVirtualItem(baseRoute route.Route) {
 
 	// validate the input
 	if baseRoute.Level() == 0 {

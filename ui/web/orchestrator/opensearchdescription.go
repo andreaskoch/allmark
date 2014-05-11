@@ -12,14 +12,14 @@ import (
 	"strings"
 )
 
-func NewOpenSearchDescriptionOrchestrator(itemIndex *index.ItemIndex) OpenSearchDescriptionOrchestrator {
+func NewOpenSearchDescriptionOrchestrator(itemIndex *index.Index) OpenSearchDescriptionOrchestrator {
 	return OpenSearchDescriptionOrchestrator{
 		itemIndex: itemIndex,
 	}
 }
 
 type OpenSearchDescriptionOrchestrator struct {
-	itemIndex *index.ItemIndex
+	itemIndex *index.Index
 }
 
 func (orchestrator *OpenSearchDescriptionOrchestrator) GetDescriptionModel(pathProvider paths.Pather) viewmodel.OpenSearchDescription {

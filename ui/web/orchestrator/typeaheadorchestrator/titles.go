@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func NewTitlesOrchestrator(itemIndex *index.ItemIndex, pathProvider paths.Pather) TitlesOrchestrator {
+func NewTitlesOrchestrator(itemIndex *index.Index, pathProvider paths.Pather) TitlesOrchestrator {
 	return TitlesOrchestrator{
 		itemIndex:    itemIndex,
 		pathProvider: pathProvider,
@@ -19,7 +19,7 @@ func NewTitlesOrchestrator(itemIndex *index.ItemIndex, pathProvider paths.Pather
 }
 
 type TitlesOrchestrator struct {
-	itemIndex    *index.ItemIndex
+	itemIndex    *index.Index
 	pathProvider paths.Pather
 }
 

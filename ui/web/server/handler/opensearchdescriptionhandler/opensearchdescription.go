@@ -19,7 +19,7 @@ import (
 	"text/template"
 )
 
-func New(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex) *OpenSearchDescriptionHandler {
+func New(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.Index) *OpenSearchDescriptionHandler {
 
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
 	openSearchDescriptionOrchestrator := orchestrator.NewOpenSearchDescriptionOrchestrator(itemIndex)
@@ -36,7 +36,7 @@ func New(logger logger.Logger, config *config.Config, patherFactory paths.Pather
 
 type OpenSearchDescriptionHandler struct {
 	logger                            logger.Logger
-	itemIndex                         *index.ItemIndex
+	itemIndex                         *index.Index
 	config                            *config.Config
 	patherFactory                     paths.PatherFactory
 	templateProvider                  *templates.Provider

@@ -23,7 +23,7 @@ import (
 	"text/template"
 )
 
-func New(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) *SearchHandler {
+func New(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.Index, searcher *search.ItemSearch) *SearchHandler {
 
 	// templates
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
@@ -53,7 +53,7 @@ func New(logger logger.Logger, config *config.Config, patherFactory paths.Pather
 
 type SearchHandler struct {
 	logger                 logger.Logger
-	itemIndex              *index.ItemIndex
+	itemIndex              *index.Index
 	config                 *config.Config
 	patherFactory          paths.PatherFactory
 	templateProvider       *templates.Provider

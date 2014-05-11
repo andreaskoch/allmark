@@ -14,7 +14,7 @@ import (
 	"net/http"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *RobotsTxtHandler {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) *RobotsTxtHandler {
 
 	return &RobotsTxtHandler{
 		logger:        logger,
@@ -26,7 +26,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 
 type RobotsTxtHandler struct {
 	logger        logger.Logger
-	itemIndex     *index.ItemIndex
+	itemIndex     *index.Index
 	config        *config.Config
 	patherFactory paths.PatherFactory
 }

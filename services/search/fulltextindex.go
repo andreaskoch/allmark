@@ -19,7 +19,7 @@ import (
 
 type indexValueProvider func(item *model.Item) []string
 
-func newIndex(logger logger.Logger, itemIndex *index.ItemIndex, name string, indexValueFunc indexValueProvider) *FullTextIndex {
+func newIndex(logger logger.Logger, itemIndex *index.Index, name string, indexValueFunc indexValueProvider) *FullTextIndex {
 
 	return &FullTextIndex{
 		logger:         logger,
@@ -31,7 +31,7 @@ func newIndex(logger logger.Logger, itemIndex *index.ItemIndex, name string, ind
 
 type FullTextIndex struct {
 	logger         logger.Logger
-	itemIndex      *index.ItemIndex
+	itemIndex      *index.Index
 	filepath       string
 	indexValueFunc indexValueProvider
 }

@@ -11,14 +11,14 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
-func NewSitemapOrchestrator(itemIndex *index.ItemIndex) SitemapOrchestrator {
+func NewSitemapOrchestrator(itemIndex *index.Index) SitemapOrchestrator {
 	return SitemapOrchestrator{
 		itemIndex: itemIndex,
 	}
 }
 
 type SitemapOrchestrator struct {
-	itemIndex *index.ItemIndex
+	itemIndex *index.Index
 }
 
 func (orchestrator *SitemapOrchestrator) GetSitemap(pathProvider paths.Pather) viewmodel.Sitemap {
@@ -38,7 +38,7 @@ func (orchestrator *SitemapOrchestrator) GetSitemap(pathProvider paths.Pather) v
 	return rootModel
 }
 
-func getSitemapEntries(index *index.ItemIndex, startRoute route.Route) []viewmodel.Sitemap {
+func getSitemapEntries(index *index.Index, startRoute route.Route) []viewmodel.Sitemap {
 
 	childs := make([]viewmodel.Sitemap, 0)
 	for _, child := range index.GetDirectChilds(&startRoute) {

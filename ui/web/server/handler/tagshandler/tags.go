@@ -19,7 +19,7 @@ import (
 	"text/template"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *TagsHandler {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) *TagsHandler {
 
 	// templates
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
@@ -46,7 +46,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 
 type TagsHandler struct {
 	logger                 logger.Logger
-	itemIndex              *index.ItemIndex
+	itemIndex              *index.Index
 	config                 *config.Config
 	patherFactory          paths.PatherFactory
 	templateProvider       *templates.Provider

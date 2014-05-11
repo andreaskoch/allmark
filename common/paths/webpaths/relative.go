@@ -13,7 +13,7 @@ import (
 )
 
 // Create a new relative web path provider
-func newRelativeWebPathProvider(logger logger.Logger, itemIndex *index.ItemIndex, baseRoute *route.Route) *RelativeWebPathProvider {
+func newRelativeWebPathProvider(logger logger.Logger, itemIndex *index.Index, baseRoute *route.Route) *RelativeWebPathProvider {
 	return &RelativeWebPathProvider{
 		logger:    logger,
 		itemIndex: itemIndex,
@@ -23,7 +23,7 @@ func newRelativeWebPathProvider(logger logger.Logger, itemIndex *index.ItemIndex
 
 type RelativeWebPathProvider struct {
 	logger    logger.Logger
-	itemIndex *index.ItemIndex
+	itemIndex *index.Index
 	baseRoute *route.Route
 }
 

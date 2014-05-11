@@ -20,7 +20,7 @@ import (
 	"text/template"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *XmlSitemapHandler {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) *XmlSitemapHandler {
 
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
 	xmlSitemapOrchestrator := orchestrator.NewXmlSitemapOrchestrator(itemIndex)
@@ -37,7 +37,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 
 type XmlSitemapHandler struct {
 	logger                 logger.Logger
-	itemIndex              *index.ItemIndex
+	itemIndex              *index.Index
 	config                 *config.Config
 	patherFactory          paths.PatherFactory
 	templateProvider       *templates.Provider

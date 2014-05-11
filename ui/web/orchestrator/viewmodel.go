@@ -13,7 +13,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
-func NewViewModelOrchestrator(itemIndex *index.ItemIndex, converter conversion.Converter, navigationOrchestrator *NavigationOrchestrator, tagOrchestrator *TagsOrchestrator) ViewModelOrchestrator {
+func NewViewModelOrchestrator(itemIndex *index.Index, converter conversion.Converter, navigationOrchestrator *NavigationOrchestrator, tagOrchestrator *TagsOrchestrator) ViewModelOrchestrator {
 	return ViewModelOrchestrator{
 		itemIndex:              itemIndex,
 		converter:              converter,
@@ -23,7 +23,7 @@ func NewViewModelOrchestrator(itemIndex *index.ItemIndex, converter conversion.C
 }
 
 type ViewModelOrchestrator struct {
-	itemIndex              *index.ItemIndex
+	itemIndex              *index.Index
 	converter              conversion.Converter
 	navigationOrchestrator *NavigationOrchestrator
 	tagOrchestrator        *TagsOrchestrator

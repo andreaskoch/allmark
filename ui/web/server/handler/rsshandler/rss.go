@@ -24,7 +24,7 @@ import (
 
 var itemsPerPage = 5
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) *RssHandler {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) *RssHandler {
 
 	// templates
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
@@ -48,7 +48,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 
 type RssHandler struct {
 	logger           logger.Logger
-	itemIndex        *index.ItemIndex
+	itemIndex        *index.Index
 	config           *config.Config
 	patherFactory    paths.PatherFactory
 	templateProvider *templates.Provider

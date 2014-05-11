@@ -11,7 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 )
 
-func NewFactory(logger logger.Logger, itemIndex *index.ItemIndex) *PatherFactory {
+func NewFactory(logger logger.Logger, itemIndex *index.Index) *PatherFactory {
 	return &PatherFactory{
 		logger:    logger,
 		itemIndex: itemIndex,
@@ -20,7 +20,7 @@ func NewFactory(logger logger.Logger, itemIndex *index.ItemIndex) *PatherFactory
 
 type PatherFactory struct {
 	logger    logger.Logger
-	itemIndex *index.ItemIndex
+	itemIndex *index.Index
 }
 
 func (factory *PatherFactory) Absolute(prefix string) paths.Pather {

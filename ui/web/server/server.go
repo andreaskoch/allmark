@@ -40,7 +40,7 @@ const (
 	ThemeFolderRoute = "/theme"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, converter conversion.Converter, searcher *search.ItemSearch) (*Server, error) {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, converter conversion.Converter, searcher *search.ItemSearch) (*Server, error) {
 
 	// pather factory
 	patherFactory := webpaths.NewFactory(logger, itemIndex)
@@ -62,7 +62,7 @@ type Server struct {
 	config        *config.Config
 	logger        logger.Logger
 	patherFactory paths.PatherFactory
-	itemIndex     *index.ItemIndex
+	itemIndex     *index.Index
 	converter     conversion.Converter
 	searcher      *search.ItemSearch
 }

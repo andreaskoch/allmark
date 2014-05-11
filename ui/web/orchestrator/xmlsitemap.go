@@ -10,14 +10,14 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
-func NewXmlSitemapOrchestrator(itemIndex *index.ItemIndex) XmlSitemapOrchestrator {
+func NewXmlSitemapOrchestrator(itemIndex *index.Index) XmlSitemapOrchestrator {
 	return XmlSitemapOrchestrator{
 		itemIndex: itemIndex,
 	}
 }
 
 type XmlSitemapOrchestrator struct {
-	itemIndex *index.ItemIndex
+	itemIndex *index.Index
 }
 
 func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(pathProvider paths.Pather) []viewmodel.XmlSitemapEntry {

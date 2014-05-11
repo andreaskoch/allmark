@@ -24,50 +24,50 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/xmlsitemaphandler"
 )
 
-func NewErrorHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) Handler {
+func NewErrorHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) Handler {
 	return errorhandler.New(logger, config, itemIndex, patherFactory)
 }
 
-func NewRobotsTxtHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) Handler {
+func NewRobotsTxtHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) Handler {
 	return robotstxthandler.New(logger, config, itemIndex, patherFactory)
 }
 
-func NewXmlSitemapHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) Handler {
+func NewXmlSitemapHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) Handler {
 	return xmlsitemaphandler.New(logger, config, itemIndex, patherFactory)
 }
 
-func NewTagsHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) Handler {
+func NewTagsHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) Handler {
 	return tagshandler.New(logger, config, itemIndex, patherFactory)
 }
 
-func NewSitemapHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) Handler {
+func NewSitemapHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) Handler {
 	return sitemaphandler.New(logger, config, itemIndex, patherFactory)
 }
 
-func NewSearchHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) Handler {
+func NewSearchHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.Index, searcher *search.ItemSearch) Handler {
 	return searchhandler.New(logger, config, patherFactory, itemIndex, searcher)
 }
 
-func NewOpenSearchDescriptionHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex) Handler {
+func NewOpenSearchDescriptionHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.Index) Handler {
 	return opensearchdescriptionhandler.New(logger, config, patherFactory, itemIndex)
 }
 
-func NewTypeAheadSearchHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex, searcher *search.ItemSearch) Handler {
+func NewTypeAheadSearchHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.Index, searcher *search.ItemSearch) Handler {
 	return typeaheadhandler.NewSearchHandler(logger, config, patherFactory, itemIndex, searcher)
 }
 
-func NewTypeAheadTitlesHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex) Handler {
+func NewTypeAheadTitlesHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.Index) Handler {
 	return typeaheadhandler.NewTitlesHandler(logger, config, patherFactory, itemIndex)
 }
 
-func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
+func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
 	return rsshandler.New(logger, config, itemIndex, patherFactory, converter)
 }
 
-func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
+func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
 	return itemhandler.New(logger, config, itemIndex, patherFactory, converter)
 }
 
-func NewDebugHandler(logger logger.Logger, itemIndex *index.ItemIndex) Handler {
+func NewDebugHandler(logger logger.Logger, itemIndex *index.Index) Handler {
 	return debughandler.New(logger, itemIndex)
 }

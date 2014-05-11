@@ -17,7 +17,7 @@ import (
 	"net/http"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *ErrorHandler {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) *ErrorHandler {
 
 	// templates
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
@@ -37,7 +37,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 
 type ErrorHandler struct {
 	logger                 logger.Logger
-	itemIndex              *index.ItemIndex
+	itemIndex              *index.Index
 	config                 *config.Config
 	templateProvider       *templates.Provider
 	navigationOrchestrator orchestrator.NavigationOrchestrator

@@ -20,7 +20,7 @@ import (
 	"text/template"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex, patherFactory paths.PatherFactory) *SitemapHandler {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) *SitemapHandler {
 
 	// templates
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
@@ -45,7 +45,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.ItemIndex
 
 type SitemapHandler struct {
 	logger                 logger.Logger
-	itemIndex              *index.ItemIndex
+	itemIndex              *index.Index
 	config                 *config.Config
 	patherFactory          paths.PatherFactory
 	templateProvider       *templates.Provider

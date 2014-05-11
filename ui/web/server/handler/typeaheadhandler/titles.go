@@ -16,7 +16,7 @@ import (
 	"net/http"
 )
 
-func NewTitlesHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.ItemIndex) *TitleHandler {
+func NewTitlesHandler(logger logger.Logger, config *config.Config, patherFactory paths.PatherFactory, itemIndex *index.Index) *TitleHandler {
 
 	titlePathProvider := patherFactory.Absolute("/")
 	titlesOrchestrator := typeaheadorchestrator.NewTitlesOrchestrator(itemIndex, titlePathProvider)
@@ -32,7 +32,7 @@ func NewTitlesHandler(logger logger.Logger, config *config.Config, patherFactory
 
 type TitleHandler struct {
 	logger             logger.Logger
-	itemIndex          *index.ItemIndex
+	itemIndex          *index.Index
 	config             *config.Config
 	patherFactory      paths.PatherFactory
 	titlesOrchestrator *typeaheadorchestrator.TitlesOrchestrator

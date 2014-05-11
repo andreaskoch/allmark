@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-func New(logger logger.Logger, itemIndex *index.ItemIndex) *DebugHandler {
+func New(logger logger.Logger, itemIndex *index.Index) *DebugHandler {
 	return &DebugHandler{
 		logger:    logger,
 		itemIndex: itemIndex,
@@ -20,7 +20,7 @@ func New(logger logger.Logger, itemIndex *index.ItemIndex) *DebugHandler {
 
 type DebugHandler struct {
 	logger    logger.Logger
-	itemIndex *index.ItemIndex
+	itemIndex *index.Index
 }
 
 func (handler *DebugHandler) Func() func(w http.ResponseWriter, r *http.Request) {

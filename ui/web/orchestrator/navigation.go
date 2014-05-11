@@ -12,7 +12,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
-func NewNavigationOrchestrator(itemIndex *index.ItemIndex, pathProvider paths.Pather) NavigationOrchestrator {
+func NewNavigationOrchestrator(itemIndex *index.Index, pathProvider paths.Pather) NavigationOrchestrator {
 	return NavigationOrchestrator{
 		itemIndex:    itemIndex,
 		pathProvider: pathProvider,
@@ -20,7 +20,7 @@ func NewNavigationOrchestrator(itemIndex *index.ItemIndex, pathProvider paths.Pa
 }
 
 type NavigationOrchestrator struct {
-	itemIndex    *index.ItemIndex
+	itemIndex    *index.Index
 	pathProvider paths.Pather
 }
 
