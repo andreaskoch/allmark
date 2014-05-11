@@ -64,9 +64,6 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 
 	data := byteBuffer.Bytes()
 
-	// todo: cleanup data
-	// - replace \r\n with \n
-
 	lines := getLines(bytes.NewReader(data))
 
 	// cleanup the markdown before parsing it
