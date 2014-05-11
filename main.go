@@ -59,10 +59,10 @@ func main() {
 		repositoryName := filepath.Base(repositoryPath)
 
 		// item index
-		itemIndex := index.CreateItemIndex(logger, repositoryName)
+		index := index.New(logger, repositoryName)
 
 		// search
-		itemSearch := search.NewItemSearch(logger, itemIndex)
+		itemSearch := search.NewItemSearch(logger, index)
 
 		// read the repository
 		itemEvents := repository.GetItems()
@@ -85,14 +85,14 @@ func main() {
 			}
 
 			// register the item at the index
-			itemIndex.Add(item)
+			index.Add(item)
 		}
 
 		// update the full-text search index
 		itemSearch.Update()
 
 		// server
-		server, err := server.New(logger, config, itemIndex, converter, itemSearch)
+		server, err := server.New(logger, config, index, converter, itemSearch)
 		if err != nil {
 			logger.Fatal("Unable to instantiate a server. Error: %s", err.Error())
 		}

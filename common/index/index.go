@@ -11,7 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 )
 
-func CreateItemIndex(logger logger.Logger, repositoryName string) *ItemIndex {
+func New(logger logger.Logger, repositoryName string) *ItemIndex {
 	return &ItemIndex{
 		logger:         logger,
 		repositoryName: repositoryName,
