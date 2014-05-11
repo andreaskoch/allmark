@@ -7,6 +7,7 @@ package index
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/common/tree/itemtree"
 	"github.com/andreaskoch/allmark2/model"
 )
 
@@ -17,7 +18,7 @@ func CreateItemIndex(logger logger.Logger, repositoryName string) *ItemIndex {
 
 		itemList: make([]*model.Item, 0),
 		routeMap: make(map[string]*model.Item),
-		itemTree: NewItemTree(),
+		itemTree: itemtree.New(),
 	}
 }
 
@@ -28,7 +29,7 @@ type ItemIndex struct {
 	// indizes
 	itemList []*model.Item
 	routeMap map[string]*model.Item // route -> item,
-	itemTree *ItemTree
+	itemTree *itemtree.ItemTree
 }
 
 func (index *ItemIndex) IsMatch(route route.Route) (item *model.Item, isMatch bool) {

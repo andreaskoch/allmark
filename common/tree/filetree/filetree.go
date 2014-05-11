@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package index
+package filetree
 
 import (
 	"github.com/andreaskoch/allmark2/common/route"
@@ -10,7 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 )
 
-func NewItemTree() *ItemTree {
+func New() *ItemTree {
 	return &ItemTree{
 		*tree.New("", nil),
 	}
