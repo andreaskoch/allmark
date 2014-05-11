@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/common/tree/filetree"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pattern"
 	"regexp"
@@ -23,14 +24,14 @@ func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File) 
 	return &FilesExtension{
 		pathProvider: pathProvider,
 		base:         baseRoute,
-		files:        files,
+		files:        convertFilesToTree(files),
 	}
 }
 
 type FilesExtension struct {
 	pathProvider paths.Pather
 	base         route.Route
-	files        []*model.File
+	files        *filetree.FileTree
 }
 
 func (converter *FilesExtension) Convert(markdown string) (convertedContent string, conversionError error) {
@@ -53,132 +54,70 @@ func (converter *FilesExtension) Convert(markdown string) (convertedContent stri
 		// normalize the path with the current path provider
 		path = converter.pathProvider.Path(path)
 
-		// create the base route from the path
-		folderRoute, err := route.NewFromRequest(path)
-		if err != nil {
-			// abort. an error occured.
-			return markdown, fmt.Errorf("Could not create a route from the path %q. Error: %s", path, err)
-		}
-
-		fullFolderRoute, err := route.Combine(&converter.base, folderRoute)
-		if err != nil {
-			// abort. an error occured.
-			return markdown, fmt.Errorf("Could not comnbine the routes %q and %q. Error: %s", converter.base, folderRoute, err)
-		}
-
-		// get all matching files
-		matchingFiles := getMatchingFiles(fullFolderRoute, converter.files)
-		pathsOfMatchingFiles := getFilePaths(matchingFiles, converter.pathProvider)
-
-		// create a file system from the file paths
-		rootFolderTitle := folderRoute.LastComponentName()
-		rootFolder := NewRootFilesystemEntry(rootFolderTitle)
-		rootFolder = getFileSystemFromLinks(rootFolder, pathsOfMatchingFiles)
-
-		// render the filesystem
-		fileLinksCode := fmt.Sprintf(`<section class="filelinks"><h1>%s</h1>`, title)
-		fileLinksCode += renderFilesystemEntry(rootFolder, 0)
-		fileLinksCode += `</section>`
+		// get the code
+		renderedCode := converter.getFileSystemCode(title, path)
 
 		// replace markdown with link list
-		convertedContent = strings.Replace(convertedContent, originalText, fileLinksCode, 1)
+		convertedContent = strings.Replace(convertedContent, originalText, renderedCode, 1)
 
 	}
 
 	return convertedContent, nil
 }
 
-// Get all files that match (are childs of) the supplied path.
-func getMatchingFiles(baseRoute *route.Route, files []*model.File) []*model.File {
+func (converter *FilesExtension) getFileSystemCode(title, path string) string {
 
-	matchingFiles := make([]*model.File, 0)
-	for _, file := range files {
-
-		// check if the file is a child of the supplied path
-		if !file.Route().IsChildOf(baseRoute) {
-			continue
-		}
-
-		matchingFiles = append(matchingFiles, file)
+	// create the base route from the path
+	folderRoute, err := route.NewFromRequest(path)
+	if err != nil {
+		// abort. an error occured.
+		// todo: log error
+		return ""
 	}
 
-	return matchingFiles
+	fullFolderRoute, err := route.Combine(&converter.base, folderRoute)
+	if err != nil {
+		// abort. an error occured.
+		// todo: log error
+		return ""
+	}
+
+	// render the filesystem
+	code := fmt.Sprintf(`<section class="filelinks"><h1>%s</h1>`, title)
+	code += converter.renderFilesystemEntry(fullFolderRoute)
+	code += `</section>`
+
+	return code
 }
 
-// Get the files paths for the supplied File models.
-func getFilePaths(files []*model.File, pathProvider paths.Pather) []string {
+func (converter *FilesExtension) renderFilesystemEntry(route *route.Route) string {
 
-	numberOfFiles := len(files)
-	fileLinks := make([]string, numberOfFiles, numberOfFiles)
+	filepath := converter.pathProvider.Path(route.Value())
+	html := fmt.Sprintf(`<a href="%s" title="%s">%s</a>`, filepath, route.Value(), route.LastComponentName())
 
-	for index, file := range files {
-		filePath := pathProvider.Path(file.Route().Value())
-		fileLinks[index] = filePath
-	}
+	childs := converter.files.GetChildFiles(route)
 
-	return fileLinks
-}
-
-func renderFilesystemEntry(fsEntry *FileSystemEntry, level int) string {
-
-	html := ""
-
-	// don't print the "root-folder" name (-> "files")
-	if level > 0 {
-
-		// assemble the file or folder link
-		href := fsEntry.Path()
-		title := fsEntry.Name()
-		name := fsEntry.Name()
-
-		if fsEntry.IsDirectory() {
-			html = fmt.Sprintf(`%s`, name)
-		} else {
-			html = fmt.Sprintf(`<a href="%s" title="%s">%s</a>`, href, title, name)
-		}
-	}
-
-	// recurse if the filesystem entry has childs
-	if len(fsEntry.Childs) > 0 {
+	if len(childs) > 0 {
 
 		html += "<ul>\n"
-		for _, child := range fsEntry.Childs {
-			html += fmt.Sprintf("<li>%s</li>\n", renderFilesystemEntry(child, level+1))
-		}
-		html += "</ul>\n"
 
+		for _, child := range childs {
+			html += fmt.Sprintf("<li>%s</li>\n", converter.renderFilesystemEntry(child.Route()))
+		}
+
+		html += "</ul>\n"
 	}
 
 	return html
 }
 
-func getFileSystemFromLinks(root *FileSystemEntry, filePaths []string) *FileSystemEntry {
+func convertFilesToTree(files []*model.File) *filetree.FileTree {
 
-	for _, filePath := range filePaths {
+	tree := filetree.New()
 
-		current := root
-
-		// split the path into components
-		components := strings.Split(filePath, "/")
-
-		// strip "files" component
-		if len(components) > 1 {
-			components = components[1:]
-		}
-
-		// trim empty components
-		components = trimSlice(components)
-
-		// get the childs for each component
-		for _, component := range components {
-			child := current.GetChild(component)
-			if child == nil {
-				current.Childs = append(current.Childs, NewFilesystemEntry(current, component))
-				child = current.GetChild(component)
-			}
-			current = child
-		}
+	for _, file := range files {
+		tree.InsertFile(file)
 	}
 
-	return root
+	return tree
 }
