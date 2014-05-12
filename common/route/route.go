@@ -22,10 +22,10 @@ type Route struct {
 	originalValue string
 }
 
-func NewFromItemPath(basePath, itemPath string) (*Route, error) {
+func NewFromItemPath(baseDirectory, itemPath string) (*Route, error) {
 
 	// normalize the base path
-	normalizedBasePath := normalize(basePath)
+	normalizedBasePath := normalize(baseDirectory)
 
 	// normalize the item path
 	normalizedItemPath := normalize(itemPath)
@@ -51,10 +51,36 @@ func NewFromItemPath(basePath, itemPath string) (*Route, error) {
 	}, nil
 }
 
-func NewFromFilePath(basePath, itemPath string) (*Route, error) {
+func NewFromItemDirectory(baseDirectory, itemDirectory string) (*Route, error) {
 
 	// normalize the base path
-	normalizedBasePath := normalize(basePath)
+	normalizedBasePath := normalize(baseDirectory)
+
+	// normalize the item path
+	normalizedItemPath := normalize(itemDirectory)
+
+	// return a root if both paths are the same
+	if normalizedItemPath == normalizedBasePath {
+		return New(), nil
+	}
+
+	// prepare the route value:
+	// strip the repository path from the item path
+	routeValue := strings.Replace(normalizedItemPath, normalizedBasePath, "", 1)
+
+	// trim leading slashes
+	routeValue = strings.TrimLeft(routeValue, "/")
+
+	return &Route{
+		value:         toUrl(routeValue),
+		originalValue: routeValue,
+	}, nil
+}
+
+func NewFromFilePath(baseDirectory, itemPath string) (*Route, error) {
+
+	// normalize the base path
+	normalizedBasePath := normalize(baseDirectory)
 
 	// normalize the item path
 	normalizedItemPath := normalize(itemPath)

@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-func newContentProvider(path string, route *route.Route) *content.ContentProvider {
+func newFileContentProvider(path string, route *route.Route) *content.ContentProvider {
 
 	// mimeType
 	mimeType := func() (string, error) {
@@ -43,8 +43,7 @@ func newContentProvider(path string, route *route.Route) *content.ContentProvide
 	// hash provider
 	hashProvider := func() (string, error) {
 
-		// file hash
-		fileHash, fileHashErr := getHash(path, route)
+		fileHash, fileHashErr := getHashFromFile(path, route)
 		if fileHashErr != nil {
 			return "", fmt.Errorf("Unable to determine the hash for file %q. Error: %s", path, fileHashErr)
 		}
@@ -60,10 +59,47 @@ func newContentProvider(path string, route *route.Route) *content.ContentProvide
 	return content.NewProvider(mimeType, dataProvider, hashProvider, lastModifiedProvider)
 }
 
-func getHash(filepath string, route *route.Route) (string, error) {
+func newTextContentProvider(text string, route *route.Route) *content.ContentProvider {
+
+	// mimeType
+	mimeType := func() (string, error) {
+		return "text/x-markdown", nil
+	}
+
+	// content provider
+	dataProvider := func(callback func(content io.ReadSeeker) error) error {
+		contentReader := bytes.NewReader([]byte(text))
+		return callback(contentReader)
+	}
+
+	// hash provider
+	hashProvider := func() (string, error) {
+
+		routeHash, routeHashErr := getStringHash(route.String())
+		if routeHashErr != nil {
+			return "", fmt.Errorf("Unable to determine the hash for route %q. Error: %s", route, routeHashErr)
+		}
+
+		contentHash, contentHashErr := getStringHash(text)
+		if contentHashErr != nil {
+			return "", fmt.Errorf("Unable to determine the hash for content %q. Error: %s", text, contentHashErr)
+		}
+
+		return fmt.Sprintf("%s+%s", routeHash, contentHash), nil
+	}
+
+	// last modified provider
+	lastModifiedProvider := func() (time.Time, error) {
+		return time.Time{}, nil
+	}
+
+	return content.NewProvider(mimeType, dataProvider, hashProvider, lastModifiedProvider)
+}
+
+func getHashFromFile(filepath string, route *route.Route) (string, error) {
 
 	// fallback file hash
-	fileHash, fallbackHashErr := getStringHash("")
+	fileHash, fallbackHashErr := getStringHash(filepath)
 	if fallbackHashErr != nil {
 		return "", fallbackHashErr
 	}

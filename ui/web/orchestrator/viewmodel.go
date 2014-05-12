@@ -53,12 +53,14 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 		ToplevelNavigation:   orchestrator.navigationOrchestrator.GetToplevelNavigation(),
 		BreadcrumbNavigation: orchestrator.navigationOrchestrator.GetBreadcrumbNavigation(item),
 
-		// documents
-		TopDocs: orchestrator.getTopDocuments(5, pathProvider, item.Route()),
-
 		// tags
-		Tags:     orchestrator.tagOrchestrator.GetItemTags(item),
-		TagCloud: orchestrator.tagOrchestrator.GetTagCloud(),
+		Tags: orchestrator.tagOrchestrator.GetItemTags(item),
+	}
+
+	// attach tag cloud and top documents if the item is a repository type
+	if item.Type == model.TypeRepository {
+		viewModel.TopDocs = orchestrator.getTopDocuments(5, pathProvider, item.Route())
+		viewModel.TagCloud = orchestrator.tagOrchestrator.GetTagCloud()
 	}
 
 	return viewModel
