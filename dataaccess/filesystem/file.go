@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 )
 
-func getFiles(repository *Repository, itemDirectory, filesDirectory string) []*dataaccess.File {
+func getFiles(repositoryPath, itemDirectory, filesDirectory string) []*dataaccess.File {
 
 	childs := make([]*dataaccess.File, 0)
 
@@ -28,12 +28,12 @@ func getFiles(repository *Repository, itemDirectory, filesDirectory string) []*d
 
 		// recurse if the path is a directory
 		if isDir, _ := fsutil.IsDirectory(filePath); isDir {
-			childs = append(childs, getFiles(repository, itemDirectory, filePath)...)
+			childs = append(childs, getFiles(repositoryPath, itemDirectory, filePath)...)
 			continue
 		}
 
 		// append new file
-		file, err := newFile(repository, itemDirectory, filePath)
+		file, err := newFile(repositoryPath, itemDirectory, filePath)
 		if err != nil {
 			fmt.Printf("Unable to add file %q to index.\nError: %s\n", filePath, err)
 		}
@@ -44,7 +44,7 @@ func getFiles(repository *Repository, itemDirectory, filesDirectory string) []*d
 	return childs
 }
 
-func newFile(repository *Repository, itemDirectory, filePath string) (*dataaccess.File, error) {
+func newFile(repositoryPath, itemDirectory, filePath string) (*dataaccess.File, error) {
 
 	// check if the file path is a file
 	if isFile, _ := fsutil.IsFile(filePath); !isFile {
@@ -52,13 +52,13 @@ func newFile(repository *Repository, itemDirectory, filePath string) (*dataacces
 	}
 
 	// parent route
-	parentRoute, err := route.NewFromFilePath(repository.Path(), itemDirectory)
+	parentRoute, err := route.NewFromFilePath(repositoryPath, itemDirectory)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot create a parent route for the File with the file path %q. Error: %s", filePath, err)
 	}
 
 	// route
-	route, err := route.NewFromFilePath(repository.Path(), filePath)
+	route, err := route.NewFromFilePath(repositoryPath, filePath)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot create a File for the file path %q. Error: %s", filePath, err)
 	}

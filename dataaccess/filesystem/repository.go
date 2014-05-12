@@ -59,7 +59,7 @@ func (repository *Repository) GetItems() (itemEvents chan *dataaccess.Repository
 	go func() {
 
 		// repository directory item
-		indexItems(repository, repository.directory, itemEvents)
+		indexItems(repository.Path(), repository.Path(), itemEvents)
 
 		// close the channel. All items have been indexed
 		close(itemEvents)
@@ -77,7 +77,7 @@ func (repository *Repository) Path() string {
 }
 
 // Create a new Item for the specified path.
-func indexItems(repository *Repository, itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
+func indexItems(repositoryPath, itemPath string, itemEvents chan *dataaccess.RepositoryEvent) {
 
 	// abort if path does not exist
 	if !fsutil.PathExists(itemPath) {
@@ -91,56 +91,42 @@ func indexItems(repository *Repository, itemPath string, itemEvents chan *dataac
 		return
 	}
 
-	// make sure the item path points to a markdown file
-	isVirtualItem := false
-	itemDirectory := filepath.Dir(itemPath)
-	if isDirectory, _ := fsutil.IsDirectory(itemPath); isDirectory {
-
-		// search for a markdown file in the directory
-		if found, filepath := findMarkdownFileInDirectory(itemPath); found {
-
-			itemDirectory = itemPath
-			itemPath = filepath
-
-		} else {
-
-			// virtual item
-			isVirtualItem = true
-			itemDirectory = itemPath
-
-		}
-
-	} else if !isMarkdownFile(itemPath) {
-
-		// the supplied item path does not point to a markdown file
-		itemEvents <- dataaccess.NewEvent(nil, fmt.Errorf("%q is not a markdown file.", itemPath))
-		return
+	// make sure the item directory points to a folder not a file
+	itemDirectory := itemPath
+	if isDirectory, _ := fsutil.IsDirectory(itemPath); !isDirectory {
+		itemDirectory = filepath.Dir(itemPath)
 	}
 
-	// create a new item
-	if !isVirtualItem {
-		// route
-		route, err := route.NewFromItemPath(repository.Path(), itemPath)
-		if err != nil {
-			itemEvents <- dataaccess.NewEvent(nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemPath, err))
-		}
-
-		// content provider
-		contentProvider := newContentProvider(itemPath, route)
-
-		// create the file index
-		filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-		files := getFiles(repository, itemDirectory, filesDirectory)
+	// search for a markdown file in the directory
+	if found, markdownFilePath := findMarkdownFileInDirectory(itemPath); found {
 
 		// create the item
-		item, err := dataaccess.NewItem(route, contentProvider, files)
-
+		item, err := newItemFromFile(repositoryPath, itemDirectory, markdownFilePath)
 		itemEvents <- dataaccess.NewEvent(item, err)
+
 	}
 
 	// recurse for child items
 	childItemDirectories := getChildDirectories(itemDirectory)
 	for _, childItemDirectory := range childItemDirectories {
-		indexItems(repository, childItemDirectory, itemEvents)
+		indexItems(repositoryPath, childItemDirectory, itemEvents)
 	}
+}
+
+func newItemFromFile(repositoryPath, itemDirectory, filePath string) (*dataaccess.Item, error) {
+	// route
+	route, err := route.NewFromItemPath(repositoryPath, filePath)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", filePath, err)
+	}
+
+	// content provider
+	contentProvider := newContentProvider(filePath, route)
+
+	// create the file index
+	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
+	files := getFiles(repositoryPath, itemDirectory, filesDirectory)
+
+	// create the item
+	return dataaccess.NewItem(route, contentProvider, files)
 }
