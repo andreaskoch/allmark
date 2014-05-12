@@ -30,6 +30,11 @@ func NewFromItemPath(basePath, itemPath string) (*Route, error) {
 	// normalize the item path
 	normalizedItemPath := normalize(itemPath)
 
+	// return a root if both paths are the same
+	if normalizedItemPath == normalizedBasePath {
+		return New(), nil
+	}
+
 	// prepare the route value:
 	// strip the repository path from the item path
 	routeValue := strings.Replace(normalizedItemPath, normalizedBasePath, "", 1)
@@ -53,6 +58,11 @@ func NewFromFilePath(basePath, itemPath string) (*Route, error) {
 
 	// normalize the item path
 	normalizedItemPath := normalize(itemPath)
+
+	// return a root if both paths are the same
+	if normalizedItemPath == normalizedBasePath {
+		return New(), nil
+	}
 
 	// prepare the route value:
 	// strip the repository path from the item path
