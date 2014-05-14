@@ -21,22 +21,6 @@ const locationTemplate = `
 
 <div class="cleaner"></div>
 
-{{ if .Tags }}
-<section class="tags">
-	<header>
-		Tags:
-	</header>
-
-	<ul class="tags">
-	{{range .Tags}}
-	<li class="tag">
-		<a href="{{.Route}}" title="{{.Description}}">{{.Name}}</a>
-	</li>
-	{{end}}
-	</ul>
-</section>
-{{end}}
-
 {{ if .RelatedItems }}
 <section class="related-items">
 <ol class="list">
@@ -60,6 +44,22 @@ const locationTemplate = `
 </li>
 {{end}}
 </ol>
+</section>
+{{end}}
+
+{{ if .Tags }}
+<section class="tags">
+	<header>
+		Tags:
+	</header>
+
+	<ul class="tags">
+	{{range .Tags}}
+	<li class="tag">
+		<a href="{{.Route}}" title="{{.Description}}">{{.Name}}</a>
+	</li>
+	{{end}}
+	</ul>
 </section>
 {{end}}
 `
