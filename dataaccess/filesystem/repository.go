@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
 )
@@ -106,13 +107,19 @@ func indexItems(repositoryPath, itemPath string, itemEvents chan *dataaccess.Rep
 
 	} else {
 
-		// create a virtual item
-		title := filepath.Base(itemDirectory)
+		if directoryDoesNotContainsItems(itemDirectory) {
 
-		content := fmt.Sprintf(`# %s`, title)
+			// create a virtual item
+			item, err := newVirtualItem(repositoryPath, itemDirectory)
+			itemEvents <- dataaccess.NewEvent(item, err)
 
-		item, err := newItemFromText(repositoryPath, itemDirectory, content)
-		itemEvents <- dataaccess.NewEvent(item, err)
+		} else {
+
+			// create a file collection item
+			item, err := newFileCollectionItem(repositoryPath, itemDirectory)
+			itemEvents <- dataaccess.NewEvent(item, err)
+
+		}
 
 	}
 
@@ -141,7 +148,11 @@ func newItemFromFile(repositoryPath, itemDirectory, filePath string) (*dataacces
 	return dataaccess.NewItem(route, contentProvider, files)
 }
 
-func newItemFromText(repositoryPath, itemDirectory, content string) (*dataaccess.Item, error) {
+func newVirtualItem(repositoryPath, itemDirectory string) (*dataaccess.Item, error) {
+
+	title := filepath.Base(itemDirectory)
+	content := fmt.Sprintf(`# %s`, title)
+
 	// route
 	route, err := route.NewFromItemDirectory(repositoryPath, itemDirectory)
 	if err != nil {
@@ -157,4 +168,53 @@ func newItemFromText(repositoryPath, itemDirectory, content string) (*dataaccess
 
 	// create the item
 	return dataaccess.NewItem(route, contentProvider, files)
+}
+
+func newFileCollectionItem(repositoryPath, itemDirectory string) (*dataaccess.Item, error) {
+
+	title := filepath.Base(itemDirectory)
+	content := fmt.Sprintf(`# %s
+
+Contents of folder %q.
+
+files: [Files](/)
+`, title, title)
+
+	// route
+	route, err := route.NewFromItemDirectory(repositoryPath, itemDirectory)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
+	}
+
+	// content provider
+	contentProvider := newTextContentProvider(content, route)
+
+	// create the file index
+	filesDirectory := itemDirectory
+	files := getFiles(repositoryPath, itemDirectory, filesDirectory)
+
+	// create the item
+	return dataaccess.NewItem(route, contentProvider, files)
+}
+
+func directoryDoesNotContainsItems(directory string) bool {
+	directoryEntries, _ := ioutil.ReadDir(directory)
+	for _, entry := range directoryEntries {
+
+		childDirectory := filepath.Join(directory, entry.Name())
+
+		if entry.IsDir() {
+			if isReservedDirectory(childDirectory) {
+				return true
+			} else {
+				return directoryDoesNotContainsItems(childDirectory)
+			}
+		} else if isMarkdownFile(childDirectory) {
+			return true
+		} else {
+			continue
+		}
+	}
+
+	return false
 }
