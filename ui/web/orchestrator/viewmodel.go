@@ -19,6 +19,7 @@ func NewViewModelOrchestrator(itemIndex *index.Index, converter conversion.Conve
 		converter:              converter,
 		navigationOrchestrator: navigationOrchestrator,
 		tagOrchestrator:        tagOrchestrator,
+		treeOrchestrator:       NewTreeOrchestrator(),
 	}
 }
 
@@ -27,6 +28,7 @@ type ViewModelOrchestrator struct {
 	converter              conversion.Converter
 	navigationOrchestrator *NavigationOrchestrator
 	tagOrchestrator        *TagsOrchestrator
+	treeOrchestrator       TreeOrchestrator
 }
 
 func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pather, item *model.Item) viewmodel.Model {
@@ -55,6 +57,9 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 
 		// tags
 		Tags: orchestrator.tagOrchestrator.GetItemTags(item),
+
+		// files
+		Files: orchestrator.treeOrchestrator.GetTree(pathProvider, filesToToRouters(item.Files())),
 	}
 
 	// attach tag cloud and top documents if the item is a repository type
@@ -64,6 +69,14 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 	}
 
 	return viewModel
+}
+
+func filesToToRouters(files []*model.File) []route.Router {
+	routers := make([]route.Router, len(files))
+	for _, file := range files {
+		routers = append(routers, *file)
+	}
+	return routers
 }
 
 func (orchestrator *ViewModelOrchestrator) getTopDocuments(numberOfTopDocuments int, pathProvider paths.Pather, route *route.Route) []*viewmodel.Model {

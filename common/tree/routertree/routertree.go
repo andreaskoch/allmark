@@ -100,5 +100,9 @@ func (nodeTree *RouterTree) getNode(route *route.Route) *tree.Node {
 }
 
 func nodeToItem(node *tree.Node) route.Router {
+	if node == nil {
+		return nil
+	}
+
 	return node.Value().(route.Router)
 }
