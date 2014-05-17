@@ -173,17 +173,6 @@ func (currentNode *Node) GetNode(path Path) *Node {
 	return nil
 }
 
-func (node *Node) Walk(walkFunc func(n *Node) bool) {
-	if !walkFunc(node) {
-		return // stop recursion
-	}
-
-	// recurse
-	for _, child := range node.Childs() {
-		child.Walk(walkFunc)
-	}
-}
-
 func getNodeLevel(node *Node) int {
 	if node == nil {
 		panic("Node cannot be nil.")

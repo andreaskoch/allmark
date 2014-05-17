@@ -26,14 +26,6 @@ func (tree *Tree) String() string {
 	return tree.Root().String()
 }
 
-func (tree *Tree) Walk(walkFunc func(node *Node) bool) {
-	if tree.Root() == nil {
-		return
-	}
-
-	tree.Root().Walk(walkFunc)
-}
-
 func (tree *Tree) Root() *Node {
 	return tree.root
 }
