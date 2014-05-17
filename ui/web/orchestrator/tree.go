@@ -5,21 +5,17 @@
 package orchestrator
 
 import (
-	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/tree/routertree"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
-func NewTreeOrchestrator(itemIndex *index.Index) TreeOrchestrator {
-	return TreeOrchestrator{
-		itemIndex: itemIndex,
-	}
+func NewTreeOrchestrator() TreeOrchestrator {
+	return TreeOrchestrator{}
 }
 
 type TreeOrchestrator struct {
-	itemIndex *index.Index
 }
 
 func (orchestrator *TreeOrchestrator) GetTree(pathProvider paths.Pather, routerItems []route.Router) *viewmodel.TreeNode {
