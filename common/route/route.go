@@ -17,6 +17,10 @@ var (
 	regexpForbiddenCharactersPattern = regexp.MustCompile(`[&%§\)\(}{\]\["|]`)
 )
 
+type Router interface {
+	Route() *Route
+}
+
 type Route struct {
 	value         string
 	originalValue string
