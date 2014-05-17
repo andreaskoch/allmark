@@ -38,10 +38,5 @@ func convert(tree routertree.RouterTree) viewmodel.TreeNode {
 
 	viewModel := viewmodel.TreeNode{}
 
-	tree.WalkItems(tree.Root(), func(router *route.Router) bool {
-		viewModel.Route = router.Route()
-		return true
-	})
-
 	return viewModel
 }

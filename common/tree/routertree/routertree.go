@@ -69,27 +69,6 @@ func (nodeTree *RouterTree) GetChildItems(route *route.Route) (childItems []rout
 	return childItems
 }
 
-func (nodeTree *RouterTree) WalkItems(route *route.Route, walkFunc func(router *route.Router) bool) {
-	node := nodeTree.getNode(route)
-	if node == nil {
-		return
-	}
-
-	walkFuncWrapper := func(node *tree.Node) bool {
-		item := nodeToItem(node)
-		return walkFunc(&item)
-	}
-
-	if !walkFuncWrapper(node) {
-		return // stop recursion
-	}
-
-	// recurse
-	for _, child := range node.Childs() {
-		child.Walk(walkFuncWrapper)
-	}
-}
-
 func (nodeTree *RouterTree) getNode(route *route.Route) *tree.Node {
 
 	if route == nil {
