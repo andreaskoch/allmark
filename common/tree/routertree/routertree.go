@@ -41,6 +41,18 @@ func (nodeTree *RouterTree) InsertItem(routerItem route.Router) {
 	nodeTree.Tree.Insert(path, routerItem)
 }
 
+func (nodeTree *RouterTree) GetRootItem() route.Router {
+
+	// locate the root node
+	node := nodeTree.getNode(route.New())
+	if node == nil {
+		return nil
+	}
+
+	// cast the value
+	return nodeToItem(node)
+}
+
 func (nodeTree *RouterTree) GetItem(route *route.Route) route.Router {
 
 	// locate the node

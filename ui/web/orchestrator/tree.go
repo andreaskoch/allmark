@@ -22,7 +22,7 @@ type TreeOrchestrator struct {
 	itemIndex *index.Index
 }
 
-func (orchestrator *TreeOrchestrator) GetTree(pathProvider paths.Pather, routerItems []route.Router) viewmodel.TreeNode {
+func (orchestrator *TreeOrchestrator) GetTree(pathProvider paths.Pather, routerItems []route.Router) *viewmodel.TreeNode {
 
 	// convert router items to tree
 	tree := routertree.New()
@@ -31,12 +31,28 @@ func (orchestrator *TreeOrchestrator) GetTree(pathProvider paths.Pather, routerI
 	}
 
 	// convert tree to viewmodel
-	return convert(*tree)
+	rootItem := tree.GetRootItem()
+	if rootItem == nil {
+		return nil
+	}
+
+	return convertRouterItemToViewModel(*tree, rootItem)
 }
 
-func convert(tree routertree.RouterTree) viewmodel.TreeNode {
+func convertRouterItemToViewModel(tree routertree.RouterTree, rootItem route.Router) *viewmodel.TreeNode {
 
-	viewModel := viewmodel.TreeNode{}
+	treeNodeModel := &viewmodel.TreeNode{}
 
-	return viewModel
+	treeNodeModel.Route = rootItem.Route().Value()
+	childs := tree.GetChildItems(rootItem.Route())
+	for _, child := range childs {
+		childModel := convertRouterItemToViewModel(tree, child)
+		if childModel == nil {
+			continue
+		}
+
+		treeNodeModel.Childs = append(treeNodeModel.Childs, *childModel)
+	}
+
+	return treeNodeModel
 }
