@@ -59,14 +59,14 @@ func (index *FullTextIndex) Update() {
 	// when done, write out to final index
 	f, err := fsutil.OpenFile(index.filepath)
 	if err != nil {
-		panic(err)
+		index.logger.Error(err.Error())
 	}
 
 	defer f.Close()
 
 	err = idx.FinalizeAndWrite(f)
 	if err != nil {
-		panic(err)
+		index.logger.Error(err.Error())
 	}
 }
 
@@ -74,14 +74,14 @@ func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) [
 
 	searcher, err := fulltext.NewSearcher(index.filepath)
 	if err != nil {
-		panic(err)
+		index.logger.Error(err.Error())
 	}
 
 	defer searcher.Close()
 
 	searchResult, err := searcher.SimpleSearch(keywords, maxiumNumberOfResults)
 	if err != nil {
-		panic(err)
+		index.logger.Error(err.Error())
 	}
 
 	searchResults := make([]SearchResult, 0)
