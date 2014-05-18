@@ -22,7 +22,8 @@ import (
 
 const (
 	// Dynamic Routes
-	ItemHandlerRoute                  = "/{path:.*}"
+	JsonHandlerRoute                  = "/{path:.+}.json"
+	ItemHandlerRoute                  = "/{path:.*$}"
 	TagmapHandlerRoute                = "/tags.html"
 	SitemapHandlerRoute               = "/sitemap.html"
 	XmlSitemapHandlerRoute            = "/sitemap.xml"
@@ -99,6 +100,7 @@ func (server *Server) Start() chan error {
 		}
 
 		// serve items
+		requestRouter.HandleFunc(JsonHandlerRoute, handler.NewJsonHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
 		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
 
 		// start http server: http
