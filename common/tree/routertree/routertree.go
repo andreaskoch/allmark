@@ -5,6 +5,7 @@
 package routertree
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/tree"
 	"github.com/andreaskoch/allmark2/common/tree/treeutil"
@@ -23,7 +24,12 @@ type RouterTree struct {
 func (nodeTree *RouterTree) Root() route.Router {
 	rootNode := nodeTree.Tree.Root()
 	if rootNode == nil {
+		fmt.Println("Tree Root node is nil")
 		return nil
+	}
+
+	if rootNode.Value() == nil {
+		rootNode.SetValue(route.NewRootRouter())
 	}
 
 	return nodeToItem(rootNode)
@@ -39,18 +45,6 @@ func (nodeTree *RouterTree) InsertItem(routerItem route.Router) {
 	path := treeutil.RouteToPath(routerItem.Route())
 
 	nodeTree.Tree.Insert(path, routerItem)
-}
-
-func (nodeTree *RouterTree) GetRootItem() route.Router {
-
-	// locate the root node
-	node := nodeTree.getNode(route.New())
-	if node == nil {
-		return nil
-	}
-
-	// cast the value
-	return nodeToItem(node)
 }
 
 func (nodeTree *RouterTree) GetItem(route *route.Route) route.Router {
@@ -101,10 +95,6 @@ func (nodeTree *RouterTree) getNode(route *route.Route) *tree.Node {
 
 func nodeToItem(node *tree.Node) route.Router {
 	if node == nil {
-		return nil
-	}
-
-	if node.Value() == nil {
 		return nil
 	}
 

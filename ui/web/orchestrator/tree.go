@@ -5,6 +5,7 @@
 package orchestrator
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/tree/routertree"
@@ -27,8 +28,9 @@ func (orchestrator *TreeOrchestrator) GetTree(pathProvider paths.Pather, routerI
 	}
 
 	// convert tree to viewmodel
-	rootItem := tree.GetRootItem()
+	rootItem := tree.Root()
 	if rootItem == nil {
+		fmt.Println("Root is nil")
 		return nil
 	}
 
