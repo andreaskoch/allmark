@@ -39,7 +39,7 @@ type Model struct {
 	Tags     []*Tag    `json:"tags"`
 	TagCloud *TagCloud `json:"tagCloud"`
 
-	Files *TreeNode `json:files`
+	Files []File `json:files`
 
 	Locations   []*Model     `json:"locations"`
 	GeoLocation *GeoLocation `json:"geoLocation"`

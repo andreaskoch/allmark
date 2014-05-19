@@ -4,7 +4,6 @@
 
 package viewmodel
 
-type TreeNode struct {
-	Route  string     `json:"route"`
-	Childs []TreeNode `json:"childs"`
+type File struct {
+	Route string `json:route`
 }
