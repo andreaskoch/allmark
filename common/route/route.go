@@ -150,6 +150,15 @@ func (route *Route) IsEmpty() bool {
 	return len(route.value) == 0
 }
 
+func (route *Route) Path() string {
+	lastSlashPosition := strings.LastIndex(route.originalValue, "/")
+	if lastSlashPosition == -1 {
+		return route.originalValue
+	}
+
+	return strings.TrimSuffix(route.originalValue[:lastSlashPosition], "/")
+}
+
 func (route *Route) LastComponentName() string {
 	lastSlashPosition := strings.LastIndex(route.originalValue, "/")
 	if lastSlashPosition == -1 {

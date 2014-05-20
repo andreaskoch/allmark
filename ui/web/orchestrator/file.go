@@ -22,12 +22,26 @@ func (orchestrator *FileOrchestrator) GetFiles(pathProvider paths.Pather, item *
 	childs := make([]viewmodel.File, 0)
 	for _, file := range item.Files() {
 
-		// file location
-		location := pathProvider.Path(file.Route().Value())
+		var mimeType string
+
+		if content := file.ContentProvider(); content != nil {
+
+			// mime type
+			if value, err := content.MimeType(); err == nil {
+				mimeType = value
+			}
+
+		}
 
 		childs = append(childs, viewmodel.File{
-			Route: location,
+			Parent: file.Parent().Value(),
+			Path:   pathProvider.Path(file.Route().Path()),
+			Route:  pathProvider.Path(file.Route().Value()),
+			Name:   file.Route().LastComponentName(),
+
+			MimeType: mimeType,
 		})
+
 	}
 
 	return childs

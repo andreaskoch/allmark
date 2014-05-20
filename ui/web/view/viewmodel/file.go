@@ -5,5 +5,10 @@
 package viewmodel
 
 type File struct {
-	Route string `json:route`
+	Parent string `json:parent`
+	Path   string `json:path`
+	Route  string `json:route`
+	Name   string `json:name`
+
+	MimeType string `json:mimeType`
 }
