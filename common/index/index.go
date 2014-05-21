@@ -47,7 +47,7 @@ func (index *Index) IsFileMatch(route route.Route) (*model.File, bool) {
 
 	var parent *model.Item
 	parentRoute := &route
-	for parentRoute != nil && parentRoute.Level() > 0 {
+	for parentRoute != nil && parentRoute.Level() >= 0 {
 
 		parent, _ = index.IsMatch(*parentRoute)
 		if parent == nil || parent.IsVirtual() {
@@ -64,7 +64,8 @@ func (index *Index) IsFileMatch(route route.Route) (*model.File, bool) {
 	}
 
 	// abort if there is no non-virtual parent
-	if parent == nil || parent.IsVirtual() {
+	if parent == nil {
+		index.logger.Warn("No file found for route %q", route)
 		return nil, false
 	}
 
