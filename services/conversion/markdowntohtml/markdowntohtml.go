@@ -98,7 +98,7 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	}
 
 	// fix links
-	content = rewireLinks(pathProvider, item, content)
+	content = converter.rewireLinks(pathProvider, item, content)
 
 	// markdown to html
 	content = markdown.Convert(content)
@@ -118,7 +118,7 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	return content, nil
 }
 
-func rewireLinks(pathProvider paths.Pather, item *model.Item, markdown string) string {
+func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.Item, markdown string) string {
 
 	allMatches := markdownLinkPattern.FindAllStringSubmatch(markdown, -1)
 	for _, matches := range allMatches {
@@ -143,6 +143,7 @@ func rewireLinks(pathProvider paths.Pather, item *model.Item, markdown string) s
 		// assemble the new link path
 		fullFileRoute, err := route.Combine(matchingFile.Parent(), matchingFile.Route())
 		if err != nil {
+			converter.logger.Error("%s", err)
 			continue
 		}
 
