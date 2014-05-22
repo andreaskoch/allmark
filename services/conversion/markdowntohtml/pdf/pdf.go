@@ -83,7 +83,7 @@ func (converter *PDFExtension) getPDFCode(title, path string) string {
 
 func getPDFFileLink(title, link string) string {
 	return fmt.Sprintf(`<section class="pdf">
-				<h1>%s</h1>
+				<header>%s</header>
 				<a href="%s" target="_blank" title="%s">%s</a>
 			</section>`, title, link, title, link)
 }

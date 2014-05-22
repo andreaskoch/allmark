@@ -93,7 +93,7 @@ func (converter *FilePreviewExtension) getPreviewCode(title, path string) string
 			escapedContent := html.EscapeString(bytesBuffer.String())
 
 			return fmt.Sprintf(`<section class="filepreview filepreview-%s">
-			<h1><a href="%s" target="_blank" title="%s">%s</a></h1>
+			<header><a href="%s" target="_blank" title="%s">%s</a></header>
 			<pre>
 				<code class="%s">%s</code>
 			</pre>

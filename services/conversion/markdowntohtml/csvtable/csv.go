@@ -83,7 +83,7 @@ func (converter *CsvTableExtension) getTableCode(title, path string) string {
 
 			// table header
 			tableCode := fmt.Sprintf(`<section class="csv">
-					<h1><a href="%s" target="_blank">%s</a></h1>
+					<header><a href="%s" target="_blank">%s</a></header>
 					<table>
 				`, filePath, title)
 

@@ -64,7 +64,7 @@ func (converter *FilePreviewExtension) getGalleryCode(galleryTitle, path string)
 
 	imageLinks := converter.getImageLinksByPath(galleryTitle, path)
 	return fmt.Sprintf(`<section class="imagegallery">
-				<h1>%s</h1>
+				<header>%s</header>
 				<ol>
 					<li>
 					%s

@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
+	"github.com/andreaskoch/allmark2/services/conversion/filetreerenderer"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/audio"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/csvtable"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/filepreview"
@@ -113,6 +114,12 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 			converter.logger.Warn("Error while converting presentation extensions. Error: %s", presentationConversionError)
 		}
 
+	}
+
+	// append the file list
+	if !item.IsVirtual() && len(item.Files()) > 0 {
+		fileTreeRenderer := filetreerenderer.New(pathProvider, itemRoute, item.Files())
+		content += fileTreeRenderer.Render("Attachments", "attachments", "files")
 	}
 
 	return content, nil

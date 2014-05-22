@@ -100,7 +100,7 @@ func (converter *AudioExtension) getAudioCode(title, path string) string {
 
 func getAudioFileLink(title, link, mimeType string) string {
 	return fmt.Sprintf(`<section class="audio audio-file">
-		<h1><a href="%s" target="_blank" title="%s">%s</a></h1>
+		<header><a href="%s" target="_blank" title="%s">%s</a></header>
 		<audio controls>
 			<source src="%s" type="%s">
 		</audio>

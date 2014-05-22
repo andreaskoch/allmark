@@ -214,6 +214,28 @@ li p:last-child {
     margin: 0;
 }
 
+ul.tree, ul.tree ul {
+    list-style-type: none;
+    background: url(tree-vertical-line.png) repeat-y;
+    margin: 0;
+    padding: 0;
+}
+
+ul.tree ul {
+    margin-left: 10px;
+}
+
+ul.tree li {
+    margin: 0;
+    padding: 0 12px;
+    line-height: 20px;
+    background: url(tree-node.png) no-repeat;
+}
+
+ul.tree li:last-child {
+    background: #fff url(tree-last-node.png) no-repeat;
+}
+
 dd {
     margin: 0 0 0 2em;
 }
@@ -399,6 +421,25 @@ article>.description {
     margin: 0 0 1.5em 0;
 }
 
+article .attachments {
+    margin: 1.5em 0 0 0;
+    font-size: 1.0em;
+}
+
+article .attachments>header {
+    font-weight: bold;
+}
+
+article .attachments ul.tree li {
+    color: #369;
+    font-weight: bold;
+}
+
+article .attachments ul.tree li a {
+    color: #369;
+    font-weight: bold;
+}
+
 article>.tags {
    margin: 1.5em 0 0 0;    
 }
@@ -452,7 +493,7 @@ article>.childs>.list>.child:nth-child(even) {
     margin: 2em 0;
 }
 
-.imagegallery>h1 {
+.imagegallery>header {
     font-size: 1.2em;
 }
 
@@ -461,11 +502,11 @@ article>.childs>.list>.child:nth-child(even) {
     margin-left: 0;
 }
 
-.filelinks>h1 {
+.filelinks>header {
     font-size: 1.2em;
 }
 
-.filelinks ol {
+.filelinks ul {
     margin-left: 0;
 }
 
@@ -474,7 +515,7 @@ article>.childs>.list>.child:nth-child(even) {
     overflow: auto;
 }
 
-.csv>h1 {
+.csv>header {
     font-size: 1.2em;
 }
 
@@ -515,7 +556,7 @@ article>.childs>.list>.child:nth-child(even) {
     margin: 2em 0;
 }
 
-.pdf>h1 {
+.pdf>header {
     font-size: 1.2em;
 }
 
@@ -543,11 +584,11 @@ section.video {
     margin: 2em 0;
 }
 
-section.video>h1 {
+section.video>header {
     font-size: 1.2em;
 }
 
-.audio>h1 {
+.audio>header {
     font-size: 1.2em;
 }
 
@@ -585,7 +626,7 @@ section.video>h1 {
     margin: 2em 0;
 }
 
-.filepreview>h1 {
+.filepreview>header {
     font-size: 1.2em;
 }
 

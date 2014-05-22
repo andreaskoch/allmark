@@ -173,12 +173,7 @@ func newVirtualItem(repositoryPath, itemDirectory string) (*dataaccess.Item, err
 func newFileCollectionItem(repositoryPath, itemDirectory string) (*dataaccess.Item, error) {
 
 	title := filepath.Base(itemDirectory)
-	content := fmt.Sprintf(`# %s
-
-Contents of folder %q.
-
-files: [Files](/)
-`, title, title)
+	content := fmt.Sprintf(`# %s`, title)
 
 	// route
 	route, err := route.NewFromItemDirectory(repositoryPath, itemDirectory)

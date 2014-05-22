@@ -19,6 +19,11 @@ func init() {
 			newFileFromText("screen.css", themefiles.ScreenCss),
 			newFileFromText("print.css", themefiles.PrintCss),
 
+			// assets
+			newFileFromBase64("tree-node.png", themefiles.NodePng),
+			newFileFromBase64("tree-vertical-line.png", themefiles.VerticalLinePng),
+			newFileFromBase64("tree-last-node.png", themefiles.LastNodePng),
+
 			// javascript libraries
 			newFileFromText("modernizr.js", themefiles.Modernizr),
 			newFileFromText("jquery.js", themefiles.JqueryJs),
