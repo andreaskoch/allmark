@@ -130,6 +130,35 @@ func Combine(route1, route2 *Route) (*Route, error) {
 	return NewFromRequest(route1.OriginalValue() + "/" + route2.OriginalValue())
 }
 
+func Intersect(baseRoute, subRoute Route) Route {
+
+	baseDirectory := baseRoute.OriginalValue()
+	itemDirectory := subRoute.OriginalValue()
+
+	// normalize the base path
+	normalizedBasePath := normalize(baseDirectory)
+
+	// normalize the item path
+	normalizedItemPath := normalize(itemDirectory)
+
+	// return the base if the sub-route is the same
+	if normalizedItemPath == normalizedBasePath {
+		return baseRoute
+	}
+
+	// prepare the route value:
+	// strip the repository path from the item path
+	routeValue := strings.Replace(normalizedItemPath, normalizedBasePath, "", 1)
+
+	// trim leading slashes
+	routeValue = strings.TrimLeft(routeValue, "/")
+
+	return Route{
+		value:         toUrl(routeValue),
+		originalValue: routeValue,
+	}
+}
+
 func (route *Route) String() string {
 	return route.originalValue
 }
@@ -157,6 +186,15 @@ func (route *Route) Path() string {
 	}
 
 	return strings.TrimSuffix(route.originalValue[:lastSlashPosition], "/")
+}
+
+func (route *Route) FirstComponentName() string {
+	firstSlashPosition := strings.Index(route.originalValue, "/")
+	if firstSlashPosition == -1 {
+		return route.originalValue
+	}
+
+	return strings.TrimSuffix(route.originalValue[:firstSlashPosition], "/")
 }
 
 func (route *Route) LastComponentName() string {

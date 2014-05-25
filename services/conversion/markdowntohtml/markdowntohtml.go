@@ -119,10 +119,31 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	// append the file list
 	if !item.IsVirtual() && len(item.Files()) > 0 {
 		fileTreeRenderer := filetreerenderer.New(pathProvider, itemRoute, item.Files())
-		content += fileTreeRenderer.Render("Attachments", "attachments", "files")
+		content += fileTreeRenderer.Render("Attachments", "attachments", getBaseFolder(itemRoute, item.Files()))
 	}
 
 	return content, nil
+}
+
+func getBaseFolder(referenceRoute route.Route, files []*model.File) string {
+
+	baseFolder := ""
+
+	for _, file := range files {
+		partialRoute := route.Intersect(referenceRoute, *file.Route())
+
+		if baseFolder == "" {
+			baseFolder = partialRoute.FirstComponentName()
+			continue
+		}
+
+		// abort if the base folders differ
+		if baseFolder != partialRoute.FirstComponentName() {
+			return ""
+		}
+	}
+
+	return baseFolder
 }
 
 func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.Item, markdown string) string {
