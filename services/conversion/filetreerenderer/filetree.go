@@ -51,9 +51,11 @@ func (r *FileTreeRenderer) Render(title, cssClass, path string) string {
 	}
 
 	code += "<ul class=\"tree\">\n"
-	code += "<li>\n"
-	code += r.renderFilesystemEntry(fullFolderRoute)
-	code += "</li>\n"
+	for _, child := range r.files.GetChildFiles(fullFolderRoute) {
+		code += "<li>\n"
+		code += r.renderFilesystemEntry(child.Route())
+		code += "</li>\n"
+	}
 	code += "</ul>\n</section>"
 
 	return code
