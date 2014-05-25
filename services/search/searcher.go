@@ -28,7 +28,15 @@ func routes(item *model.Item) []string {
 		return []string{}
 	}
 
-	return item.Route().Components()
+	// item route components
+	routeComponents := item.Route().Components()
+
+	// file route components
+	for _, file := range item.Files() {
+		routeComponents = append(routeComponents, file.Route().Components()...)
+	}
+
+	return routeComponents
 }
 
 func tags(item *model.Item) []string {
@@ -55,6 +63,12 @@ func content(item *model.Item) []string {
 	keywords = append(keywords, item.Description)
 	keywords = append(keywords, item.Route().Components()...)
 	keywords = append(keywords, item.Content)
+
+	// file route components
+	for _, file := range item.Files() {
+		keywords = append(keywords, file.Route().Components()...)
+	}
+
 	return keywords
 }
 
