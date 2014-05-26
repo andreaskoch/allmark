@@ -104,12 +104,6 @@ func (index *Index) GetParent(childRoute *route.Route) *model.Item {
 }
 
 func (index *Index) Root() *model.Item {
-
-	root := route.New()
-	if _, isMatch := index.IsMatch(*root); !isMatch {
-		index.addVirtualItem(*root)
-	}
-
 	return index.itemTree.Root()
 }
 
@@ -178,9 +172,6 @@ func (index *Index) Add(item *model.Item) {
 	index.insertItemToItemList(item)
 	index.insertItemToRouteMap(item)
 	index.insertItemToTree(item)
-
-	// insert virtual items if required
-	index.addVirtualItem(*item.Route())
 }
 
 func (index *Index) insertItemToItemList(item *model.Item) {
@@ -194,57 +185,6 @@ func (index *Index) insertItemToRouteMap(item *model.Item) {
 
 func (index *Index) insertItemToTree(item *model.Item) {
 	index.itemTree.InsertItem(item)
-}
-
-func (index *Index) addVirtualItem(baseRoute route.Route) {
-
-	// validate the input
-	if baseRoute.Level() == 0 {
-		index.logger.Debug("%q is at level 0", baseRoute)
-		return
-	}
-
-	parentRoute := baseRoute.Parent()
-	if _, exists := index.IsMatch(*parentRoute); !exists {
-
-		// create a new virtual item
-		index.logger.Debug("Adding virtual item %q to index", parentRoute)
-		virtualParentItem, err := newVirtualItem(*parentRoute)
-		if err != nil {
-			panic(err)
-		}
-
-		// use the repository name as the title if the item it the root
-		if isRoot := parentRoute.Level() == 0; isRoot {
-			virtualParentItem.Title = index.repositoryName
-		}
-
-		// add the virtual item to the index
-		index.Add(virtualParentItem)
-	}
-}
-
-func newVirtualItem(route route.Route) (*model.Item, error) {
-
-	// determine the item type
-	itemType := model.TypeDocument
-	if route.Level() == 0 {
-
-		// root item get the type "repository"
-		itemType = model.TypeRepository
-
-	}
-
-	// create a virtual item
-	item, err := model.NewVirtualItem(&route, itemType)
-	if err != nil {
-		return nil, err
-	}
-
-	// set the item title
-	item.Title = route.LastComponentName()
-
-	return item, nil
 }
 
 // sort the items by name
