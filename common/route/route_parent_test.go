@@ -85,7 +85,8 @@ func Test_Parent_RouteHasNoParent_ResultIsNil(t *testing.T) {
 	result := route.Parent()
 
 	// assert
-	if result != nil {
+
+	if result.Value() != New().Value() {
 		t.Errorf("%q should have no parent but the result was %q.", route, result)
 	}
 }

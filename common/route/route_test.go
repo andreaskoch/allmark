@@ -127,7 +127,7 @@ func Test_normalize_ReplaceDoubleWhitespace(t *testing.T) {
 func Test_toUrl_ReplaceWhitespaceWithUrlSafeCharacters(t *testing.T) {
 	// arrange
 	inputPath := "documents/A Test"
-	expectedResult := "documents/A+Test"
+	expectedResult := "documents/A-Test"
 
 	// act
 	result := toUrl(inputPath)
