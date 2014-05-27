@@ -5,7 +5,6 @@
 package filesystem
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/route"
@@ -17,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -68,7 +68,7 @@ func newTextContentProvider(text string, route *route.Route) *content.ContentPro
 
 	// content provider
 	dataProvider := func(callback func(content io.ReadSeeker) error) error {
-		contentReader := bytes.NewReader([]byte(text))
+		contentReader := strings.NewReader(text)
 		return callback(contentReader)
 	}
 
@@ -126,7 +126,7 @@ func getRouteHash(route *route.Route) (string, error) {
 }
 
 func getStringHash(text string) (string, error) {
-	routeReader := bytes.NewReader([]byte(text))
+	routeReader := strings.NewReader(text)
 	return hashutil.GetHash(routeReader)
 }
 

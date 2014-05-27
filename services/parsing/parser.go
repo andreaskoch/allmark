@@ -55,6 +55,7 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 	dataWriter := bufio.NewWriter(byteBuffer)
 	contentReader := func(content io.ReadSeeker) error {
 		_, err := io.Copy(dataWriter, content)
+		dataWriter.Flush()
 		return err
 	}
 
