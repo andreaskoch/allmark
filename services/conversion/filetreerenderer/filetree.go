@@ -50,12 +50,22 @@ func (r *FileTreeRenderer) Render(title, cssClass, path string) string {
 		code += fmt.Sprintf("\n<header>%s</header>\n", title)
 	}
 
+	childs := r.files.GetChildFiles(fullFolderRoute)
+
 	code += "<ul class=\"tree\">\n"
-	for _, child := range r.files.GetChildFiles(fullFolderRoute) {
+
+	if len(childs) > 1 {
+		for _, child := range r.files.GetChildFiles(fullFolderRoute) {
+			code += "<li>\n"
+			code += r.renderFilesystemEntry(child.Route())
+			code += "</li>\n"
+		}
+	} else {
 		code += "<li>\n"
-		code += r.renderFilesystemEntry(child.Route())
+		code += r.renderFilesystemEntry(fullFolderRoute)
 		code += "</li>\n"
 	}
+
 	code += "</ul>\n</section>"
 
 	return code
