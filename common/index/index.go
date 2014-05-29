@@ -166,6 +166,11 @@ func (index *Index) Add(item *model.Item) {
 		return
 	}
 
+	// make root items a repository
+	if item.Route().Level() == 0 {
+		item.Type = model.TypeRepository
+	}
+
 	index.logger.Debug("Adding item %q to index", item)
 
 	// the the item to the indizes
