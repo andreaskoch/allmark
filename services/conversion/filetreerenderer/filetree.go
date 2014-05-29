@@ -50,40 +50,45 @@ func (r *FileTreeRenderer) Render(title, cssClass, path string) string {
 		code += fmt.Sprintf("\n<header>%s</header>\n", title)
 	}
 
-	childs := r.files.GetChildFiles(fullFolderRoute)
+	if rootNode := r.files.GetNode(fullFolderRoute); rootNode != nil {
 
-	code += "<ul class=\"tree\">\n"
+		if childs := rootNode.Childs(); len(childs) > 0 {
 
-	if len(childs) > 1 {
-		for _, child := range r.files.GetChildFiles(fullFolderRoute) {
-			code += "<li>\n"
-			code += r.renderFilesystemEntry(child.Route())
-			code += "</li>\n"
+			code += "<ul class=\"tree\">\n"
+
+			for _, child := range childs {
+				code += "<li>\n"
+				code += r.renderFileNode(child)
+				code += "</li>\n"
+			}
+
+			code += "</ul>\n</section>"
+
 		}
-	} else {
-		code += "<li>\n"
-		code += r.renderFilesystemEntry(fullFolderRoute)
-		code += "</li>\n"
-	}
 
-	code += "</ul>\n</section>"
+	}
 
 	return code
 }
 
-func (r *FileTreeRenderer) renderFilesystemEntry(route *route.Route) string {
+func (r *FileTreeRenderer) renderFileNode(node *filetree.FileNode) string {
 
-	filepath := r.pathProvider.Path(route.Value())
-	html := fmt.Sprintf(`<a href="%s" title="%s">%s</a>`, filepath, route.Value(), route.LastComponentName())
+	html := ""
 
-	childs := r.files.GetChildFiles(route)
+	if file := node.Value(); file != nil {
+		fileRoute := file.Route()
+		filepath := r.pathProvider.Path(fileRoute.Value())
+		html = fmt.Sprintf(`<a href="%s" title="%s">%s</a>`, filepath, fileRoute.Value(), fileRoute.LastComponentName())
+	} else {
+		html = node.Name()
+	}
 
-	if len(childs) > 0 {
+	if childs := node.Childs(); len(childs) > 0 {
 
 		html += "<ul>\n"
 
 		for _, child := range childs {
-			html += fmt.Sprintf("<li>%s</li>\n", r.renderFilesystemEntry(child.Route()))
+			html += fmt.Sprintf("<li>%s</li>\n", r.renderFileNode(child))
 		}
 
 		html += "</ul>\n"
@@ -97,7 +102,7 @@ func convertFilesToTree(files []*model.File) *filetree.FileTree {
 	tree := filetree.New()
 
 	for _, file := range files {
-		tree.InsertFile(file)
+		tree.Insert(file)
 	}
 
 	return tree

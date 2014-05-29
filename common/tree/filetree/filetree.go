@@ -11,6 +11,22 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 )
 
+type FileNode struct {
+	*tree.Node
+}
+
+func (f *FileNode) Value() *model.File {
+	return nodeToFile(f.Node)
+}
+
+func (f *FileNode) Childs() []*FileNode {
+	childs := make([]*FileNode, 0)
+	for _, child := range f.Node.Childs() {
+		childs = append(childs, &FileNode{child})
+	}
+	return childs
+}
+
 func New() *FileTree {
 	return &FileTree{
 		*tree.New("", nil),
@@ -30,7 +46,7 @@ func (nodeTree *FileTree) Root() *model.File {
 	return nodeToFile(rootNode)
 }
 
-func (nodeTree *FileTree) InsertFile(file *model.File) {
+func (nodeTree *FileTree) Insert(file *model.File) {
 
 	if file == nil {
 		return
@@ -42,37 +58,7 @@ func (nodeTree *FileTree) InsertFile(file *model.File) {
 	nodeTree.Tree.Insert(path, file)
 }
 
-func (nodeTree *FileTree) GetFile(route *route.Route) *model.File {
-
-	// locate the node
-	node := nodeTree.getNode(route)
-	if node == nil {
-		return nil
-	}
-
-	// cast the value
-	return nodeToFile(node)
-}
-
-func (nodeTree *FileTree) GetChildFiles(route *route.Route) []*model.File {
-
-	childFiles := make([]*model.File, 0)
-
-	node := nodeTree.getNode(route)
-	if node == nil {
-		return childFiles
-	}
-
-	for _, childNode := range node.Childs() {
-		if file := nodeToFile(childNode); file != nil {
-			childFiles = append(childFiles, file)
-		}
-	}
-
-	return childFiles
-}
-
-func (nodeTree *FileTree) getNode(route *route.Route) *tree.Node {
+func (nodeTree *FileTree) GetNode(route *route.Route) *FileNode {
 
 	if route == nil {
 		return nil
@@ -87,9 +73,14 @@ func (nodeTree *FileTree) getNode(route *route.Route) *tree.Node {
 		return nil
 	}
 
-	return node
+	return &FileNode{node}
 }
 
 func nodeToFile(node *tree.Node) *model.File {
-	return node.Value().(*model.File)
+	val := node.Value()
+	if val == nil {
+		return nil
+	}
+
+	return val.(*model.File)
 }

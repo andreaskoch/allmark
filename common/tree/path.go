@@ -71,16 +71,22 @@ func isValidPathComponent(component string) (bool, error) {
 
 func pathToNode(path Path, value interface{}) *Node {
 
-	if len(path) == 0 {
+	length := len(path)
+	if length == 0 {
 		return nil
 	}
 
 	var firstNode *Node
 
 	var parent *Node
-	for _, component := range path {
+	for index, component := range path {
 
-		node := newNode(parent, component, value)
+		var nodeValue interface{}
+		if isLastComponent := index+1 == length; isLastComponent {
+			nodeValue = value
+		}
+
+		node := newNode(parent, component, nodeValue)
 
 		// capture the first node
 		if isFirstNode := parent == nil; isFirstNode {
