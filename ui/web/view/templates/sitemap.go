@@ -13,9 +13,9 @@ var sitemapContentTemplate = fmt.Sprintf(`
 	<a href="{{.Path}}" {{ if .Description }}title="{{.Description}}"{{ end }}>{{.Title}}</a>
 
 	{{ if .Childs }}	
-	<ol>
+	<ul>
 	%s
-	</ol>
+	</ul>
 	{{ end }}
 </li>`, ChildTemplatePlaceholder)
 
@@ -31,8 +31,8 @@ const sitemapTemplate = `
 </section>
 
 <section class="content">
-<ol>
+<ul class="tree">
 {{.Content}}
-</ol>
+</ul>
 </section>
 `
