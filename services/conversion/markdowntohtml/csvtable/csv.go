@@ -131,7 +131,6 @@ func (converter *CsvTableExtension) getTableCode(title, path string) string {
 
 func readCSV(file *model.File) (data [][]string, err error) {
 	separator := ';'
-	contentProvider := file.ContentProvider()
 
 	// get the file content
 	bytesBuffer := new(bytes.Buffer)
@@ -151,7 +150,7 @@ func readCSV(file *model.File) (data [][]string, err error) {
 		return err
 	}
 
-	if dataError := contentProvider.Data(contentReader); dataError != nil {
+	if dataError := file.Data(contentReader); dataError != nil {
 		return
 	}
 

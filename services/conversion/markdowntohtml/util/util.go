@@ -71,8 +71,7 @@ func IsPDFFile(file *model.File) bool {
 }
 
 func GetMimeType(file *model.File) (string, error) {
-	contentProvider := file.ContentProvider()
-	mimetype, err := contentProvider.MimeType()
+	mimetype, err := file.MimeType()
 	if err != nil {
 		return "", err
 	}

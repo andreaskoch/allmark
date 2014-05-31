@@ -53,7 +53,7 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 	}, nil
 }
 
-func (repository *Repository) GetItems() (itemEvents chan *dataaccess.RepositoryEvent) {
+func (repository *Repository) Items() (itemEvents chan *dataaccess.RepositoryEvent) {
 
 	itemEvents = make(chan *dataaccess.RepositoryEvent, 1)
 
@@ -65,6 +65,13 @@ func (repository *Repository) GetItems() (itemEvents chan *dataaccess.Repository
 		// close the channel. All items have been indexed
 		close(itemEvents)
 	}()
+
+	return itemEvents
+}
+
+func (r *Repository) Changed() (itemEvents chan *dataaccess.RepositoryEvent) {
+
+	itemEvents = make(chan *dataaccess.RepositoryEvent, 1)
 
 	return itemEvents
 }

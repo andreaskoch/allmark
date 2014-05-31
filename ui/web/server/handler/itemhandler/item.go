@@ -89,10 +89,13 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		if file, found := handler.itemIndex.IsFileMatch(*requestRoute); found {
 
 			filename := requestRoute.Value()
-			contentProvider := file.ContentProvider()
-			lastModifiedTime, _ := contentProvider.LastModified()
 
-			contentProvider.Data(func(content io.ReadSeeker) error {
+			lastModifiedTime, lastModErr := file.LastModified()
+			if lastModErr != nil {
+				handler.logger.Warn("Unable to determine lastmodified date for file %q. Error: %s", file.String(), lastModErr.Error())
+			}
+
+			file.Data(func(content io.ReadSeeker) error {
 				http.ServeContent(w, r, filename, lastModifiedTime, content)
 				return nil
 			})

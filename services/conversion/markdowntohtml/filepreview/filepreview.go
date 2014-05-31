@@ -69,11 +69,8 @@ func (converter *FilePreviewExtension) getPreviewCode(title, path string) string
 
 		filepath := converter.pathProvider.Path(file.Route().Value())
 
-		// get the file content provider
-		contentProvider := file.ContentProvider()
-
 		// determine the content type
-		contentType, err := contentProvider.MimeType()
+		contentType, err := file.MimeType()
 		if err != nil {
 			// could not determine the mime type
 			return util.GetFallbackLink(title, path)
@@ -87,7 +84,7 @@ func (converter *FilePreviewExtension) getPreviewCode(title, path string) string
 			return err
 		}
 
-		if err := contentProvider.Data(contentReader); err == nil {
+		if err := file.Data(contentReader); err == nil {
 
 			// escape html entities
 			escapedContent := html.EscapeString(bytesBuffer.String())

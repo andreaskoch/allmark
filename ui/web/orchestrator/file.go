@@ -5,6 +5,7 @@
 package orchestrator
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
@@ -22,15 +23,10 @@ func (orchestrator *FileOrchestrator) GetFiles(pathProvider paths.Pather, item *
 	childs := make([]viewmodel.File, 0)
 	for _, file := range item.Files() {
 
-		var mimeType string
-
-		if content := file.ContentProvider(); content != nil {
-
-			// mime type
-			if value, err := content.MimeType(); err == nil {
-				mimeType = value
-			}
-
+		mimeType, err := file.MimeType()
+		if err != nil {
+			// todo: log error
+			fmt.Println(err)
 		}
 
 		childs = append(childs, viewmodel.File{

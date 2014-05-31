@@ -12,16 +12,17 @@ import (
 
 // A File represents a file ressource that is associated with an Item.
 type File struct {
-	parentRoute     *route.Route
-	fileRoute       *route.Route
-	contentProvider *content.ContentProvider
+	*content.ContentProvider
+
+	parentRoute *route.Route
+	fileRoute   *route.Route
 }
 
 func NewFile(fileRoute, parentRoute *route.Route, contentProvider *content.ContentProvider) (*File, error) {
 	return &File{
-		parentRoute:     parentRoute,
-		fileRoute:       fileRoute,
-		contentProvider: contentProvider,
+		contentProvider,
+		parentRoute,
+		fileRoute,
 	}, nil
 }
 
@@ -35,8 +36,4 @@ func (file *File) Parent() *route.Route {
 
 func (file *File) Route() *route.Route {
 	return file.fileRoute
-}
-
-func (file *File) ContentProvider() *content.ContentProvider {
-	return file.contentProvider
 }

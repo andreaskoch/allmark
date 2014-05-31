@@ -65,8 +65,7 @@ func main() {
 		itemSearch := search.NewItemSearch(logger, index)
 
 		// read the repository
-		itemEvents := repository.GetItems()
-		for itemEvent := range itemEvents {
+		for itemEvent := range repository.Items() {
 
 			// validate event
 			if itemEvent.Error != nil {
@@ -87,6 +86,18 @@ func main() {
 			// register the item at the index
 			index.Add(item)
 		}
+
+		// watch for changed items
+		go func() {
+			for {
+				select {
+				case changedEvent := <-repository.Changed():
+					{
+						logger.Info("Item %q changed.", changedEvent.Item)
+					}
+				}
+			}
+		}()
 
 		// update the full-text search index
 		itemSearch.Update()
