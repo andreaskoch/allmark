@@ -44,11 +44,8 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 		return nil, fmt.Errorf("Unable to convert Item %q. Error: %s", item, err)
 	}
 
-	// content provider
-	contentProvider := item.ContentProvider()
-
 	// capture the last modified date
-	lastModifiedDate, err := contentProvider.LastModified()
+	lastModifiedDate, err := item.LastModified()
 
 	// fetch the item data
 	byteBuffer := new(bytes.Buffer)
@@ -59,7 +56,7 @@ func (parser *Parser) Parse(item *dataaccess.Item) (*model.Item, error) {
 		return err
 	}
 
-	if err := contentProvider.Data(contentReader); err != nil {
+	if err := item.Data(contentReader); err != nil {
 		return nil, err
 	}
 
