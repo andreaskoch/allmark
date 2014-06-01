@@ -7,6 +7,7 @@ package main
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
+	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/logger/loglevel"
@@ -70,14 +71,39 @@ func main() {
 			// validate event
 			if itemEvent.Error != nil {
 				logger.Warn("%s", itemEvent.Error)
-			}
-
-			if itemEvent.Item == nil {
 				continue
 			}
 
+			repositoryItem := itemEvent.Item
+			if repositoryItem == nil {
+				logger.Warn("Repository item is empty.")
+				continue
+			}
+
+			// watch for changes
+			go func() {
+				for changeEvent := range repositoryItem.ChangeEvent() {
+
+					switch changeEvent {
+
+					case content.TypeChanged:
+						{
+							logger.Info("Item %q changed.", repositoryItem)
+						}
+
+					case content.TypeMoved:
+						{
+							logger.Info("Item %q moved.", repositoryItem)
+							break
+						}
+
+					}
+
+				}
+			}()
+
 			// parse item
-			item, err := parser.Parse(itemEvent.Item)
+			item, err := parser.Parse(repositoryItem)
 			if err != nil {
 				logger.Warn("%s", err.Error())
 				continue

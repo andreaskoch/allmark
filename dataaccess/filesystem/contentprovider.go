@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/common/util/hashutil"
+	"github.com/andreaskoch/go-fswatch"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -59,6 +60,29 @@ func newFileContentProvider(path string, route *route.Route) *content.ContentPro
 	// change provider
 	changeEventProvider := func() chan content.ChangeEvent {
 		eventChannel := make(chan content.ChangeEvent, 1)
+
+		go func() {
+			fileWatcher := fswatch.NewFileWatcher(path).Start()
+
+			for fileWatcher.IsRunning() {
+
+				select {
+				case <-fileWatcher.Modified:
+
+					go func() {
+						eventChannel <- content.TypeChanged
+					}()
+
+				case <-fileWatcher.Moved:
+
+					go func() {
+						eventChannel <- content.TypeMoved
+					}()
+				}
+
+			}
+		}()
+
 		return eventChannel
 	}
 
