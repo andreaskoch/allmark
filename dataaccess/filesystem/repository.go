@@ -69,13 +69,6 @@ func (repository *Repository) Items() (itemEvents chan *dataaccess.RepositoryEve
 	return itemEvents
 }
 
-func (r *Repository) Changed() (itemEvents chan *dataaccess.RepositoryEvent) {
-
-	itemEvents = make(chan *dataaccess.RepositoryEvent, 1)
-
-	return itemEvents
-}
-
 func (repository *Repository) Id() string {
 	return repository.hash
 }

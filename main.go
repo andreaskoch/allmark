@@ -87,18 +87,6 @@ func main() {
 			index.Add(item)
 		}
 
-		// watch for changed items
-		go func() {
-			for {
-				select {
-				case changedEvent := <-repository.Changed():
-					{
-						logger.Info("Item %q changed.", changedEvent.Item)
-					}
-				}
-			}
-		}()
-
 		// update the full-text search index
 		itemSearch.Update()
 

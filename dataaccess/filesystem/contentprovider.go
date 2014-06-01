@@ -56,7 +56,17 @@ func newFileContentProvider(path string, route *route.Route) *content.ContentPro
 		return fsutil.GetModificationTime(path)
 	}
 
-	return content.NewProvider(mimeType, dataProvider, hashProvider, lastModifiedProvider)
+	// change provider
+	changeEventProvider := func() chan content.ChangeEvent {
+		eventChannel := make(chan content.ChangeEvent, 1)
+		return eventChannel
+	}
+
+	return content.NewProvider(mimeType,
+		dataProvider,
+		hashProvider,
+		lastModifiedProvider,
+		changeEventProvider)
 }
 
 func newTextContentProvider(text string, route *route.Route) *content.ContentProvider {
@@ -93,7 +103,13 @@ func newTextContentProvider(text string, route *route.Route) *content.ContentPro
 		return time.Time{}, nil
 	}
 
-	return content.NewProvider(mimeType, dataProvider, hashProvider, lastModifiedProvider)
+	// change provider
+	changeEventProvider := func() chan content.ChangeEvent {
+		eventChannel := make(chan content.ChangeEvent, 1)
+		return eventChannel
+	}
+
+	return content.NewProvider(mimeType, dataProvider, hashProvider, lastModifiedProvider, changeEventProvider)
 }
 
 func getHashFromFile(filepath string, route *route.Route) (string, error) {
