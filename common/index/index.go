@@ -32,6 +32,10 @@ type Index struct {
 	itemTree *itemtree.ItemTree
 }
 
+func (index *Index) String() string {
+	return index.itemTree.String()
+}
+
 func (index *Index) IsMatch(route route.Route) (item *model.Item, isMatch bool) {
 
 	// check for a direct match
@@ -235,6 +239,7 @@ func (index *Index) removeItemFromRouteMap(item *model.Item) {
 }
 
 func (index *Index) removeItemFromTree(item *model.Item) {
+	index.itemTree.Delete(item)
 }
 
 // sort the items by name

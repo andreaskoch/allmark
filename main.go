@@ -7,11 +7,11 @@ package main
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
-	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/logger/loglevel"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
+	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml"
 	"github.com/andreaskoch/allmark2/services/initialization"
@@ -65,8 +65,23 @@ func main() {
 		// search
 		itemSearch := search.NewItemSearch(logger, index)
 
+		addRepositoryItemToIndex := func(repositoryItem *dataaccess.Item) {
+			// parse item
+			if item, err := parser.Parse(repositoryItem); err == nil {
+				// register the item at the index
+				index.Add(item)
+			} else {
+				logger.Warn("%s", err.Error())
+			}
+		}
+
+		removeRepositoryItemFromIndex := func(repositoryItem *dataaccess.Item) {
+			// remove the item from the index
+			index.Remove(repositoryItem.Route())
+		}
+
 		// read the repository
-		for itemEvent := range repository.Items() {
+		for itemEvent := range repository.InitialItems() {
 
 			// validate event
 			if itemEvent.Error != nil {
@@ -80,48 +95,69 @@ func main() {
 				continue
 			}
 
-			addRepositoryItemToIndex := func() {
-				// parse item
-				if item, err := parser.Parse(repositoryItem); err == nil {
-					// register the item at the index
-					index.Add(item)
-				} else {
-					logger.Warn("%s", err.Error())
-				}
-			}
-
-			removeRepositoryItemFromIndex := func() {
-				// remove the item from the index
-				index.Remove(repositoryItem.Route())
-			}
-
-			// watch for changes
-			go func() {
-				for changeEvent := range repositoryItem.ChangeEvent() {
-
-					switch changeEvent {
-
-					case content.TypeChanged:
-						{
-							logger.Info("Item %q changed.", repositoryItem)
-							addRepositoryItemToIndex()
-						}
-
-					case content.TypeMoved:
-						{
-							logger.Info("Item %q moved.", repositoryItem)
-							removeRepositoryItemFromIndex()
-							break
-						}
-
-					}
-
-				}
-			}()
-
-			addRepositoryItemToIndex()
+			addRepositoryItemToIndex(repositoryItem)
 
 		}
+
+		go func() {
+			for itemEvent := range repository.NewItems() {
+				logger.Debug("New Item")
+
+				// validate event
+				if itemEvent.Error != nil {
+					logger.Warn("%s", itemEvent.Error)
+					continue
+				}
+
+				repositoryItem := itemEvent.Item
+				if repositoryItem == nil {
+					logger.Warn("Repository item is empty.")
+					continue
+				}
+
+				addRepositoryItemToIndex(repositoryItem)
+			}
+		}()
+
+		go func() {
+			for itemEvent := range repository.ChangedItems() {
+				logger.Debug("Item changed")
+
+				// validate event
+				if itemEvent.Error != nil {
+					logger.Warn("%s", itemEvent.Error)
+					continue
+				}
+
+				repositoryItem := itemEvent.Item
+				if repositoryItem == nil {
+					logger.Warn("Repository item is empty.")
+					continue
+				}
+
+				addRepositoryItemToIndex(repositoryItem)
+			}
+		}()
+
+		go func() {
+			for itemEvent := range repository.MovedItems() {
+				logger.Debug("Item moved")
+
+				// validate event
+				if itemEvent.Error != nil {
+					logger.Warn("%s", itemEvent.Error)
+					continue
+				}
+
+				repositoryItem := itemEvent.Item
+				if repositoryItem == nil {
+					logger.Warn("Repository item is empty.")
+					continue
+				}
+
+				removeRepositoryItemFromIndex(repositoryItem)
+			}
+		}()
 
 		// update the full-text search index
 		itemSearch.Update()

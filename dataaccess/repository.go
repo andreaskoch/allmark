@@ -17,7 +17,10 @@ func NewEvent(item *Item, err error) *RepositoryEvent {
 }
 
 type Repository interface {
-	Items() chan *RepositoryEvent
+	InitialItems() chan *RepositoryEvent
+	NewItems() chan *RepositoryEvent
+	ChangedItems() chan *RepositoryEvent
+	MovedItems() chan *RepositoryEvent
 
 	Id() string
 	Path() string
