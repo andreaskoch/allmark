@@ -80,6 +80,17 @@ func main() {
 				continue
 			}
 
+			// define a process function
+			processRepositoryItem := func() {
+				// parse item
+				if item, err := parser.Parse(repositoryItem); err == nil {
+					// register the item at the index
+					index.Add(item)
+				} else {
+					logger.Warn("%s", err.Error())
+				}
+			}
+
 			// watch for changes
 			go func() {
 				for changeEvent := range repositoryItem.ChangeEvent() {
@@ -89,6 +100,7 @@ func main() {
 					case content.TypeChanged:
 						{
 							logger.Info("Item %q changed.", repositoryItem)
+							processRepositoryItem()
 						}
 
 					case content.TypeMoved:
@@ -102,15 +114,8 @@ func main() {
 				}
 			}()
 
-			// parse item
-			item, err := parser.Parse(repositoryItem)
-			if err != nil {
-				logger.Warn("%s", err.Error())
-				continue
-			}
+			processRepositoryItem()
 
-			// register the item at the index
-			index.Add(item)
 		}
 
 		// update the full-text search index
