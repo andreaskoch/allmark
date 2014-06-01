@@ -74,8 +74,8 @@ func (logger *ConsoleLogger) Fatal(format string, v ...interface{}) {
 
 func (logger *ConsoleLogger) print(level, format string, v []interface{}) {
 	if len(v) > 0 {
-		fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", level, format), v)
+		fmt.Fprintf(logger.output, level+": \t"+format+"\n", v)
 	} else {
-		fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", level, format))
+		fmt.Fprintf(logger.output, level+": \t"+format+"\n")
 	}
 }

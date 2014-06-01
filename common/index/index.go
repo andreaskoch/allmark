@@ -239,7 +239,10 @@ func (index *Index) removeItemFromRouteMap(item *model.Item) {
 }
 
 func (index *Index) removeItemFromTree(item *model.Item) {
-	index.itemTree.Delete(item)
+	if _, err := index.itemTree.Delete(item); err != nil {
+		index.logger.Error("Unable to delete %q from the item tree. Error: %s", item, err.Error())
+	}
+
 }
 
 // sort the items by name

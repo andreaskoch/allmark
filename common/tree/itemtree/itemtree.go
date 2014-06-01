@@ -50,20 +50,7 @@ func (itemTree *ItemTree) Delete(item *model.Item) (bool, error) {
 	}
 
 	itemRoute := item.Route()
-
-	// check if the tree is empty
-	if itemTree.Tree.Root() == nil {
-		return false, fmt.Errorf("Cannot remove the item %q from this tree because the tree is empty.", itemRoute)
-	}
-
-	// locate the node
-	node := itemTree.getNode(itemRoute)
-	if node == nil {
-		return false, fmt.Errorf("No node found for route %q.", itemRoute)
-	}
-
-	// delete the node
-	return itemTree.Tree.Root().Delete(node)
+	return itemTree.Tree.Delete(itemRoute.Components())
 }
 
 func (nodeTree *ItemTree) GetItem(route *route.Route) *model.Item {

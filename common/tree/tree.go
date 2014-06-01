@@ -66,14 +66,14 @@ func (tree *Tree) Delete(path Path) (bool, error) {
 		return false, pathValidationErr
 	}
 
+	if tree.Root() == nil {
+		return false, fmt.Errorf("Cannot remove the path %s from this tree because the tree is empty.", path)
+	}
+
 	// convert components to node
 	node := pathToNode(path, nil)
 	if node == nil {
 		return false, fmt.Errorf("Could not convert the path %s into a node.", path)
-	}
-
-	if tree.Root() == nil {
-		return false, fmt.Errorf("Cannot remove the path %s from this tree because the tree is empty.", path)
 	}
 
 	// delete the node
