@@ -80,8 +80,7 @@ func main() {
 				continue
 			}
 
-			// define a process function
-			processRepositoryItem := func() {
+			addRepositoryItemToIndex := func() {
 				// parse item
 				if item, err := parser.Parse(repositoryItem); err == nil {
 					// register the item at the index
@@ -89,6 +88,11 @@ func main() {
 				} else {
 					logger.Warn("%s", err.Error())
 				}
+			}
+
+			removeRepositoryItemFromIndex := func() {
+				// remove the item from the index
+				index.Remove(repositoryItem.Route())
 			}
 
 			// watch for changes
@@ -100,12 +104,13 @@ func main() {
 					case content.TypeChanged:
 						{
 							logger.Info("Item %q changed.", repositoryItem)
-							processRepositoryItem()
+							addRepositoryItemToIndex()
 						}
 
 					case content.TypeMoved:
 						{
 							logger.Info("Item %q moved.", repositoryItem)
+							removeRepositoryItemFromIndex()
 							break
 						}
 
@@ -114,7 +119,7 @@ func main() {
 				}
 			}()
 
-			processRepositoryItem()
+			addRepositoryItemToIndex()
 
 		}
 

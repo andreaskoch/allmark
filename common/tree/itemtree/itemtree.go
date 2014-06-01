@@ -5,6 +5,7 @@
 package itemtree
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/tree"
 	"github.com/andreaskoch/allmark2/common/tree/treeutil"
@@ -30,7 +31,7 @@ func (nodeTree *ItemTree) Root() *model.Item {
 	return nodeToItem(rootNode)
 }
 
-func (nodeTree *ItemTree) InsertItem(item *model.Item) {
+func (nodeTree *ItemTree) Insert(item *model.Item) {
 
 	if item == nil {
 		return
@@ -40,6 +41,29 @@ func (nodeTree *ItemTree) InsertItem(item *model.Item) {
 	path := treeutil.RouteToPath(item.Route())
 
 	nodeTree.Tree.Insert(path, item)
+}
+
+func (itemTree *ItemTree) Delete(item *model.Item) (bool, error) {
+
+	if item == nil {
+		return false, fmt.Errorf("The supplied item is empty.")
+	}
+
+	itemRoute := item.Route()
+
+	// check if the tree is empty
+	if itemTree.Tree.Root() == nil {
+		return false, fmt.Errorf("Cannot remove the item %q from this tree because the tree is empty.", itemRoute)
+	}
+
+	// locate the node
+	node := itemTree.getNode(itemRoute)
+	if node == nil {
+		return false, fmt.Errorf("No node found for route %q.", itemRoute)
+	}
+
+	// delete the node
+	return itemTree.Tree.Root().Delete(node)
 }
 
 func (nodeTree *ItemTree) GetItem(route *route.Route) *model.Item {

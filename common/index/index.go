@@ -174,22 +174,67 @@ func (index *Index) Add(item *model.Item) {
 	index.logger.Debug("Adding item %q to index", item)
 
 	// the the item to the indizes
-	index.insertItemToItemList(item)
-	index.insertItemToRouteMap(item)
-	index.insertItemToTree(item)
+	index.addItemToItemList(item)
+	index.addItemToRouteMap(item)
+	index.addItemToTree(item)
 }
 
-func (index *Index) insertItemToItemList(item *model.Item) {
+func (index *Index) addItemToItemList(item *model.Item) {
 	index.itemList = append(index.itemList, item)
 }
 
-func (index *Index) insertItemToRouteMap(item *model.Item) {
+func (index *Index) addItemToRouteMap(item *model.Item) {
 	itemRoute := item.Route().Value()
 	index.routeMap[itemRoute] = item
 }
 
-func (index *Index) insertItemToTree(item *model.Item) {
-	index.itemTree.InsertItem(item)
+func (index *Index) addItemToTree(item *model.Item) {
+	index.itemTree.Insert(item)
+}
+
+func (index *Index) Remove(route *route.Route) {
+
+	// locate the item
+	exists, item := index.GetItemByRoute(route)
+	if !exists {
+		index.logger.Warn("The item with the route %q was not found in this index.", route)
+		return
+	}
+
+	index.logger.Debug("Removing item %q from index", item)
+
+	// the the item to the indizes
+	index.removeItemFromItemList(item)
+	index.removeItemFromRouteMap(item)
+	index.removeItemFromTree(item)
+}
+
+func (index *Index) removeItemFromItemList(item *model.Item) {
+
+	// find the index of the item to remove
+	indexToRemove := -1
+	for index, child := range index.itemList {
+		if item.String() == child.String() {
+			indexToRemove = index
+			break
+		}
+	}
+
+	if indexToRemove == -1 {
+		// the item was not found
+		index.logger.Warn("The item %q was not found in the item list.", item)
+		return
+	}
+
+	index.itemList = append(index.itemList[:indexToRemove], index.itemList[indexToRemove+1:]...)
+}
+
+func (index *Index) removeItemFromRouteMap(item *model.Item) {
+	itemRoute := item.Route().Value()
+	delete(index.routeMap, itemRoute)
+}
+
+func (index *Index) removeItemFromTree(item *model.Item) {
 }
 
 // sort the items by name
