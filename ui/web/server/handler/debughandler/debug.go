@@ -25,8 +25,6 @@ type DebugHandler struct {
 
 func (handler *DebugHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		for _, item := range handler.itemIndex.Items() {
-			fmt.Fprintf(w, "%q\n", item.Route().Value())
-		}
+		fmt.Fprintln(w, handler.itemIndex.String())
 	}
 }
