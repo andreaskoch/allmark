@@ -72,8 +72,8 @@ func (logger *ConsoleLogger) Fatal(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
-func (logger *ConsoleLogger) print(level, format string, v ...interface{}) {
-	if v != nil {
+func (logger *ConsoleLogger) print(level, format string, v []interface{}) {
+	if len(v) > 0 {
 		fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", level, format), v)
 	} else {
 		fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", level, format))
