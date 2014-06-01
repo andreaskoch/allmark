@@ -40,7 +40,7 @@ func (logger *ConsoleLogger) Debug(format string, v ...interface{}) {
 		return
 	}
 
-	fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", LogLevelDebug, format), v)
+	logger.print(LogLevelDebug, format, v)
 }
 
 func (logger *ConsoleLogger) Info(format string, v ...interface{}) {
@@ -48,7 +48,7 @@ func (logger *ConsoleLogger) Info(format string, v ...interface{}) {
 		return
 	}
 
-	fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", LogLevelInfo, format), v)
+	logger.print(LogLevelInfo, format, v)
 }
 
 func (logger *ConsoleLogger) Warn(format string, v ...interface{}) {
@@ -56,7 +56,7 @@ func (logger *ConsoleLogger) Warn(format string, v ...interface{}) {
 		return
 	}
 
-	fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", LogLevelWarn, format), v)
+	logger.print(LogLevelWarn, format, v)
 }
 
 func (logger *ConsoleLogger) Error(format string, v ...interface{}) {
@@ -64,10 +64,18 @@ func (logger *ConsoleLogger) Error(format string, v ...interface{}) {
 		return
 	}
 
-	fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", LogLevelError, format), v)
+	logger.print(LogLevelError, format, v)
 }
 
 func (logger *ConsoleLogger) Fatal(format string, v ...interface{}) {
-	fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", LogLevelFatal, format), v)
+	logger.print(LogLevelFatal, format, v)
 	os.Exit(1)
+}
+
+func (logger *ConsoleLogger) print(level, format string, v ...interface{}) {
+	if v != nil {
+		fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", level, format), v)
+	} else {
+		fmt.Fprintf(logger.output, fmt.Sprintf("%s: \t%s\n", level, format))
+	}
 }
