@@ -188,12 +188,6 @@ func (repository *Repository) attachContentListener(item *dataaccess.Item) {
 					repository.logger.Info("Item %q moved.", item)
 					repository.movedItem <- dataaccess.NewEvent(item, nil)
 
-					// close all open channels
-					// close(repository.movedItem)
-					// close(repository.changedItem)
-					// close(repository.newItem)
-					// close(contentChangeChannel)
-
 					break ChannelLoop
 				}
 
