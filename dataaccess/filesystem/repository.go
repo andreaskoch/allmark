@@ -122,11 +122,7 @@ func (repository *Repository) discoverItems(itemPath string, targetChannel chan 
 	}
 
 	// create the item
-	item, err := getItemFromDirectory(repository.Path(), itemDirectory)
-	if err != nil {
-		repository.logger.Warn("Unable to create item from directory %q. Error: %s", itemDirectory, err.Error())
-		return // abort
-	}
+	item, filesDirectory := getItemFromDirectory(repository.Path(), itemDirectory)
 
 	// send the item to the target channel
 	targetChannel <- dataaccess.NewEvent(item, nil)
@@ -135,7 +131,12 @@ func (repository *Repository) discoverItems(itemPath string, targetChannel chan 
 	repository.attachContentListener(item)
 
 	// attach directory listener
-	repository.attachDirectoryListener(itemDirectory)
+	repository.attachItemDirectoryListener(itemDirectory)
+
+	// attach file directory listener
+	if itemDirectory != filesDirectory {
+		repository.attachFileDirectoryListener(itemDirectory, filesDirectory)
+	}
 
 	// recurse for child items
 	childItemDirectories := getChildDirectories(itemDirectory)
@@ -144,7 +145,7 @@ func (repository *Repository) discoverItems(itemPath string, targetChannel chan 
 	}
 }
 
-func (repository *Repository) attachDirectoryListener(itemDirectory string) {
+func (repository *Repository) attachItemDirectoryListener(itemDirectory string) {
 
 	// look for changes in the item directory
 	go func() {
@@ -159,7 +160,29 @@ func (repository *Repository) attachDirectoryListener(itemDirectory string) {
 
 			select {
 			case <-folderWatcher.Change:
-				repository.logger.Info("Folder %q changed", itemDirectory)
+				repository.logger.Info("Item directory %q changed.", itemDirectory)
+				repository.discoverItems(itemDirectory, repository.newItem)
+			}
+
+		}
+	}()
+}
+
+func (repository *Repository) attachFileDirectoryListener(itemDirectory, fileDirectory string) {
+
+	// look for changes in the item directory
+	go func() {
+		var skipFunc = func(path string) bool {
+			return false
+		}
+
+		folderWatcher := fswatch.NewFolderWatcher(fileDirectory, true, skipFunc).Start()
+
+		for folderWatcher.IsRunning() {
+
+			select {
+			case <-folderWatcher.Change:
+				repository.logger.Info("File directory %q changed.", fileDirectory)
 				repository.discoverItems(itemDirectory, repository.newItem)
 			}
 
@@ -199,7 +222,7 @@ func (repository *Repository) attachContentListener(item *dataaccess.Item) {
 	}()
 }
 
-func getItemFromDirectory(repositoryPath, itemDirectory string) (*dataaccess.Item, error) {
+func getItemFromDirectory(repositoryPath, itemDirectory string) (item *dataaccess.Item, fileDirectory string) {
 
 	// physical item from markdown file
 	if found, markdownFilePath := findMarkdownFileInDirectory(itemDirectory); found {
@@ -218,11 +241,13 @@ func getItemFromDirectory(repositoryPath, itemDirectory string) (*dataaccess.Ite
 	return newFileCollectionItem(repositoryPath, itemDirectory)
 }
 
-func newItemFromFile(repositoryPath, itemDirectory, filePath string) (*dataaccess.Item, error) {
+func newItemFromFile(repositoryPath, itemDirectory, filePath string) (item *dataaccess.Item, fileDirectory string) {
 	// route
 	route, err := route.NewFromItemPath(repositoryPath, filePath)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", filePath, err)
+		// todo: log error
+		// fmt.Errorf("Cannot create an Item for the path %q. Error: %s", filePath, err)
+		return
 	}
 
 	// content provider
@@ -233,10 +258,17 @@ func newItemFromFile(repositoryPath, itemDirectory, filePath string) (*dataacces
 	files := getFiles(repositoryPath, itemDirectory, filesDirectory)
 
 	// create the item
-	return dataaccess.NewItem(route, contentProvider, files)
+	item, err = dataaccess.NewItem(route, contentProvider, files)
+	if err != nil {
+		// todo: log error
+		// fmt.Errorf("Cannot create an Item for the path %q. Error: %s", filePath, err)
+		return
+	}
+
+	return item, filesDirectory
 }
 
-func newVirtualItem(repositoryPath, itemDirectory string) (*dataaccess.Item, error) {
+func newVirtualItem(repositoryPath, itemDirectory string) (item *dataaccess.Item, fileDirectory string) {
 
 	title := filepath.Base(itemDirectory)
 	content := fmt.Sprintf(`# %s`, title)
@@ -244,7 +276,9 @@ func newVirtualItem(repositoryPath, itemDirectory string) (*dataaccess.Item, err
 	// route
 	route, err := route.NewFromItemDirectory(repositoryPath, itemDirectory)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
+		// todo: log error
+		// fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
+		return
 	}
 
 	// content provider
@@ -255,10 +289,17 @@ func newVirtualItem(repositoryPath, itemDirectory string) (*dataaccess.Item, err
 	files := getFiles(repositoryPath, itemDirectory, filesDirectory)
 
 	// create the item
-	return dataaccess.NewItem(route, contentProvider, files)
+	item, err = dataaccess.NewItem(route, contentProvider, files)
+	if err != nil {
+		// todo: log error
+		// fmt.Errorf("Cannot create an Item for the path %q. Error: %s", filePath, err)
+		return
+	}
+
+	return item, filesDirectory
 }
 
-func newFileCollectionItem(repositoryPath, itemDirectory string) (*dataaccess.Item, error) {
+func newFileCollectionItem(repositoryPath, itemDirectory string) (item *dataaccess.Item, fileDirectory string) {
 
 	title := filepath.Base(itemDirectory)
 	content := fmt.Sprintf(`# %s`, title)
@@ -266,7 +307,9 @@ func newFileCollectionItem(repositoryPath, itemDirectory string) (*dataaccess.It
 	// route
 	route, err := route.NewFromItemDirectory(repositoryPath, itemDirectory)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
+		// todo: log error
+		// fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
+		return
 	}
 
 	// content provider
@@ -277,7 +320,14 @@ func newFileCollectionItem(repositoryPath, itemDirectory string) (*dataaccess.It
 	files := getFiles(repositoryPath, itemDirectory, filesDirectory)
 
 	// create the item
-	return dataaccess.NewItem(route, contentProvider, files)
+	item, err = dataaccess.NewItem(route, contentProvider, files)
+	if err != nil {
+		// todo: log error
+		// fmt.Errorf("Cannot create an Item for the path %q. Error: %s", filePath, err)
+		return
+	}
+
+	return item, filesDirectory
 }
 
 func directoryDoesNotContainsItems(directory string) bool {
@@ -288,15 +338,18 @@ func directoryDoesNotContainsItems(directory string) bool {
 
 		if entry.IsDir() {
 			if isReservedDirectory(childDirectory) {
-				return true
-			} else {
-				return directoryDoesNotContainsItems(childDirectory)
+				continue
 			}
-		} else if isMarkdownFile(childDirectory) {
-			return true
-		} else {
+
+			// recurse
+			return directoryDoesNotContainsItems(childDirectory)
+		}
+
+		if !isMarkdownFile(childDirectory) {
 			continue
 		}
+
+		return true
 	}
 
 	return false
