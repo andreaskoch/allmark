@@ -58,31 +58,33 @@ func newFileContentProvider(path string, route *route.Route) *content.ContentPro
 	}
 
 	// change provider
-	changeEventProvider := func() chan content.ChangeEvent {
-		eventChannel := make(chan content.ChangeEvent, 1)
+	eventChannel := make(chan content.ChangeEvent, 1)
 
-		go func() {
-			fileWatcher := fswatch.NewFileWatcher(path).Start()
+	go func() {
+		fileWatcher := fswatch.NewFileWatcher(path).Start()
 
-			for fileWatcher.IsRunning() {
+		for fileWatcher.IsRunning() {
 
-				select {
-				case <-fileWatcher.Modified:
+			select {
+			case <-fileWatcher.Modified:
 
-					go func() {
-						eventChannel <- content.TypeChanged
-					}()
+				go func() {
+					eventChannel <- content.TypeChanged
+				}()
 
-				case <-fileWatcher.Moved:
+			case <-fileWatcher.Moved:
 
-					go func() {
-						eventChannel <- content.TypeMoved
-					}()
-				}
-
+				go func() {
+					eventChannel <- content.TypeMoved
+				}()
 			}
-		}()
 
+		}
+
+		// todo: add debug message
+	}()
+
+	changeEventProvider := func() chan content.ChangeEvent {
 		return eventChannel
 	}
 
