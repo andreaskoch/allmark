@@ -119,7 +119,8 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	// append the file list
 	if !item.IsVirtual() && len(item.Files()) > 0 {
 		fileTreeRenderer := filetreerenderer.New(pathProvider, itemRoute, item.Files())
-		content += fileTreeRenderer.Render("Attachments", "attachments", getBaseFolder(itemRoute, item.Files()))
+		fileBaseFolder := getBaseFolder(itemRoute, item.Files())
+		content += fileTreeRenderer.Render("Attachments", "attachments", fileBaseFolder)
 	}
 
 	return content, nil
@@ -133,7 +134,10 @@ func getBaseFolder(referenceRoute route.Route, files []*model.File) string {
 		partialRoute := route.Intersect(referenceRoute, *file.Route())
 
 		if baseFolder == "" {
-			baseFolder = partialRoute.FirstComponentName()
+			if file.Route().LastComponentName() != partialRoute.FirstComponentName() {
+				baseFolder = partialRoute.FirstComponentName()
+			}
+
 			continue
 		}
 
