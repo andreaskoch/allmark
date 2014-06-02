@@ -20,6 +20,7 @@ var (
 type Route struct {
 	value         string
 	originalValue string
+	isFileRoute   bool
 }
 
 func NewFromItemPath(baseDirectory, itemPath string) (*Route, error) {
@@ -48,6 +49,7 @@ func NewFromItemPath(baseDirectory, itemPath string) (*Route, error) {
 	return &Route{
 		value:         toUrl(routeValue),
 		originalValue: routeValue,
+		isFileRoute:   true,
 	}, nil
 }
 
@@ -74,6 +76,7 @@ func NewFromItemDirectory(baseDirectory, itemDirectory string) (*Route, error) {
 	return &Route{
 		value:         toUrl(routeValue),
 		originalValue: routeValue,
+		isFileRoute:   false,
 	}, nil
 }
 
@@ -100,6 +103,7 @@ func NewFromFilePath(baseDirectory, itemPath string) (*Route, error) {
 	return &Route{
 		value:         toUrl(routeValue),
 		originalValue: routeValue,
+		isFileRoute:   true,
 	}, nil
 }
 
@@ -122,6 +126,7 @@ func New() *Route {
 	return &Route{
 		value:         toUrl(routeValue),
 		originalValue: routeValue,
+		isFileRoute:   false,
 	}
 }
 
@@ -131,6 +136,16 @@ func Combine(route1, route2 *Route) (*Route, error) {
 }
 
 func Intersect(baseRoute, subRoute Route) Route {
+
+	// abort if the base route is empty
+	if baseRoute.IsEmpty() {
+		return baseRoute
+	}
+
+	// abort if the subroute is empty
+	if subRoute.IsEmpty() {
+		return baseRoute
+	}
 
 	baseDirectory := baseRoute.OriginalValue()
 	itemDirectory := subRoute.OriginalValue()
@@ -179,6 +194,10 @@ func (route *Route) IsEmpty() bool {
 	return len(route.value) == 0
 }
 
+func (route *Route) IsFileRoute() bool {
+	return route.isFileRoute
+}
+
 func (route *Route) Path() string {
 	lastSlashPosition := strings.LastIndex(route.originalValue, "/")
 	if lastSlashPosition == -1 {
@@ -189,11 +208,22 @@ func (route *Route) Path() string {
 }
 
 func (route *Route) FirstComponentName() string {
-	firstSlashPosition := strings.Index(route.originalValue, "/")
-	if firstSlashPosition == -1 {
+
+	if route.Level() == 0 {
+		return ""
+	}
+
+	// handle root-level routes
+	if route.Level() == 1 {
+
+		if route.IsFileRoute() {
+			return ""
+		}
+
 		return route.originalValue
 	}
 
+	firstSlashPosition := strings.Index(route.originalValue, "/")
 	return strings.TrimSuffix(route.originalValue[:firstSlashPosition], "/")
 }
 
