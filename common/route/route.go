@@ -175,7 +175,7 @@ func Intersect(baseRoute, subRoute Route) Route {
 }
 
 func (route *Route) String() string {
-	return route.originalValue
+	return strings.Join(route.Components(), " > ")
 }
 
 func (route *Route) OriginalValue() string {

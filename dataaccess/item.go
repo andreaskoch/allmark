@@ -26,7 +26,7 @@ func NewItem(route *route.Route, contentProvider *content.ContentProvider, files
 }
 
 func (item *Item) String() string {
-	return fmt.Sprintf("%s", item.route)
+	return fmt.Sprintf("%s", item.route.String())
 }
 
 func (item *Item) Route() *route.Route {
