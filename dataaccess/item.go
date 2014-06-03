@@ -36,3 +36,7 @@ func (item *Item) Route() *route.Route {
 func (item *Item) Files() []*File {
 	return item.files
 }
+
+func (item *Item) SetFiles(files []*File) {
+	item.files = files
+}

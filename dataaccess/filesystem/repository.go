@@ -136,28 +136,6 @@ func (repository *Repository) discoverItems(itemPath string, targetChannel chan 
 	}
 }
 
-func (repository *Repository) attachFileDirectoryListener(itemDirectory, fileDirectory string) {
-
-	// look for changes in the item directory
-	go func() {
-		var skipFunc = func(path string) bool {
-			return false
-		}
-
-		folderWatcher := fswatch.NewFolderWatcher(fileDirectory, true, skipFunc).Start()
-
-		for folderWatcher.IsRunning() {
-
-			select {
-			case <-folderWatcher.Change:
-				repository.logger.Info("File directory %q changed.", fileDirectory)
-				repository.discoverItems(itemDirectory, repository.newItem)
-			}
-
-		}
-	}()
-}
-
 func (repository *Repository) getItemFromDirectory(repositoryPath, itemDirectory string) (item *dataaccess.Item, recurse bool) {
 
 	// physical item from markdown file
@@ -221,6 +199,7 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 					repository.logger.Info("Discovering items in the new  directory %q", newFolderEntry)
 					repository.discoverItems(newFolderEntry, repository.newItem)
 				}
+
 			}
 
 		}
@@ -255,6 +234,32 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 		}
 
 		repository.logger.Debug("Exiting content listener for item %q.", item)
+	}()
+
+	// watch for file changes
+	go func() {
+		var skipFunc = func(path string) bool {
+			return false
+		}
+
+		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc).Start()
+
+		for folderWatcher.IsRunning() {
+
+			select {
+			case <-folderWatcher.Change:
+
+				// update file list
+				repository.logger.Info("Updating the file list for item %q", item.String())
+				newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+				item.SetFiles(newFiles)
+
+				// update the parent item
+				repository.changedItem <- dataaccess.NewEvent(item, nil)
+
+			}
+
+		}
 	}()
 
 	return item, true
