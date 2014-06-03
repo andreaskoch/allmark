@@ -320,6 +320,32 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 		repository.logger.Debug("Exiting directory listener for item %q.", item)
 	}()
 
+	// watch for file changes
+	go func() {
+		var skipFunc = func(path string) bool {
+			return false
+		}
+
+		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc).Start()
+
+		for folderWatcher.IsRunning() {
+
+			select {
+			case <-folderWatcher.Change:
+
+				// update file list
+				repository.logger.Info("Updating the file list for item %q", item.String())
+				newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+				item.SetFiles(newFiles)
+
+				// update the parent item
+				repository.changedItem <- dataaccess.NewEvent(item, nil)
+
+			}
+
+		}
+	}()
+
 	return item, true
 }
 
@@ -348,6 +374,32 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 		repository.logger.Error("Cannot create Item %q. Error: %s", route, err)
 		return
 	}
+
+	// watch for file changes
+	go func() {
+		var skipFunc = func(path string) bool {
+			return false
+		}
+
+		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc).Start()
+
+		for folderWatcher.IsRunning() {
+
+			select {
+			case <-folderWatcher.Change:
+
+				// update file list
+				repository.logger.Info("Updating the file list for item %q", item.String())
+				newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+				item.SetFiles(newFiles)
+
+				// update the parent item
+				repository.changedItem <- dataaccess.NewEvent(item, nil)
+
+			}
+
+		}
+	}()
 
 	return item, false
 }
