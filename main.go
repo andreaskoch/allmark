@@ -81,41 +81,38 @@ func main() {
 			index.Remove(repositoryItem.Route())
 		}
 
-		fullIndexRun := func() {
-			// full index of the repository
-			for itemEvent := range repository.InitialItems() {
+		// full index of the repository
+		for itemEvent := range repository.InitialItems() {
 
-				// validate event
-				if itemEvent.Error != nil {
-					logger.Warn("%s", itemEvent.Error)
-					continue
-				}
-
-				repositoryItem := itemEvent.Item
-				if repositoryItem == nil {
-					logger.Warn("Repository item is empty.")
-					continue
-				}
-
-				addRepositoryItemToIndex(repositoryItem)
-
+			// validate event
+			if itemEvent.Error != nil {
+				logger.Warn("%s", itemEvent.Error)
+				continue
 			}
 
-			// update the full-text search index
-			itemSearch.Update()
+			repositoryItem := itemEvent.Item
+			if repositoryItem == nil {
+				logger.Warn("Repository item is empty.")
+				continue
+			}
+
+			addRepositoryItemToIndex(repositoryItem)
+
 		}
 
-		fullIndexRun()
+		// update the full-text search index
+		itemSearch.Update()
 
-		// scheduled reindex
+		// scheduled reindex of the fulltext index
 		sleepInterval := time.Minute * 3
 		go func() {
 			for {
 				time.Sleep(sleepInterval)
-				fullIndexRun()
+				itemSearch.Update()
 			}
 		}()
 
+		// todo: implement discard of old items and especially old change listeners
 		// event handler: new items
 		go func() {
 			for itemEvent := range repository.NewItems() {
