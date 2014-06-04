@@ -13,7 +13,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
-	"github.com/andreaskoch/allmark2/ui/web/server/handler/errorhandler"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/itemhandler"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 	"github.com/gorilla/mux"
 	"io"
@@ -31,8 +31,8 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, pa
 	navigationPathProvider := patherFactory.Absolute("/")
 	navigationOrchestrator := orchestrator.NewNavigationOrchestrator(itemIndex, navigationPathProvider)
 
-	// error
-	error404Handler := errorhandler.New(logger, config, itemIndex, patherFactory)
+	// fallback handler
+	fallbackHandler := itemhandler.New(logger, config, itemIndex, patherFactory, converter)
 
 	// viewmodel
 	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter, &navigationOrchestrator, &tagsOrchestrator)
@@ -42,7 +42,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, pa
 		itemIndex:             itemIndex,
 		config:                config,
 		patherFactory:         patherFactory,
-		error404Handler:       error404Handler,
+		fallbackHandler:       fallbackHandler,
 		viewModelOrchestrator: viewModelOrchestrator,
 	}
 }
@@ -52,7 +52,7 @@ type JsonHandler struct {
 	itemIndex             *index.Index
 	config                *config.Config
 	patherFactory         paths.PatherFactory
-	error404Handler       *errorhandler.ErrorHandler
+	fallbackHandler       *itemhandler.ItemHandler
 	viewModelOrchestrator orchestrator.ViewModelOrchestrator
 }
 
@@ -85,9 +85,9 @@ func (handler *JsonHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		// display a 404 error page
-		error404Handler := handler.error404Handler.Func()
-		error404Handler(w, r)
+		// fallback to the item handler
+		fallbackHandler := handler.fallbackHandler.Func()
+		fallbackHandler(w, r)
 	}
 }
 

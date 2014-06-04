@@ -22,7 +22,7 @@ import (
 
 const (
 	// Dynamic Routes
-	JsonHandlerRoute                  = "/{path:.+}.json"
+	JsonHandlerRoute                  = "/json/{path:.*$}"
 	ItemHandlerRoute                  = "/{path:.*$}"
 	TagmapHandlerRoute                = "/tags.html"
 	SitemapHandlerRoute               = "/sitemap.html"
