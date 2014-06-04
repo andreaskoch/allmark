@@ -46,6 +46,7 @@ func (handler *TitleHandler) Func() func(w http.ResponseWriter, r *http.Request)
 		titles := handler.titlesOrchestrator.GetTitles()
 
 		// set content type to json
+		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Content-Type", "application/json")
 
 		// convert to json

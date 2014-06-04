@@ -52,6 +52,7 @@ func (handler *SearchHandler) Func() func(w http.ResponseWriter, r *http.Request
 		searchResults := handler.searchOrchestrator.GetSuggestions(query)
 
 		// set content type to json
+		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Content-Type", "application/json")
 
 		// convert to json
