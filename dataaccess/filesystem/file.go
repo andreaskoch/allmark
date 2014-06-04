@@ -64,7 +64,8 @@ func newFile(repositoryPath, itemDirectory, filePath string) (*dataaccess.File, 
 	}
 
 	// content provider
-	contentProvider := newFileContentProvider(filePath, route)
+	checkIntervalInSeconds := 0 // don't check
+	contentProvider := newFileContentProvider(filePath, route, checkIntervalInSeconds)
 
 	// create the file
 	file, err := dataaccess.NewFile(route, parentRoute, contentProvider)

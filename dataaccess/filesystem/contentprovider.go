@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-func newFileContentProvider(path string, route *route.Route) *content.ContentProvider {
+func newFileContentProvider(path string, route *route.Route, watchIntervalInSeconds int) *content.ContentProvider {
 
 	// mimeType
 	mimeType := func() (string, error) {
@@ -58,32 +58,39 @@ func newFileContentProvider(path string, route *route.Route) *content.ContentPro
 	}
 
 	// change provider
-	eventChannel := make(chan content.ChangeEvent, 1)
+	var eventChannel chan content.ChangeEvent
 
-	go func() {
-		checkIntervalInSeconds := 2
-		fileWatcher := fswatch.NewFileWatcher(path, checkIntervalInSeconds).Start()
+	// check if the the content provider shall watch for changes
+	if watchIntervalInSeconds > 0 {
 
-		for fileWatcher.IsRunning() {
+		eventChannel = make(chan content.ChangeEvent, 1)
 
-			select {
-			case <-fileWatcher.Modified:
+		go func() {
+			checkIntervalInSeconds := 2
+			fileWatcher := fswatch.NewFileWatcher(path, checkIntervalInSeconds).Start()
 
-				go func() {
-					eventChannel <- content.TypeChanged
-				}()
+			for fileWatcher.IsRunning() {
 
-			case <-fileWatcher.Moved:
+				select {
+				case <-fileWatcher.Modified:
 
-				go func() {
-					eventChannel <- content.TypeMoved
-				}()
+					go func() {
+						eventChannel <- content.TypeChanged
+					}()
+
+				case <-fileWatcher.Moved:
+
+					go func() {
+						eventChannel <- content.TypeMoved
+					}()
+				}
+
 			}
 
-		}
+			// todo: add debug message
+		}()
 
-		// todo: add debug message
-	}()
+	}
 
 	changeEventProvider := func() chan content.ChangeEvent {
 		return eventChannel
