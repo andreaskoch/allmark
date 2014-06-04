@@ -61,7 +61,8 @@ func newFileContentProvider(path string, route *route.Route) *content.ContentPro
 	eventChannel := make(chan content.ChangeEvent, 1)
 
 	go func() {
-		fileWatcher := fswatch.NewFileWatcher(path).Start()
+		checkIntervalInSeconds := 2
+		fileWatcher := fswatch.NewFileWatcher(path, checkIntervalInSeconds).Start()
 
 		for fileWatcher.IsRunning() {
 

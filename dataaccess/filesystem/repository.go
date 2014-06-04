@@ -184,7 +184,8 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 			return isReserved
 		}
 
-		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, false, skipFunc).Start()
+		checkIntervalInSeconds := 10
+		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, false, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
 
@@ -242,7 +243,8 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 			return false
 		}
 
-		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc).Start()
+		checkIntervalInSeconds := 3
+		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
 
@@ -298,7 +300,8 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 			return isReserved
 		}
 
-		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, false, skipFunc).Start()
+		checkIntervalInSeconds := 10
+		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, false, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
 
@@ -326,7 +329,8 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 			return false
 		}
 
-		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc).Start()
+		checkIntervalInSeconds := 10
+		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
 
@@ -381,7 +385,8 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 			return false
 		}
 
-		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc).Start()
+		checkIntervalInSeconds := 10
+		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
 
