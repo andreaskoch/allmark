@@ -164,7 +164,8 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 	}
 
 	// content provider
-	contentProvider := newFileContentProvider(filePath, route)
+	checkIntervalInSeconds := 2
+	contentProvider := newFileContentProvider(filePath, route, checkIntervalInSeconds)
 
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
@@ -184,21 +185,36 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 			return isReserved
 		}
 
-		checkIntervalInSeconds := 10
-		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, false, skipFunc, checkIntervalInSeconds).Start()
+		recurse := false
+		checkIntervalInSeconds := 3
+		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, recurse, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
 
 			select {
 			case change := <-folderWatcher.Change:
 
+				// new items
 				for _, newFolderEntry := range change.New() {
 					if isDir, _ := fsutil.IsDirectory(newFolderEntry); !isDir {
 						continue
 					}
 
-					repository.logger.Info("Discovering items in the new  directory %q", newFolderEntry)
+					repository.logger.Info("Discovered %q as a new item.", newFolderEntry)
 					repository.discoverItems(newFolderEntry, repository.newItem)
+					repository.changedItem <- dataaccess.NewEvent(item, nil) // if there are new childs we need to update this item was well
+				}
+
+				// moved items
+				if len(change.Moved()) > 0 {
+
+					repository.logger.Info("Something has changed in this folder %q. Reindexing.", itemDirectory)
+
+					// remove the parent item since we cannot easily determine which child has gone away
+					repository.movedItem <- dataaccess.NewEvent(item, nil)
+
+					// recreate this item
+					repository.discoverItems(itemDirectory, repository.newItem)
 				}
 
 			}
@@ -300,7 +316,7 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 			return isReserved
 		}
 
-		checkIntervalInSeconds := 10
+		checkIntervalInSeconds := 3
 		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, false, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
@@ -308,13 +324,27 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 			select {
 			case change := <-folderWatcher.Change:
 
+				// new items
 				for _, newFolderEntry := range change.New() {
 					if isDir, _ := fsutil.IsDirectory(newFolderEntry); !isDir {
 						continue
 					}
 
-					repository.logger.Info("Discovering items in the new  directory %q", newFolderEntry)
+					repository.logger.Info("Discovered %q as a new item.", newFolderEntry)
 					repository.discoverItems(newFolderEntry, repository.newItem)
+					repository.changedItem <- dataaccess.NewEvent(item, nil) // if there are new childs we need to update this item was well
+				}
+
+				// moved items
+				if len(change.Moved()) > 0 {
+
+					repository.logger.Info("Something has changed in this folder %q. Reindexing.", itemDirectory)
+
+					// remove the parent item since we cannot easily determine which child has gone away
+					repository.movedItem <- dataaccess.NewEvent(item, nil)
+
+					// recreate this item
+					repository.discoverItems(itemDirectory, repository.newItem)
 				}
 			}
 
@@ -329,8 +359,9 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 			return false
 		}
 
+		recurse := true
 		checkIntervalInSeconds := 10
-		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc, checkIntervalInSeconds).Start()
+		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, recurse, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
 
