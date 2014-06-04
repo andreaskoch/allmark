@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 const (
@@ -80,25 +81,42 @@ func main() {
 			index.Remove(repositoryItem.Route())
 		}
 
-		// read the repository
-		for itemEvent := range repository.InitialItems() {
+		fullIndexRun := func() {
+			// full index of the repository
+			for itemEvent := range repository.InitialItems() {
 
-			// validate event
-			if itemEvent.Error != nil {
-				logger.Warn("%s", itemEvent.Error)
-				continue
+				// validate event
+				if itemEvent.Error != nil {
+					logger.Warn("%s", itemEvent.Error)
+					continue
+				}
+
+				repositoryItem := itemEvent.Item
+				if repositoryItem == nil {
+					logger.Warn("Repository item is empty.")
+					continue
+				}
+
+				addRepositoryItemToIndex(repositoryItem)
+
 			}
 
-			repositoryItem := itemEvent.Item
-			if repositoryItem == nil {
-				logger.Warn("Repository item is empty.")
-				continue
-			}
-
-			addRepositoryItemToIndex(repositoryItem)
-
+			// update the full-text search index
+			itemSearch.Update()
 		}
 
+		fullIndexRun()
+
+		// scheduled reindex
+		sleepInterval := time.Minute * 3
+		go func() {
+			for {
+				time.Sleep(sleepInterval)
+				fullIndexRun()
+			}
+		}()
+
+		// event handler: new items
 		go func() {
 			for itemEvent := range repository.NewItems() {
 				logger.Debug("New Item")
@@ -119,6 +137,7 @@ func main() {
 			}
 		}()
 
+		// event handler: changed items
 		go func() {
 			for itemEvent := range repository.ChangedItems() {
 				logger.Debug("Item changed")
@@ -139,6 +158,7 @@ func main() {
 			}
 		}()
 
+		// event handler: moved items
 		go func() {
 			for itemEvent := range repository.MovedItems() {
 				logger.Debug("Item moved")
@@ -159,16 +179,12 @@ func main() {
 			}
 		}()
 
-		// update the full-text search index
-		itemSearch.Update()
-
 		// server
 		server, err := server.New(logger, config, index, converter, itemSearch)
 		if err != nil {
 			logger.Fatal("Unable to instantiate a server. Error: %s", err.Error())
 		}
 
-		// start the server
 		if result := <-server.Start(); result != nil {
 			logger.Info("%s", result)
 		}
