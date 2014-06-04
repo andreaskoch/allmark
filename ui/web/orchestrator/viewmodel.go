@@ -62,10 +62,21 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 		Files: orchestrator.fileOrchestrator.GetFiles(pathProvider, item),
 	}
 
-	// attach tag cloud and top documents if the item is a repository type
-	if item.Type == model.TypeRepository {
+	// special viewmodel attributes
+	isRepositoryItem := item.Type == model.TypeRepository
+	if isRepositoryItem {
+		// top documents
 		viewModel.TopDocs = orchestrator.getTopDocuments(5, pathProvider, item.Route())
-		viewModel.TagCloud = orchestrator.tagOrchestrator.GetTagCloud()
+
+		// tag cloud
+		repositoryIsNotEmpty := orchestrator.itemIndex.Size() > 5 // don't bother to create a tag cloud if there aren't enough documents
+		if repositoryIsNotEmpty {
+
+			tagCloud := orchestrator.tagOrchestrator.GetTagCloud()
+			viewModel.TagCloud = tagCloud
+
+		}
+
 	}
 
 	return viewModel

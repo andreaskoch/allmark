@@ -153,6 +153,11 @@ func (index *Index) Items() []*model.Item {
 	return items
 }
 
+// Get the number of entries in this index
+func (index *Index) Size() int {
+	return len(index.itemList)
+}
+
 func (index *Index) GetItemByRoute(route *route.Route) (bool, *model.Item) {
 	routeValue := route.Value()
 	if item, exists := index.routeMap[routeValue]; exists {
