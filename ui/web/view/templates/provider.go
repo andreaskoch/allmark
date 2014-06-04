@@ -48,56 +48,40 @@ type Provider struct {
 func NewProvider(templateFolder string) *Provider {
 
 	// intialize the templates
-	templateModified := make(chan bool)
 	templates := make(map[string]*Template)
 
-	templates[MasterTemplateName] = NewTemplate(templateFolder, MasterTemplateName, masterTemplate, templateModified)
-	templates[ErrorTemplateName] = NewTemplate(templateFolder, ErrorTemplateName, errorTemplate, templateModified)
+	templates[MasterTemplateName] = NewTemplate(templateFolder, MasterTemplateName, masterTemplate)
+	templates[ErrorTemplateName] = NewTemplate(templateFolder, ErrorTemplateName, errorTemplate)
 
-	templates[OpenSearchDescriptionTemplateName] = NewTemplate(templateFolder, OpenSearchDescriptionTemplateName, openSearchDescriptionTemplate, templateModified)
+	templates[OpenSearchDescriptionTemplateName] = NewTemplate(templateFolder, OpenSearchDescriptionTemplateName, openSearchDescriptionTemplate)
 
-	templates[TagmapTemplateName] = NewTemplate(templateFolder, TagmapTemplateName, tagmapTemplate, templateModified)
-	templates[TagmapContentTemplateName] = NewTemplate(templateFolder, TagmapContentTemplateName, tagmapContentTemplate, templateModified)
+	templates[TagmapTemplateName] = NewTemplate(templateFolder, TagmapTemplateName, tagmapTemplate)
+	templates[TagmapContentTemplateName] = NewTemplate(templateFolder, TagmapContentTemplateName, tagmapContentTemplate)
 
-	templates[SitemapTemplateName] = NewTemplate(templateFolder, SitemapTemplateName, sitemapTemplate, templateModified)
-	templates[SitemapContentTemplateName] = NewTemplate(templateFolder, SitemapContentTemplateName, sitemapContentTemplate, templateModified)
+	templates[SitemapTemplateName] = NewTemplate(templateFolder, SitemapTemplateName, sitemapTemplate)
+	templates[SitemapContentTemplateName] = NewTemplate(templateFolder, SitemapContentTemplateName, sitemapContentTemplate)
 
-	templates[XmlSitemapTemplateName] = NewTemplate(templateFolder, XmlSitemapTemplateName, xmlSitemapTemplate, templateModified)
-	templates[XmlSitemapContentTemplateName] = NewTemplate(templateFolder, XmlSitemapContentTemplateName, xmlSitemapContentTemplate, templateModified)
+	templates[XmlSitemapTemplateName] = NewTemplate(templateFolder, XmlSitemapTemplateName, xmlSitemapTemplate)
+	templates[XmlSitemapContentTemplateName] = NewTemplate(templateFolder, XmlSitemapContentTemplateName, xmlSitemapContentTemplate)
 
-	templates[RssFeedTemplateName] = NewTemplate(templateFolder, RssFeedTemplateName, rssFeedTemplate, templateModified)
-	templates[RssFeedContentTemplateName] = NewTemplate(templateFolder, RssFeedContentTemplateName, rssFeedContentTemplate, templateModified)
+	templates[RssFeedTemplateName] = NewTemplate(templateFolder, RssFeedTemplateName, rssFeedTemplate)
+	templates[RssFeedContentTemplateName] = NewTemplate(templateFolder, RssFeedContentTemplateName, rssFeedContentTemplate)
 
-	templates[SearchTemplateName] = NewTemplate(templateFolder, SearchTemplateName, searchTemplate, templateModified)
-	templates[SearchContentTemplateName] = NewTemplate(templateFolder, SearchContentTemplateName, searchContentTemplate, templateModified)
+	templates[SearchTemplateName] = NewTemplate(templateFolder, SearchTemplateName, searchTemplate)
+	templates[SearchContentTemplateName] = NewTemplate(templateFolder, SearchContentTemplateName, searchContentTemplate)
 
-	templates[model.TypeDocument.String()] = NewTemplate(templateFolder, model.TypeDocument.String(), documentTemplate, templateModified)
-	templates[model.TypeLocation.String()] = NewTemplate(templateFolder, model.TypeLocation.String(), locationTemplate, templateModified)
-	templates[model.TypeMessage.String()] = NewTemplate(templateFolder, model.TypeMessage.String(), messageTemplate, templateModified)
-	templates[model.TypeRepository.String()] = NewTemplate(templateFolder, model.TypeRepository.String(), repositoryTemplate, templateModified)
-	templates[model.TypePresentation.String()] = NewTemplate(templateFolder, model.TypePresentation.String(), presentationTemplate, templateModified)
+	templates[model.TypeDocument.String()] = NewTemplate(templateFolder, model.TypeDocument.String(), documentTemplate)
+	templates[model.TypeLocation.String()] = NewTemplate(templateFolder, model.TypeLocation.String(), locationTemplate)
+	templates[model.TypeMessage.String()] = NewTemplate(templateFolder, model.TypeMessage.String(), messageTemplate)
+	templates[model.TypeRepository.String()] = NewTemplate(templateFolder, model.TypeRepository.String(), repositoryTemplate)
+	templates[model.TypePresentation.String()] = NewTemplate(templateFolder, model.TypePresentation.String(), presentationTemplate)
 
 	// create the provider
 	provider := &Provider{
-		Modified: make(chan bool),
-
 		folder:    templateFolder,
 		templates: templates,
 		cache:     make(map[string]*template.Template),
 	}
-
-	// watch for changes
-	go func() {
-		for {
-			select {
-			case <-templateModified:
-				provider.ClearCache()
-				go func() {
-					provider.Modified <- true
-				}()
-			}
-		}
-	}()
 
 	return provider
 }
@@ -121,7 +105,8 @@ func (provider *Provider) StoreTemplatesOnDisc() (success bool, err error) {
 }
 
 func (provider *Provider) ClearCache() {
-	fmt.Println("Clearing the template cache.")
+	// todo: use logger
+	// fmt.Println("Clearing the template cache.")
 
 	provider.cache = make(map[string]*template.Template)
 }

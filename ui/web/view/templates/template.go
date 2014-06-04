@@ -7,7 +7,6 @@ package templates
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
-	"github.com/andreaskoch/go-fswatch"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -17,7 +16,7 @@ const (
 	TemplateFileExtension = ".gohtml"
 )
 
-func NewTemplate(templateFolder, name, text string, modified chan bool) *Template {
+func NewTemplate(templateFolder, name, text string) *Template {
 
 	// assemble the file path
 	templateFilename := name + TemplateFileExtension
@@ -25,50 +24,15 @@ func NewTemplate(templateFolder, name, text string, modified chan bool) *Templat
 
 	// create a new template
 	template := &Template{
-		Modified: make(chan bool),
-		Moved:    make(chan bool),
-
 		name: name,
 		text: text,
 		path: templateFilePath,
-	}
-
-	// look for changes
-	if fsutil.FileExists(templateFilePath) {
-		go func() {
-			fileWatcher := fswatch.NewFileWatcher(template.path).Start()
-
-			for fileWatcher.IsRunning() {
-
-				select {
-				case <-fileWatcher.Modified:
-
-					fmt.Printf("Template %q changed.\n", templateFilePath)
-
-					go func() {
-						modified <- true
-					}()
-
-				case <-fileWatcher.Moved:
-
-					fmt.Printf("Template %q moved.\n", templateFilePath)
-
-					go func() {
-						modified <- true
-					}()
-				}
-
-			}
-		}()
 	}
 
 	return template
 }
 
 type Template struct {
-	Modified chan bool
-	Moved    chan bool
-
 	name string
 	text string
 	path string
