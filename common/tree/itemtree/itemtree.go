@@ -75,9 +75,13 @@ func (nodeTree *ItemTree) GetChildItems(route *route.Route) []*model.Item {
 	}
 
 	for _, childNode := range node.Childs() {
-		if item := nodeToItem(childNode); item != nil {
-			childItems = append(childItems, item)
+		item := nodeToItem(childNode)
+		if item == nil {
+			// todo: log error
+			continue
 		}
+
+		childItems = append(childItems, item)
 	}
 
 	return childItems
@@ -102,5 +106,10 @@ func (nodeTree *ItemTree) getNode(route *route.Route) *tree.Node {
 }
 
 func nodeToItem(node *tree.Node) *model.Item {
+
+	if node.Value() == nil {
+		return nil
+	}
+
 	return node.Value().(*model.Item)
 }
