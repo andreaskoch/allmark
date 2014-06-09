@@ -38,6 +38,9 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, pa
 	// viewmodel
 	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter, &navigationOrchestrator, &tagsOrchestrator)
 
+	// start the websocket hub
+	go h.run()
+
 	return &UpdateHandler{
 		logger:                logger,
 		itemIndex:             itemIndex,

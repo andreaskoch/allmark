@@ -107,7 +107,7 @@ func (server *Server) Start() chan error {
 
 		// serve items
 		requestRouter.HandleFunc(JsonHandlerRoute, handler.NewJsonHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
-		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
+		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter, updateHandler).Func())
 
 		// start http server: http
 		httpBinding := server.getHttpBinding()

@@ -66,8 +66,8 @@ func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index
 	return rsshandler.New(logger, config, itemIndex, patherFactory, converter)
 }
 
-func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
-	return itemhandler.New(logger, config, itemIndex, patherFactory, converter)
+func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter, updateHandler *updatehandler.UpdateHandler) Handler {
+	return itemhandler.New(logger, config, itemIndex, patherFactory, converter, updateHandler)
 }
 
 func NewJsonHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {

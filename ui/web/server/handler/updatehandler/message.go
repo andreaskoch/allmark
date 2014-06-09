@@ -5,18 +5,18 @@
 package updatehandler
 
 import (
-	"github.com/andreaskoch/allmark/view"
+	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
 type Message struct {
-	Route     string      `json:"route"`
-	Name      string      `json:"name"`
-	ViewModel *view.Model `json:"model"`
+	Route     string          `json:"route"`
+	Name      string          `json:"name"`
+	ViewModel viewmodel.Model `json:"model"`
 }
 
-func UpdateMessage(viewModel *view.Model) Message {
+func UpdateMessage(viewModel viewmodel.Model) Message {
 	return Message{
-		Route:     viewModel.AbsoluteRoute,
+		Route:     viewModel.Route,
 		Name:      "update",
 		ViewModel: viewModel,
 	}

@@ -32,7 +32,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, pa
 	navigationOrchestrator := orchestrator.NewNavigationOrchestrator(itemIndex, navigationPathProvider)
 
 	// fallback handler
-	fallbackHandler := itemhandler.New(logger, config, itemIndex, patherFactory, converter)
+	fallbackHandler := itemhandler.New(logger, config, itemIndex, patherFactory, converter, nil)
 
 	// viewmodel
 	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter, &navigationOrchestrator, &tagsOrchestrator)

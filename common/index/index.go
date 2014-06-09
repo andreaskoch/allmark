@@ -16,6 +16,9 @@ func New(logger logger.Logger, repositoryName string) *Index {
 		logger:         logger,
 		repositoryName: repositoryName,
 
+		updateCallbacks: make([]func(*model.Item), 0),
+		updates:         make(chan *model.Item, 1),
+
 		itemList: make([]*model.Item, 0),
 		routeMap: make(map[string]*model.Item),
 		itemTree: itemtree.New(),
@@ -26,6 +29,9 @@ type Index struct {
 	logger         logger.Logger
 	repositoryName string
 
+	updateCallbacks []func(item *model.Item)
+	updates         chan *model.Item
+
 	// indizes
 	itemList []*model.Item
 	routeMap map[string]*model.Item // route -> item,
@@ -34,6 +40,29 @@ type Index struct {
 
 func (index *Index) String() string {
 	return index.itemTree.String()
+}
+
+func (index *Index) OnUpdate(callback func(item *model.Item)) {
+
+	// start the callback executor
+	if len(index.updateCallbacks) == 0 {
+		go func() {
+			for {
+				select {
+				case updatedItem := <-index.updates:
+					{
+						for _, callback := range index.updateCallbacks {
+							callback(updatedItem)
+						}
+					}
+				}
+			}
+		}()
+	}
+
+	// register the callback
+	index.updateCallbacks = append(index.updateCallbacks, callback)
+
 }
 
 func (index *Index) IsMatch(route route.Route) (item *model.Item, isMatch bool) {
@@ -178,6 +207,17 @@ func (index *Index) Add(item *model.Item) {
 	// make root items a repository
 	if item.Route().Level() == 0 {
 		item.Type = model.TypeRepository
+	}
+
+	// check if the item already exists
+	_, existsAlready := index.IsMatch(*item.Route())
+	if existsAlready {
+
+		// notify subscribers about updates
+		defer func() {
+			index.updates <- item
+		}()
+
 	}
 
 	index.logger.Debug("Adding item %q to index", item)

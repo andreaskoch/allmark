@@ -9,17 +9,19 @@ import (
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
+	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/errorhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/updatehandler"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 	"io"
 	"net/http"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) *ItemHandler {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter, updateHandler *updatehandler.UpdateHandler) *ItemHandler {
 
 	// templates
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
@@ -46,6 +48,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, pa
 		patherFactory:         patherFactory,
 		templateProvider:      templateProvider,
 		error404Handler:       error404Handler,
+		updateHandler:         updateHandler,
 		viewModelOrchestrator: viewModelOrchestrator,
 	}
 }
@@ -57,10 +60,29 @@ type ItemHandler struct {
 	patherFactory         paths.PatherFactory
 	templateProvider      *templates.Provider
 	error404Handler       *errorhandler.ErrorHandler
+	updateHandler         *updatehandler.UpdateHandler
 	viewModelOrchestrator orchestrator.ViewModelOrchestrator
 }
 
 func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) {
+
+	if handler.updateHandler != nil {
+
+		handler.itemIndex.OnUpdate(func(item *model.Item) {
+
+			handler.logger.Debug("Executing onUpdate handler for item %q", item)
+
+			if item == nil {
+				handler.logger.Error("The item is not initialzed.")
+				return
+			}
+
+			vm := handler.getViewModel(item)
+			updatehandler.UpdateMessage(vm)
+		})
+
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// get the request route
@@ -76,12 +98,8 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		// stage 1: check if there is a item for the request
 		if item, found := handler.itemIndex.IsMatch(*requestRoute); found {
 
-			// create the view model
-			pathProvider := handler.patherFactory.Relative(item.Route())
-			viewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, item)
-
 			// render the view model
-			handler.render(w, viewModel)
+			handler.render(w, handler.getViewModel(item))
 			return
 		}
 
@@ -107,6 +125,12 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		error404Handler := handler.error404Handler.Func()
 		error404Handler(w, r)
 	}
+}
+
+func (handler *ItemHandler) getViewModel(item *model.Item) viewmodel.Model {
+	pathProvider := handler.patherFactory.Relative(item.Route())
+	viewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, item)
+	return viewModel
 }
 
 func (handler *ItemHandler) render(writer io.Writer, viewModel viewmodel.Model) {
