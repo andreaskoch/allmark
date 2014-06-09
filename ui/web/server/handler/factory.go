@@ -22,6 +22,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/sitemaphandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/tagshandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/typeaheadhandler"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/updatehandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/xmlsitemaphandler"
 )
 
@@ -75,4 +76,8 @@ func NewJsonHandler(logger logger.Logger, config *config.Config, itemIndex *inde
 
 func NewDebugHandler(logger logger.Logger, itemIndex *index.Index) Handler {
 	return debughandler.New(logger, itemIndex)
+}
+
+func NewUpdateHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) *updatehandler.UpdateHandler {
+	return updatehandler.New(logger, config, itemIndex, patherFactory, converter)
 }

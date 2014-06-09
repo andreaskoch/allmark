@@ -5,6 +5,7 @@
 package server
 
 import (
+	"code.google.com/p/go.net/websocket"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/index"
@@ -15,6 +16,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/services/search"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler"
+
 	"github.com/gorilla/mux"
 	"math"
 	"net/http"
@@ -24,13 +26,13 @@ const (
 	// Dynamic Routes
 	JsonHandlerRoute                  = "/{path:.*}.json"
 	ItemHandlerRoute                  = "/{path:.*$}"
+	UpdateHandlerRoute                = "/{path:.*}.ws"
 	TagmapHandlerRoute                = "/tags.html"
 	SitemapHandlerRoute               = "/sitemap.html"
 	XmlSitemapHandlerRoute            = "/sitemap.xml"
 	RssHandlerRoute                   = "/feed.rss"
 	RobotsTxtHandlerRoute             = "/robots.txt"
 	DebugHandlerRoute                 = "/debug/index"
-	WebSocketHandlerRoute             = "/ws"
 	SearchHandlerRoute                = "/search"
 	OpenSearchDescriptionHandlerRoute = "/opensearch.xml"
 
@@ -80,6 +82,10 @@ func (server *Server) Start() chan error {
 
 		// register requst routers
 		requestRouter := mux.NewRouter()
+
+		// websocket update handler
+		updateHandler := handler.NewUpdateHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter)
+		requestRouter.Handle(UpdateHandlerRoute, websocket.Handler(updateHandler.Func()))
 
 		// serve auxiliary dynamic files
 		requestRouter.HandleFunc(RobotsTxtHandlerRoute, handler.NewRobotsTxtHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())

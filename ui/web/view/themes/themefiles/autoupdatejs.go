@@ -35,10 +35,10 @@ var Autoupdate = (function () {
      * @return string The url for the web socket connection (e.g. "ws://example.com:8080/ws")
      */
     var getWebSocketUrl = function() {
-        routeParameter = "route=" + getCurrentRoute();
+        routeParameter = getCurrentRoute();
         host = document.location.host;
         webSocketHandler = "/ws";
-        websocketUrl = "ws://" + host + webSocketHandler + "?" + routeParameter;
+        websocketUrl = "ws://" + host + routeParameter + ".ws";
         return websocketUrl;            
     };
 
