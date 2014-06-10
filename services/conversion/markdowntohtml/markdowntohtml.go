@@ -105,19 +105,21 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	content = markdown.Convert(content)
 
 	// presentation
-	if item.Type == model.TypePresentation {
+	isPresentation := item.Type == model.TypePresentation
+	if isPresentation {
 
-		content := content
 		presentationConverter := presentation.New(pathProvider, item.Files())
-		content, presentationConversionError := presentationConverter.Convert(content)
+		presentationContent, presentationConversionError := presentationConverter.Convert(content)
 		if presentationConversionError != nil {
 			converter.logger.Warn("Error while converting presentation extensions. Error: %s", presentationConversionError)
 		}
 
+		content = presentationContent
+
 	}
 
 	// append the file list
-	if !item.IsVirtual() && len(item.Files()) > 0 {
+	if !isPresentation && len(item.Files()) > 0 {
 		fileTreeRenderer := filetreerenderer.New(pathProvider, itemRoute, item.Files())
 		fileBaseFolder := getBaseFolder(itemRoute, item.Files())
 		content += fileTreeRenderer.Render("Attachments", "attachments", fileBaseFolder)
