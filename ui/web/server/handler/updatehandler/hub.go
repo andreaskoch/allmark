@@ -4,10 +4,6 @@
 
 package updatehandler
 
-import (
-	"strings"
-)
-
 type hub struct {
 	// Registered connections.
 	connections map[*connection]bool
@@ -22,22 +18,10 @@ type hub struct {
 	unregister chan *connection
 }
 
-func (hub *hub) ConnectionsByRoute(route string) []*connection {
-	connectionsByRoute := make([]*connection, 0)
-
-	for c := range h.connections {
-		if strings.HasSuffix(route, c.Route) {
-			connectionsByRoute = append(connectionsByRoute, c)
-		}
-	}
-
-	return connectionsByRoute
-}
-
 var h = hub{
-	broadcast:   make(chan Message),
-	register:    make(chan *connection),
-	unregister:  make(chan *connection),
+	broadcast:   make(chan Message, 1),
+	register:    make(chan *connection, 1),
+	unregister:  make(chan *connection, 1),
 	connections: make(map[*connection]bool),
 }
 
@@ -55,8 +39,7 @@ func (h *hub) run() {
 			}
 		case m := <-h.broadcast:
 			{
-				affectedConnections := h.ConnectionsByRoute(m.Route)
-				for _, c := range affectedConnections {
+				for c, _ := range h.connections {
 
 					select {
 					case c.send <- m:
@@ -65,6 +48,7 @@ func (h *hub) run() {
 						close(c.send)
 						go c.ws.Close()
 					}
+
 				}
 			}
 		}

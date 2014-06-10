@@ -77,8 +77,9 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 				return
 			}
 
-			vm := handler.getViewModel(item)
-			updatehandler.UpdateMessage(vm)
+			pathProvider := handler.patherFactory.Absolute("/")
+			viewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, item)
+			updatehandler.UpdateMessage(viewModel)
 		})
 
 	}
@@ -99,7 +100,9 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		if item, found := handler.itemIndex.IsMatch(*requestRoute); found {
 
 			// render the view model
-			handler.render(w, handler.getViewModel(item))
+			pathProvider := handler.patherFactory.Relative(item.Route())
+			viewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, item)
+			handler.render(w, viewModel)
 			return
 		}
 
@@ -125,12 +128,6 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		error404Handler := handler.error404Handler.Func()
 		error404Handler(w, r)
 	}
-}
-
-func (handler *ItemHandler) getViewModel(item *model.Item) viewmodel.Model {
-	pathProvider := handler.patherFactory.Relative(item.Route())
-	viewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, item)
-	return viewModel
 }
 
 func (handler *ItemHandler) render(writer io.Writer, viewModel viewmodel.Model) {
