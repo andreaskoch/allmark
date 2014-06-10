@@ -78,8 +78,16 @@ func (handler *ItemHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 			}
 
 			pathProvider := handler.patherFactory.Absolute("/")
-			viewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, item)
-			updatehandler.UpdateMessage(viewModel)
+
+			// update the item
+			itemViewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, item)
+			updatehandler.UpdateMessage(itemViewModel)
+
+			// update the item's parent
+			if parent := handler.itemIndex.GetParent(item.Route()); parent != nil {
+				parentViewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, parent)
+				updatehandler.UpdateMessage(parentViewModel)
+			}
 		})
 
 	}
