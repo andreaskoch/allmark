@@ -185,37 +185,24 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 			return isReserved
 		}
 
-		recurse := false
+		recurse := true
 		checkIntervalInSeconds := 3
 		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, recurse, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
 
 			select {
-			case change := <-folderWatcher.Change:
+			case <-folderWatcher.Change:
 
-				// new items
-				for _, newFolderEntry := range change.New() {
-					if isDir, _ := fsutil.IsDirectory(newFolderEntry); !isDir {
-						continue
-					}
+				repository.logger.Info("Something has changed in this folder %q. Reindexing.", itemDirectory)
 
-					repository.logger.Info("Discovered %q as a new item.", newFolderEntry)
-					repository.discoverItems(newFolderEntry, repository.newItem)
-					repository.changedItem <- dataaccess.NewEvent(item, nil) // if there are new childs we need to update this item was well
-				}
+				// remove the parent item since we cannot easily determine which child has gone away
+				repository.movedItem <- dataaccess.NewEvent(item, nil)
 
-				// moved items
-				if len(change.Moved()) > 0 {
+				// recreate this item
+				repository.discoverItems(itemDirectory, repository.newItem)
 
-					repository.logger.Info("Something has changed in this folder %q. Reindexing.", itemDirectory)
-
-					// remove the parent item since we cannot easily determine which child has gone away
-					repository.movedItem <- dataaccess.NewEvent(item, nil)
-
-					// recreate this item
-					repository.discoverItems(itemDirectory, repository.newItem)
-				}
+				folderWatcher.Stop()
 
 			}
 
@@ -312,76 +299,32 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 	// look for changes in the item directory
 	go func() {
 		var skipFunc = func(path string) bool {
-			isReserved := isReservedDirectory(path)
-			return isReserved
-		}
-
-		checkIntervalInSeconds := 3
-		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, false, skipFunc, checkIntervalInSeconds).Start()
-
-		for folderWatcher.IsRunning() {
-
-			select {
-			case change := <-folderWatcher.Change:
-
-				// new items
-				for _, newFolderEntry := range change.New() {
-					if isDir, _ := fsutil.IsDirectory(newFolderEntry); !isDir {
-						continue
-					}
-
-					repository.logger.Info("Discovered %q as a new item.", newFolderEntry)
-					repository.discoverItems(newFolderEntry, repository.newItem)
-					repository.changedItem <- dataaccess.NewEvent(item, nil) // if there are new childs we need to update this item was well
-				}
-
-				// moved items
-				if len(change.Moved()) > 0 {
-
-					repository.logger.Info("Something has changed in this folder %q. Reindexing.", itemDirectory)
-
-					// remove the parent item since we cannot easily determine which child has gone away
-					repository.movedItem <- dataaccess.NewEvent(item, nil)
-
-					// recreate this item
-					repository.discoverItems(itemDirectory, repository.newItem)
-
-					// stop the folder watch for this item
-					folderWatcher.Stop()
-				}
-			}
-
-		}
-
-		repository.logger.Debug("Exiting directory listener for item %q.", item)
-	}()
-
-	// watch for file changes
-	go func() {
-		var skipFunc = func(path string) bool {
 			return false
 		}
 
-		recurse := true
-		checkIntervalInSeconds := 5
-		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, recurse, skipFunc, checkIntervalInSeconds).Start()
+		checkIntervalInSeconds := 3
+		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, true, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
 
 			select {
 			case <-folderWatcher.Change:
 
-				// update file list
-				repository.logger.Info("Updating the file list for item %q", item.String())
-				newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
-				item.SetFiles(newFiles)
+				repository.logger.Info("Something has changed in this folder %q. Reindexing.", itemDirectory)
 
-				// update the parent item
-				repository.changedItem <- dataaccess.NewEvent(item, nil)
+				// remove the parent item since we cannot easily determine which child has gone away
+				repository.movedItem <- dataaccess.NewEvent(item, nil)
 
+				// recreate this item
+				repository.discoverItems(itemDirectory, repository.newItem)
+
+				// stop the folder watch for this item
+				folderWatcher.Stop()
 			}
 
 		}
+
+		repository.logger.Debug("Exiting directory listener for item %q.", item)
 	}()
 
 	return item, true
@@ -419,37 +362,22 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 			return false
 		}
 
-		checkIntervalInSeconds := 5
+		checkIntervalInSeconds := 3
 		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
 
 			select {
-			case change := <-folderWatcher.Change:
+			case <-folderWatcher.Change:
 
-				if changeContainsMarkdownItems(change) {
+				// remove the parent item since we cannot easily determine which child has gone away
+				repository.movedItem <- dataaccess.NewEvent(item, nil)
 
-					// type change
-					// remove the parent item since we cannot easily determine which child has gone away
-					repository.movedItem <- dataaccess.NewEvent(item, nil)
+				// recreate this item
+				repository.discoverItems(filesDirectory, repository.newItem)
 
-					// recreate this item
-					repository.discoverItems(itemDirectory, repository.newItem)
-
-					// stop the folder watch for this item
-					folderWatcher.Stop()
-
-				} else {
-
-					// update file list
-					repository.logger.Info("Updating the file list for item %q", item.String())
-					newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
-					item.SetFiles(newFiles)
-
-					// update the parent item
-					repository.changedItem <- dataaccess.NewEvent(item, nil)
-
-				}
+				// stop the folder watch for this item
+				folderWatcher.Stop()
 
 			}
 
@@ -457,21 +385,6 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 	}()
 
 	return item, false
-}
-
-func changeContainsMarkdownItems(folderChange *fswatch.FolderChange) bool {
-	allChanges := []string{}
-	allChanges = append(allChanges, folderChange.New()...)
-	allChanges = append(allChanges, folderChange.Moved()...)
-	allChanges = append(allChanges, folderChange.Modified()...)
-
-	for _, file := range allChanges {
-		if isMarkdownFile(file) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func directoryContainsItems(directory string) bool {
