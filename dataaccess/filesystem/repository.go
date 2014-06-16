@@ -470,8 +470,6 @@ func changeContainsMarkdownItems(folderChange *fswatch.FolderChange) bool {
 
 func directoryContainsItems(directory string) bool {
 
-	fmt.Printf("Checking if directory %q contains items.\n", directory)
-
 	directoryEntries, _ := ioutil.ReadDir(directory)
 	for _, entry := range directoryEntries {
 
@@ -484,7 +482,6 @@ func directoryContainsItems(directory string) bool {
 
 			// recurse
 			if directoryContainsItems(childDirectory) {
-				fmt.Println("Yes")
 				return true
 			}
 
@@ -492,13 +489,11 @@ func directoryContainsItems(directory string) bool {
 		}
 
 		if isMarkdownFile(childDirectory) {
-			fmt.Println("Yes")
 			return true
 		}
 
 		continue
 	}
 
-	fmt.Println("no")
 	return false
 }
