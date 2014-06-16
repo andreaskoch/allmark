@@ -16,6 +16,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Repository struct {
@@ -147,7 +148,7 @@ func (repository *Repository) getItemFromDirectory(repositoryPath, itemDirectory
 	}
 
 	// virtual item
-	if directoryDoesNotContainsItems(itemDirectory) {
+	if directoryContainsItems(itemDirectory) {
 		return repository.newVirtualItem(repositoryPath, itemDirectory)
 	}
 
@@ -360,7 +361,7 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 		}
 
 		recurse := true
-		checkIntervalInSeconds := 10
+		checkIntervalInSeconds := 5
 		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, recurse, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
@@ -375,6 +376,37 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 
 				// update the parent item
 				repository.changedItem <- dataaccess.NewEvent(item, nil)
+
+			}
+
+		}
+	}()
+
+	// watch for item type changes
+	go func() {
+		var skipFunc = func(path string) bool {
+			// skip the files directory
+			return strings.HasPrefix(path, filesDirectory)
+		}
+
+		checkIntervalInSeconds := 2
+		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, true, skipFunc, checkIntervalInSeconds).Start()
+
+		for folderWatcher.IsRunning() {
+
+			select {
+			case change := <-folderWatcher.Change:
+
+				if len(change.Moved()) > 0 || len(change.New()) > 0 {
+
+					repository.logger.Info("Something has changed in this folder %q. Reindexing.", itemDirectory)
+
+					// remove the parent item since we cannot easily determine which child has gone away
+					repository.movedItem <- dataaccess.NewEvent(item, nil)
+
+					// recreate this item
+					repository.discoverItems(itemDirectory, repository.newItem)
+				}
 
 			}
 
@@ -416,7 +448,7 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 			return false
 		}
 
-		checkIntervalInSeconds := 10
+		checkIntervalInSeconds := 5
 		folderWatcher := fswatch.NewFolderWatcher(filesDirectory, true, skipFunc, checkIntervalInSeconds).Start()
 
 		for folderWatcher.IsRunning() {
@@ -437,10 +469,45 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 		}
 	}()
 
+	// watch for item type changes
+	go func() {
+		var skipFunc = func(path string) bool {
+			// don't skip any file because the item and files directory are the same
+			return false
+		}
+
+		checkIntervalInSeconds := 2
+		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, true, skipFunc, checkIntervalInSeconds).Start()
+
+		for folderWatcher.IsRunning() {
+
+			select {
+			case change := <-folderWatcher.Change:
+
+				if len(change.Moved()) > 0 || len(change.New()) > 0 {
+
+					repository.logger.Info("Something has changed in this folder %q. Reindexing.", itemDirectory)
+
+					go func() {
+						// remove the parent item since we cannot easily determine which child has gone away
+						repository.movedItem <- dataaccess.NewEvent(item, nil)
+
+						time.Sleep(time.Duration(2) * time.Second)
+
+						// recreate this item
+						repository.discoverItems(itemDirectory, repository.newItem)
+					}()
+				}
+
+			}
+
+		}
+	}()
+
 	return item, false
 }
 
-func directoryDoesNotContainsItems(directory string) bool {
+func directoryContainsItems(directory string) bool {
 	directoryEntries, _ := ioutil.ReadDir(directory)
 	for _, entry := range directoryEntries {
 
@@ -452,14 +519,18 @@ func directoryDoesNotContainsItems(directory string) bool {
 			}
 
 			// recurse
-			return directoryDoesNotContainsItems(childDirectory)
-		}
+			if directoryContainsItems(childDirectory) {
+				return true
+			}
 
-		if !isMarkdownFile(childDirectory) {
 			continue
 		}
 
-		return true
+		if isMarkdownFile(childDirectory) {
+			return true
+		}
+
+		continue
 	}
 
 	return false
