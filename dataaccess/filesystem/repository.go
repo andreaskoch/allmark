@@ -227,9 +227,6 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 
 			case content.TypeMoved:
 				{
-					repository.logger.Info("Item %q moved.", item)
-					repository.movedItem <- dataaccess.NewEvent(item, nil)
-
 					break ContentChannelLoop
 				}
 
