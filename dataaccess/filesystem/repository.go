@@ -345,6 +345,9 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 
 					// recreate this item
 					repository.discoverItems(itemDirectory, repository.newItem)
+
+					// stop the folder watch for this item
+					folderWatcher.Stop()
 				}
 			}
 
@@ -432,6 +435,9 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 
 					// recreate this item
 					repository.discoverItems(itemDirectory, repository.newItem)
+
+					// stop the folder watch for this item
+					folderWatcher.Stop()
 
 				} else {
 
