@@ -16,7 +16,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 type Repository struct {
@@ -382,37 +381,6 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 		}
 	}()
 
-	// watch for item type changes
-	go func() {
-		var skipFunc = func(path string) bool {
-			// skip the files directory
-			return strings.HasPrefix(path, filesDirectory)
-		}
-
-		checkIntervalInSeconds := 2
-		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, true, skipFunc, checkIntervalInSeconds).Start()
-
-		for folderWatcher.IsRunning() {
-
-			select {
-			case change := <-folderWatcher.Change:
-
-				if len(change.Moved()) > 0 || len(change.New()) > 0 {
-
-					repository.logger.Info("Something has changed in this folder %q. Reindexing.", itemDirectory)
-
-					// remove the parent item since we cannot easily determine which child has gone away
-					repository.movedItem <- dataaccess.NewEvent(item, nil)
-
-					// recreate this item
-					repository.discoverItems(itemDirectory, repository.newItem)
-				}
-
-			}
-
-		}
-	}()
-
 	return item, true
 }
 
@@ -454,49 +422,27 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 		for folderWatcher.IsRunning() {
 
 			select {
-			case <-folderWatcher.Change:
-
-				// update file list
-				repository.logger.Info("Updating the file list for item %q", item.String())
-				newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
-				item.SetFiles(newFiles)
-
-				// update the parent item
-				repository.changedItem <- dataaccess.NewEvent(item, nil)
-
-			}
-
-		}
-	}()
-
-	// watch for item type changes
-	go func() {
-		var skipFunc = func(path string) bool {
-			// don't skip any file because the item and files directory are the same
-			return false
-		}
-
-		checkIntervalInSeconds := 2
-		folderWatcher := fswatch.NewFolderWatcher(itemDirectory, true, skipFunc, checkIntervalInSeconds).Start()
-
-		for folderWatcher.IsRunning() {
-
-			select {
 			case change := <-folderWatcher.Change:
 
-				if len(change.Moved()) > 0 || len(change.New()) > 0 {
+				if changeContainsMarkdownItems(change) {
 
-					repository.logger.Info("Something has changed in this folder %q. Reindexing.", itemDirectory)
+					// type change
+					// remove the parent item since we cannot easily determine which child has gone away
+					repository.movedItem <- dataaccess.NewEvent(item, nil)
 
-					go func() {
-						// remove the parent item since we cannot easily determine which child has gone away
-						repository.movedItem <- dataaccess.NewEvent(item, nil)
+					// recreate this item
+					repository.discoverItems(itemDirectory, repository.newItem)
 
-						time.Sleep(time.Duration(2) * time.Second)
+				} else {
 
-						// recreate this item
-						repository.discoverItems(itemDirectory, repository.newItem)
-					}()
+					// update file list
+					repository.logger.Info("Updating the file list for item %q", item.String())
+					newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+					item.SetFiles(newFiles)
+
+					// update the parent item
+					repository.changedItem <- dataaccess.NewEvent(item, nil)
+
 				}
 
 			}
@@ -507,7 +453,25 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 	return item, false
 }
 
+func changeContainsMarkdownItems(folderChange *fswatch.FolderChange) bool {
+	allChanges := []string{}
+	allChanges = append(allChanges, folderChange.New()...)
+	allChanges = append(allChanges, folderChange.Moved()...)
+	allChanges = append(allChanges, folderChange.Modified()...)
+
+	for _, file := range allChanges {
+		if isMarkdownFile(file) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func directoryContainsItems(directory string) bool {
+
+	fmt.Printf("Checking if directory %q contains items.\n", directory)
+
 	directoryEntries, _ := ioutil.ReadDir(directory)
 	for _, entry := range directoryEntries {
 
@@ -520,6 +484,7 @@ func directoryContainsItems(directory string) bool {
 
 			// recurse
 			if directoryContainsItems(childDirectory) {
+				fmt.Println("Yes")
 				return true
 			}
 
@@ -527,11 +492,13 @@ func directoryContainsItems(directory string) bool {
 		}
 
 		if isMarkdownFile(childDirectory) {
+			fmt.Println("Yes")
 			return true
 		}
 
 		continue
 	}
 
+	fmt.Println("no")
 	return false
 }
