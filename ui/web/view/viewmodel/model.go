@@ -30,8 +30,7 @@ type Model struct {
 
 	Content string `json:"content"`
 
-	TopDocs []*Model `json:"topDocs"`
-	Childs  []*Base  `json:"childs"`
+	Childs []*Base `json:"childs"`
 
 	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
 	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`

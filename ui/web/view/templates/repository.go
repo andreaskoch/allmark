@@ -21,14 +21,19 @@ const repositoryTemplate = `
 
 <div class="cleaner"></div>
 
-{{ if .TopDocs }}
+<section class="content">
+{{.Content}}
+</section>
+
+<div class="cleaner"></div>
+
+{{ if .Childs }}
 <section class="childs">
 <ol class="list">
-{{range .TopDocs}}
+{{range .Childs}}
 <li class="child">
 	<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
 	<p class="child-description">{{.Description}}</p>
-	<div>{{.Content}}</div>
 </li>
 {{end}}
 </ol>

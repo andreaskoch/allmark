@@ -204,11 +204,6 @@ func (index *Index) Add(item *model.Item) {
 		return
 	}
 
-	// make root items a repository
-	if item.Route().Level() == 0 {
-		item.Type = model.TypeRepository
-	}
-
 	// check if the item already exists
 	_, existsAlready := index.IsMatch(*item.Route())
 	if existsAlready {

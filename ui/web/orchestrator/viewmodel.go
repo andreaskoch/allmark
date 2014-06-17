@@ -65,8 +65,6 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 	// special viewmodel attributes
 	isRepositoryItem := item.Type == model.TypeRepository
 	if isRepositoryItem {
-		// top documents
-		viewModel.TopDocs = orchestrator.getTopDocuments(5, pathProvider, item.Route())
 
 		// tag cloud
 		repositoryIsNotEmpty := orchestrator.itemIndex.Size() > 5 // don't bother to create a tag cloud if there aren't enough documents
@@ -80,48 +78,6 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 	}
 
 	return viewModel
-}
-
-func (orchestrator *ViewModelOrchestrator) getTopDocuments(numberOfTopDocuments int, pathProvider paths.Pather, route *route.Route) []*viewmodel.Model {
-
-	baseRouteLevel := route.Level()
-
-	// determine the candidates for the top-documents
-	candidateModels := make([]*viewmodel.Model, 0)
-
-	// include only the next or over-next level childs
-	nextLevelChildExpression := func(child *model.Item) bool {
-		childLevel := child.Route().Level()
-
-		isNextLevel := childLevel == baseRouteLevel+1
-		isOverNextLevel := childLevel == baseRouteLevel+2
-
-		return isNextLevel || isOverNextLevel
-	}
-
-	childs := orchestrator.itemIndex.GetAllChilds(route, nextLevelChildExpression)
-	for _, child := range childs {
-
-		// filter out virtual items
-		if child.IsVirtual() {
-			continue
-		}
-
-		// create viewmodel and append to list
-		childModel := orchestrator.GetViewModel(pathProvider, child)
-		candidateModels = append(candidateModels, &childModel)
-
-	}
-
-	// sort the candidate models
-	viewmodel.SortModelBy(sortModelsByDate).Sort(candidateModels)
-
-	// take the top models only
-	if len(candidateModels) <= numberOfTopDocuments {
-		return candidateModels
-	}
-
-	return candidateModels[:numberOfTopDocuments]
 }
 
 func (orchestrator *ViewModelOrchestrator) getChildModels(route *route.Route, pathProvider paths.Pather) []*viewmodel.Base {
