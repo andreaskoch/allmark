@@ -4,6 +4,10 @@
 
 package updatehandler
 
+import (
+	"strings"
+)
+
 type hub struct {
 	// Registered connections.
 	connections map[*connection]bool
@@ -25,6 +29,18 @@ var h = hub{
 	connections: make(map[*connection]bool),
 }
 
+func (hub *hub) ConnectionsByRoute(route string) []*connection {
+	connectionsByRoute := make([]*connection, 0)
+
+	for c := range h.connections {
+		if strings.HasSuffix(route, c.Route) {
+			connectionsByRoute = append(connectionsByRoute, c)
+		}
+	}
+
+	return connectionsByRoute
+}
+
 func (h *hub) run() {
 	for {
 		select {
@@ -39,7 +55,8 @@ func (h *hub) run() {
 			}
 		case m := <-h.broadcast:
 			{
-				for c, _ := range h.connections {
+				affectedConnections := h.ConnectionsByRoute(m.Route)
+				for _, c := range affectedConnections {
 
 					select {
 					case c.send <- m:
