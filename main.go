@@ -82,30 +82,32 @@ func main() {
 		}
 
 		// full index of the repository
-		for itemEvent := range repository.InitialItems() {
+		go func() {
+			for itemEvent := range repository.InitialItems() {
 
-			// validate event
-			if itemEvent.Error != nil {
-				logger.Warn("%s", itemEvent.Error)
-				continue
+				// validate event
+				if itemEvent.Error != nil {
+					logger.Warn("%s", itemEvent.Error)
+					continue
+				}
+
+				repositoryItem := itemEvent.Item
+				if repositoryItem == nil {
+					logger.Warn("Repository item is empty.")
+					continue
+				}
+
+				addRepositoryItemToIndex(repositoryItem)
+
 			}
 
-			repositoryItem := itemEvent.Item
-			if repositoryItem == nil {
-				logger.Warn("Repository item is empty.")
-				continue
-			}
-
-			addRepositoryItemToIndex(repositoryItem)
-
-		}
-
-		// update the full-text search index
-		itemSearch.Update()
+			// update the full-text search index
+			itemSearch.Update()
+		}()
 
 		// scheduled reindex of the fulltext index
-		sleepInterval := time.Minute * 3
 		go func() {
+			sleepInterval := time.Minute * 3
 			for {
 				time.Sleep(sleepInterval)
 				itemSearch.Update()
