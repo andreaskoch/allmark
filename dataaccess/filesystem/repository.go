@@ -18,6 +18,8 @@ import (
 	"strings"
 )
 
+var numberOfWatchers int
+
 type Repository struct {
 	logger    logger.Logger
 	hash      string
@@ -102,6 +104,8 @@ func (repository *Repository) Path() string {
 
 // Create a new Item for the specified path.
 func (repository *Repository) discoverItems(itemPath string, targetChannel chan *dataaccess.RepositoryEvent) {
+
+	repository.logger.Info("Folder watchers", fswatch.NumberOfFolderWatchers())
 
 	// abort if path does not exist
 	if !fsutil.PathExists(itemPath) {
@@ -263,6 +267,8 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 			}
 
 		}
+
+		repository.logger.Debug("Exiting directory listener for item %q.", item)
 	}()
 
 	return item, true
@@ -382,6 +388,8 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 			}
 
 		}
+
+		repository.logger.Debug("Exiting directory listener for item %q.", item)
 	}()
 
 	return item, false
