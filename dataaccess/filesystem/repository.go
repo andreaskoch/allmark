@@ -7,6 +7,7 @@ package filesystem
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
+	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
@@ -23,6 +24,7 @@ type Repository struct {
 	logger    logger.Logger
 	hash      string
 	directory string
+	watcher   *watcherFactory
 
 	newItem     chan *dataaccess.RepositoryEvent // new items which are discovered after the first index has been built
 	changedItem chan *dataaccess.RepositoryEvent // items with changed content
@@ -57,6 +59,7 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 		logger:    logger,
 		directory: directory,
 		hash:      hash,
+		watcher:   newWatcherFactory(logger),
 
 		newItem:     make(chan *dataaccess.RepositoryEvent, 1),
 		changedItem: make(chan *dataaccess.RepositoryEvent, 1),
@@ -104,7 +107,7 @@ func (repository *Repository) Path() string {
 // Create a new Item for the specified path.
 func (repository *Repository) discoverItems(itemPath string, targetChannel chan *dataaccess.RepositoryEvent) {
 
-	repository.logger.Info("Folder watchers", fswatch.NumberOfFolderWatchers())
+	repository.logger.Debug("# folder watchers: %v", fswatch.NumberOfFolderWatchers())
 
 	// abort if path does not exist
 	if !fsutil.PathExists(itemPath) {
@@ -181,25 +184,69 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 		return
 	}
 
-	watchFolder(itemDirectory, func(change *fswatch.FolderChange) {
+	if route.Level() > 0 {
 
-		// remove the parent item since we cannot easily determine which child has gone away
-		repository.movedItem <- dataaccess.NewEvent(item, nil)
+		repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
-		// recreate this item
-		repository.discoverItems(itemDirectory, repository.newItem)
-	})
+			fmt.Println("------------physical item-------------")
+			fmt.Println(itemDirectory)
+			fmt.Println("------------------------------------------")
 
-	watchFolder(filesDirectory, func(change *fswatch.FolderChange) {
+			// remove the parent item since we cannot easily determine which child has gone away
+			repository.movedItem <- dataaccess.NewEvent(item, nil)
 
-		// update file list
-		repository.logger.Info("Updating the file list for item %q", item.String())
-		newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
-		item.SetFiles(newFiles)
+			// recreate this item
+			repository.discoverItems(itemDirectory, repository.newItem)
+		})
 
-		// update the parent item
-		repository.changedItem <- dataaccess.NewEvent(item, nil)
-	})
+		repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
+
+			fmt.Println("------------physical files----------------")
+			fmt.Println(itemDirectory)
+			fmt.Println("------------------------------------------")
+
+			// update file list
+			repository.logger.Info("Updating the file list for item %q", item.String())
+			newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+			item.SetFiles(newFiles)
+
+			// update the parent item
+			repository.changedItem <- dataaccess.NewEvent(item, nil)
+		})
+
+	}
+
+	// watch for content changes
+	go func() {
+		contentChangeChannel := item.ChangeEvent()
+	ContentChannelLoop:
+		for changeEvent := range contentChangeChannel {
+
+			switch changeEvent {
+
+			case content.TypeChanged:
+				{
+					repository.logger.Info("Item %q changed.", item)
+					repository.changedItem <- dataaccess.NewEvent(item, nil)
+				}
+
+			case content.TypeMoved:
+				{
+					// remove the parent item since we cannot easily determine which child has gone away
+					repository.movedItem <- dataaccess.NewEvent(item, nil)
+
+					// recreate this item
+					repository.discoverItems(itemDirectory, repository.newItem)
+
+					break ContentChannelLoop
+				}
+
+			}
+
+		}
+
+		repository.logger.Debug("Exiting content listener for item %q.", item)
+	}()
 
 	return item, true
 }
@@ -230,7 +277,11 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 		return
 	}
 
-	watchFolder(itemDirectory, func(change *fswatch.FolderChange) {
+	repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
+
+		fmt.Println("------------virtual item------------------")
+		fmt.Println(itemDirectory)
+		fmt.Println("------------------------------------------")
 
 		// remove the parent item since we cannot easily determine which child has gone away
 		repository.movedItem <- dataaccess.NewEvent(item, nil)
@@ -268,13 +319,17 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 		return
 	}
 
-	watchFolder(itemDirectory, func(change *fswatch.FolderChange) {
+	repository.watcher.AllFiles(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
-		// remove the parent item since we cannot easily determine which child has gone away
-		repository.movedItem <- dataaccess.NewEvent(item, nil)
+		fmt.Println("-------------file item--------------------")
+		fmt.Println(itemDirectory)
+		fmt.Println("------------------------------------------")
 
-		// recreate this item
-		repository.discoverItems(itemDirectory, repository.newItem)
+		newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+		item.SetFiles(newFiles)
+
+		// update the parent item
+		repository.changedItem <- dataaccess.NewEvent(item, nil)
 	})
 
 	return item, false

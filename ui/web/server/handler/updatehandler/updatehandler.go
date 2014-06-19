@@ -85,7 +85,7 @@ func (handler *UpdateHandler) Func() func(ws *websocket.Conn) {
 
 		// create a new connection
 		c := &connection{
-			Route: requestRoute.OriginalValue(),
+			Route: requestRoute.Value(),
 			send:  make(chan Message, 10),
 			ws:    ws,
 		}

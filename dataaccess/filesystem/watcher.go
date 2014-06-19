@@ -5,48 +5,95 @@
 package filesystem
 
 import (
-	"fmt"
+	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/go-fswatch"
 )
 
-var watchers map[string]bool
+var (
+	watchers map[string]bool
+)
 
 func init() {
 	watchers = make(map[string]bool)
 }
 
-func watchFolder(folder string, callback func(change *fswatch.FolderChange)) {
+func newWatcherFactory(logger logger.Logger) *watcherFactory {
+	return &watcherFactory{
+		logger: logger,
+	}
+}
 
-	if exists, _ := watchers[folder]; exists {
-		fmt.Println("Watcher already exists")
+type watcherFactory struct {
+	logger logger.Logger
+}
+
+func (factory *watcherFactory) SubDirectories(folder string, checkIntervalInSeconds int, callback func(change *fswatch.FolderChange)) {
+	recurse := false
+
+	var skipFunc = func(path string) bool {
+		// skip all files
+		if isDirectory, _ := fsutil.IsDirectory(path); !isDirectory {
+			return true
+		}
+
+		// skip all reserved directories
+		return isReservedDirectory(path)
+	}
+
+	factory.watchFolder(folder, checkIntervalInSeconds, recurse, skipFunc, callback)
+}
+
+func (factory *watcherFactory) AllFiles(folder string, checkIntervalInSeconds int, callback func(change *fswatch.FolderChange)) {
+	recurse := true
+
+	var skipFunc = func(path string) bool {
+		// don't skip anything
+		return false
+	}
+
+	factory.watchFolder(folder, checkIntervalInSeconds, recurse, skipFunc, callback)
+}
+
+func (factory *watcherFactory) watchFolder(folder string, checkIntervalInSeconds int, recurse bool, skipFunc func(path string) bool, callback func(change *fswatch.FolderChange)) {
+
+	if factory.isReserved(folder) {
+		factory.logger.Debug("Watcher %s already exists\n", folder)
 		return
 	}
 
 	// look for changes in the item directory
 	go func() {
-		var skipFunc = func(path string) bool {
-			isReserved := isReservedDirectory(path)
-			return isReserved
-		}
 
-		recurse := false
-		checkIntervalInSeconds := 3
 		folderWatcher := fswatch.NewFolderWatcher(folder, recurse, skipFunc, checkIntervalInSeconds).Start()
-
 		for folderWatcher.IsRunning() {
 
 			select {
 			case change := <-folderWatcher.Change:
-
 				callback(change)
-
 			}
 
 		}
 
-		delete(watchers, folder)
-		fmt.Printf("Exiting directory listener for folder %q.\n", folder)
+		factory.release(folder)
+		factory.logger.Debug("Exiting directory listener for folder %q.\n", folder)
 	}()
 
+	factory.reserve(folder)
+}
+
+func (factory *watcherFactory) reserve(folder string) {
 	watchers[folder] = true
+}
+
+func (factory *watcherFactory) release(folder string) {
+	delete(watchers, folder)
+}
+
+func (factory *watcherFactory) isReserved(folder string) bool {
+	if exists, _ := watchers[folder]; exists {
+		return true
+	}
+
+	return false
 }
