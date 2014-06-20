@@ -153,7 +153,7 @@ func (repository *Repository) getItemFromDirectory(repositoryPath, itemDirectory
 	}
 
 	// virtual item
-	if directoryContainsItems(itemDirectory) {
+	if directoryContainsItems(itemDirectory, 1) {
 		return repository.newVirtualItem(repositoryPath, itemDirectory)
 	}
 
@@ -325,17 +325,30 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 		fmt.Println(itemDirectory)
 		fmt.Println("------------------------------------------")
 
-		newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
-		item.SetFiles(newFiles)
+		if directoryContainsItems(filesDirectory, 1) {
+			// type change
 
-		// update the parent item
-		repository.changedItem <- dataaccess.NewEvent(item, nil)
+			// remove the parent item since we cannot easily determine which child has gone away
+			repository.movedItem <- dataaccess.NewEvent(item, nil)
+
+			// recreate this item
+			repository.discoverItems(itemDirectory, repository.newItem)
+
+		} else {
+
+			// update files
+			newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+			item.SetFiles(newFiles)
+
+			// update the parent item
+			repository.changedItem <- dataaccess.NewEvent(item, nil)
+		}
 	})
 
 	return item, false
 }
 
-func directoryContainsItems(directory string) bool {
+func directoryContainsItems(directory string, maxdepth int) bool {
 
 	directoryEntries, _ := ioutil.ReadDir(directory)
 	for _, entry := range directoryEntries {
@@ -347,9 +360,12 @@ func directoryContainsItems(directory string) bool {
 				continue
 			}
 
-			// recurse
-			if directoryContainsItems(childDirectory) {
-				return true
+			if maxdepth > 0 {
+
+				// recurse
+				if directoryContainsItems(childDirectory, maxdepth-1) {
+					return true
+				}
 			}
 
 			continue
