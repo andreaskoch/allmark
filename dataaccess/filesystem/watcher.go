@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	watchers map[string]bool
+	watchers map[string]*fswatch.FolderWatcher
 )
 
 func init() {
-	watchers = make(map[string]bool)
+	watchers = make(map[string]*fswatch.FolderWatcher)
 }
 
 func newWatcherFactory(logger logger.Logger) *watcherFactory {
@@ -55,6 +55,15 @@ func (factory *watcherFactory) AllFiles(folder string, checkIntervalInSeconds in
 	factory.watchFolder(folder, checkIntervalInSeconds, recurse, skipFunc, callback)
 }
 
+func (factory *watcherFactory) Stop(folder string) {
+	watcher, exists := watchers[folder]
+	if !exists {
+		return
+	}
+
+	watcher.Stop()
+}
+
 func (factory *watcherFactory) watchFolder(folder string, checkIntervalInSeconds int, recurse bool, skipFunc func(path string) bool, callback func(change *fswatch.FolderChange)) {
 
 	if factory.isReserved(folder) {
@@ -63,9 +72,9 @@ func (factory *watcherFactory) watchFolder(folder string, checkIntervalInSeconds
 	}
 
 	// look for changes in the item directory
+	folderWatcher := fswatch.NewFolderWatcher(folder, recurse, skipFunc, checkIntervalInSeconds).Start()
 	go func() {
 
-		folderWatcher := fswatch.NewFolderWatcher(folder, recurse, skipFunc, checkIntervalInSeconds).Start()
 		for folderWatcher.IsRunning() {
 
 			select {
@@ -79,11 +88,11 @@ func (factory *watcherFactory) watchFolder(folder string, checkIntervalInSeconds
 		factory.logger.Debug("Exiting directory listener for folder %q.\n", folder)
 	}()
 
-	factory.reserve(folder)
+	factory.reserve(folder, folderWatcher)
 }
 
-func (factory *watcherFactory) reserve(folder string) {
-	watchers[folder] = true
+func (factory *watcherFactory) reserve(folder string, watcher *fswatch.FolderWatcher) {
+	watchers[folder] = watcher
 }
 
 func (factory *watcherFactory) release(folder string) {
@@ -91,7 +100,7 @@ func (factory *watcherFactory) release(folder string) {
 }
 
 func (factory *watcherFactory) isReserved(folder string) bool {
-	if exists, _ := watchers[folder]; exists {
+	if _, exists := watchers[folder]; exists {
 		return true
 	}
 

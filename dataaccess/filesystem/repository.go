@@ -188,10 +188,6 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 
 		repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
-			fmt.Println("------------physical item-------------")
-			fmt.Println(itemDirectory)
-			fmt.Println("------------------------------------------")
-
 			// remove the parent item since we cannot easily determine which child has gone away
 			repository.movedItem <- dataaccess.NewEvent(item, nil)
 
@@ -200,10 +196,6 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 		})
 
 		repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
-
-			fmt.Println("------------physical files----------------")
-			fmt.Println(itemDirectory)
-			fmt.Println("------------------------------------------")
 
 			// update file list
 			repository.logger.Info("Updating the file list for item %q", item.String())
@@ -279,9 +271,8 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 
 	repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
-		fmt.Println("------------virtual item------------------")
-		fmt.Println(itemDirectory)
-		fmt.Println("------------------------------------------")
+		// stop this watcher
+		repository.watcher.Stop(itemDirectory)
 
 		// remove the parent item since we cannot easily determine which child has gone away
 		repository.movedItem <- dataaccess.NewEvent(item, nil)
@@ -321,12 +312,11 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 
 	repository.watcher.AllFiles(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
-		fmt.Println("-------------file item--------------------")
-		fmt.Println(itemDirectory)
-		fmt.Println("------------------------------------------")
-
 		if directoryContainsItems(itemDirectory, 1) {
 			// type change
+
+			// stop this watcher
+			repository.watcher.Stop(itemDirectory)
 
 			// remove the parent item since we cannot easily determine which child has gone away
 			repository.changedItem <- dataaccess.NewEvent(item, nil)
