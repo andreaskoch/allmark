@@ -144,9 +144,19 @@ var Autoupdate = (function () {
             };
 
             var entries = model.childs;
+            var numberOfNewEntries = entries.length;
+
+            // check if the childs container exists
+            if ($(".childs").length === 0) {
+
+                // reload the page
+                document.location.reload()
+                return
+
+            }
+
             var existingEntries = $(".childs>.list>.child");
             var numberOfExistingEntries = existingEntries.length;
-            var numberOfNewEntries = entries.length;
 
             var entryTemplate = "<li class=\"child\"><a href=\"#\" class=\"child-title child-link\"></a><p class=\"child-description\"></p></li>";
 
