@@ -325,11 +325,11 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 		fmt.Println(itemDirectory)
 		fmt.Println("------------------------------------------")
 
-		if directoryContainsItems(filesDirectory, 1) {
+		if directoryContainsItems(itemDirectory, 1) {
 			// type change
 
 			// remove the parent item since we cannot easily determine which child has gone away
-			repository.movedItem <- dataaccess.NewEvent(item, nil)
+			repository.changedItem <- dataaccess.NewEvent(item, nil)
 
 			// recreate this item
 			repository.discoverItems(itemDirectory, repository.newItem)
