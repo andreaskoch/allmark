@@ -153,7 +153,7 @@ func (repository *Repository) getItemFromDirectory(repositoryPath, itemDirectory
 	}
 
 	// virtual item
-	if directoryContainsItems(itemDirectory, 1) {
+	if directoryContainsItems(itemDirectory, 3) {
 		return repository.newVirtualItem(repositoryPath, itemDirectory)
 	}
 

@@ -204,16 +204,10 @@ func (index *Index) Add(item *model.Item) {
 		return
 	}
 
-	// check if the item already exists
-	_, existsAlready := index.IsMatch(*item.Route())
-	if existsAlready {
-
-		// notify subscribers about updates
-		defer func() {
-			index.updates <- item
-		}()
-
-	}
+	// notify subscribers about updates
+	defer func() {
+		index.updates <- item
+	}()
 
 	index.logger.Debug("Adding item %q to index", item)
 
