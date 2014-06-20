@@ -271,9 +271,6 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 
 	repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
-		// stop this watcher
-		repository.watcher.Stop(itemDirectory)
-
 		// remove the parent item since we cannot easily determine which child has gone away
 		repository.movedItem <- dataaccess.NewEvent(item, nil)
 
@@ -315,11 +312,8 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 		if directoryContainsItems(itemDirectory, 1) {
 			// type change
 
-			// stop this watcher
-			repository.watcher.Stop(itemDirectory)
-
 			// remove the parent item since we cannot easily determine which child has gone away
-			repository.changedItem <- dataaccess.NewEvent(item, nil)
+			repository.movedItem <- dataaccess.NewEvent(item, nil)
 
 			// recreate this item
 			repository.discoverItems(itemDirectory, repository.newItem)
