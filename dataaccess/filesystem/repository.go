@@ -269,6 +269,7 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 		return
 	}
 
+	// watch for new child items
 	repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
 		// remove the parent item since we cannot easily determine which child has gone away
@@ -276,6 +277,25 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 
 		// recreate this item
 		repository.discoverItems(itemDirectory, repository.newItem)
+	})
+
+	// watch for a type change
+	repository.watcher.Directory(itemDirectory, 2, func(change *fswatch.FolderChange) {
+
+		for _, newFile := range change.New() {
+			if !isMarkdownFile(newFile) {
+				continue
+			}
+
+			repository.watcher.Stop(itemDirectory)
+
+			// remove the parent item since we cannot easily determine which child has gone away
+			repository.movedItem <- dataaccess.NewEvent(item, nil)
+
+			// recreate this item
+			repository.discoverItems(itemDirectory, repository.newItem)
+
+		}
 	})
 
 	return item, true

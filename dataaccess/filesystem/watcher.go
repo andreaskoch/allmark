@@ -28,6 +28,17 @@ type watcherFactory struct {
 	logger logger.Logger
 }
 
+func (factory *watcherFactory) Directory(folder string, checkIntervalInSeconds int, callback func(change *fswatch.FolderChange)) {
+	recurse := false
+
+	var skipFunc = func(path string) bool {
+		// don't skip
+		return false
+	}
+
+	factory.watchFolder(folder, checkIntervalInSeconds, recurse, skipFunc, callback)
+}
+
 func (factory *watcherFactory) SubDirectories(folder string, checkIntervalInSeconds int, callback func(change *fswatch.FolderChange)) {
 	recurse := false
 
