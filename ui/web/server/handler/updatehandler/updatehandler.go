@@ -77,7 +77,7 @@ func (handler *UpdateHandler) Func() func(ws *websocket.Conn) {
 		}
 
 		// stage 1: check if there is a item for the request
-		_, found := handler.itemIndex.IsMatch(*requestRoute)
+		item, found := handler.itemIndex.IsMatch(*requestRoute)
 		if !found {
 			handler.logger.Debug("Route %q was not found.", requestRoute)
 			return
@@ -93,6 +93,14 @@ func (handler *UpdateHandler) Func() func(ws *websocket.Conn) {
 		// establish connection
 		handler.logger.Debug("Establishing a connection for %q", requestRoute.String())
 		h.register <- c
+
+		// send an initial update
+		go func() {
+			// render the view model
+			pathProvider := handler.patherFactory.Relative(item.Route())
+			viewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, item)
+			c.send <- NewMessage(viewModel)
+		}()
 
 		defer func() {
 			h.unregister <- c

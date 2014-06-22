@@ -14,10 +14,14 @@ type Message struct {
 	ViewModel viewmodel.Model `json:"model"`
 }
 
-func UpdateMessage(viewModel viewmodel.Model) {
-	h.broadcast <- Message{
+func NewMessage(viewModel viewmodel.Model) Message {
+	return Message{
 		Route:     viewModel.Route,
 		Name:      "update",
 		ViewModel: viewModel,
 	}
+}
+
+func UpdateMessage(viewModel viewmodel.Model) {
+	h.broadcast <- NewMessage(viewModel)
 }
