@@ -24,10 +24,6 @@ import (
 	"time"
 )
 
-var (
-	logger = console.New(loglevel.Debug)
-)
-
 const (
 	CommandNameInit  = "init"
 	CommandNameServe = "serve"
@@ -108,8 +104,9 @@ func printUsageInformation(args []string) {
 
 func serve(repositoryPath string) bool {
 
-	// config
 	config := config.Get(repositoryPath)
+	logLevel := loglevel.FromString(config.LogLevel)
+	logger := console.New(logLevel)
 
 	// data access
 	repository, err := filesystem.NewRepository(logger, repositoryPath)
@@ -266,6 +263,10 @@ func serve(repositoryPath string) bool {
 }
 
 func initialize(repositoryPath string) bool {
+
+	config := config.Get(repositoryPath)
+	logger := console.New(loglevel.FromString(config.LogLevel))
+
 	if success, err := initialization.Initialize(repositoryPath); !success {
 		logger.Error("Error initializing folder %q. Error: %s", repositoryPath, err.Error())
 		return false

@@ -99,8 +99,9 @@ type Server struct {
 }
 
 type Config struct {
-	Server Server
-	Web    Web
+	Server   Server
+	Web      Web
+	LogLevel string
 
 	baseFolder      string
 	metaDataFolder  string

@@ -19,10 +19,10 @@ const (
 	LogLevelFatal = "Fatal"
 )
 
-func New(loglevel loglevel.LogLevel) *ConsoleLogger {
+func New(level loglevel.LogLevel) *ConsoleLogger {
 	return &ConsoleLogger{
 		output: os.Stdout,
-		level:  loglevel,
+		level:  level,
 	}
 }
 
