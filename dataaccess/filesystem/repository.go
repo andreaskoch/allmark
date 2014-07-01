@@ -184,29 +184,25 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 		return
 	}
 
-	if route.Level() > 0 {
+	repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
-		repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
+		// remove the parent item since we cannot easily determine which child has gone away
+		repository.movedItem <- dataaccess.NewEvent(item, nil)
 
-			// remove the parent item since we cannot easily determine which child has gone away
-			repository.movedItem <- dataaccess.NewEvent(item, nil)
+		// recreate this item
+		repository.discoverItems(itemDirectory, repository.newItem)
+	})
 
-			// recreate this item
-			repository.discoverItems(itemDirectory, repository.newItem)
-		})
+	repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
 
-		repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
+		// update file list
+		repository.logger.Info("Updating the file list for item %q", item.String())
+		newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+		item.SetFiles(newFiles)
 
-			// update file list
-			repository.logger.Info("Updating the file list for item %q", item.String())
-			newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
-			item.SetFiles(newFiles)
-
-			// update the parent item
-			repository.changedItem <- dataaccess.NewEvent(item, nil)
-		})
-
-	}
+		// update the parent item
+		repository.changedItem <- dataaccess.NewEvent(item, nil)
+	})
 
 	// watch for content changes
 	go func() {
