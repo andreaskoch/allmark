@@ -260,7 +260,7 @@ func (index *Index) removeItemFromItemList(item *model.Item) {
 
 	if indexToRemove == -1 {
 		// the item was not found
-		index.logger.Warn("The item %q was not found in the item list.", item)
+		index.logger.Warn("The item '%s' was not found in the item list.", item)
 		return
 	}
 
@@ -274,7 +274,7 @@ func (index *Index) removeItemFromRouteMap(item *model.Item) {
 
 func (index *Index) removeItemFromTree(item *model.Item) {
 	if _, err := index.itemTree.Delete(item); err != nil {
-		index.logger.Error("Unable to delete %q from the item tree. Error: %s", item, err.Error())
+		index.logger.Error("Unable to delete item '%s' from the item tree. Error: %s", item, err.Error())
 	}
 
 }
