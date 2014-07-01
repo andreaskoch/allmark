@@ -24,190 +24,29 @@ import (
 	"time"
 )
 
+var (
+	logger = console.New(loglevel.Debug)
+)
+
 const (
 	CommandNameInit  = "init"
 	CommandNameServe = "serve"
 )
 
 func main() {
-
-	serve := func(repositoryPath string) {
-
-		// logger
-		logger := console.New(loglevel.Debug)
-
-		// config
-		config := config.Get(repositoryPath)
-
-		// data access
-		repository, err := filesystem.NewRepository(logger, repositoryPath)
-		if err != nil {
-			logger.Fatal("Unable to create a repository. Error: %s", err)
-		}
-
-		// parser
-		parser, err := parsing.New(logger)
-		if err != nil {
-			logger.Fatal("Unable to instantiate a parser. Error: %s", err)
-		}
-
-		// converter
-		converter, err := markdowntohtml.New(logger)
-		if err != nil {
-			logger.Fatal("Unable to instantiate a converter. Error: %s", err)
-		}
-
-		// repository (fallback) name
-		repositoryName := filepath.Base(repositoryPath)
-
-		// item index
-		index := index.New(logger, repositoryName)
-
-		// search
-		itemSearch := search.NewItemSearch(logger, index)
-
-		addRepositoryItemToIndex := func(repositoryItem *dataaccess.Item) {
-			// parse item
-			if item, err := parser.Parse(repositoryItem); err == nil {
-				// register the item at the index
-				index.Add(item)
-			} else {
-				logger.Warn("%s", err.Error())
-			}
-		}
-
-		removeRepositoryItemFromIndex := func(repositoryItem *dataaccess.Item) {
-			// remove the item from the index
-			index.Remove(repositoryItem.Route())
-		}
-
-		// full index of the repository
-		go func() {
-			for itemEvent := range repository.InitialItems() {
-
-				// validate event
-				if itemEvent.Error != nil {
-					logger.Warn("%s", itemEvent.Error)
-					continue
-				}
-
-				repositoryItem := itemEvent.Item
-				if repositoryItem == nil {
-					logger.Warn("Repository item is empty.")
-					continue
-				}
-
-				addRepositoryItemToIndex(repositoryItem)
-
-			}
-
-			// update the full-text search index
-			itemSearch.Update()
-		}()
-
-		// scheduled reindex of the fulltext index
-		go func() {
-			sleepInterval := time.Minute * 3
-			for {
-				time.Sleep(sleepInterval)
-				itemSearch.Update()
-			}
-		}()
-
-		// todo: implement discard of old items and especially old change listeners
-		// event handler: new items
-		go func() {
-			for itemEvent := range repository.NewItems() {
-				logger.Debug("New Item")
-
-				// validate event
-				if itemEvent.Error != nil {
-					logger.Warn("%s", itemEvent.Error)
-					continue
-				}
-
-				repositoryItem := itemEvent.Item
-				if repositoryItem == nil {
-					logger.Warn("Repository item is empty.")
-					continue
-				}
-
-				addRepositoryItemToIndex(repositoryItem)
-			}
-		}()
-
-		// event handler: changed items
-		go func() {
-			for itemEvent := range repository.ChangedItems() {
-				logger.Debug("Item changed")
-
-				// validate event
-				if itemEvent.Error != nil {
-					logger.Warn("%s", itemEvent.Error)
-					continue
-				}
-
-				repositoryItem := itemEvent.Item
-				if repositoryItem == nil {
-					logger.Warn("Repository item is empty.")
-					continue
-				}
-
-				addRepositoryItemToIndex(repositoryItem)
-			}
-		}()
-
-		// event handler: moved items
-		go func() {
-			for itemEvent := range repository.MovedItems() {
-				logger.Debug("Item moved")
-
-				// validate event
-				if itemEvent.Error != nil {
-					logger.Warn("%s", itemEvent.Error)
-					continue
-				}
-
-				repositoryItem := itemEvent.Item
-				if repositoryItem == nil {
-					logger.Warn("Repository item is empty.")
-					continue
-				}
-
-				removeRepositoryItemFromIndex(repositoryItem)
-			}
-		}()
-
-		// server
-		server, err := server.New(logger, config, index, converter, itemSearch)
-		if err != nil {
-			logger.Fatal("Unable to instantiate a server. Error: %s", err.Error())
-		}
-
-		if result := <-server.Start(); result != nil {
-			logger.Info("%s", result)
-		}
-	}
-
-	init := func(repositoryPath string) {
-		if success, err := initialization.Initialize(repositoryPath); !success {
-			fmt.Println(err)
-		}
-	}
-
 	parseCommandLineArguments(os.Args, func(commandName, repositoryPath string) (commandWasFound bool) {
 		switch strings.ToLower(commandName) {
 		case CommandNameInit:
-			init(repositoryPath)
+			return initialize(repositoryPath)
 
 		case CommandNameServe:
-			serve(repositoryPath)
+			return serve(repositoryPath)
 
 		default:
 			return false
 		}
 
-		return true
+		panic("Unreachable")
 	})
 }
 
@@ -265,4 +104,172 @@ func printUsageInformation(args []string) {
 	fmt.Fprintf(os.Stderr, "Fork me on GitHub %q\n", "https://github.com/andreaskoch/allmark")
 
 	os.Exit(2)
+}
+
+func serve(repositoryPath string) bool {
+
+	// config
+	config := config.Get(repositoryPath)
+
+	// data access
+	repository, err := filesystem.NewRepository(logger, repositoryPath)
+	if err != nil {
+		logger.Error("Unable to create a repository. Error: %s", err)
+	}
+
+	// parser
+	parser, err := parsing.New(logger)
+	if err != nil {
+		logger.Error("Unable to instantiate a parser. Error: %s", err)
+	}
+
+	// converter
+	converter, err := markdowntohtml.New(logger)
+	if err != nil {
+		logger.Error("Unable to instantiate a converter. Error: %s", err)
+	}
+
+	// repository (fallback) name
+	repositoryName := filepath.Base(repositoryPath)
+
+	// item index
+	index := index.New(logger, repositoryName)
+
+	// search
+	itemSearch := search.NewItemSearch(logger, index)
+
+	addRepositoryItemToIndex := func(repositoryItem *dataaccess.Item) {
+		// parse item
+		if item, err := parser.Parse(repositoryItem); err == nil {
+			// register the item at the index
+			index.Add(item)
+		} else {
+			logger.Warn("%s", err.Error())
+		}
+	}
+
+	removeRepositoryItemFromIndex := func(repositoryItem *dataaccess.Item) {
+		// remove the item from the index
+		index.Remove(repositoryItem.Route())
+	}
+
+	// full index of the repository
+	go func() {
+		for itemEvent := range repository.InitialItems() {
+
+			// validate event
+			if itemEvent.Error != nil {
+				logger.Warn("%s", itemEvent.Error)
+				continue
+			}
+
+			repositoryItem := itemEvent.Item
+			if repositoryItem == nil {
+				logger.Warn("Repository item is empty.")
+				continue
+			}
+
+			addRepositoryItemToIndex(repositoryItem)
+
+		}
+
+		// update the full-text search index
+		itemSearch.Update()
+	}()
+
+	// scheduled reindex of the fulltext index
+	go func() {
+		sleepInterval := time.Minute * 3
+		for {
+			time.Sleep(sleepInterval)
+			itemSearch.Update()
+		}
+	}()
+
+	// todo: implement discard of old items and especially old change listeners
+	// event handler: new items
+	go func() {
+		for itemEvent := range repository.NewItems() {
+			logger.Debug("New Item")
+
+			// validate event
+			if itemEvent.Error != nil {
+				logger.Warn("%s", itemEvent.Error)
+				continue
+			}
+
+			repositoryItem := itemEvent.Item
+			if repositoryItem == nil {
+				logger.Warn("Repository item is empty.")
+				continue
+			}
+
+			addRepositoryItemToIndex(repositoryItem)
+		}
+	}()
+
+	// event handler: changed items
+	go func() {
+		for itemEvent := range repository.ChangedItems() {
+			logger.Debug("Item changed")
+
+			// validate event
+			if itemEvent.Error != nil {
+				logger.Warn("%s", itemEvent.Error)
+				continue
+			}
+
+			repositoryItem := itemEvent.Item
+			if repositoryItem == nil {
+				logger.Warn("Repository item is empty.")
+				continue
+			}
+
+			addRepositoryItemToIndex(repositoryItem)
+		}
+	}()
+
+	// event handler: moved items
+	go func() {
+		for itemEvent := range repository.MovedItems() {
+			logger.Debug("Item moved")
+
+			// validate event
+			if itemEvent.Error != nil {
+				logger.Warn("%s", itemEvent.Error)
+				continue
+			}
+
+			repositoryItem := itemEvent.Item
+			if repositoryItem == nil {
+				logger.Warn("Repository item is empty.")
+				continue
+			}
+
+			removeRepositoryItemFromIndex(repositoryItem)
+		}
+	}()
+
+	// server
+	server, err := server.New(logger, config, index, converter, itemSearch)
+	if err != nil {
+		logger.Error("Unable to instantiate a server. Error: %s", err.Error())
+		return false
+	}
+
+	if result := <-server.Start(); result != nil {
+		logger.Error("%s", result)
+		return false
+	}
+
+	return true
+}
+
+func initialize(repositoryPath string) bool {
+	if success, err := initialization.Initialize(repositoryPath); !success {
+		logger.Error("Error initializing folder %q. Error: %s", repositoryPath, err.Error())
+		return false
+	}
+
+	return true
 }
