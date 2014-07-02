@@ -62,7 +62,11 @@ func (h *hub) run() {
 					case c.send <- m:
 					default:
 						delete(h.connections, c)
-						close(c.send)
+
+						// todo: introduce a maanger which sends a signal if a route is removed and closes the channel
+						// if I just call close there this will fail quite often if the channel has already been closed.
+						//close(c.send)
+
 						go c.ws.Close()
 					}
 
