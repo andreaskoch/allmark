@@ -24,6 +24,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/typeaheadhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/updatehandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/xmlsitemaphandler"
+	"github.com/andreaskoch/allmark2/ui/web/server/update"
 )
 
 func NewErrorHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) Handler {
@@ -66,8 +67,8 @@ func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index
 	return rsshandler.New(logger, config, itemIndex, patherFactory, converter)
 }
 
-func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter, updateHandler *updatehandler.UpdateHandler) Handler {
-	return itemhandler.New(logger, config, itemIndex, patherFactory, converter, updateHandler)
+func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter, hub *update.Hub) Handler {
+	return itemhandler.New(logger, config, itemIndex, patherFactory, converter, hub)
 }
 
 func NewJsonHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
@@ -78,6 +79,6 @@ func NewDebugHandler(logger logger.Logger, itemIndex *index.Index) Handler {
 	return debughandler.New(logger, itemIndex)
 }
 
-func NewUpdateHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) *updatehandler.UpdateHandler {
-	return updatehandler.New(logger, config, itemIndex, patherFactory, converter)
+func NewUpdateHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter, hub *update.Hub) *updatehandler.UpdateHandler {
+	return updatehandler.New(logger, config, itemIndex, patherFactory, converter, hub)
 }

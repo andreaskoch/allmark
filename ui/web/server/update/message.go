@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package updatehandler
+package update
 
 import (
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
@@ -20,8 +20,4 @@ func NewMessage(viewModel viewmodel.Model) Message {
 		Name:      "update",
 		ViewModel: viewModel,
 	}
-}
-
-func UpdateMessage(viewModel viewmodel.Model) {
-	h.broadcast <- NewMessage(viewModel)
 }

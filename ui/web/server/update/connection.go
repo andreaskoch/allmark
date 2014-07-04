@@ -2,15 +2,29 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package updatehandler
+package update
 
 import (
 	"code.google.com/p/go.net/websocket"
+	"github.com/andreaskoch/allmark2/common/route"
 )
+
+func NewConnection(hub *Hub, ws *websocket.Conn, route *route.Route) *connection {
+	return &connection{
+		Route: route.Value(),
+
+		hub:  hub,
+		send: make(chan Message, 10),
+		ws:   ws,
+	}
+}
 
 type connection struct {
 	// The associated route.
 	Route string
+
+	// the hub
+	hub *Hub
 
 	// The websocket connection.
 	ws *websocket.Conn
@@ -19,7 +33,11 @@ type connection struct {
 	send chan Message
 }
 
-func (c *connection) reader() {
+func (c *connection) Send(msg Message) {
+	c.send <- msg
+}
+
+func (c *connection) Reader() {
 	for {
 		var message Message
 		err := websocket.JSON.Receive(c.ws, &message)
@@ -27,13 +45,13 @@ func (c *connection) reader() {
 			break
 		}
 
-		h.broadcast <- message
+		c.hub.broadcast <- message
 	}
 
 	c.ws.Close()
 }
 
-func (c *connection) writer() {
+func (c *connection) Writer() {
 	for message := range c.send {
 		err := websocket.JSON.Send(c.ws, message)
 		if err != nil {

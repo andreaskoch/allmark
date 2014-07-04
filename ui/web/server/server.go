@@ -16,6 +16,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/services/search"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler"
+	"github.com/andreaskoch/allmark2/ui/web/server/update"
 
 	"github.com/gorilla/mux"
 	"math"
@@ -84,7 +85,8 @@ func (server *Server) Start() chan error {
 		requestRouter := mux.NewRouter()
 
 		// websocket update handler
-		updateHandler := handler.NewUpdateHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter)
+		updateHub := update.NewHub()
+		updateHandler := handler.NewUpdateHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter, updateHub)
 		requestRouter.Handle(UpdateHandlerRoute, websocket.Handler(updateHandler.Func()))
 
 		// serve auxiliary dynamic files
@@ -107,7 +109,7 @@ func (server *Server) Start() chan error {
 
 		// serve items
 		requestRouter.HandleFunc(JsonHandlerRoute, handler.NewJsonHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
-		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter, updateHandler).Func())
+		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter, updateHub).Func())
 
 		// start http server: http
 		httpBinding := server.getHttpBinding()

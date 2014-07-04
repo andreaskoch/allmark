@@ -2,13 +2,23 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package updatehandler
+package update
 
 import (
+	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 	"strings"
 )
 
-type hub struct {
+func NewHub() *Hub {
+	return &Hub{
+		broadcast:   make(chan Message, 1),
+		register:    make(chan *connection, 1),
+		unregister:  make(chan *connection, 1),
+		connections: make(map[*connection]bool),
+	}
+}
+
+type Hub struct {
 	// Registered connections.
 	connections map[*connection]bool
 
@@ -22,17 +32,22 @@ type hub struct {
 	unregister chan *connection
 }
 
-var h = hub{
-	broadcast:   make(chan Message, 1),
-	register:    make(chan *connection, 1),
-	unregister:  make(chan *connection, 1),
-	connections: make(map[*connection]bool),
+func (hub *Hub) Message(viewModel viewmodel.Model) {
+	hub.broadcast <- NewMessage(viewModel)
 }
 
-func (hub *hub) ConnectionsByRoute(route string) []*connection {
+func (hub *Hub) Register(connection *connection) {
+	hub.register <- connection
+}
+
+func (hub *Hub) UnRegister(connection *connection) {
+	hub.unregister <- connection
+}
+
+func (hub *Hub) connectionsByRoute(route string) []*connection {
 	connectionsByRoute := make([]*connection, 0)
 
-	for c := range h.connections {
+	for c := range hub.connections {
 		if strings.HasSuffix(route, c.Route) {
 			connectionsByRoute = append(connectionsByRoute, c)
 		}
@@ -41,27 +56,27 @@ func (hub *hub) ConnectionsByRoute(route string) []*connection {
 	return connectionsByRoute
 }
 
-func (h *hub) run() {
+func (hub *Hub) Run() {
 	for {
 		select {
-		case c := <-h.register:
+		case c := <-hub.register:
 			{
-				h.connections[c] = true
+				hub.connections[c] = true
 			}
-		case c := <-h.unregister:
+		case c := <-hub.unregister:
 			{
-				delete(h.connections, c)
+				delete(hub.connections, c)
 				close(c.send)
 			}
-		case m := <-h.broadcast:
+		case m := <-hub.broadcast:
 			{
-				affectedConnections := h.ConnectionsByRoute(m.Route)
+				affectedConnections := hub.connectionsByRoute(m.Route)
 				for _, c := range affectedConnections {
 
 					select {
 					case c.send <- m:
 					default:
-						delete(h.connections, c)
+						delete(hub.connections, c)
 
 						// todo: introduce a maanger which sends a signal if a route is removed and closes the channel
 						// if I just call close there this will fail quite often if the channel has already been closed.

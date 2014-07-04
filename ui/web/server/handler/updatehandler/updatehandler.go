@@ -14,11 +14,12 @@ import (
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/errorhandler"
+	"github.com/andreaskoch/allmark2/ui/web/server/update"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	"github.com/gorilla/mux"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) *UpdateHandler {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter, hub *update.Hub) *UpdateHandler {
 
 	// templates
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
@@ -38,13 +39,11 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, pa
 	// viewmodel
 	viewModelOrchestrator := orchestrator.NewViewModelOrchestrator(itemIndex, converter, &navigationOrchestrator, &tagsOrchestrator)
 
-	// start the websocket hub
-	go h.run()
-
 	return &UpdateHandler{
 		logger:                logger,
-		itemIndex:             itemIndex,
 		config:                config,
+		itemIndex:             itemIndex,
+		hub:                   hub,
 		patherFactory:         patherFactory,
 		templateProvider:      templateProvider,
 		error404Handler:       error404Handler,
@@ -53,9 +52,11 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, pa
 }
 
 type UpdateHandler struct {
-	logger                logger.Logger
+	logger logger.Logger
+	config *config.Config
+
 	itemIndex             *index.Index
-	config                *config.Config
+	hub                   *update.Hub
 	patherFactory         paths.PatherFactory
 	templateProvider      *templates.Provider
 	error404Handler       *errorhandler.ErrorHandler
@@ -84,30 +85,26 @@ func (handler *UpdateHandler) Func() func(ws *websocket.Conn) {
 		}
 
 		// create a new connection
-		c := &connection{
-			Route: requestRoute.Value(),
-			send:  make(chan Message, 10),
-			ws:    ws,
-		}
+		c := update.NewConnection(handler.hub, ws, requestRoute)
 
 		// establish connection
 		handler.logger.Debug("Establishing a connection for %q", requestRoute.String())
-		h.register <- c
+		handler.hub.Register(c)
 
 		// send an initial update
 		go func() {
 			// render the view model
 			pathProvider := handler.patherFactory.Relative(item.Route())
 			viewModel := handler.viewModelOrchestrator.GetViewModel(pathProvider, item)
-			c.send <- NewMessage(viewModel)
+			c.Send(update.NewMessage(viewModel))
 		}()
 
 		defer func() {
-			h.unregister <- c
+			handler.hub.UnRegister(c)
 		}()
 
-		go c.writer()
+		go c.Writer()
 
-		c.reader()
+		c.Reader()
 	}
 }
