@@ -9,7 +9,6 @@ import (
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger/console"
-	"github.com/andreaskoch/allmark2/common/logger/loglevel"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
@@ -108,8 +107,7 @@ func printUsageInformation(args []string) {
 func serve(repositoryPath string) bool {
 
 	config := config.Get(repositoryPath)
-	logLevel := loglevel.FromString(config.LogLevel)
-	logger := console.New(logLevel)
+	logger := console.New(config.LogLevel)
 
 	// data access
 	repository, err := filesystem.NewRepository(logger, repositoryPath)
@@ -251,7 +249,7 @@ func serve(repositoryPath string) bool {
 	}()
 
 	// server
-	server, err := server.New(logger, config, index, converter, itemSearch)
+	server, err := server.New(logger, config, index, converter, itemSearch, repository.UpdateHub())
 	if err != nil {
 		logger.Error("Unable to instantiate a server. Error: %s", err.Error())
 		return false
@@ -268,7 +266,7 @@ func serve(repositoryPath string) bool {
 func initialize(repositoryPath string) bool {
 
 	config := config.Get(repositoryPath)
-	logger := console.New(loglevel.FromString(config.LogLevel))
+	logger := console.New(config.LogLevel)
 
 	if success, err := initialization.Initialize(repositoryPath); !success {
 		logger.Error("Error initializing folder %q. Error: %s", repositoryPath, err.Error())

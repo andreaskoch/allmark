@@ -5,12 +5,15 @@
 package update
 
 import (
+	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
-	"strings"
 )
 
-func NewHub() *Hub {
+func NewHub(updateHub dataaccess.UpdateHub) *Hub {
 	return &Hub{
+		updateHub: updateHub,
+
 		broadcast:   make(chan Message, 1),
 		register:    make(chan *connection, 1),
 		unregister:  make(chan *connection, 1),
@@ -19,6 +22,8 @@ func NewHub() *Hub {
 }
 
 type Hub struct {
+	updateHub dataaccess.UpdateHub
+
 	// Registered connections.
 	connections map[*connection]bool
 
@@ -37,18 +42,22 @@ func (hub *Hub) Message(viewModel viewmodel.Model) {
 }
 
 func (hub *Hub) Register(connection *connection) {
+	hub.updateHub.StartWatching(connection.Route)
+
 	hub.register <- connection
 }
 
 func (hub *Hub) UnRegister(connection *connection) {
+	hub.updateHub.StopWatching(connection.Route)
+
 	hub.unregister <- connection
 }
 
-func (hub *Hub) connectionsByRoute(route string) []*connection {
+func (hub *Hub) connectionsByRoute(route route.Route) []*connection {
 	connectionsByRoute := make([]*connection, 0)
 
 	for c := range hub.connections {
-		if strings.HasSuffix(route, c.Route) {
+		if route.Value() == c.Route.Value() {
 			connectionsByRoute = append(connectionsByRoute, c)
 		}
 	}

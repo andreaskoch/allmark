@@ -85,7 +85,7 @@ func (handler *UpdateHandler) Func() func(ws *websocket.Conn) {
 		}
 
 		// create a new connection
-		c := update.NewConnection(handler.hub, ws, requestRoute)
+		c := update.NewConnection(handler.hub, ws, *requestRoute)
 
 		// establish connection
 		handler.logger.Debug("Establishing a connection for %q", requestRoute.String())

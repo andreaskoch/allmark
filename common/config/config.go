@@ -7,6 +7,7 @@ package config
 import (
 	"bufio"
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/logger/loglevel"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"os"
 	"os/user"
@@ -101,7 +102,7 @@ type Server struct {
 type Config struct {
 	Server   Server
 	Web      Web
-	LogLevel string
+	LogLevel loglevel.LogLevel
 
 	baseFolder      string
 	metaDataFolder  string

@@ -18,6 +18,9 @@ func NewEvent(item *Item, err error) *RepositoryEvent {
 
 type Repository interface {
 	InitialItems() chan *RepositoryEvent
+
+	UpdateHub() *UpdateHub
+
 	NewItems() chan *RepositoryEvent
 	ChangedItems() chan *RepositoryEvent
 	MovedItems() chan *RepositoryEvent

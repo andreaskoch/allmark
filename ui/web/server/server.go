@@ -13,6 +13,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/paths/webpaths"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
+	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/services/conversion"
 	"github.com/andreaskoch/allmark2/services/search"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler"
@@ -44,7 +45,7 @@ const (
 	ThemeFolderRoute = "/theme"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, converter conversion.Converter, searcher *search.ItemSearch) (*Server, error) {
+func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, converter conversion.Converter, searcher *search.ItemSearch, updateHub dataaccess.UpdateHub) (*Server, error) {
 
 	// pather factory
 	patherFactory := webpaths.NewFactory(logger, itemIndex)
@@ -56,6 +57,7 @@ func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, co
 		itemIndex:     itemIndex,
 		converter:     converter,
 		searcher:      searcher,
+		updateHub:     updateHub,
 	}, nil
 
 }
@@ -69,6 +71,7 @@ type Server struct {
 	itemIndex     *index.Index
 	converter     conversion.Converter
 	searcher      *search.ItemSearch
+	updateHub     dataaccess.UpdateHub
 }
 
 func (server *Server) IsRunning() bool {
@@ -85,7 +88,7 @@ func (server *Server) Start() chan error {
 		requestRouter := mux.NewRouter()
 
 		// websocket update handler
-		updateHub := update.NewHub()
+		updateHub := update.NewHub(server.updateHub)
 		updateHandler := handler.NewUpdateHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter, updateHub)
 		requestRouter.Handle(UpdateHandlerRoute, websocket.Handler(updateHandler.Func()))
 

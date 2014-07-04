@@ -9,9 +9,9 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 )
 
-func NewConnection(hub *Hub, ws *websocket.Conn, route *route.Route) *connection {
+func NewConnection(hub *Hub, ws *websocket.Conn, route route.Route) *connection {
 	return &connection{
-		Route: route.Value(),
+		Route: route,
 
 		hub:  hub,
 		send: make(chan Message, 10),
@@ -21,7 +21,7 @@ func NewConnection(hub *Hub, ws *websocket.Conn, route *route.Route) *connection
 
 type connection struct {
 	// The associated route.
-	Route string
+	Route route.Route
 
 	// the hub
 	hub *Hub

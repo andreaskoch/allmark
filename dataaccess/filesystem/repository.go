@@ -26,6 +26,8 @@ type Repository struct {
 	directory string
 	watcher   *watcherFactory
 
+	updateHub *UpdateHub
+
 	newItem     chan *dataaccess.RepositoryEvent // new items which are discovered after the first index has been built
 	changedItem chan *dataaccess.RepositoryEvent // items with changed content
 	movedItem   chan *dataaccess.RepositoryEvent // items which moved
@@ -61,6 +63,8 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 		hash:      hash,
 		watcher:   newWatcherFactory(logger),
 
+		updateHub: newUpdateHub(logger),
+
 		newItem:     make(chan *dataaccess.RepositoryEvent, 1),
 		changedItem: make(chan *dataaccess.RepositoryEvent, 1),
 		movedItem:   make(chan *dataaccess.RepositoryEvent, 1),
@@ -82,6 +86,10 @@ func (repository *Repository) InitialItems() chan *dataaccess.RepositoryEvent {
 	}()
 
 	return startupItem
+}
+
+func (repository *Repository) UpdateHub() *UpdateHub {
+	return repository.updateHub
 }
 
 func (repository *Repository) NewItems() chan *dataaccess.RepositoryEvent {
