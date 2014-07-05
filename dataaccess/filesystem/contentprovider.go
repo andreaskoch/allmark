@@ -10,7 +10,6 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/common/util/hashutil"
-	"github.com/andreaskoch/go-fswatch"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -57,50 +56,10 @@ func newFileContentProvider(path string, route *route.Route, watchIntervalInSeco
 		return fsutil.GetModificationTime(path)
 	}
 
-	// change provider
-	var eventChannel chan content.ChangeEvent
-
-	// check if the the content provider shall watch for changes
-	if watchIntervalInSeconds > 0 {
-
-		eventChannel = make(chan content.ChangeEvent, 1)
-
-		go func() {
-			checkIntervalInSeconds := 2
-			fileWatcher := fswatch.NewFileWatcher(path, checkIntervalInSeconds).Start()
-
-			for fileWatcher.IsRunning() {
-
-				select {
-				case <-fileWatcher.Modified:
-
-					go func() {
-						eventChannel <- content.TypeChanged
-					}()
-
-				case <-fileWatcher.Moved:
-
-					go func() {
-						eventChannel <- content.TypeMoved
-					}()
-				}
-
-			}
-
-			// todo: add debug message
-		}()
-
-	}
-
-	changeEventProvider := func() chan content.ChangeEvent {
-		return eventChannel
-	}
-
 	return content.NewProvider(mimeType,
 		dataProvider,
 		hashProvider,
-		lastModifiedProvider,
-		changeEventProvider)
+		lastModifiedProvider)
 }
 
 func newTextContentProvider(text string, route *route.Route) *content.ContentProvider {
@@ -137,13 +96,7 @@ func newTextContentProvider(text string, route *route.Route) *content.ContentPro
 		return time.Time{}, nil
 	}
 
-	// change provider
-	changeEventProvider := func() chan content.ChangeEvent {
-		eventChannel := make(chan content.ChangeEvent, 1)
-		return eventChannel
-	}
-
-	return content.NewProvider(mimeType, dataProvider, hashProvider, lastModifiedProvider, changeEventProvider)
+	return content.NewProvider(mimeType, dataProvider, hashProvider, lastModifiedProvider)
 }
 
 func getHashFromFile(filepath string, route *route.Route) (string, error) {

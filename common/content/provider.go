@@ -17,15 +17,12 @@ type DataProviderFunc func(contentReader func(content io.ReadSeeker) error) erro
 
 type HashProviderFunc func() (string, error)
 
-type ChangeEventProviderFunc func() chan ChangeEvent
-
-func NewProvider(mimeType MimeTypeProviderFunc, data DataProviderFunc, hash HashProviderFunc, lastModified LastModifiedProviderFunc, changes ChangeEventProviderFunc) *ContentProvider {
+func NewProvider(mimeType MimeTypeProviderFunc, data DataProviderFunc, hash HashProviderFunc, lastModified LastModifiedProviderFunc) *ContentProvider {
 	return &ContentProvider{
 		mimeTypeProviderFunc:     mimeType,
 		dataProviderFunc:         data,
 		hashProviderFunc:         hash,
 		lastModifiedProviderFunc: lastModified,
-		changeEventProviderFunc:  changes,
 	}
 }
 
@@ -34,7 +31,6 @@ type ContentProvider struct {
 	dataProviderFunc         DataProviderFunc
 	hashProviderFunc         HashProviderFunc
 	lastModifiedProviderFunc LastModifiedProviderFunc
-	changeEventProviderFunc  ChangeEventProviderFunc
 }
 
 func (provider *ContentProvider) Data(contentReader func(content io.ReadSeeker) error) error {
@@ -51,8 +47,4 @@ func (provider *ContentProvider) LastModified() (time.Time, error) {
 
 func (provider *ContentProvider) MimeType() (string, error) {
 	return provider.mimeTypeProviderFunc()
-}
-
-func (provider *ContentProvider) ChangeEvent() chan ChangeEvent {
-	return provider.changeEventProviderFunc()
 }
