@@ -194,7 +194,9 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 		return repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
 			// remove the parent item since we cannot easily determine which child has gone away
-			repository.movedItem <- dataaccess.NewEvent(item, nil)
+			go func() {
+				repository.movedItem <- dataaccess.NewEvent(item, nil)
+			}()
 
 			// recreate this item
 			repository.discoverItems(itemDirectory, repository.newItem)
@@ -211,7 +213,9 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 			item.SetFiles(newFiles)
 
 			// update the parent item
-			repository.changedItem <- dataaccess.NewEvent(item, nil)
+			go func() {
+				repository.changedItem <- dataaccess.NewEvent(item, nil)
+			}()
 		})
 	})
 
@@ -282,7 +286,9 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 		return repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
 			// remove the parent item since we cannot easily determine which child has gone away
-			repository.movedItem <- dataaccess.NewEvent(item, nil)
+			go func() {
+				repository.movedItem <- dataaccess.NewEvent(item, nil)
+			}()
 
 			// recreate this item
 			repository.discoverItems(itemDirectory, repository.newItem)
@@ -301,10 +307,14 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 				repository.watcher.Stop(itemDirectory)
 
 				// remove the parent item since we cannot easily determine which child has gone away
-				repository.movedItem <- dataaccess.NewEvent(item, nil)
+				go func() {
+					repository.movedItem <- dataaccess.NewEvent(item, nil)
+				}()
 
 				// recreate this item
 				repository.discoverItems(itemDirectory, repository.newItem)
+
+				break
 
 			}
 		})
@@ -347,7 +357,9 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 				// type change
 
 				// remove the parent item since we cannot easily determine which child has gone away
-				repository.movedItem <- dataaccess.NewEvent(item, nil)
+				go func() {
+					repository.movedItem <- dataaccess.NewEvent(item, nil)
+				}()
 
 				// recreate this item
 				repository.discoverItems(itemDirectory, repository.newItem)
@@ -359,7 +371,9 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 				item.SetFiles(newFiles)
 
 				// update the parent item
-				repository.changedItem <- dataaccess.NewEvent(item, nil)
+				go func() {
+					repository.changedItem <- dataaccess.NewEvent(item, nil)
+				}()
 			}
 		})
 	})

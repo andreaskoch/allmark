@@ -97,7 +97,7 @@ func (factory *watcherFactory) watchFolder(folder string, checkIntervalInSeconds
 
 			select {
 			case change := <-watcher.ChangeDetails():
-				callback(change)
+				go callback(change)
 			}
 
 		}
