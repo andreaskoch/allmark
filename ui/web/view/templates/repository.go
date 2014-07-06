@@ -21,12 +21,6 @@ const repositoryTemplate = `
 
 <div class="cleaner"></div>
 
-<section class="content">
-{{.Content}}
-</section>
-
-<div class="cleaner"></div>
-
 {{ if .Childs }}
 <section class="childs">
 <ol class="list">
