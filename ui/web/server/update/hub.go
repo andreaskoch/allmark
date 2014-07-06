@@ -15,8 +15,8 @@ func NewHub(updateHub dataaccess.UpdateHub) *Hub {
 		updateHub: updateHub,
 
 		broadcast:   make(chan Message, 1),
-		register:    make(chan *connection, 1),
-		unregister:  make(chan *connection, 1),
+		subscribe:   make(chan *connection, 1),
+		unsubscribe: make(chan *connection, 1),
 		connections: make(map[*connection]bool),
 	}
 }
@@ -31,26 +31,26 @@ type Hub struct {
 	broadcast chan Message
 
 	// Register requests from the connections.
-	register chan *connection
+	subscribe chan *connection
 
-	// Unregister requests from connections.
-	unregister chan *connection
+	// Unsubscribe requests from connections.
+	unsubscribe chan *connection
 }
 
 func (hub *Hub) Message(viewModel viewmodel.Model) {
 	hub.broadcast <- NewMessage(viewModel)
 }
 
-func (hub *Hub) Register(connection *connection) {
+func (hub *Hub) Subscribe(connection *connection) {
 	hub.updateHub.StartWatching(connection.Route)
 
-	hub.register <- connection
+	hub.subscribe <- connection
 }
 
-func (hub *Hub) UnRegister(connection *connection) {
+func (hub *Hub) Unsubscribe(connection *connection) {
 	hub.updateHub.StopWatching(connection.Route)
 
-	hub.unregister <- connection
+	hub.unsubscribe <- connection
 }
 
 func (hub *Hub) connectionsByRoute(route route.Route) []*connection {
@@ -68,11 +68,11 @@ func (hub *Hub) connectionsByRoute(route route.Route) []*connection {
 func (hub *Hub) Run() {
 	for {
 		select {
-		case c := <-hub.register:
+		case c := <-hub.subscribe:
 			{
 				hub.connections[c] = true
 			}
-		case c := <-hub.unregister:
+		case c := <-hub.unsubscribe:
 			{
 				delete(hub.connections, c)
 				close(c.send)

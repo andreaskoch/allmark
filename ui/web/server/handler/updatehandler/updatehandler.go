@@ -89,7 +89,7 @@ func (handler *UpdateHandler) Func() func(ws *websocket.Conn) {
 
 		// establish connection
 		handler.logger.Debug("Establishing a connection for %q", requestRoute.String())
-		handler.hub.Register(c)
+		handler.hub.Subscribe(c)
 
 		// send an initial update
 		go func() {
@@ -100,7 +100,7 @@ func (handler *UpdateHandler) Func() func(ws *websocket.Conn) {
 		}()
 
 		defer func() {
-			handler.hub.UnRegister(c)
+			handler.hub.Subscribe(c)
 		}()
 
 		go c.Writer()
