@@ -41,7 +41,7 @@ func (logger *ConsoleLogger) Debug(format string, v ...interface{}) {
 		return
 	}
 
-	logger.print(LogLevelDebug, format, v...)
+	logger.print(LogLevelDebug, fmt.Sprintf(format, v))
 }
 
 func (logger *ConsoleLogger) Info(format string, v ...interface{}) {
@@ -49,7 +49,7 @@ func (logger *ConsoleLogger) Info(format string, v ...interface{}) {
 		return
 	}
 
-	logger.print(LogLevelInfo, format, v...)
+	logger.print(LogLevelInfo, fmt.Sprintf(format, v))
 }
 
 func (logger *ConsoleLogger) Warn(format string, v ...interface{}) {
@@ -57,7 +57,7 @@ func (logger *ConsoleLogger) Warn(format string, v ...interface{}) {
 		return
 	}
 
-	logger.print(LogLevelWarn, format, v...)
+	logger.print(LogLevelWarn, fmt.Sprintf(format, v))
 }
 
 func (logger *ConsoleLogger) Error(format string, v ...interface{}) {
@@ -65,21 +65,16 @@ func (logger *ConsoleLogger) Error(format string, v ...interface{}) {
 		return
 	}
 
-	logger.print(LogLevelError, format, v...)
+	logger.print(LogLevelError, fmt.Sprintf(format, v))
 }
 
 func (logger *ConsoleLogger) Fatal(format string, v ...interface{}) {
-	logger.print(LogLevelFatal, format, v...)
+	logger.print(LogLevelFatal, fmt.Sprintf(format, v))
 	os.Exit(1)
 }
 
-func (logger *ConsoleLogger) print(level, format string, v ...interface{}) {
+func (logger *ConsoleLogger) print(level, message string) {
 
 	timestamp := time.Now().Format(time.RFC1123)
-
-	if len(v) > 0 {
-		fmt.Fprintf(logger.output, timestamp+" "+level+":  "+format+"\n", v)
-	} else {
-		fmt.Fprintf(logger.output, timestamp+" "+level+":  "+format+"\n")
-	}
+	fmt.Fprintln(logger.output, timestamp+" "+level+":  "+message)
 }

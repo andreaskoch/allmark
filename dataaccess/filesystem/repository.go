@@ -208,7 +208,7 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 		return repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
 
 			// update file list
-			repository.logger.Info("Updating the file list for item %q", item.String())
+			repository.logger.Debug("Updating the file list for item %q", item.String())
 			newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
 			item.SetFiles(newFiles)
 
@@ -233,14 +233,14 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 				select {
 				case <-watcher.Modified():
 
-					repository.logger.Info("Item %q changed.", item)
+					repository.logger.Debug("Item %q changed.", item)
 					go func() {
 						repository.changedItem <- dataaccess.NewEvent(item, nil)
 					}()
 
 				case <-watcher.Moved():
 
-					repository.logger.Info("Item %q moved.", item)
+					repository.logger.Debug("Item %q moved.", item)
 					go func() {
 						repository.movedItem <- dataaccess.NewEvent(item, nil)
 					}()

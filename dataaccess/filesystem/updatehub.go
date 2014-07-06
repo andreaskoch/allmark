@@ -35,18 +35,18 @@ type UpdateHub struct {
 
 func (hub *UpdateHub) StartWatching(route route.Route) {
 
-	hub.logger.Debug("Watchers(Folder: %v, File: %v)", fswatch.NumberOfFolderWatchers(), fswatch.NumberOfFileWatchers())
+	hub.logger.Debug("Watchers (Folder: %v, File: %v)", fswatch.NumberOfFolderWatchers(), fswatch.NumberOfFileWatchers())
 
-	hub.logger.Debug(fmt.Sprintf("Starting callbacks for route %q", route.String()))
+	hub.logger.Debug("Starting callbacks for route %q", route.String())
 
 	for callbackType, callback := range hub.callbacks[routeToKey(route)] {
 
 		if hub.watcherExists(route, callbackType) {
-			hub.logger.Debug(fmt.Sprintf("Callback %q for route %q is already running", callbackType, route.String()))
+			hub.logger.Debug("Callback %q for route %q is already running", callbackType, route.String())
 			continue
 		}
 
-		hub.logger.Debug(fmt.Sprintf("Starting callback %q for route %q", callbackType, route.String()))
+		hub.logger.Debug("Starting callback %q for route %q", callbackType, route.String())
 
 		// execute the callback
 		watcher := callback()
@@ -61,7 +61,7 @@ func (hub *UpdateHub) StartWatching(route route.Route) {
 		}
 	}
 
-	hub.logger.Debug("Watchers(Folder: %v, File: %v)", fswatch.NumberOfFolderWatchers(), fswatch.NumberOfFileWatchers())
+	hub.logger.Debug("Watchers (Folder: %s, File: %s)", fswatch.NumberOfFolderWatchers(), fswatch.NumberOfFileWatchers())
 }
 
 func (hub *UpdateHub) StopWatching(route route.Route) {
