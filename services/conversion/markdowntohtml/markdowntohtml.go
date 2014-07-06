@@ -136,10 +136,7 @@ func getBaseFolder(referenceRoute route.Route, files []*model.File) string {
 		partialRoute := route.Intersect(referenceRoute, *file.Route())
 
 		if baseFolder == "" {
-			if file.Route().LastComponentName() != partialRoute.FirstComponentName() {
-				baseFolder = partialRoute.FirstComponentName()
-			}
-
+			baseFolder = partialRoute.FirstComponentName()
 			continue
 		}
 
