@@ -88,7 +88,9 @@ func (server *Server) Start() chan error {
 		requestRouter := mux.NewRouter()
 
 		// websocket update handler
-		updateHub := update.NewHub(server.updateHub)
+		updateHub := update.NewHub(server.logger, server.updateHub)
+		go updateHub.Run()
+
 		updateHandler := handler.NewUpdateHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter, updateHub)
 		requestRouter.Handle(UpdateHandlerRoute, websocket.Handler(updateHandler.Func()))
 

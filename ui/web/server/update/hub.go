@@ -5,13 +5,16 @@
 package update
 
 import (
+	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
 
-func NewHub(updateHub dataaccess.UpdateHub) *Hub {
+func NewHub(logger logger.Logger, updateHub dataaccess.UpdateHub) *Hub {
 	return &Hub{
+		logger: logger,
+
 		updateHub: updateHub,
 
 		broadcast:   make(chan Message, 1),
@@ -22,6 +25,8 @@ func NewHub(updateHub dataaccess.UpdateHub) *Hub {
 }
 
 type Hub struct {
+	logger logger.Logger
+
 	updateHub dataaccess.UpdateHub
 
 	// Registered connections.
@@ -38,7 +43,10 @@ type Hub struct {
 }
 
 func (hub *Hub) Message(viewModel viewmodel.Model) {
-	hub.broadcast <- NewMessage(viewModel)
+	go func() {
+		hub.logger.Debug("Sending message %v", viewModel)
+		hub.broadcast <- NewMessage(viewModel)
+	}()
 }
 
 func (hub *Hub) Subscribe(connection *connection) {

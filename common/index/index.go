@@ -46,17 +46,19 @@ func (index *Index) OnUpdate(callback func(item *model.Item)) {
 
 	// start the callback executor
 	if len(index.updateCallbacks) == 0 {
+		index.logger.Error("---------------------------------------")
+		index.logger.Error("Initializing update a")
 		go func() {
-			for {
-				select {
-				case updatedItem := <-index.updates:
-					{
-						for _, callback := range index.updateCallbacks {
-							callback(updatedItem)
-						}
-					}
+			for updatedItem := range index.updates {
+
+				index.logger.Debug("Number of update callbacks %v", len(index.updateCallbacks))
+				for _, callback := range index.updateCallbacks {
+					go callback(updatedItem)
 				}
+				index.logger.Error("äääääääääääääääääääääääääääääääääää")
 			}
+			index.logger.Error("öööööööööööööööööööööööööööööööööö")
+
 		}()
 	}
 

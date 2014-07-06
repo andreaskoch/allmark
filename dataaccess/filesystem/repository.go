@@ -223,21 +223,27 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 		watcher := fswatch.NewFileWatcher(filePath, checkIntervalInSeconds)
 		watcher.Start()
 
-		for watcher.IsRunning() {
+		func() {
+			for watcher.IsRunning() {
 
-			select {
-			case <-watcher.Modified():
+				select {
+				case <-watcher.Modified():
 
-				repository.logger.Info("Item %q changed.", item)
-				repository.changedItem <- dataaccess.NewEvent(item, nil)
+					repository.logger.Info("Item %q changed.", item)
+					go func() {
+						repository.changedItem <- dataaccess.NewEvent(item, nil)
+					}()
 
-			case <-watcher.Moved():
+				case <-watcher.Moved():
 
-				repository.logger.Info("Item %q moved.", item)
-				repository.movedItem <- dataaccess.NewEvent(item, nil)
+					repository.logger.Info("Item %q moved.", item)
+					go func() {
+						repository.movedItem <- dataaccess.NewEvent(item, nil)
+					}()
+				}
+
 			}
-
-		}
+		}()
 
 		return watcher
 	})

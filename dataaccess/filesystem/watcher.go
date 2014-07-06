@@ -85,10 +85,13 @@ func (factory *watcherFactory) watchFolder(folder string, checkIntervalInSeconds
 	// look for changes in the item directory
 	watcher := fswatch.NewFolderWatcher(folder, recurse, skipFunc, checkIntervalInSeconds)
 
+	// reseve the watcher
+	factory.reserve(folder, watcher)
+
 	// start the watcher
 	watcher.Start()
 
-	defer func() {
+	go func() {
 
 		for watcher.IsRunning() {
 
@@ -102,8 +105,6 @@ func (factory *watcherFactory) watchFolder(folder string, checkIntervalInSeconds
 		factory.release(folder)
 		factory.logger.Debug("Exiting directory listener for folder %q.\n", folder)
 	}()
-
-	factory.reserve(folder, watcher)
 
 	return watcher
 }
