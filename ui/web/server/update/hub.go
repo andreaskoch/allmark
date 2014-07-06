@@ -44,25 +44,25 @@ type Hub struct {
 
 func (hub *Hub) Message(viewModel viewmodel.Model) {
 	go func() {
-		hub.logger.Debug("Sending message %v", viewModel)
 		hub.broadcast <- NewMessage(viewModel)
 	}()
 }
 
 func (hub *Hub) Subscribe(connection *connection) {
-	hub.updateHub.StartWatching(connection.Route)
-
+	go hub.updateHub.StartWatching(connection.Route)
 	hub.subscribe <- connection
 }
 
 func (hub *Hub) Unsubscribe(connection *connection) {
-	hub.updateHub.StopWatching(connection.Route)
+	go hub.updateHub.StopWatching(connection.Route)
 
 	hub.unsubscribe <- connection
 }
 
 func (hub *Hub) connectionsByRoute(route route.Route) []*connection {
 	connectionsByRoute := make([]*connection, 0)
+
+	hub.logger.Debug("Number of Connections %s", len(hub.connections))
 
 	for c := range hub.connections {
 		if route.Value() == c.Route.Value() {
@@ -78,10 +78,13 @@ func (hub *Hub) Run() {
 		select {
 		case c := <-hub.subscribe:
 			{
+				hub.logger.Debug("üüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü")
+				hub.logger.Debug("Subscriping connection %s", c.Route.Value())
 				hub.connections[c] = true
 			}
 		case c := <-hub.unsubscribe:
 			{
+				hub.logger.Debug("Unsubscriping connection %s", c.Route.Value())
 				delete(hub.connections, c)
 				close(c.send)
 			}
