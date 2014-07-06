@@ -40,6 +40,12 @@ func (hub *UpdateHub) StartWatching(route route.Route) {
 	hub.logger.Debug(fmt.Sprintf("Starting callbacks for route %q", route.String()))
 
 	for callbackType, callback := range hub.callbacks[routeToKey(route)] {
+
+		if hub.watcherExists(route, callbackType) {
+			hub.logger.Debug(fmt.Sprintf("Callback %q for route %q is already running", callbackType, route.String()))
+			continue
+		}
+
 		hub.logger.Debug(fmt.Sprintf("Starting callback %q for route %q", callbackType, route.String()))
 
 		// execute the callback
@@ -66,11 +72,8 @@ func (hub *UpdateHub) StopWatching(route route.Route) {
 		return
 	}
 
-	for callbackType, watcher := range watchers {
-		hub.logger.Debug("Stopping watcher %q for route %q", callbackType, route.String())
-		if watcher != nil {
-			watcher.Stop()
-		}
+	for callbackType, _ := range watchers {
+		hub.stopWatcher(route, callbackType)
 	}
 
 }
@@ -95,10 +98,40 @@ func (hub *UpdateHub) Attach(route route.Route, callbackType string, callback fu
 		hub.callbacks[routeToKey(route)] = callbacks
 	} else {
 
+		// stop any existing callbacks
+		hub.stopWatcher(route, callbackType)
+
 		// attach the callback
 		callbacks[callbackType] = callback
 
 	}
+}
+
+func (hub *UpdateHub) watcherExists(route route.Route, callbackType string) bool {
+	watchers, exists := hub.watchers[routeToKey(route)]
+	if !exists {
+		return false
+	}
+
+	_, watcherExists := watchers[callbackType]
+	return watcherExists
+}
+
+func (hub *UpdateHub) stopWatcher(route route.Route, callbackType string) {
+
+	hub.logger.Debug(fmt.Sprintf("Stopping callbacks for route %q", route.String()))
+
+	watchers, exists := hub.watchers[routeToKey(route)]
+	if !exists {
+		hub.logger.Debug("There is no running watcher for route %q", route.String())
+		return
+	}
+
+	if watcher, exists := watchers[callbackType]; exists {
+		hub.logger.Debug("Stopping watcher %q for route %q", callbackType, route.String())
+		watcher.Stop()
+	}
+
 }
 
 func routeToKey(route route.Route) string {
