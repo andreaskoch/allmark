@@ -6,7 +6,6 @@ package update
 
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
-	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 )
@@ -59,13 +58,13 @@ func (hub *Hub) Unsubscribe(connection *connection) {
 	hub.unsubscribe <- connection
 }
 
-func (hub *Hub) connectionsByRoute(route route.Route) []*connection {
+func (hub *Hub) connectionsByRoute(routeValue string) []*connection {
 	connectionsByRoute := make([]*connection, 0)
 
 	hub.logger.Debug("Number of Connections %s", len(hub.connections))
 
 	for c := range hub.connections {
-		if route.Value() == c.Route.Value() {
+		if routeValue == c.Route.Value() {
 			connectionsByRoute = append(connectionsByRoute, c)
 		}
 	}

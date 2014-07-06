@@ -10,7 +10,7 @@ import (
 )
 
 type Message struct {
-	Route     route.Route     `json:"route"`
+	Route     string          `json:"route"`
 	Name      string          `json:"name"`
 	ViewModel viewmodel.Model `json:"model"`
 }
@@ -22,7 +22,7 @@ func NewMessage(viewModel viewmodel.Model) Message {
 	}
 
 	return Message{
-		Route:     *route,
+		Route:     route.Value(),
 		Name:      "update",
 		ViewModel: viewModel,
 	}

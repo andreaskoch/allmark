@@ -13,10 +13,15 @@ var Autoupdate = (function () {
 
     /**
      * Get the currently opened web route
-     * @return string The currently opened web route (e.g. "/documents/Sample Document/index.html")
+     * @return string The currently opened web route (e.g. "documents/Sample-Document")
      */
     var getCurrentRoute = function() {
         var url = document.location.pathname;
+
+        // remove leading slash
+        var leadingSlash = /^\//;
+        url = url.replace(leadingSlash, "");
+
         return url;
     };
 
@@ -32,13 +37,13 @@ var Autoupdate = (function () {
 
     /**
      * Get the Url for the web socket connection
-     * @return string The url for the web socket connection (e.g. "ws://example.com:8080/ws")
+     * @return string The url for the web socket connection (e.g. "ws://example.com:8080/documents/Sample-Document.ws")
      */
     var getWebSocketUrl = function() {
         routeParameter = getCurrentRoute();
         host = document.location.host;
         webSocketHandler = "/ws";
-        websocketUrl = "ws://" + host + routeParameter + ".ws";
+        websocketUrl = "ws://" + host + "/" + routeParameter + ".ws";
         return websocketUrl;            
     };
 
