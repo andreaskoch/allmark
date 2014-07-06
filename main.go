@@ -19,7 +19,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/server"
 	"os"
 	"path/filepath"
-	// "runtime"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -30,7 +30,7 @@ const (
 )
 
 func main() {
-	// runtime.GOMAXPROCS(runtime.NumCPU())
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	parseCommandLineArguments(os.Args, func(commandName, repositoryPath string) (commandWasFound bool) {
 		switch strings.ToLower(commandName) {

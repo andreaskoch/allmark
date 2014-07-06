@@ -61,8 +61,6 @@ func (hub *Hub) Unsubscribe(connection *connection) {
 func (hub *Hub) connectionsByRoute(routeValue string) []*connection {
 	connectionsByRoute := make([]*connection, 0)
 
-	hub.logger.Debug("Number of Connections %s", len(hub.connections))
-
 	for c := range hub.connections {
 		if routeValue == c.Route.Value() {
 			connectionsByRoute = append(connectionsByRoute, c)
@@ -77,7 +75,6 @@ func (hub *Hub) Run() {
 		select {
 		case c := <-hub.subscribe:
 			{
-				hub.logger.Debug("üüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü")
 				hub.logger.Debug("Subscriping connection %s", c.Route.Value())
 				hub.connections[c] = true
 			}
@@ -96,11 +93,6 @@ func (hub *Hub) Run() {
 					case c.send <- m:
 					default:
 						delete(hub.connections, c)
-
-						// todo: introduce a maanger which sends a signal if a route is removed and closes the channel
-						// if I just call close there this will fail quite often if the channel has already been closed.
-						//close(c.send)
-
 						go c.ws.Close()
 					}
 
