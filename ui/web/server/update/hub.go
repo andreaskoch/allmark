@@ -48,6 +48,8 @@ func (hub *Hub) Message(viewModel viewmodel.Model) {
 }
 
 func (hub *Hub) Subscribe(connection *connection) {
+	hub.logger.Debug("Number of Connections", len(hub.connections))
+
 	go hub.updateHub.StartWatching(connection.Route)
 	hub.subscribe <- connection
 }
@@ -82,7 +84,6 @@ func (hub *Hub) Run() {
 			{
 				hub.logger.Debug("Unsubscriping connection %s", c.Route.Value())
 				delete(hub.connections, c)
-				close(c.send)
 			}
 		case m := <-hub.broadcast:
 			{

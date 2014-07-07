@@ -49,6 +49,7 @@ func (c *connection) Reader() {
 	}
 
 	c.ws.Close()
+	c.hub.Unsubscribe(c)
 }
 
 func (c *connection) Writer() {
@@ -60,4 +61,5 @@ func (c *connection) Writer() {
 	}
 
 	c.ws.Close()
+	c.hub.Unsubscribe(c)
 }
