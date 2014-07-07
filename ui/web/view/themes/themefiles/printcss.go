@@ -77,6 +77,10 @@ body>nav.toplevel {
     display: none;
 }
 
+body>nav.search {
+    display: none;
+}
+
 body>nav.breadcrumb {
     display: none;
 }
