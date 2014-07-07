@@ -28,6 +28,10 @@ type watcherFactory struct {
 	logger logger.Logger
 }
 
+func (factory *watcherFactory) File(file string, checkIntervalInSeconds int, modifiedCallback, movedCallback func()) fswatch.Watcher {
+	return factory.watchFile(file, checkIntervalInSeconds, modifiedCallback, movedCallback)
+}
+
 func (factory *watcherFactory) Directory(folder string, checkIntervalInSeconds int, callback func(change *fswatch.FolderChange)) fswatch.Watcher {
 	recurse := false
 
@@ -104,6 +108,37 @@ func (factory *watcherFactory) watchFolder(folder string, checkIntervalInSeconds
 
 		factory.release(folder)
 		factory.logger.Debug("Exiting directory listener for folder %q.\n", folder)
+	}()
+
+	return watcher
+}
+
+func (factory *watcherFactory) watchFile(file string, checkIntervalInSeconds int, modifiedCallback, movedCallback func()) fswatch.Watcher {
+
+	if existingWatcher, isReserved := factory.isReserved(file); isReserved {
+		factory.logger.Debug("Watcher %s already exists\n", file)
+		return existingWatcher
+	}
+
+	watcher := fswatch.NewFileWatcher(file, checkIntervalInSeconds)
+
+	// reseve the watcher
+	factory.reserve(file, watcher)
+
+	watcher.Start()
+
+	func() {
+		for watcher.IsRunning() {
+
+			select {
+			case <-watcher.Modified():
+				go modifiedCallback()
+
+			case <-watcher.Moved():
+				go movedCallback()
+			}
+
+		}
 	}()
 
 	return watcher

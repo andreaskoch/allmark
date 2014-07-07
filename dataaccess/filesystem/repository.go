@@ -222,34 +222,21 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 	// Update-Hub: Markdown-File Watcher
 	repository.updateHub.Attach(*route, "markdown-file-watcher", func() fswatch.Watcher {
 
-		checkIntervalInSeconds := 2
+		modifiedCallback := func() {
+			repository.logger.Debug("Item %q changed.", item)
+			go func() {
+				repository.changedItem <- dataaccess.NewEvent(item, nil)
+			}()
+		}
 
-		watcher := fswatch.NewFileWatcher(filePath, checkIntervalInSeconds)
-		watcher.Start()
+		movedCallback := func() {
+			repository.logger.Debug("Item %q moved.", item)
+			go func() {
+				repository.movedItem <- dataaccess.NewEvent(item, nil)
+			}()
+		}
 
-		func() {
-			for watcher.IsRunning() {
-
-				select {
-				case <-watcher.Modified():
-
-					repository.logger.Debug("Item %q changed.", item)
-					go func() {
-						repository.changedItem <- dataaccess.NewEvent(item, nil)
-					}()
-
-				case <-watcher.Moved():
-
-					repository.logger.Debug("Item %q moved.", item)
-					go func() {
-						repository.movedItem <- dataaccess.NewEvent(item, nil)
-					}()
-				}
-
-			}
-		}()
-
-		return watcher
+		return repository.watcher.File(filePath, 2, modifiedCallback, movedCallback)
 	})
 
 	return item, true

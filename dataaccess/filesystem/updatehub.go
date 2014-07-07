@@ -35,7 +35,7 @@ type UpdateHub struct {
 
 func (hub *UpdateHub) StartWatching(route route.Route) {
 
-	hub.logger.Debug("Watchers (Folder: %v, File: %v)", fswatch.NumberOfFolderWatchers(), fswatch.NumberOfFileWatchers())
+	hub.logger.Debug("Watchers (Folder: %s, File: %s)", "", fswatch.NumberOfFolderWatchers(), fswatch.NumberOfFileWatchers())
 
 	hub.logger.Debug("Starting callbacks for route %q", route.String())
 
