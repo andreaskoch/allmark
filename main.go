@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger/console"
+	"github.com/andreaskoch/allmark2/common/logger/loglevel"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
@@ -107,7 +108,7 @@ func printUsageInformation(args []string) {
 func serve(repositoryPath string) bool {
 
 	config := config.Get(repositoryPath)
-	logger := console.New(config.LogLevel)
+	logger := console.New(loglevel.FromString(config.LogLevel))
 
 	// data access
 	repository, err := filesystem.NewRepository(logger, repositoryPath)
@@ -266,7 +267,7 @@ func serve(repositoryPath string) bool {
 func initialize(repositoryPath string) bool {
 
 	config := config.Get(repositoryPath)
-	logger := console.New(config.LogLevel)
+	logger := console.New(loglevel.FromString(config.LogLevel))
 
 	if success, err := initialization.Initialize(repositoryPath); !success {
 		logger.Error("Error initializing folder %q. Error: %s", repositoryPath, err.Error())
