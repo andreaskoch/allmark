@@ -7,6 +7,7 @@ package config
 import (
 	"bufio"
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/logger/loglevel"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"os"
 	"os/user"
@@ -81,6 +82,7 @@ func Default(baseFolder string) *Config {
 	config.Server.ThemeFolderName = ThemeFolderName
 	config.Server.Http.Port = 8080
 	config.Web.DefaultLanguage = "en"
+	config.LogLevel = loglevel.Info.String()
 
 	return config
 }
@@ -156,6 +158,7 @@ func (config *Config) Load() (*Config, error) {
 	// apply values
 	config.Server = loadedConfig.Server
 	config.Web = loadedConfig.Web
+	config.LogLevel = loadedConfig.LogLevel
 
 	return config, nil
 }
@@ -198,6 +201,7 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 
 	config.Server = newConfig.Server
 	config.Web = newConfig.Web
+	config.LogLevel = newConfig.LogLevel
 
 	return config, nil
 }

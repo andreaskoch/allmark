@@ -11,7 +11,7 @@ import (
 type LogLevel byte
 
 const (
-	Off = iota
+	Off LogLevel = iota
 	Debug
 	Info
 	Warn
@@ -48,10 +48,9 @@ func (logLevel LogLevel) String() string {
 	panic("Unreachable")
 }
 
-func FromString(logLevel string) LogLevel {
+func FromString(levelString string) LogLevel {
 
-	logLevel = strings.ToLower(strings.TrimSpace(logLevel))
-	switch logLevel {
+	switch strings.ToLower(strings.TrimSpace(levelString)) {
 
 	case "debug":
 		return Debug
