@@ -123,7 +123,8 @@ func (hub *UpdateHub) stopWatcher(route route.Route, callbackType string) {
 
 	hub.logger.Debug(fmt.Sprintf("Stopping callbacks for route %q", route.String()))
 
-	watchers, exists := hub.watchers[routeToKey(route)]
+	key := routeToKey(route)
+	watchers, exists := hub.watchers[key]
 	if !exists {
 		hub.logger.Debug("There is no running watcher for route %q", route.String())
 		return
@@ -134,6 +135,7 @@ func (hub *UpdateHub) stopWatcher(route route.Route, callbackType string) {
 		watcher.Stop()
 	}
 
+	delete(hub.watchers, key)
 }
 
 func routeToKey(route route.Route) string {
