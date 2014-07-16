@@ -78,12 +78,12 @@ func (hub *UpdateHub) StopWatching(route route.Route) {
 		hub.stopWatcher(route, callbackType)
 	}
 
+	delete(hub.watchers, route.Value())
 }
 
 func (hub *UpdateHub) Detach(route route.Route) {
 	hub.logger.Debug("Detaching callbacks %q for route %q", route.String())
 	hub.StopWatching(route)
-	delete(hub.watchers, route.Value())
 }
 
 func (hub *UpdateHub) Attach(route route.Route, callbackType string, callback func() fswatch.Watcher) {
