@@ -315,6 +315,22 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 		})
 	})
 
+	// Update-Hub: File-Directory Watcher
+	repository.updateHub.Attach(*route, "file-directory-watcher", func() fswatch.Watcher {
+		return repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
+
+			// update file list
+			repository.logger.Debug("Updating the file list for item %q", item.String())
+			newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+			item.SetFiles(newFiles)
+
+			// update the parent item
+			go func() {
+				repository.changedItem <- dataaccess.NewEvent(item, nil)
+			}()
+		})
+	})
+
 	return item, true
 }
 
