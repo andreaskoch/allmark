@@ -74,10 +74,14 @@ func (hub *UpdateHub) StopWatching(route route.Route) {
 		return
 	}
 
+	callbackTypes := make([]string, 0)
 	for callbackType, _ := range watchers {
-		hub.stopWatcher(route, callbackType)
+		callbackTypes = append(callbackTypes, callbackType)
 	}
 
+	for _, callbackType := range callbackTypes {
+		hub.stopWatcher(route, callbackType)
+	}
 }
 
 func (hub *UpdateHub) Detach(route route.Route) {
@@ -133,6 +137,7 @@ func (hub *UpdateHub) stopWatcher(route route.Route, callbackType string) {
 	if watcher, exists := watchers[callbackType]; exists {
 		hub.logger.Debug("Stopping watcher %q for route %q", callbackType, route.String())
 		watcher.Stop()
+		delete(watchers, callbackType)
 	}
 
 	delete(hub.watchers, key)
