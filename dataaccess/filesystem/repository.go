@@ -299,8 +299,6 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 					continue
 				}
 
-				repository.watcher.Stop(itemDirectory)
-
 				// remove the parent item since we cannot easily determine which child has gone away
 				go func() {
 					repository.movedItem <- dataaccess.NewEvent(item, nil)

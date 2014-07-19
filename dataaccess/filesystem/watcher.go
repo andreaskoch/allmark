@@ -70,15 +70,6 @@ func (factory *watcherFactory) AllFiles(folder string, checkIntervalInSeconds in
 	return factory.watchFolder(folder, checkIntervalInSeconds, recurse, skipFunc, callback)
 }
 
-func (factory *watcherFactory) Stop(folder string) {
-	watcher, exists := watchers[folder]
-	if !exists {
-		return
-	}
-
-	watcher.Stop()
-}
-
 func (factory *watcherFactory) watchFolder(folder string, checkIntervalInSeconds int, recurse bool, skipFunc func(path string) bool, callback func(change *fswatch.FolderChange)) fswatch.Watcher {
 
 	if existingWatcher, isReserved := factory.isReserved(folder); isReserved {
