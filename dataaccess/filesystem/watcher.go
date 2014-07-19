@@ -82,7 +82,7 @@ func (factory *watcherFactory) Stop(folder string) {
 func (factory *watcherFactory) watchFolder(folder string, checkIntervalInSeconds int, recurse bool, skipFunc func(path string) bool, callback func(change *fswatch.FolderChange)) fswatch.Watcher {
 
 	if existingWatcher, isReserved := factory.isReserved(folder); isReserved {
-		factory.logger.Debug("Watcher %s already exists\n", folder)
+		factory.logger.Debug("Watcher %s already exists.", folder)
 		return existingWatcher
 	}
 
@@ -116,7 +116,7 @@ func (factory *watcherFactory) watchFolder(folder string, checkIntervalInSeconds
 func (factory *watcherFactory) watchFile(file string, checkIntervalInSeconds int, modifiedCallback, movedCallback func()) fswatch.Watcher {
 
 	if existingWatcher, isReserved := factory.isReserved(file); isReserved {
-		factory.logger.Debug("Watcher %s already exists\n", file)
+		factory.logger.Debug("Watcher %s already exists.", file)
 		return existingWatcher
 	}
 
