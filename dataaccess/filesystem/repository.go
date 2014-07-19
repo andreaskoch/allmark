@@ -56,6 +56,14 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 		return nil, fmt.Errorf("Cannot create a hash for the repository with the name %q. Error: %s", directoryName, err)
 	}
 
+	// enable debug mode
+	debugMessages := fswatch.EnableDebug()
+	go func() {
+		for message := range debugMessages {
+			logger.Debug("fs-watch: %s", message)
+		}
+	}()
+
 	return &Repository{
 		logger:    logger,
 		directory: directory,
