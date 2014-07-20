@@ -109,6 +109,7 @@ func (hub *Hub) Run() {
 							hub.logger.Debug("Revieved a non-send message for %s", c.String())
 							delete(hub.connections, c)
 							go c.ws.Close()
+							hub.logger.Debug("Number of Connections: %v", len(hub.connections))
 						}
 					}
 

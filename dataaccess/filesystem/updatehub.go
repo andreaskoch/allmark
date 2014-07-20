@@ -36,14 +36,14 @@ type UpdateHub struct {
 func (hub *UpdateHub) StartWatching(route route.Route) {
 
 	hub.logger.Debug("Watchers (Folder: %s, File: %s)", fswatch.NumberOfFolderWatchers(), fswatch.NumberOfFileWatchers())
-
 	hub.logger.Debug("Starting callbacks for route %q", route.String())
 
-	for callbackType, callback := range hub.callbacks[routeToKey(route)] {
+	routeKey := routeToKey(route)
+	for callbackType, callback := range hub.callbacks[routeKey] {
 
 		if hub.watcherExists(route, callbackType) {
-			hub.logger.Debug("Callback %q for route %q is already running", callbackType, route.String())
-			continue
+			// hub.logger.Debug("Callback %q for route %q is already running", callbackType, route.String())
+			// continue
 		}
 
 		hub.logger.Debug("Starting callback %q for route %q", callbackType, route.String())
@@ -51,13 +51,13 @@ func (hub *UpdateHub) StartWatching(route route.Route) {
 		// execute the callback
 		watcher := callback()
 
-		if watchers, exists := hub.watchers[routeToKey(route)]; !exists {
+		if watchers, exists := hub.watchers[routeKey]; !exists {
 			watchers := make(updateHubWatchers)
 			watchers[callbackType] = watcher
-			hub.watchers[routeToKey(route)] = watchers
+			hub.watchers[routeKey] = watchers
 		} else {
 			watchers[callbackType] = watcher
-			hub.watchers[routeToKey(route)] = watchers
+			hub.watchers[routeKey] = watchers
 		}
 	}
 
@@ -136,11 +136,16 @@ func (hub *UpdateHub) stopWatcher(route route.Route, callbackType string) {
 		return
 	}
 
-	if watcher, exists := watchers[callbackType]; exists {
-		hub.logger.Debug("Stopping watcher %q for route %q", callbackType, route.String())
-		watcher.Stop()
-		delete(watchers, callbackType)
+	watcher, exists := watchers[callbackType]
+	if !exists {
+		return
 	}
+
+	hub.logger.Debug("Stopping watcher %q for route %q", callbackType, route.String())
+	watcher.Stop()
+	delete(watchers, callbackType)
+
+	hub.watchers[key] = watchers
 }
 
 func routeToKey(route route.Route) string {
