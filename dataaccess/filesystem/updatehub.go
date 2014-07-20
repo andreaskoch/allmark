@@ -11,26 +11,178 @@ import (
 	"github.com/andreaskoch/go-fswatch"
 )
 
-type updateHubCallbacks map[string]func() fswatch.Watcher
-type updateHubWatchers map[string]fswatch.Watcher
+func routeToKey(route route.Route) string {
+	return route.Value()
+}
 
-type watcherRegistry map[string]updateHubWatchers
-type callbackRegistry map[string]updateHubCallbacks
+func routeAndCallbackTypeToKey(route route.Route, callbackType string) string {
+	return fmt.Sprintf("%s - %s", routeToKey(route), callbackType)
+}
+
+// Create a new registry entry from the given route, callback type and callback
+func newRegistryEntry(route route.Route, callbackType string, callback func() fswatch.Watcher) *registryEntry {
+	return &registryEntry{
+		route:        route,
+		callbackType: callbackType,
+
+		callback: callback,
+	}
+}
+
+type registryEntry struct {
+	route        route.Route
+	callbackType string
+
+	callback func() fswatch.Watcher
+	watcher  fswatch.Watcher
+}
+
+func (entry *registryEntry) Route() string {
+	return entry.route.Value()
+}
+
+func (entry *registryEntry) Type() string {
+	return entry.callbackType
+}
+
+func (entry *registryEntry) Start() {
+	go func() {
+
+		if entry.watcher == nil {
+			entry.watcher = entry.callback()
+		} else if !entry.watcher.IsRunning() {
+			entry.watcher.Start()
+		}
+
+	}()
+}
+
+func (entry *registryEntry) Stop() {
+	go func() {
+
+		if entry.watcher != nil {
+			entry.watcher.Stop()
+		}
+
+	}()
+}
+
+func (entry *registryEntry) Key() string {
+	return routeAndCallbackTypeToKey(entry.route, entry.callbackType)
+}
+
+func (entry *registryEntry) String() string {
+	return fmt.Sprintf("Registry Entry (Route: %s, Callback-Type: %s)", entry.Route(), entry.Type())
+}
+
+// Create a new registry entry collection
+func newRegistryEntryCollection() *registryEntryCollection {
+	return &registryEntryCollection{
+		entriesByKey: make(map[string]*registryEntry, 0),
+	}
+}
+
+// A collection of registry entries
+type registryEntryCollection struct {
+	entriesByKey map[string]*registryEntry
+}
+
+func (collection *registryEntryCollection) Entries() []*registryEntry {
+	entries := make([]*registryEntry, 0)
+
+	for _, value := range collection.entriesByKey {
+		entries = append(entries, value)
+	}
+
+	return entries
+}
+
+func (collection *registryEntryCollection) Get(route route.Route, callbackType string) *registryEntry {
+	key := routeAndCallbackTypeToKey(route, callbackType)
+	if entry, exists := collection.entriesByKey[key]; exists {
+		return entry // entry was found
+	}
+
+	return nil // no entry found
+}
+
+func (collection *registryEntryCollection) Add(route route.Route, callbackType string, callback func() fswatch.Watcher) bool {
+	if entry := collection.Get(route, callbackType); entry != nil {
+		return false // entry already exists
+	}
+
+	// create a new entry
+	entry := newRegistryEntry(route, callbackType, callback)
+
+	// add the entry to the collection
+	collection.entriesByKey[entry.Key()] = entry
+
+	return true
+}
+
+func (collection *registryEntryCollection) Remove(route route.Route, callbackType string) bool {
+	entry := collection.Get(route, callbackType)
+	if entry == nil {
+		return false // there is no entry
+	}
+
+	// remove the entry
+	delete(collection.entriesByKey, entry.Key())
+	return true
+}
+
+func newRegistry() *Registry {
+	return &Registry{
+		entriesByRoute: make(map[string]*registryEntryCollection, 0),
+	}
+}
+
+type Registry struct {
+	entriesByRoute map[string]*registryEntryCollection
+}
+
+func (registry *Registry) Get(route route.Route) *registryEntryCollection {
+	if collection, exists := registry.entriesByRoute[routeToKey(route)]; exists {
+		return collection
+	}
+
+	return nil
+}
+
+func (registry *Registry) Add(route route.Route, callbackType string, callback func() fswatch.Watcher) {
+	collection := registry.Get(route)
+	if collection == nil {
+		collection = newRegistryEntryCollection() // create a new collection if the is none for the given route
+	}
+
+	collection.Add(route, callbackType, callback)
+}
+
+func (registry *Registry) Remove(route route.Route) {
+
+	// check if there is a collection for the given route
+	collection := registry.Get(route)
+	if collection == nil {
+		return // there was no collection for the supplied route
+	}
+
+	// remove the entry
+	key := routeToKey(route)
+	delete(registry.entriesByRoute, key)
+}
 
 func newUpdateHub(logger logger.Logger) *UpdateHub {
 	return &UpdateHub{
 		logger: logger,
 
-		callbacks: make(callbackRegistry),
-		watchers:  make(watcherRegistry),
+		registry: newRegistry(),
 	}
 }
 
 type UpdateHub struct {
 	logger logger.Logger
 
-	callbacks callbackRegistry
-	watchers  watcherRegistry
+	registry *Registry
 }
 
 func (hub *UpdateHub) StartWatching(route route.Route) {
@@ -38,27 +190,16 @@ func (hub *UpdateHub) StartWatching(route route.Route) {
 	hub.logger.Debug("Watchers (Folder: %s, File: %s)", fswatch.NumberOfFolderWatchers(), fswatch.NumberOfFileWatchers())
 	hub.logger.Debug("Starting callbacks for route %q", route.String())
 
-	routeKey := routeToKey(route)
-	for callbackType, callback := range hub.callbacks[routeKey] {
+	// get all watchers for the supplied route
+	collection := hub.registry.Get(route)
+	if collection == nil {
+		hub.logger.Debug("There is no watcher for route %q", route.String())
+		return
+	}
 
-		if hub.watcherExists(route, callbackType) {
-			// hub.logger.Debug("Callback %q for route %q is already running", callbackType, route.String())
-			// continue
-		}
-
-		hub.logger.Debug("Starting callback %q for route %q", callbackType, route.String())
-
-		// execute the callback
-		watcher := callback()
-
-		if watchers, exists := hub.watchers[routeKey]; !exists {
-			watchers := make(updateHubWatchers)
-			watchers[callbackType] = watcher
-			hub.watchers[routeKey] = watchers
-		} else {
-			watchers[callbackType] = watcher
-			hub.watchers[routeKey] = watchers
-		}
+	// stop all watchers
+	for _, registryEntry := range collection.Entries() {
+		registryEntry.Start()
 	}
 
 	hub.logger.Debug("Watchers (Folder: %s, File: %s)", fswatch.NumberOfFolderWatchers(), fswatch.NumberOfFileWatchers())
@@ -68,86 +209,47 @@ func (hub *UpdateHub) StopWatching(route route.Route) {
 
 	hub.logger.Debug(fmt.Sprintf("Stopping callbacks for route %q", route.String()))
 
-	routeKey := routeToKey(route)
-	watchers, exists := hub.watchers[routeKey]
-	if !exists {
-		hub.logger.Debug("There is no running watcher for route %q", route.String())
+	// get all watchers for the supplied route
+	collection := hub.registry.Get(route)
+	if collection == nil {
+		hub.logger.Debug("There is no watcher for route %q", route.String())
 		return
 	}
 
-	callbackTypes := make([]string, 0)
-	for callbackType, _ := range watchers {
-		callbackTypes = append(callbackTypes, callbackType)
+	// stop all watchers
+	for _, registryEntry := range collection.Entries() {
+		registryEntry.Stop()
 	}
-
-	for _, callbackType := range callbackTypes {
-		hub.stopWatcher(route, callbackType)
-	}
-
-	delete(hub.watchers, routeKey)
 }
 
 func (hub *UpdateHub) Detach(route route.Route) {
 	hub.logger.Debug("Detaching callbacks %q for route %q", route.String())
-	hub.StopWatching(route)
+
+	collection := hub.registry.Get(route)
+	if collection != nil {
+		for _, entry := range collection.Entries() {
+			entry.Stop()
+		}
+	}
+
+	hub.registry.Remove(route)
 }
 
 func (hub *UpdateHub) Attach(route route.Route, callbackType string, callback func() fswatch.Watcher) {
 	hub.logger.Debug("Attaching callback %q for route %q", callbackType, route.String())
-
-	if callbacks, exists := hub.callbacks[routeToKey(route)]; !exists {
-
-		// create a new callback map
-		callbacks := make(updateHubCallbacks)
-
-		// attach the callback
-		callbacks[callbackType] = callback
-
-		hub.callbacks[routeToKey(route)] = callbacks
-	} else {
-
-		// stop any existing callbacks
-		hub.stopWatcher(route, callbackType)
-
-		// attach the callback
-		callbacks[callbackType] = callback
-
-	}
+	hub.registry.Add(route, callbackType, callback)
 }
 
 func (hub *UpdateHub) watcherExists(route route.Route, callbackType string) bool {
-	watchers, exists := hub.watchers[routeToKey(route)]
-	if !exists {
+	collection := hub.registry.Get(route)
+	if collection == nil {
 		return false
 	}
 
-	watcher, watcherExists := watchers[callbackType]
-	return watcherExists && watcher.IsRunning()
-}
-
-func (hub *UpdateHub) stopWatcher(route route.Route, callbackType string) {
-
-	hub.logger.Debug(fmt.Sprintf("Stopping callbacks for route %q", route.String()))
-
-	key := routeToKey(route)
-	watchers, exists := hub.watchers[key]
-	if !exists {
-		hub.logger.Debug("There is no running watcher for route %q", route.String())
-		return
+	entry := collection.Get(route, callbackType)
+	if entry == nil {
+		return false
 	}
 
-	watcher, exists := watchers[callbackType]
-	if !exists {
-		return
-	}
-
-	hub.logger.Debug("Stopping watcher %q for route %q", callbackType, route.String())
-	watcher.Stop()
-	delete(watchers, callbackType)
-
-	hub.watchers[key] = watchers
-}
-
-func routeToKey(route route.Route) string {
-	return route.Value()
+	return true
 }
