@@ -37,8 +37,8 @@ type registryEntry struct {
 	watcher  fswatch.Watcher
 }
 
-func (entry *registryEntry) Route() string {
-	return entry.route.Value()
+func (entry *registryEntry) Route() route.Route {
+	return entry.route
 }
 
 func (entry *registryEntry) Type() string {
@@ -46,25 +46,25 @@ func (entry *registryEntry) Type() string {
 }
 
 func (entry *registryEntry) Start() {
-	go func() {
 
-		if entry.watcher == nil {
-			entry.watcher = entry.callback()
-		} else if !entry.watcher.IsRunning() {
-			entry.watcher.Start()
-		}
+	if entry.watcher == nil {
+		entry.watcher = entry.callback()
+		return
+	}
 
-	}()
+	if !entry.watcher.IsRunning() {
+		entry.watcher.Start()
+	}
+
 }
 
 func (entry *registryEntry) Stop() {
-	go func() {
 
-		if entry.watcher != nil {
-			entry.watcher.Stop()
-		}
+	if entry.watcher == nil {
+		return
+	}
 
-	}()
+	entry.watcher.Stop()
 }
 
 func (entry *registryEntry) Key() string {
@@ -72,7 +72,7 @@ func (entry *registryEntry) Key() string {
 }
 
 func (entry *registryEntry) String() string {
-	return fmt.Sprintf("Registry Entry (Route: %s, Callback-Type: %s)", entry.Route(), entry.Type())
+	return fmt.Sprintf("Registry Entry (Route: %s, Callback-Type: %s)", entry.route.Value(), entry.Type())
 }
 
 // Create a new registry entry collection
@@ -97,8 +97,7 @@ func (collection *registryEntryCollection) Entries() []*registryEntry {
 	return entries
 }
 
-func (collection *registryEntryCollection) Get(route route.Route, callbackType string) *registryEntry {
-	key := routeAndCallbackTypeToKey(route, callbackType)
+func (collection *registryEntryCollection) Get(key string) *registryEntry {
 	if entry, exists := collection.entriesByKey[key]; exists {
 		return entry // entry was found
 	}
@@ -106,13 +105,10 @@ func (collection *registryEntryCollection) Get(route route.Route, callbackType s
 	return nil // no entry found
 }
 
-func (collection *registryEntryCollection) Add(route route.Route, callbackType string, callback func() fswatch.Watcher) bool {
-	if entry := collection.Get(route, callbackType); entry != nil {
+func (collection *registryEntryCollection) Add(entry *registryEntry) bool {
+	if entry := collection.Get(entry.Key()); entry != nil {
 		return false // entry already exists
 	}
-
-	// create a new entry
-	entry := newRegistryEntry(route, callbackType, callback)
 
 	// add the entry to the collection
 	collection.entriesByKey[entry.Key()] = entry
@@ -120,8 +116,8 @@ func (collection *registryEntryCollection) Add(route route.Route, callbackType s
 	return true
 }
 
-func (collection *registryEntryCollection) Remove(route route.Route, callbackType string) bool {
-	entry := collection.Get(route, callbackType)
+func (collection *registryEntryCollection) Remove(key string) bool {
+	entry := collection.Get(key)
 	if entry == nil {
 		return false // there is no entry
 	}
@@ -149,26 +145,29 @@ func (registry *Registry) Get(route route.Route) *registryEntryCollection {
 	return nil
 }
 
-func (registry *Registry) Add(route route.Route, callbackType string, callback func() fswatch.Watcher) {
-	collection := registry.Get(route)
+func (registry *Registry) Add(entry *registryEntry) bool {
+	collection := registry.Get(entry.Route())
 	if collection == nil {
 		collection = newRegistryEntryCollection() // create a new collection if the is none for the given route
+		registry.entriesByRoute[routeToKey(entry.Route())] = collection
 	}
 
-	collection.Add(route, callbackType, callback)
+	return collection.Add(entry)
 }
 
-func (registry *Registry) Remove(route route.Route) {
+func (registry *Registry) Remove(route route.Route) bool {
 
 	// check if there is a collection for the given route
 	collection := registry.Get(route)
 	if collection == nil {
-		return // there was no collection for the supplied route
+		return false // there was no collection for the supplied route
 	}
 
 	// remove the entry
 	key := routeToKey(route)
 	delete(registry.entriesByRoute, key)
+
+	return true
 }
 
 func newUpdateHub(logger logger.Logger) *UpdateHub {
@@ -197,7 +196,7 @@ func (hub *UpdateHub) StartWatching(route route.Route) {
 		return
 	}
 
-	// stop all watchers
+	// start all watchers
 	for _, registryEntry := range collection.Entries() {
 		registryEntry.Start()
 	}
@@ -237,7 +236,9 @@ func (hub *UpdateHub) Detach(route route.Route) {
 
 func (hub *UpdateHub) Attach(route route.Route, callbackType string, callback func() fswatch.Watcher) {
 	hub.logger.Debug("Attaching callback %q for route %q", callbackType, route.String())
-	hub.registry.Add(route, callbackType, callback)
+
+	entry := newRegistryEntry(route, callbackType, callback)
+	hub.registry.Add(entry)
 }
 
 func (hub *UpdateHub) watcherExists(route route.Route, callbackType string) bool {
@@ -246,7 +247,8 @@ func (hub *UpdateHub) watcherExists(route route.Route, callbackType string) bool
 		return false
 	}
 
-	entry := collection.Get(route, callbackType)
+	key := routeAndCallbackTypeToKey(route, callbackType)
+	entry := collection.Get(key)
 	if entry == nil {
 		return false
 	}

@@ -118,7 +118,7 @@ func (factory *watcherFactory) watchFile(file string, checkIntervalInSeconds int
 
 	watcher.Start()
 
-	func() {
+	go func() {
 		for watcher.IsRunning() {
 
 			select {
