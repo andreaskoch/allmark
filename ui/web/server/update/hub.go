@@ -48,14 +48,22 @@ func (hub *Hub) Message(viewModel viewmodel.Model) {
 }
 
 func (hub *Hub) Subscribe(connection *connection) {
-	hub.logger.Debug("Number of Connections", len(hub.connections))
+	hub.logger.Debug("Subscribing connection: %s", connection.String())
 
-	go hub.updateHub.StartWatching(connection.Route)
+	// start watching for changes if there are no connections for this route
+	if noConnectionsForRoute := len(hub.connectionsByRoute(connection.Route.Value())) == 0; noConnectionsForRoute {
+		go hub.updateHub.StartWatching(connection.Route)
+	}
+
 	hub.subscribe <- connection
 }
 
 func (hub *Hub) Unsubscribe(connection *connection) {
-	go hub.updateHub.StopWatching(connection.Route)
+
+	// stop watching for changes if there are no more connections for this route
+	if noConnectionsForRoute := len(hub.connectionsByRoute(connection.Route.Value())) <= 1; noConnectionsForRoute {
+		go hub.updateHub.StopWatching(connection.Route)
+	}
 
 	hub.unsubscribe <- connection
 }
@@ -77,13 +85,13 @@ func (hub *Hub) Run() {
 		select {
 		case c := <-hub.subscribe:
 			{
-				hub.logger.Debug("Subscriping connection %s", c.Route.Value())
 				hub.connections[c] = true
+				hub.logger.Debug("Number of Connections: %v", len(hub.connections))
 			}
 		case c := <-hub.unsubscribe:
 			{
-				hub.logger.Debug("Unsubscriping connection %s", c.Route.Value())
 				delete(hub.connections, c)
+				hub.logger.Debug("Number of Connections: %v", len(hub.connections))
 			}
 		case m := <-hub.broadcast:
 			{
@@ -92,9 +100,16 @@ func (hub *Hub) Run() {
 
 					select {
 					case c.send <- m:
+						{
+							hub.logger.Debug("Sending an update to: %s", c.String())
+						}
 					default:
-						delete(hub.connections, c)
-						go c.ws.Close()
+						{
+							// todo: find out when this is happening
+							hub.logger.Debug("Revieved a non-send message for %s", c.String())
+							delete(hub.connections, c)
+							go c.ws.Close()
+						}
 					}
 
 				}

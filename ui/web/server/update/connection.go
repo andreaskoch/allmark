@@ -6,6 +6,7 @@ package update
 
 import (
 	"code.google.com/p/go.net/websocket"
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/route"
 )
 
@@ -31,6 +32,10 @@ type connection struct {
 
 	// Buffered channel of outbound messages.
 	send chan Message
+}
+
+func (c *connection) String() string {
+	return fmt.Sprintf("Connection (Route: %s, IP: %s)", c.Route.String(), c.ws.Request().RemoteAddr)
 }
 
 func (c *connection) Send(msg Message) {
