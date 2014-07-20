@@ -68,7 +68,8 @@ func (hub *UpdateHub) StopWatching(route route.Route) {
 
 	hub.logger.Debug(fmt.Sprintf("Stopping callbacks for route %q", route.String()))
 
-	watchers, exists := hub.watchers[routeToKey(route)]
+	routeKey := routeToKey(route)
+	watchers, exists := hub.watchers[routeKey]
 	if !exists {
 		hub.logger.Debug("There is no running watcher for route %q", route.String())
 		return
@@ -82,12 +83,13 @@ func (hub *UpdateHub) StopWatching(route route.Route) {
 	for _, callbackType := range callbackTypes {
 		hub.stopWatcher(route, callbackType)
 	}
+
+	delete(hub.watchers, routeKey)
 }
 
 func (hub *UpdateHub) Detach(route route.Route) {
 	hub.logger.Debug("Detaching callbacks %q for route %q", route.String())
 	hub.StopWatching(route)
-	delete(hub.watchers, route.Value())
 }
 
 func (hub *UpdateHub) Attach(route route.Route, callbackType string, callback func() fswatch.Watcher) {
@@ -119,8 +121,8 @@ func (hub *UpdateHub) watcherExists(route route.Route, callbackType string) bool
 		return false
 	}
 
-	_, watcherExists := watchers[callbackType]
-	return watcherExists
+	watcher, watcherExists := watchers[callbackType]
+	return watcherExists && watcher.IsRunning()
 }
 
 func (hub *UpdateHub) stopWatcher(route route.Route, callbackType string) {
@@ -139,8 +141,6 @@ func (hub *UpdateHub) stopWatcher(route route.Route, callbackType string) {
 		watcher.Stop()
 		delete(watchers, callbackType)
 	}
-
-	delete(hub.watchers, key)
 }
 
 func routeToKey(route route.Route) string {
