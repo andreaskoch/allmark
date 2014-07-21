@@ -18,6 +18,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/opensearchdescriptionhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/robotstxthandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/rsshandler"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/rtfhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/searchhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/sitemaphandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/tagshandler"
@@ -69,6 +70,10 @@ func NewRssHandler(logger logger.Logger, config *config.Config, itemIndex *index
 
 func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter, hub *update.Hub) Handler {
 	return itemhandler.New(logger, config, itemIndex, patherFactory, converter, hub)
+}
+
+func NewRtfHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
+	return rtfhandler.New(logger, config, itemIndex, patherFactory, converter)
 }
 
 func NewJsonHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {

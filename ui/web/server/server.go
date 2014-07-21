@@ -27,6 +27,7 @@ import (
 const (
 	// Dynamic Routes
 	JsonHandlerRoute                  = "/{path:.*}.json"
+	RtfHandlerRoute                   = "/{path:.*$}.rtf"
 	ItemHandlerRoute                  = "/{path:.*$}"
 	UpdateHandlerRoute                = "/{path:.*}.ws"
 	TagmapHandlerRoute                = "/tags.html"
@@ -113,6 +114,7 @@ func (server *Server) Start() chan error {
 		}
 
 		// serve items
+		requestRouter.HandleFunc(RtfHandlerRoute, handler.NewRtfHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
 		requestRouter.HandleFunc(JsonHandlerRoute, handler.NewJsonHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
 		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter, updateHub).Func())
 
