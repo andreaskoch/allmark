@@ -85,11 +85,13 @@ func (hub *Hub) Run() {
 		select {
 		case c := <-hub.subscribe:
 			{
+				hub.logger.Debug("Subscring connection %s", c.String())
 				hub.connections[c] = true
 				hub.logger.Debug("Number of Connections: %v", len(hub.connections))
 			}
 		case c := <-hub.unsubscribe:
 			{
+				hub.logger.Debug("Unsubscribing connection %s", c.String())
 				delete(hub.connections, c)
 				hub.logger.Debug("Number of Connections: %v", len(hub.connections))
 			}
