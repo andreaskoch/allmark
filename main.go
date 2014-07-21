@@ -154,6 +154,7 @@ func serve(repositoryPath string) bool {
 
 	// full index of the repository
 	go func() {
+		logger.Debug("Indexing item.")
 		for itemEvent := range repository.InitialItems() {
 
 			// validate event
@@ -181,6 +182,8 @@ func serve(repositoryPath string) bool {
 		sleepInterval := time.Minute * 3
 		for {
 			time.Sleep(sleepInterval)
+
+			logger.Debug("Refreshing the search index.")
 			itemSearch.Update()
 		}
 	}()
@@ -189,7 +192,7 @@ func serve(repositoryPath string) bool {
 	// event handler: new items
 	go func() {
 		for itemEvent := range repository.NewItems() {
-			logger.Debug("New Item")
+			logger.Debug("New Item: %s", itemEvent.Item.String())
 
 			// validate event
 			if itemEvent.Error != nil {
@@ -210,7 +213,7 @@ func serve(repositoryPath string) bool {
 	// event handler: changed items
 	go func() {
 		for itemEvent := range repository.ChangedItems() {
-			logger.Debug("Item changed")
+			logger.Debug("Changed Item: %s", itemEvent.Item.String())
 
 			// validate event
 			if itemEvent.Error != nil {
@@ -231,7 +234,7 @@ func serve(repositoryPath string) bool {
 	// event handler: moved items
 	go func() {
 		for itemEvent := range repository.MovedItems() {
-			logger.Debug("Item moved")
+			logger.Debug("Moved Item: %s", itemEvent.Item.String())
 
 			// validate event
 			if itemEvent.Error != nil {
