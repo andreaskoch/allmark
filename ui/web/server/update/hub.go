@@ -52,7 +52,7 @@ func (hub *Hub) Subscribe(connection *connection) {
 
 	// start watching for changes if there are no connections for this route
 	if noConnectionsForRoute := len(hub.connectionsByRoute(connection.Route.Value())) == 0; noConnectionsForRoute {
-		go hub.updateHub.StartWatching(connection.Route)
+		hub.updateHub.StartWatching(connection.Route)
 	}
 
 	hub.subscribe <- connection
@@ -62,7 +62,7 @@ func (hub *Hub) Unsubscribe(connection *connection) {
 
 	// stop watching for changes if there are no more connections for this route
 	if noConnectionsForRoute := len(hub.connectionsByRoute(connection.Route.Value())) <= 1; noConnectionsForRoute {
-		go hub.updateHub.StopWatching(connection.Route)
+		hub.updateHub.StopWatching(connection.Route)
 	}
 
 	hub.unsubscribe <- connection
