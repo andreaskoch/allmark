@@ -100,7 +100,7 @@ func (handler *UpdateHandler) Func() func(ws *websocket.Conn) {
 		}()
 
 		defer func() {
-			handler.hub.Subscribe(c)
+			handler.hub.Unsubscribe(c)
 		}()
 
 		go c.Writer()

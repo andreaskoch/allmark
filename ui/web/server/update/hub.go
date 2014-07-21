@@ -86,14 +86,16 @@ func (hub *Hub) Run() {
 		case c := <-hub.subscribe:
 			{
 				hub.logger.Debug("Subscring connection %s", c.String())
+				hub.logger.Debug("Number of Connections - Before: %v", len(hub.connections))
 				hub.connections[c] = true
-				hub.logger.Debug("Number of Connections: %v", len(hub.connections))
+				hub.logger.Debug("Number of Connections - After: %v", len(hub.connections))
 			}
 		case c := <-hub.unsubscribe:
 			{
 				hub.logger.Debug("Unsubscribing connection %s", c.String())
+				hub.logger.Debug("Number of Connections - Before: %v", len(hub.connections))
 				delete(hub.connections, c)
-				hub.logger.Debug("Number of Connections: %v", len(hub.connections))
+				hub.logger.Debug("Number of Connections - After: %v", len(hub.connections))
 			}
 		case m := <-hub.broadcast:
 			{
