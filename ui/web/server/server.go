@@ -27,7 +27,7 @@ import (
 const (
 	// Dynamic Routes
 	JsonHandlerRoute                  = "/{path:.*}.json"
-	RtfHandlerRoute                   = "/{path:.*$}.rtf"
+	RtfHandlerRoute                   = "/{path:.*}.rtf"
 	ItemHandlerRoute                  = "/{path:.*$}"
 	UpdateHandlerRoute                = "/{path:.*}.ws"
 	TagmapHandlerRoute                = "/tags.html"

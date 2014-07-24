@@ -35,6 +35,8 @@ const (
 
 	SearchTemplateName        = "search"
 	SearchContentTemplateName = "searchcontent"
+
+	ConversionTemplateName = "conversion"
 )
 
 type Provider struct {
@@ -75,6 +77,8 @@ func NewProvider(templateFolder string) *Provider {
 	templates[model.TypeMessage.String()] = NewTemplate(templateFolder, model.TypeMessage.String(), messageTemplate)
 	templates[model.TypeRepository.String()] = NewTemplate(templateFolder, model.TypeRepository.String(), repositoryTemplate)
 	templates[model.TypePresentation.String()] = NewTemplate(templateFolder, model.TypePresentation.String(), presentationTemplate)
+
+	templates[ConversionTemplateName] = NewTemplate(templateFolder, ConversionTemplateName, conversionTemplate)
 
 	// create the provider
 	provider := &Provider{
