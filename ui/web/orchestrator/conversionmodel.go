@@ -35,7 +35,7 @@ func (orchestrator *ConversionModelOrchestrator) GetConversionModel(pathProvider
 	}
 
 	// convert content
-	convertedContent, err := orchestrator.converter.Convert(pathProvider, item)
+	convertedContent, err := orchestrator.converter.Convert(pathProvider, item, true)
 	if err != nil {
 		return viewmodel.ConversionModel{}
 	}
