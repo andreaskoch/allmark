@@ -26,6 +26,7 @@ import (
 
 const (
 	// Dynamic Routes
+	PrintHandlerRoute                 = "/{path:.*}.print"
 	JsonHandlerRoute                  = "/{path:.*}.json"
 	RtfHandlerRoute                   = "/{path:.*}.rtf"
 	ItemHandlerRoute                  = "/{path:.*$}"
@@ -102,6 +103,7 @@ func (server *Server) Start() chan error {
 		requestRouter.HandleFunc(SitemapHandlerRoute, handler.NewSitemapHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(DebugHandlerRoute, handler.NewDebugHandler(server.logger, server.itemIndex).Func())
 		requestRouter.HandleFunc(RssHandlerRoute, handler.NewRssHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
+		requestRouter.HandleFunc(PrintHandlerRoute, handler.NewPrintHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
 		requestRouter.HandleFunc(SearchHandlerRoute, handler.NewSearchHandler(server.logger, server.config, server.patherFactory, server.itemIndex, server.searcher).Func())
 		requestRouter.HandleFunc(OpenSearchDescriptionHandlerRoute, handler.NewOpenSearchDescriptionHandler(server.logger, server.config, server.patherFactory, server.itemIndex).Func())
 		requestRouter.HandleFunc(TypeAheadSearchHandlerRoute, handler.NewTypeAheadSearchHandler(server.logger, server.config, server.patherFactory, server.itemIndex, server.searcher).Func())
@@ -114,7 +116,7 @@ func (server *Server) Start() chan error {
 		}
 
 		// serve items
-		requestRouter.HandleFunc(RtfHandlerRoute, handler.NewRtfHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
+		requestRouter.HandleFunc(RtfHandlerRoute, handler.NewRtfHandler(server.logger, server.config, server.itemIndex, server.patherFactory).Func())
 		requestRouter.HandleFunc(JsonHandlerRoute, handler.NewJsonHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter).Func())
 		requestRouter.HandleFunc(ItemHandlerRoute, handler.NewItemHandler(server.logger, server.config, server.itemIndex, server.patherFactory, server.converter, updateHub).Func())
 

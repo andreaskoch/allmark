@@ -16,6 +16,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/itemhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/jsonhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/opensearchdescriptionhandler"
+	"github.com/andreaskoch/allmark2/ui/web/server/handler/printhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/robotstxthandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/rsshandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/rtfhandler"
@@ -72,8 +73,12 @@ func NewItemHandler(logger logger.Logger, config *config.Config, itemIndex *inde
 	return itemhandler.New(logger, config, itemIndex, patherFactory, converter, hub)
 }
 
-func NewRtfHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
-	return rtfhandler.New(logger, config, itemIndex, patherFactory, converter)
+func NewPrintHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {
+	return printhandler.New(logger, config, itemIndex, patherFactory, converter)
+}
+
+func NewRtfHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) Handler {
+	return rtfhandler.New(logger, config, itemIndex, patherFactory)
 }
 
 func NewJsonHandler(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) Handler {

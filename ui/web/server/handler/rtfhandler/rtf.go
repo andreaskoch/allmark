@@ -5,8 +5,6 @@
 package rtfhandler
 
 import (
-	"bufio"
-	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/index"
@@ -14,12 +12,8 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
-	"github.com/andreaskoch/allmark2/services/conversion"
-	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/errorhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
-	"github.com/andreaskoch/allmark2/ui/web/view/templates"
-	"github.com/andreaskoch/allmark2/ui/web/view/viewmodel"
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
@@ -29,36 +23,26 @@ import (
 	"strings"
 )
 
-func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) *RtfHandler {
-
-	// templates
-	templateProvider := templates.NewProvider(config.TemplatesFolder())
+func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory) *RtfHandler {
 
 	// error
 	error404Handler := errorhandler.New(logger, config, itemIndex, patherFactory)
 
-	// viewmodel
-	conversionModelOrchestrator := orchestrator.NewConversionModelOrchestrator(itemIndex, converter)
-
 	return &RtfHandler{
-		logger:                      logger,
-		itemIndex:                   itemIndex,
-		config:                      config,
-		patherFactory:               patherFactory,
-		templateProvider:            templateProvider,
-		error404Handler:             error404Handler,
-		conversionModelOrchestrator: conversionModelOrchestrator,
+		logger:          logger,
+		itemIndex:       itemIndex,
+		config:          config,
+		patherFactory:   patherFactory,
+		error404Handler: error404Handler,
 	}
 }
 
 type RtfHandler struct {
-	logger                      logger.Logger
-	itemIndex                   *index.Index
-	config                      *config.Config
-	patherFactory               paths.PatherFactory
-	templateProvider            *templates.Provider
-	error404Handler             *errorhandler.ErrorHandler
-	conversionModelOrchestrator orchestrator.ConversionModelOrchestrator
+	logger          logger.Logger
+	itemIndex       *index.Index
+	config          *config.Config
+	patherFactory   paths.PatherFactory
+	error404Handler *errorhandler.ErrorHandler
 }
 
 func (handler *RtfHandler) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -94,20 +78,9 @@ func (handler *RtfHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 		addressPrefix := fmt.Sprintf("http://%s/", hostname)
 		pathProvider := handler.patherFactory.Absolute(addressPrefix)
 
-		// render the view model
-		viewModel := handler.conversionModelOrchestrator.GetConversionModel(pathProvider, item)
-		html := handler.convertToHtml(viewModel)
-
-		// write the html to a temp file
-		htmlFilePath := getTempFileName("html-source") + ".html"
-		htmlFile, err := fsutil.OpenFile(htmlFilePath)
-		if err != nil {
-			handler.logger.Error("Cannot open HTML file for writing. Error: %s", err.Error())
-			return
-		}
-
-		defer htmlFile.Close()
-		htmlFile.WriteString(html)
+		// assemble the item url
+		itemUrl := pathProvider.Path(item.Route().Value())
+		sourceUrl := fmt.Sprintf("%s.print", itemUrl)
 
 		// get a target file path
 		targetFile := getTempFileName("rtf-target") + ".rtf"
@@ -115,7 +88,7 @@ func (handler *RtfHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 		// call pandoc
 		args := []string{
 			"-s",
-			fmt.Sprintf(`%s`, htmlFilePath),
+			fmt.Sprintf(`%s`, sourceUrl),
 			"-o",
 			fmt.Sprintf(`%s`, targetFile),
 		}
@@ -142,28 +115,6 @@ func (handler *RtfHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-}
-
-func (handler *RtfHandler) convertToHtml(viewModel viewmodel.ConversionModel) string {
-
-	// get a template
-	template, err := handler.templateProvider.GetSubTemplate(templates.ConversionTemplateName)
-	if err != nil {
-		handler.logger.Error("No template for item of type %q.", viewModel.Type)
-		return ""
-	}
-
-	// render template
-	buffer := new(bytes.Buffer)
-	writer := bufio.NewWriter(buffer)
-	if err := handlerutil.RenderTemplate(viewModel, template, writer); err != nil {
-		handler.logger.Error("%s", err)
-		return ""
-	}
-
-	writer.Flush()
-
-	return buffer.String()
 }
 
 func getTempFileName(prefix string) string {

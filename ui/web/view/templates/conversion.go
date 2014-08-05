@@ -5,6 +5,10 @@
 package templates
 
 const conversionTemplate = `
+<html>
+<head>
+</head>
+<body>
 <h1>
 {{.Title}}
 </h1>
@@ -14,4 +18,6 @@ const conversionTemplate = `
 </p>
 
 {{.Content}}
+</body>
+</html>
 `
