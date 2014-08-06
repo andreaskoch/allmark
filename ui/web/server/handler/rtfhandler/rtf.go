@@ -12,6 +12,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
+	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/errorhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/gorilla/mux"
@@ -111,10 +112,30 @@ func (handler *RtfHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		defer rtfFile.Close()
 
+		w.Header().Add("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, getRichTextFilename(item)))
+
 		io.Copy(w, rtfFile)
 
 		return
 	}
+}
+
+func getRichTextFilename(item *model.Item) string {
+	fallback := "document"
+
+	fileNameRoute, err := route.NewFromRequest(item.Route().LastComponentName())
+	if err != nil {
+		return fallback
+	}
+
+	if item.Route().Level() == 0 {
+		fileNameRoute, err = route.NewFromRequest(item.Title)
+		if err != nil {
+			return fallback
+		}
+	}
+
+	return fmt.Sprintf("%s.rtf", fileNameRoute.Value())
 }
 
 func getTempFileName(prefix string) string {
