@@ -12,10 +12,14 @@ type Base struct {
 	RepositoryName        string `json:"repositoryName"`
 	RepositoryDescription string `json:"repositoryDescription"`
 
-	Type    string `json:"type"`
-	Level   int    `json:"level"`
-	Route   string `json:"route"`
-	BaseUrl string `json:"baseUrl"`
+	Type  string `json:"type"`
+	Level int    `json:"level"`
+	Route string `json:"route"`
+
+	BaseUrl  string `json:"baseUrl"`
+	PrintUrl string `json:"printUrl"`
+	JsonUrl  string `json:"jsonUrl"`
+	RtfUrl   string `json:"rtfUrl"`
 
 	Title       string `json:"title"`
 	Description string `json:"description"`

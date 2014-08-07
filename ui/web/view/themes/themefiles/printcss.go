@@ -85,6 +85,10 @@ body>nav.breadcrumb {
     display: none;
 }
 
+body>aside {
+    display: none;
+}
+
 body>footer {
     display: none;
 }

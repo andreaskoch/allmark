@@ -255,8 +255,32 @@ td {
     vertical-align: top;
 }
 
+body>aside {
+    margin: 0px;
+}
+
+body>aside {
+    text-align: right;
+}
+
+body>aside>ul {
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+body>aside>ul>li {
+    display: inline;
+    margin-left: 1em;
+}
+
+body>aside>ul>li>a {
+    color: #000000;
+    font-size: 0.8em;
+}
+
 body>footer {
-    margin: 2em 0 0 0;
+    margin: 0;
     border-top: 1px solid #eee;
 }
 
@@ -441,7 +465,7 @@ article .attachments ul.tree li a {
 }
 
 article>.tags {
-   margin: 1.5em 0 0 0;    
+   margin: 1.5em 0 0 0;
 }
 
 article>.tags>header {
@@ -474,7 +498,7 @@ article>.childs {
 article>.childs>.list {
     list-style: none;
     padding: 5px 0 5px 0;
-    margin: 0 0 0 1.2em;    
+    margin: 0 0 0 1.2em;
 }
 
 article>.childs>.list>.child {
@@ -790,15 +814,15 @@ section.video>header {
     .presentation nav {
         margin: 25px 0 15px 0;
         width: 100%;
-    }    
+    }
 
     .presentation nav .pager {
         float: right;
-    }    
+    }
 
     .presentation nav .jumper {
         display: none;
-    }    
+    }
 }
 
 @media only screen and (min-width: 480px) {

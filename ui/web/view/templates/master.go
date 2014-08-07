@@ -79,6 +79,16 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 %s
 </article>
 
+{{if or .PrintUrl .JsonUrl .RtfUrl}}
+<aside>
+<ul>
+	{{if .PrintUrl}}<li><a href="{{.PrintUrl}}">Print</a></li>{{end}}
+	{{if .JsonUrl}}<li><a href="{{.JsonUrl}}">JSON</a></li>{{end}}
+	{{if .RtfUrl}}<li><a href="{{.RtfUrl}}">Rich Text</a></li>{{end}}
+</ul>
+</aside>
+{{end}}
+
 <footer>
 	<nav>
 		<ul>
