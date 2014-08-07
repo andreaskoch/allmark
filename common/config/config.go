@@ -82,6 +82,7 @@ func Default(baseFolder string) *Config {
 	config.Server.ThemeFolderName = ThemeFolderName
 	config.Server.Http.Port = 8080
 	config.Web.DefaultLanguage = "en"
+	config.Conversion.Tool = "pandoc"
 	config.LogLevel = loglevel.Info.String()
 
 	return config
@@ -100,10 +101,15 @@ type Server struct {
 	Http            Http
 }
 
+type Conversion struct {
+	Tool string
+}
+
 type Config struct {
-	Server   Server
-	Web      Web
-	LogLevel string
+	Server     Server
+	Web        Web
+	Conversion Conversion
+	LogLevel   string
 
 	baseFolder      string
 	metaDataFolder  string
@@ -158,6 +164,7 @@ func (config *Config) Load() (*Config, error) {
 	// apply values
 	config.Server = loadedConfig.Server
 	config.Web = loadedConfig.Web
+	config.Conversion = loadedConfig.Conversion
 	config.LogLevel = loadedConfig.LogLevel
 
 	return config, nil
@@ -201,6 +208,7 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 
 	config.Server = newConfig.Server
 	config.Web = newConfig.Web
+	config.Conversion = newConfig.Conversion
 	config.LogLevel = newConfig.LogLevel
 
 	return config, nil

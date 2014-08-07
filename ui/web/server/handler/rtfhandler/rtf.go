@@ -79,6 +79,19 @@ func (handler *RtfHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// check if the a conversion tool has been supplied
+		conversionToolIsConfigured := len(handler.config.Conversion.Tool) > 0
+		if !conversionToolIsConfigured {
+
+			handler.logger.Warn("Cannot convert item %q to RTF. No conversion tool configured.", item.String())
+
+			// display a 404 error page
+			error404Handler := handler.error404Handler.Func()
+			error404Handler(w, r)
+			return
+
+		}
+
 		// prepare a path provider which includes the hostname
 		hostname := handlerutil.GetHostnameFromRequest(r)
 		addressPrefix := fmt.Sprintf("http://%s/", hostname)
@@ -98,7 +111,7 @@ func (handler *RtfHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf(`%s`, targetFile),
 		}
 
-		cmd := exec.Command("pandoc.exe", args...)
+		cmd := exec.Command(handler.config.Conversion.Tool, args...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
