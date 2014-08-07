@@ -13,6 +13,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/model"
+	"github.com/andreaskoch/allmark2/ui/web/orchestrator"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/errorhandler"
 	"github.com/andreaskoch/allmark2/ui/web/server/handler/handlerutil"
 	"github.com/gorilla/mux"
@@ -84,8 +85,7 @@ func (handler *RtfHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 		pathProvider := handler.patherFactory.Absolute(addressPrefix)
 
 		// assemble the item url
-		itemUrl := pathProvider.Path(item.Route().Value())
-		sourceUrl := fmt.Sprintf("%s.print", itemUrl)
+		sourceUrl := pathProvider.Path(orchestrator.GetTypedItemUrl(item, "print"))
 
 		// get a target file path
 		targetFile := getTempFileName("rtf-target") + ".rtf"

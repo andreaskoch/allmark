@@ -22,11 +22,11 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 		Type:    item.Type.String(),
 		Route:   pathProvider.Path(item.Route().Value()),
 		Level:   item.Route().Level(),
-		BaseUrl: getBaseUrl(item.Route()),
+		BaseUrl: GetBaseUrl(item.Route()),
 
-		PrintUrl: getTypedItemUrl(item, "print"),
-		JsonUrl:  getTypedItemUrl(item, "json"),
-		RtfUrl:   getTypedItemUrl(item, "rtf"),
+		PrintUrl: GetTypedItemUrl(item, "print"),
+		JsonUrl:  GetTypedItemUrl(item, "json"),
+		RtfUrl:   GetTypedItemUrl(item, "rtf"),
 
 		Title:       item.Title,
 		Description: item.Description,
@@ -34,7 +34,7 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 
 }
 
-func getBaseUrl(route *route.Route) string {
+func GetBaseUrl(route *route.Route) string {
 	url := route.Value()
 	if url != "" {
 		return "/" + url + "/"
@@ -43,8 +43,8 @@ func getBaseUrl(route *route.Route) string {
 	return "/"
 }
 
-func getTypedItemUrl(item *model.Item, urlType string) string {
-	itemPath := getBaseUrl(item.Route())
+func GetTypedItemUrl(item *model.Item, urlType string) string {
+	itemPath := GetBaseUrl(item.Route())
 	itemPath = strings.TrimSuffix(itemPath, "/")
 
 	if len(itemPath) > 0 {
