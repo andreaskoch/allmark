@@ -25,15 +25,15 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	{{if .GeoLocation.Coordinates}}
 	<meta name="geo.position" content="{{.GeoLocation.Coordinates}}">
 	{{end}}
-	
+
 	{{if .GeoLocation.PlaceName}}
-	<meta name="geo.placename" content="{{.GeoLocation.PlaceName}}">	
+	<meta name="geo.placename" content="{{.GeoLocation.PlaceName}}">
 	{{end}}
 	{{end}}
 
+	<link rel="canonical" href="{{.BaseUrl}}">
 	<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
-
-	<link rel="shortcut icon" href="/theme/favicon.ico" />
+	<link rel="shortcut icon" href="/theme/favicon.ico">
 
 	<link rel="stylesheet" href="/theme/deck.css" media="screen">
 	<link rel="stylesheet" href="/theme/screen.css" media="screen">
