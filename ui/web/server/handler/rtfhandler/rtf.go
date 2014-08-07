@@ -54,6 +54,10 @@ func (handler *RtfHandler) Func() func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		path := vars["path"]
 
+		// strip the "rtf" or ".rtf" suffix from the path
+		path = strings.TrimSuffix(path, "rtf")
+		path = strings.TrimSuffix(path, ".")
+
 		// get the request route
 		requestRoute, err := route.NewFromRequest(path)
 		if err != nil {

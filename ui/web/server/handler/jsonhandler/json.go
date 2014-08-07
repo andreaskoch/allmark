@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"net/http"
+	"strings"
 )
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter) *JsonHandler {
@@ -62,6 +63,10 @@ func (handler *JsonHandler) Func() func(w http.ResponseWriter, r *http.Request) 
 		// get the path from the request variables
 		vars := mux.Vars(r)
 		path := vars["path"]
+
+		// strip the "json" or ".json" suffix from the path
+		path = strings.TrimSuffix(path, "json")
+		path = strings.TrimSuffix(path, ".")
 
 		// get the request route
 		requestRoute, err := route.NewFromRequest(path)

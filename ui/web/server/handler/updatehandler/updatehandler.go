@@ -17,6 +17,7 @@ import (
 	"github.com/andreaskoch/allmark2/ui/web/server/update"
 	"github.com/andreaskoch/allmark2/ui/web/view/templates"
 	"github.com/gorilla/mux"
+	"strings"
 )
 
 func New(logger logger.Logger, config *config.Config, itemIndex *index.Index, patherFactory paths.PatherFactory, converter conversion.Converter, hub *update.Hub) *UpdateHandler {
@@ -69,6 +70,10 @@ func (handler *UpdateHandler) Func() func(ws *websocket.Conn) {
 		// get the path from the request variables
 		vars := mux.Vars(ws.Request())
 		path := vars["path"]
+
+		// strip the "ws" or ".ws" suffix from the path
+		path = strings.TrimSuffix(path, "ws")
+		path = strings.TrimSuffix(path, ".")
 
 		// get the request route
 		requestRoute, err := route.NewFromRequest(path)

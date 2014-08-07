@@ -43,8 +43,12 @@ var Autoupdate = (function () {
         routeParameter = getCurrentRoute();
         host = document.location.host;
         webSocketHandler = "/ws";
-        websocketUrl = "ws://" + host + "/" + routeParameter + ".ws";
-        return websocketUrl;            
+
+        if (routeParameter === "") {
+            return "ws://" + host + "/" + "ws";
+        }
+
+        return "ws://" + host + "/" + routeParameter + ".ws";
     };
 
     /**
@@ -145,7 +149,7 @@ var Autoupdate = (function () {
                 $(entryToUpdate).find(".child-link:first").attr("href", model.relativeRoute);
 
                 // update the description
-                $(entryToUpdate).find(".child-description:first").html(model.description);                
+                $(entryToUpdate).find(".child-description:first").html(model.description);
             };
 
             var entries = model.childs;
@@ -195,7 +199,7 @@ var Autoupdate = (function () {
             executeOnChangeCallbacks();
 
         };
-    };    
+    };
 
     Autoupdate.prototype.start = function () {
 

@@ -26,11 +26,13 @@ import (
 
 const (
 	// Dynamic Routes
-	PrintHandlerRoute                 = "/{path:.*}.print"
-	JsonHandlerRoute                  = "/{path:.*}.json"
-	RtfHandlerRoute                   = "/{path:.*}.rtf"
-	ItemHandlerRoute                  = "/{path:.*$}"
-	UpdateHandlerRoute                = "/{path:.*}.ws"
+	PrintHandlerRoute  = `/{path:.+\.print$|print$}`
+	JsonHandlerRoute   = `/{path:.+\.json$|json$}`
+	RtfHandlerRoute    = `/{path:.+\.rtf$|rtf$}`
+	UpdateHandlerRoute = `/{path:.+\.ws$|ws$}`
+
+	ItemHandlerRoute = "/{path:.*$}"
+
 	TagmapHandlerRoute                = "/tags.html"
 	SitemapHandlerRoute               = "/sitemap.html"
 	XmlSitemapHandlerRoute            = "/sitemap.xml"

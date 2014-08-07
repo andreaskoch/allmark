@@ -46,5 +46,10 @@ func getBaseUrl(route *route.Route) string {
 func getTypedItemUrl(item *model.Item, urlType string) string {
 	itemPath := getBaseUrl(item.Route())
 	itemPath = strings.TrimSuffix(itemPath, "/")
-	return fmt.Sprintf("%s.%s", itemPath, urlType)
+
+	if len(itemPath) > 0 {
+		return fmt.Sprintf("%s.%s", itemPath, urlType)
+	}
+
+	return urlType
 }
