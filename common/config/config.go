@@ -82,7 +82,7 @@ func Default(baseFolder string) *Config {
 	config.Server.ThemeFolderName = ThemeFolderName
 	config.Server.Http.Port = 8080
 	config.Web.DefaultLanguage = "en"
-	config.Conversion.Tool = "pandoc"
+	config.Conversion.Tool = DefaultConversionToolPath
 	config.LogLevel = loglevel.Info.String()
 
 	return config
