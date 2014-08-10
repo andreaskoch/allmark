@@ -40,7 +40,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(pathProvider paths.Pathe
 	}
 
 	// convert content
-	convertedContent, err := orchestrator.converter.Convert(pathProvider, item, false)
+	convertedContent, err := orchestrator.converter.Convert(pathProvider, item)
 	if err != nil {
 		return viewmodel.Model{}
 	}

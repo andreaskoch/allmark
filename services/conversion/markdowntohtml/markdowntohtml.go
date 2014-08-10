@@ -5,9 +5,6 @@
 package markdowntohtml
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/base64"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
@@ -23,7 +20,6 @@ import (
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/pdf"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/presentation"
 	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml/video"
-	"io"
 	"regexp"
 	"strings"
 )
@@ -46,7 +42,7 @@ func New(logger logger.Logger) (*Converter, error) {
 }
 
 // Convert the supplied item with all paths relative to the supplied base route
-func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item, embedImages bool) (convertedContent string, conversionError error) {
+func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item) (convertedContent string, conversionError error) {
 
 	converter.logger.Debug("Converting item %q.", item)
 
@@ -103,7 +99,7 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item,
 	}
 
 	// fix links
-	content = converter.rewireLinks(pathProvider, item, content, embedImages)
+	content = converter.rewireLinks(pathProvider, item, content)
 
 	// markdown to html
 	content = markdown.Convert(content)
@@ -153,7 +149,7 @@ func getBaseFolder(referenceRoute route.Route, files []*model.File) string {
 	return baseFolder
 }
 
-func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.Item, markdown string, embedLinks bool) string {
+func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.Item, markdown string) string {
 
 	allMatches := markdownLinkPattern.FindAllStringSubmatch(markdown, -1)
 	for _, matches := range allMatches {
@@ -186,31 +182,6 @@ func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.I
 
 		// assemble the new link
 		newLinkText := fmt.Sprintf("[%s](%s)", descriptionText, matchingFilePath)
-
-		if embedLinks {
-
-			// mime type
-			mimeType, _ := matchingFile.MimeType()
-			if err != nil {
-				converter.logger.Warn("Unabel to determine mime type for item %s. Error: %s", matchingFile.String(), err.Error())
-			}
-
-			// file content
-			fileBuffer := new(bytes.Buffer)
-			fileWriter := bufio.NewWriter(fileBuffer)
-			matchingFile.ContentProvider.Data(func(content io.ReadSeeker) error {
-				_, err := io.Copy(fileWriter, content)
-				return err
-			})
-
-			// base64 encoding
-			base64Buffer := new(bytes.Buffer)
-			base64Writer := bufio.NewWriter(base64Buffer)
-			base64Encoder := base64.NewEncoder(base64.StdEncoding, base64Writer)
-			base64Encoder.Write(fileBuffer.Bytes())
-
-			newLinkText = fmt.Sprintf("[%s](data:%s;base64,%s)", descriptionText, mimeType, base64Buffer.String())
-		}
 
 		// replace the old text
 		markdown = strings.Replace(markdown, originalText, newLinkText, 1)
