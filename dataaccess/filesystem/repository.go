@@ -17,8 +17,6 @@ import (
 	"strings"
 )
 
-var numberOfWatchers int
-
 type Repository struct {
 	logger    logger.Logger
 	hash      string
