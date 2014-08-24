@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -23,7 +23,7 @@ type Route struct {
 	isFileRoute   bool
 }
 
-func NewFromItemPath(baseDirectory, itemPath string) (*Route, error) {
+func NewFromItemPath(baseDirectory, itemPath string) (Route, error) {
 
 	// normalize the base path
 	normalizedBasePath := normalize(baseDirectory)
@@ -46,14 +46,14 @@ func NewFromItemPath(baseDirectory, itemPath string) (*Route, error) {
 	// trim leading slashes
 	routeValue = strings.TrimLeft(routeValue, "/")
 
-	return &Route{
+	return Route{
 		value:         toUrl(routeValue),
 		originalValue: routeValue,
 		isFileRoute:   true,
 	}, nil
 }
 
-func NewFromItemDirectory(baseDirectory, itemDirectory string) (*Route, error) {
+func NewFromItemDirectory(baseDirectory, itemDirectory string) (Route, error) {
 
 	// normalize the base path
 	normalizedBasePath := normalize(baseDirectory)
@@ -73,14 +73,14 @@ func NewFromItemDirectory(baseDirectory, itemDirectory string) (*Route, error) {
 	// trim leading slashes
 	routeValue = strings.TrimLeft(routeValue, "/")
 
-	return &Route{
+	return Route{
 		value:         toUrl(routeValue),
 		originalValue: routeValue,
 		isFileRoute:   false,
 	}, nil
 }
 
-func NewFromFilePath(baseDirectory, itemPath string) (*Route, error) {
+func NewFromFilePath(baseDirectory, itemPath string) (Route, error) {
 
 	// normalize the base path
 	normalizedBasePath := normalize(baseDirectory)
@@ -100,30 +100,30 @@ func NewFromFilePath(baseDirectory, itemPath string) (*Route, error) {
 	// trim leading slashes
 	routeValue = strings.TrimLeft(routeValue, "/")
 
-	return &Route{
+	return Route{
 		value:         toUrl(routeValue),
 		originalValue: routeValue,
 		isFileRoute:   true,
 	}, nil
 }
 
-func NewFromRequest(requestPath string) (*Route, error) {
+func NewFromRequest(requestPath string) (Route, error) {
 
 	// normalize the request path
 	routeValue := normalize(requestPath)
 
-	return &Route{
+	return Route{
 		value:         toUrl(routeValue),
 		originalValue: routeValue,
 	}, nil
 }
 
-func New() *Route {
+func New() Route {
 
 	// normalize the request path
 	routeValue := normalize("")
 
-	return &Route{
+	return Route{
 		value:         toUrl(routeValue),
 		originalValue: routeValue,
 		isFileRoute:   false,
@@ -131,7 +131,7 @@ func New() *Route {
 }
 
 // combines two routes
-func Combine(route1, route2 *Route) (*Route, error) {
+func Combine(route1, route2 Route) (Route, error) {
 	return NewFromRequest(route1.OriginalValue() + "/" + route2.OriginalValue())
 }
 
@@ -174,31 +174,31 @@ func Intersect(baseRoute, subRoute Route) Route {
 	}
 }
 
-func (route *Route) String() string {
+func (route Route) String() string {
 	return strings.Join(route.Components(), " > ")
 }
 
-func (route *Route) OriginalValue() string {
+func (route Route) OriginalValue() string {
 	return route.originalValue
 }
 
-func (route *Route) Components() []string {
+func (route Route) Components() []string {
 	return strings.Split(route.OriginalValue(), "/")
 }
 
-func (route *Route) Value() string {
+func (route Route) Value() string {
 	return route.value
 }
 
-func (route *Route) IsEmpty() bool {
+func (route Route) IsEmpty() bool {
 	return len(route.value) == 0
 }
 
-func (route *Route) IsFileRoute() bool {
+func (route Route) IsFileRoute() bool {
 	return route.isFileRoute
 }
 
-func (route *Route) Path() string {
+func (route Route) Path() string {
 	lastSlashPosition := strings.LastIndex(route.originalValue, "/")
 	if lastSlashPosition == -1 {
 		return route.originalValue
@@ -207,7 +207,7 @@ func (route *Route) Path() string {
 	return strings.TrimSuffix(route.originalValue[:lastSlashPosition], "/")
 }
 
-func (route *Route) FirstComponentName() string {
+func (route Route) FirstComponentName() string {
 
 	if route.Level() == 0 {
 		return ""
@@ -227,7 +227,7 @@ func (route *Route) FirstComponentName() string {
 	return strings.TrimSuffix(route.originalValue[:firstSlashPosition], "/")
 }
 
-func (route *Route) LastComponentName() string {
+func (route Route) LastComponentName() string {
 	lastSlashPosition := strings.LastIndex(route.originalValue, "/")
 	if lastSlashPosition == -1 {
 		return route.originalValue
@@ -236,7 +236,7 @@ func (route *Route) LastComponentName() string {
 	return strings.TrimPrefix(route.originalValue[lastSlashPosition:], "/")
 }
 
-func (route *Route) Level() int {
+func (route Route) Level() int {
 
 	// empty routes have the level 0
 	if route.value == "" {
@@ -252,7 +252,7 @@ func (route *Route) Level() int {
 	return strings.Count(route.value, "/") + 1
 }
 
-func (route *Route) SubRoute(level int) (*Route, error) {
+func (route Route) SubRoute(level int) (Route, error) {
 
 	// root level
 	if level == 0 {
@@ -269,7 +269,7 @@ func (route *Route) SubRoute(level int) (*Route, error) {
 
 	// abort if the requested level is out of range
 	if level > len(components)-1 {
-		return nil, fmt.Errorf("The route %q does nof a have a sub-route with the level %d.", route, level)
+		return Route{}, fmt.Errorf("The route %q does nof a have a sub-route with the level %d.", route, level)
 	}
 
 	// assemble the sub route
@@ -278,13 +278,13 @@ func (route *Route) SubRoute(level int) (*Route, error) {
 
 	subRoute, err := NewFromRequest(subRoutePath)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to create a route from the path %q. Error: %s", subRoutePath, err)
+		return Route{}, fmt.Errorf("Unable to create a route from the path %q. Error: %s", subRoutePath, err)
 	}
 
 	return subRoute, nil
 }
 
-func (route *Route) IsMatch(path string) bool {
+func (route Route) IsMatch(path string) bool {
 	cleanedRoute := strings.ToLower(route.Value())
 	normalizedPath := strings.ToLower(toUrl(normalize(path)))
 
@@ -294,17 +294,17 @@ func (route *Route) IsMatch(path string) bool {
 	return routeEndsWithSpecifiedPath
 }
 
-func (route *Route) Parent() *Route {
+func (route Route) Parent() (parent Route, exists bool) {
 
 	if route.IsEmpty() {
-		return nil
+		return parent, false
 	}
 
 	routeValue := route.Value()
 
 	// if there is no slash, the parent must be the root
 	if !strings.Contains(routeValue, "/") {
-		return New()
+		return New(), true
 	}
 
 	positionOfLastSlash := strings.LastIndex(routeValue, "/")
@@ -312,14 +312,14 @@ func (route *Route) Parent() *Route {
 
 	parentRoute, err := NewFromRequest(parentRouteValue)
 	if err != nil {
-		return nil
+		return parent, false
 	}
 
-	return parentRoute
+	return parentRoute, true
 }
 
 // Check if the the current route is direct parent for the supplied (child) route.
-func (parent *Route) IsParentOf(child *Route) bool {
+func (parent Route) IsParentOf(child Route) bool {
 	parentRoute := parent.Value()
 	childRoute := child.Value()
 
@@ -345,7 +345,7 @@ func (parent *Route) IsParentOf(child *Route) bool {
 }
 
 // Check if the current route is a child of the supplied (parent) route.
-func (child *Route) IsChildOf(parent *Route) bool {
+func (child Route) IsChildOf(parent Route) bool {
 	childRoute := child.Value()
 	parentRoute := parent.Value()
 

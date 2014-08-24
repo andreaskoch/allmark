@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -24,7 +24,7 @@ func (path Path) String() string {
 }
 
 func (path Path) IsEmpty() bool {
-	return len(path) == 0 || path.IsRootPath()
+	return len(path) == 0
 }
 
 func (path Path) IsRootPath() bool {
@@ -36,7 +36,7 @@ func (path Path) IsRootPath() bool {
 func (path Path) IsValid() (bool, error) {
 
 	// abort if its a root path
-	if path.IsRootPath() {
+	if path.IsRootPath() || path.IsEmpty() {
 		return true, nil
 	}
 

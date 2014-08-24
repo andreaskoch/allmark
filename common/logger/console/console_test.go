@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -6,6 +6,7 @@ package console
 
 import (
 	"bytes"
+	"github.com/andreaskoch/allmark2/common/logger/loglevel"
 	"strings"
 	"testing"
 )
@@ -16,7 +17,7 @@ func Test_Debug(t *testing.T) {
 
 	message := "A test message"
 
-	logger := New()
+	logger := New(loglevel.Debug)
 	logger.SetOutput(buf)
 
 	// act
@@ -42,7 +43,7 @@ func Test_Info(t *testing.T) {
 
 	message := "A test message"
 
-	logger := New()
+	logger := New(loglevel.Debug)
 	logger.SetOutput(buf)
 
 	// act
@@ -68,7 +69,7 @@ func Test_Warn(t *testing.T) {
 
 	message := "A test message"
 
-	logger := New()
+	logger := New(loglevel.Debug)
 	logger.SetOutput(buf)
 
 	// act
@@ -94,7 +95,7 @@ func Test_Error(t *testing.T) {
 
 	message := "A test message"
 
-	logger := New()
+	logger := New(loglevel.Debug)
 	logger.SetOutput(buf)
 
 	// act
@@ -106,32 +107,6 @@ func Test_Error(t *testing.T) {
 	// test the log level prefix
 	if !strings.Contains(logOutput, LogLevelError) {
 		t.Errorf("The log message should contain the log level prefix %q", LogLevelError)
-	}
-
-	// test the log message content
-	if !strings.Contains(logOutput, message) {
-		t.Errorf("The function should have written %q to the log.", message)
-	}
-}
-
-func Test_Fatal(t *testing.T) {
-	// arrange
-	buf := new(bytes.Buffer)
-
-	message := "A test message"
-
-	logger := New()
-	logger.SetOutput(buf)
-
-	// act
-	logger.Fatal(message)
-
-	// assert
-	logOutput := buf.String()
-
-	// test the log level prefix
-	if !strings.Contains(logOutput, LogLevelFatal) {
-		t.Errorf("The log message should contain the log level prefix %q", LogLevelFatal)
 	}
 
 	// test the log message content

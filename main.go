@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -7,22 +7,18 @@ package main
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
-	"github.com/andreaskoch/allmark2/common/index"
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/logger/loglevel"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
-	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
-	"github.com/andreaskoch/allmark2/services/conversion/markdowntohtml"
+	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml"
 	"github.com/andreaskoch/allmark2/services/initialization"
-	"github.com/andreaskoch/allmark2/services/parsing"
-	"github.com/andreaskoch/allmark2/services/search"
-	"github.com/andreaskoch/allmark2/ui/web/server"
+	"github.com/andreaskoch/allmark2/services/parser"
+	"github.com/andreaskoch/allmark2/web/server"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 )
 
 const (
@@ -117,7 +113,7 @@ func serve(repositoryPath string) bool {
 	}
 
 	// parser
-	parser, err := parsing.New(logger)
+	itemParser, err := parser.New(logger)
 	if err != nil {
 		logger.Error("Unable to instantiate a parser. Error: %s", err)
 	}
@@ -128,132 +124,8 @@ func serve(repositoryPath string) bool {
 		logger.Error("Unable to instantiate a converter. Error: %s", err)
 	}
 
-	// repository (fallback) name
-	repositoryName := filepath.Base(repositoryPath)
-
-	// item index
-	index := index.New(logger, repositoryName)
-
-	// search
-	itemSearch := search.NewItemSearch(logger, index)
-
-	addRepositoryItemToIndex := func(repositoryItem *dataaccess.Item) {
-		// parse item
-		if item, err := parser.Parse(repositoryItem); err == nil {
-			// register the item at the index
-			index.Add(item)
-		} else {
-			logger.Warn("%s", err.Error())
-		}
-	}
-
-	removeRepositoryItemFromIndex := func(repositoryItem *dataaccess.Item) {
-		// remove the item from the index
-		index.Remove(repositoryItem.Route())
-	}
-
-	// full index of the repository
-	go func() {
-		logger.Debug("Indexing item.")
-		for itemEvent := range repository.InitialItems() {
-
-			// validate event
-			if itemEvent.Error != nil {
-				logger.Warn("%s", itemEvent.Error)
-				continue
-			}
-
-			repositoryItem := itemEvent.Item
-			if repositoryItem == nil {
-				logger.Warn("Repository item is empty.")
-				continue
-			}
-
-			addRepositoryItemToIndex(repositoryItem)
-
-		}
-
-		// update the full-text search index
-		itemSearch.Update()
-	}()
-
-	// scheduled reindex of the fulltext index
-	go func() {
-		sleepInterval := time.Minute * 3
-		for {
-			time.Sleep(sleepInterval)
-
-			logger.Debug("Refreshing the search index.")
-			itemSearch.Update()
-		}
-	}()
-
-	// todo: implement discard of old items and especially old change listeners
-	// event handler: new items
-	go func() {
-		for itemEvent := range repository.NewItems() {
-			logger.Debug("New Item: %s", itemEvent.Item.String())
-
-			// validate event
-			if itemEvent.Error != nil {
-				logger.Warn("%s", itemEvent.Error)
-				continue
-			}
-
-			repositoryItem := itemEvent.Item
-			if repositoryItem == nil {
-				logger.Warn("Repository item is empty.")
-				continue
-			}
-
-			addRepositoryItemToIndex(repositoryItem)
-		}
-	}()
-
-	// event handler: changed items
-	go func() {
-		for itemEvent := range repository.ChangedItems() {
-			logger.Debug("Changed Item: %s", itemEvent.Item.String())
-
-			// validate event
-			if itemEvent.Error != nil {
-				logger.Warn("%s", itemEvent.Error)
-				continue
-			}
-
-			repositoryItem := itemEvent.Item
-			if repositoryItem == nil {
-				logger.Warn("Repository item is empty.")
-				continue
-			}
-
-			addRepositoryItemToIndex(repositoryItem)
-		}
-	}()
-
-	// event handler: moved items
-	go func() {
-		for itemEvent := range repository.MovedItems() {
-			logger.Debug("Moved Item: %s", itemEvent.Item.String())
-
-			// validate event
-			if itemEvent.Error != nil {
-				logger.Warn("%s", itemEvent.Error)
-				continue
-			}
-
-			repositoryItem := itemEvent.Item
-			if repositoryItem == nil {
-				logger.Warn("Repository item is empty.")
-				continue
-			}
-
-			removeRepositoryItemFromIndex(repositoryItem)
-		}
-	}()
-
 	// server
-	server, err := server.New(logger, config, index, converter, itemSearch, repository.UpdateHub())
+	server, err := server.New(logger, *config, repository, itemParser, converter)
 	if err != nil {
 		logger.Error("Unable to instantiate a server. Error: %s", err.Error())
 		return false

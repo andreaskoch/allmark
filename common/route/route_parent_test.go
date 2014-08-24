@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -50,15 +50,15 @@ func Test_IsParentOf_RouteIsNotAParent_ResultIsFalse(t *testing.T) {
 	}
 }
 
-func Test_Parent_RouteHasAParent_ResultIsNotNil(t *testing.T) {
+func Test_Parent_RouteHasAParent_ResultIsNotEmpty(t *testing.T) {
 	// arrange
 	route, _ := NewFromRequest("/documents/Collection")
 
 	// act
-	result := route.Parent()
+	result, _ := route.Parent()
 
 	// assert
-	if result == nil {
+	if result.IsEmpty() {
 		t.Errorf("%q does have a parent but the result was %q.", route, result)
 	}
 }
@@ -68,7 +68,7 @@ func Test_Parent_RouteHasAParent_ResultIsCorrect(t *testing.T) {
 	route, _ := NewFromRequest("/documents/Collection")
 
 	// act
-	result := route.Parent()
+	result, _ := route.Parent()
 
 	// assert
 	expected := "documents"
@@ -77,16 +77,15 @@ func Test_Parent_RouteHasAParent_ResultIsCorrect(t *testing.T) {
 	}
 }
 
-func Test_Parent_RouteHasNoParent_ResultIsNil(t *testing.T) {
+func Test_Parent_RouteHasNoParent_ResultIsEmpty(t *testing.T) {
 	// arrange
 	route, _ := NewFromRequest("/documents")
 
 	// act
-	result := route.Parent()
+	result, _ := route.Parent()
 
 	// assert
-
-	if result.Value() != New().Value() {
+	if !result.IsEmpty() {
 		t.Errorf("%q should have no parent but the result was %q.", route, result)
 	}
 }

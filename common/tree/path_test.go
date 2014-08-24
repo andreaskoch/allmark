@@ -1,11 +1,10 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 package tree
 
 import (
-	"strings"
 	"testing"
 )
 
@@ -116,29 +115,6 @@ func Test_pathToNode_NonEmptyComponentsSlice_ResultNotNil(t *testing.T) {
 	// assert
 	if result == nil {
 		t.Errorf("The components %s should be converted to a node but the result was %q.", components, result)
-	}
-}
-
-func Test_pathToNode_ThreeComponents_AllThreeComponentsAreConverted(t *testing.T) {
-	// arrange
-	component1 := "root"
-	component2 := "level 1"
-	component3 := "level 2"
-	components := []string{component1, component2, component3}
-
-	node := pathToNode(components, nil)
-
-	// act
-	result := ""
-	node.Walk(func(n *Node) bool {
-		result += n.Name()
-		return true
-	})
-
-	// assert
-	expected := strings.Join(components, "")
-	if result != expected {
-		t.Errorf("Expected: %q, Actual: %q", expected, result)
 	}
 }
 

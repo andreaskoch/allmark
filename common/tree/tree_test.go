@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -101,7 +101,7 @@ func Test_Tree_Insert_InvalidPath_ResultIsFalse(t *testing.T) {
 	}
 }
 
-func Test_Tree_Insert_EmptyPath_ResultIsFalse(t *testing.T) {
+func Test_Tree_Insert_EmptyPath_ResultIsTrue(t *testing.T) {
 	// arrange
 	tree := New("root", nil)
 
@@ -109,9 +109,8 @@ func Test_Tree_Insert_EmptyPath_ResultIsFalse(t *testing.T) {
 	result, _ := tree.Insert(NewPath(), nil)
 
 	// assert
-	expected := false
-	if result != expected {
-		t.Errorf("The Insert method should return %q when an invalid path is inserted but returned %q instead.", expected, result)
+	if result != true {
+		t.Errorf("Inserting an empty path should be possible. The root should be overriden but wasn't.")
 	}
 }
 
@@ -230,43 +229,6 @@ func Test_Tree_Delete_ThirdChild_StructureIsAsExpected(t *testing.T) {
 	}
 }
 
-func Test_Tree_Walk_EmtpyTree(t *testing.T) {
-	// arrange
-	tree := &Tree{}
-
-	// act
-	result := ""
-	tree.Walk(func(node *Node) bool {
-		result += ";" + node.String()
-		return true
-	})
-
-	// assert
-	expected := ""
-	if result != expected {
-		t.Errorf("The Walk function of an empty tree should not perform any action (Expected Result: %q, Actual Result: %q) ", expected, result)
-	}
-}
-
-func Test_Tree_Walk_TreeWithOneNode(t *testing.T) {
-	// arrange
-	nodeName := "node1"
-	tree := New(nodeName, nil)
-
-	// act
-	result := ""
-	tree.Walk(func(node *Node) bool {
-		result += ";" + node.Name()
-		return true
-	})
-
-	// assert
-	expected := ";" + nodeName
-	if result != expected {
-		t.Errorf("Tree with a single root item (Expected Result: %q, Actual Result: %q) ", expected, result)
-	}
-}
-
 func Test_Tree_GetNode_EmptyTree_ResultIsNil(t *testing.T) {
 	// arrange
 	tree := &Tree{}
@@ -313,7 +275,7 @@ func Test_Tree_GetNode_ComplexTree_ExistingPath_ResultIsNotNull(t *testing.T) {
 	tree.Insert(NewPath("child 2", "sub child 3"), nil)
 	tree.Insert(NewPath("child 3"), nil)
 
-	path := NewPath("root", "child 2", "sub child 2")
+	path := NewPath("child 2", "sub child 2")
 
 	// act
 	result := tree.GetNode(path)

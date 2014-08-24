@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -18,7 +18,7 @@ func Test_SubRoute_TwoLevelRoute_RequestLevelZero_LevelZeroIsReturned(t *testing
 	result, _ := route.SubRoute(level)
 
 	// assert
-	if result == nil || result.Value() != expected {
+	if !result.IsEmpty() || result.Value() != expected {
 		t.Errorf("The level-%d sub route should be %q, but was %q.", level, expected, result.Value())
 	}
 }
@@ -33,7 +33,7 @@ func Test_SubRoute_TwoLevelRoute_RequestFirstLevel_FirstLevelIsReturned(t *testi
 	result, _ := route.SubRoute(level)
 
 	// assert
-	if result == nil || result.Value() != expected {
+	if result.IsEmpty() || result.Value() != expected {
 		t.Errorf("The level-%d sub route should be %q, but was %q.", level, expected, result.Value())
 	}
 }
@@ -48,7 +48,7 @@ func Test_SubRoute_TwoLevelRoute_RequestSecondLevel_SecondLevelIsReturned(t *tes
 	result, _ := route.SubRoute(level)
 
 	// assert
-	if result == nil || result.Value() != expected {
+	if result.IsEmpty() || result.Value() != expected {
 		t.Errorf("The level-%d sub route should be %q, but was %q.", level, expected, result.Value())
 	}
 }

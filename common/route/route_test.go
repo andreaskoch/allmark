@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -8,15 +8,20 @@ import (
 	"testing"
 )
 
-// Testing the NewFromRequest Route functon: The constructor function should return a valid route if the supplied path is empty.
-func Test_NewFromRequest_EmptyString_ValidRouteIsReturned(t *testing.T) {
+func Test_EmptyRoute_String_ReturnsEmptyString(t *testing.T) {
+
+	// arrange
+	route := Route{}
+
 	// act
-	result, _ := NewFromRequest("")
+	result := route.String()
 
 	// assert
-	if result == nil {
-		t.Errorf("The constructor function should returned a valid route but returned nil instead.")
+	expected := ""
+	if result != expected {
+		t.Errorf("The String method of an empty route should return %q but returned %q instead.", expected, result)
 	}
+
 }
 
 // Testing the NewFromRequest Route functon: The constructor function should return a Route object for the supplied path.
@@ -28,7 +33,7 @@ func Test_NewFromRequest_ValidPathReturnsRoute(t *testing.T) {
 	result, err := NewFromRequest(inputPath)
 
 	// assert
-	if result == nil || err != nil {
+	if result.IsEmpty() || err != nil {
 		t.Errorf("The constructor function should return a Route object for the path %q.", inputPath)
 	}
 }

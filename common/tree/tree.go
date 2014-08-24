@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -7,6 +7,10 @@ package tree
 import (
 	"fmt"
 )
+
+func Empty() *Tree {
+	return &Tree{}
+}
 
 func New(rootName string, rootValue interface{}) *Tree {
 	return &Tree{
@@ -40,6 +44,11 @@ func (tree *Tree) Insert(path Path, value interface{}) (bool, error) {
 	// check if the path already exists
 	if existingNode := tree.GetNode(path); existingNode != nil {
 		existingNode.SetValue(value)
+		return true, nil
+	}
+
+	if path.IsEmpty() {
+		tree.root = newRootNode("", value)
 		return true, nil
 	}
 
@@ -93,8 +102,8 @@ func (tree *Tree) GetNode(path Path) *Node {
 		return nil
 	}
 
-	// return the root if the path is a root path
-	if path.IsRootPath() {
+	// return the root if the path is a root path or empty
+	if path.IsRootPath() || path.IsEmpty() {
 		return tree.Root()
 	}
 

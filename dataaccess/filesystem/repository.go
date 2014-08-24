@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Repository struct {
@@ -23,11 +24,16 @@ type Repository struct {
 	directory string
 	watcher   *watcherFactory
 
+	index      *Index
+	itemSearch *dataaccess.ItemSearch
+
 	updateHub *UpdateHub
 
 	newItem     chan *dataaccess.RepositoryEvent // new items which are discovered after the first index has been built
 	changedItem chan *dataaccess.RepositoryEvent // items with changed content
 	movedItem   chan *dataaccess.RepositoryEvent // items which moved
+
+	onUpdateCallback func(route.Route)
 }
 
 func NewRepository(logger logger.Logger, directory string) (*Repository, error) {
@@ -55,58 +61,90 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 	}
 
 	// enable debug mode
-	debugMessages := fswatch.EnableDebug()
-	go func() {
-		for message := range debugMessages {
-			logger.Debug("fs-watch: %s", message)
-		}
-	}()
+	// debugMessages := fswatch.EnableDebug()
+	// go func() {
+	// 	for message := range debugMessages {
+	// 		logger.Debug("fs-watch: %s", message)
+	// 	}
+	// }()
 
-	return &Repository{
+	// create the repository
+	repository := &Repository{
 		logger:    logger,
 		directory: directory,
 		hash:      hash,
+
+		index:     newIndex(logger),
+		updateHub: newUpdateHub(logger),
 		watcher:   newWatcherFactory(logger),
 
-		updateHub: newUpdateHub(logger),
-
+		// item channels
 		newItem:     make(chan *dataaccess.RepositoryEvent, 1),
 		changedItem: make(chan *dataaccess.RepositoryEvent, 1),
 		movedItem:   make(chan *dataaccess.RepositoryEvent, 1),
-	}, nil
+
+		onUpdateCallback: func(r route.Route) {},
+	}
+
+	// index the repository
+	repository.startItemDiscovery()
+
+	// scheduled reindex of the fulltext index
+	repository.startFullTextSearch()
+
+	return repository, nil
 }
 
-func (repository *Repository) InitialItems() chan *dataaccess.RepositoryEvent {
-
-	// open the channel
-	startupItem := make(chan *dataaccess.RepositoryEvent, 1)
-
-	go func() {
-
-		// repository directory item
-		repository.discoverItems(repository.Path(), startupItem)
-
-		// close the channel. All items have been indexed
-		close(startupItem)
-	}()
-
-	return startupItem
+func (repository *Repository) String() string {
+	return repository.index.String()
 }
 
-func (repository *Repository) UpdateHub() *UpdateHub {
-	return repository.updateHub
+func (repository *Repository) Root() *dataaccess.Item {
+	return repository.index.Root()
 }
 
-func (repository *Repository) NewItems() chan *dataaccess.RepositoryEvent {
-	return repository.newItem
+func (repository *Repository) Items() []*dataaccess.Item {
+	return repository.index.Items()
 }
 
-func (repository *Repository) ChangedItems() chan *dataaccess.RepositoryEvent {
-	return repository.changedItem
+func (repository *Repository) OnUpdate(callback func(route.Route)) {
+	repository.onUpdateCallback = callback
 }
 
-func (repository *Repository) MovedItems() chan *dataaccess.RepositoryEvent {
-	return repository.movedItem
+func (repository *Repository) Item(route route.Route) (*dataaccess.Item, bool) {
+	return repository.index.IsMatch(route)
+}
+
+func (repository *Repository) File(route route.Route) (*dataaccess.File, bool) {
+	return repository.index.IsFileMatch(route)
+}
+
+func (repository *Repository) Parent(route route.Route) *dataaccess.Item {
+	return repository.index.GetParent(route)
+}
+
+func (repository *Repository) Childs(route route.Route) []*dataaccess.Item {
+	return repository.index.GetDirectChilds(route)
+}
+
+func (repository *Repository) AllChilds(route route.Route) []*dataaccess.Item {
+	return repository.index.GetAllChilds(route, func(item *dataaccess.Item) bool {
+		return true
+	})
+}
+
+func (repository *Repository) AllMatchingChilds(route route.Route, matchExpression func(item *dataaccess.Item) bool) []*dataaccess.Item {
+	return repository.index.GetAllChilds(route, matchExpression)
+}
+
+func (repository *Repository) Search(keywords string, maxiumNumberOfResults int) (searchResults []dataaccess.SearchResult) {
+
+	if repository.itemSearch == nil {
+		repository.logger.Warn("The fulltext index has not been initialized (Keyword: %q).", keywords)
+		return
+	}
+
+	return repository.itemSearch.Search(keywords, maxiumNumberOfResults)
 }
 
 func (repository *Repository) Id() string {
@@ -115,6 +153,108 @@ func (repository *Repository) Id() string {
 
 func (repository *Repository) Path() string {
 	return repository.directory
+}
+
+func (repository *Repository) Size() int {
+	return repository.index.Size()
+}
+
+func (repository *Repository) StartWatching(route route.Route) {
+	repository.updateHub.StartWatching(route)
+}
+
+func (repository *Repository) StopWatching(route route.Route) {
+	repository.updateHub.StopWatching(route)
+}
+
+// Start indexing the the repository
+func (repository *Repository) startItemDiscovery() {
+
+	go func() {
+
+		for {
+			select {
+			case newItemEvent := <-repository.newItem:
+				{
+					item := newItemEvent.Item
+					err := newItemEvent.Error
+
+					if err != nil {
+
+						repository.logger.Warn("New Item. Error: %s", err)
+
+					} else if item != nil {
+
+						// Add item to index
+						repository.logger.Info("New item %q", item)
+						repository.index.Add(item)
+
+						// Send out updates
+						go repository.onUpdateCallback(item.Route())
+
+					}
+				}
+
+			case changedItemEvent := <-repository.changedItem:
+				{
+					item := changedItemEvent.Item
+					err := changedItemEvent.Error
+
+					if err != nil {
+
+						repository.logger.Warn("Changed Item. Error: %s", err)
+
+					} else if item != nil {
+
+						// Add item to index
+						repository.logger.Info("Changed item %q", item)
+						repository.index.Add(item)
+
+						// Send out updates
+						go repository.onUpdateCallback(item.Route())
+
+					}
+				}
+
+			case movedItemEvent := <-repository.movedItem:
+				{
+					item := movedItemEvent.Item
+					err := movedItemEvent.Error
+
+					if err != nil {
+
+						repository.logger.Warn("Moved Item. Error: %s", err)
+
+					} else if item != nil {
+
+						repository.logger.Info("Moved item %q", item)
+						repository.index.Remove(item.Route())
+
+					}
+				}
+
+			}
+		}
+
+	}()
+
+	repository.discoverItems(repository.directory, repository.newItem)
+}
+
+// Start the fulltext search indexing process
+func (repository *Repository) startFullTextSearch() {
+
+	repository.itemSearch = dataaccess.NewItemSearch(repository.logger, repository)
+
+	go func() {
+		sleepInterval := time.Minute * 3
+		for {
+			repository.logger.Info("Refreshing the search index.")
+			repository.itemSearch.Update()
+
+			time.Sleep(sleepInterval)
+		}
+	}()
 }
 
 // Create a new Item for the specified path.
@@ -180,6 +320,8 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 		return
 	}
 
+	repository.logger.Info("Creating a physical item from route %q", route)
+
 	// content provider
 	checkIntervalInSeconds := 2
 	contentProvider := newFileContentProvider(filePath, route, checkIntervalInSeconds)
@@ -196,7 +338,7 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 	}
 
 	// Update-Hub: Sub-Directory Watcher
-	repository.updateHub.Attach(*route, "sub-directory-watcher", func() fswatch.Watcher {
+	repository.updateHub.Attach(route, "sub-directory-watcher", func() fswatch.Watcher {
 		return repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
 			// remove the parent item since we cannot easily determine which child has gone away
@@ -210,7 +352,7 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 	})
 
 	// Update-Hub: File-Directory Watcher
-	repository.updateHub.Attach(*route, "file-directory-watcher", func() fswatch.Watcher {
+	repository.updateHub.Attach(route, "file-directory-watcher", func() fswatch.Watcher {
 		return repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
 
 			// update file list
@@ -226,7 +368,7 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 	})
 
 	// Update-Hub: Markdown-File Watcher
-	repository.updateHub.Attach(*route, "markdown-file-watcher", func() fswatch.Watcher {
+	repository.updateHub.Attach(route, "markdown-file-watcher", func() fswatch.Watcher {
 
 		modifiedCallback := func() {
 			repository.logger.Debug("Item %q changed.", item)
@@ -260,6 +402,8 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 		return
 	}
 
+	repository.logger.Info("Creating a virtual item from route %q", route)
+
 	// content provider
 	contentProvider := newTextContentProvider(content, route)
 
@@ -275,7 +419,7 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 	}
 
 	// Update-Hub: Sub-Directory Watcher
-	repository.updateHub.Attach(*route, "sub-directory-watcher", func() fswatch.Watcher {
+	repository.updateHub.Attach(route, "sub-directory-watcher", func() fswatch.Watcher {
 		return repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
 			// remove the parent item since we cannot easily determine which child has gone away
@@ -289,7 +433,7 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 	})
 
 	// Update-Hub: Type-Change Watcher
-	repository.updateHub.Attach(*route, "type-change-watcher", func() fswatch.Watcher {
+	repository.updateHub.Attach(route, "type-change-watcher", func() fswatch.Watcher {
 		return repository.watcher.Directory(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
 			for _, newFile := range change.New() {
@@ -312,7 +456,7 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 	})
 
 	// Update-Hub: File-Directory Watcher
-	repository.updateHub.Attach(*route, "file-directory-watcher", func() fswatch.Watcher {
+	repository.updateHub.Attach(route, "file-directory-watcher", func() fswatch.Watcher {
 		return repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
 
 			// update file list
@@ -342,6 +486,8 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 		return
 	}
 
+	repository.logger.Info("Creating a file collection item from route %q", route)
+
 	// content provider
 	contentProvider := newTextContentProvider(content, route)
 
@@ -357,7 +503,7 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 	}
 
 	// Update-Hub: File-Change Watcher
-	repository.updateHub.Attach(*route, "file-change-watcher", func() fswatch.Watcher {
+	repository.updateHub.Attach(route, "file-change-watcher", func() fswatch.Watcher {
 		return repository.watcher.AllFiles(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
 			if directoryContainsItems(itemDirectory, 1) {
@@ -388,6 +534,7 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 	return item, false
 }
 
+// Check if the specified directory contains an item within the range of the given max depth.
 func directoryContainsItems(directory string, maxdepth int) bool {
 
 	directoryEntries, _ := ioutil.ReadDir(directory)

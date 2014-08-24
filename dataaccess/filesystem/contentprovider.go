@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-func newFileContentProvider(path string, route *route.Route, watchIntervalInSeconds int) *content.ContentProvider {
+func newFileContentProvider(path string, route route.Route, watchIntervalInSeconds int) *content.ContentProvider {
 
 	// mimeType
 	mimeType := func() (string, error) {
@@ -56,13 +56,13 @@ func newFileContentProvider(path string, route *route.Route, watchIntervalInSeco
 		return fsutil.GetModificationTime(path)
 	}
 
-	return content.NewProvider(mimeType,
+	return content.NewContentProvider(mimeType,
 		dataProvider,
 		hashProvider,
 		lastModifiedProvider)
 }
 
-func newTextContentProvider(text string, route *route.Route) *content.ContentProvider {
+func newTextContentProvider(text string, route route.Route) *content.ContentProvider {
 
 	// mimeType
 	mimeType := func() (string, error) {
@@ -96,10 +96,10 @@ func newTextContentProvider(text string, route *route.Route) *content.ContentPro
 		return time.Time{}, nil
 	}
 
-	return content.NewProvider(mimeType, dataProvider, hashProvider, lastModifiedProvider)
+	return content.NewContentProvider(mimeType, dataProvider, hashProvider, lastModifiedProvider)
 }
 
-func getHashFromFile(filepath string, route *route.Route) (string, error) {
+func getHashFromFile(filepath string, route route.Route) (string, error) {
 
 	// fallback file hash
 	fileHash, fallbackHashErr := getStringHash(filepath)
@@ -124,7 +124,7 @@ func getHashFromFile(filepath string, route *route.Route) (string, error) {
 	return fmt.Sprintf("%s+%s", routeHash, fileHash), nil
 }
 
-func getRouteHash(route *route.Route) (string, error) {
+func getRouteHash(route route.Route) (string, error) {
 	return getStringHash(route.String())
 }
 

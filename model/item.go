@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -7,8 +7,6 @@ package model
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/route"
-	"sort"
-	"strings"
 )
 
 type ItemType int
@@ -50,7 +48,7 @@ const (
 // An Item represents a single document.
 type Item struct {
 	isVirtual bool
-	route     *route.Route
+	route     route.Route
 	files     []*File
 
 	Type        ItemType
@@ -61,7 +59,7 @@ type Item struct {
 	MetaData *MetaData
 }
 
-func NewVirtualItem(route *route.Route, itemType ItemType) (*Item, error) {
+func NewVirtualItem(route route.Route, itemType ItemType) (*Item, error) {
 	return &Item{
 		isVirtual: true,
 		route:     route,
@@ -69,7 +67,7 @@ func NewVirtualItem(route *route.Route, itemType ItemType) (*Item, error) {
 	}, nil
 }
 
-func NewItem(route *route.Route, files []*File) (*Item, error) {
+func NewItem(route route.Route, files []*File) (*Item, error) {
 	return &Item{
 		isVirtual: false,
 		route:     route,
@@ -89,50 +87,10 @@ func (item *Item) IsVirtual() bool {
 	return item.isVirtual
 }
 
-func (item *Item) Route() *route.Route {
+func (item *Item) Route() route.Route {
 	return item.route
 }
 
 func (item *Item) Files() []*File {
 	return item.files
-}
-
-func (item *Item) GetFile(fileRoute route.Route) *File {
-	for _, file := range item.Files() {
-		if !strings.HasSuffix(fileRoute.Value(), file.Route().Value()) {
-			continue
-		}
-
-		return file
-	}
-
-	return nil
-}
-
-type SortItemBy func(item1, item2 *Item) bool
-
-func (by SortItemBy) Sort(items []*Item) {
-	sorter := &itemSorter{
-		items: items,
-		by:    by,
-	}
-
-	sort.Sort(sorter)
-}
-
-type itemSorter struct {
-	items []*Item
-	by    SortItemBy
-}
-
-func (sorter *itemSorter) Len() int {
-	return len(sorter.items)
-}
-
-func (sorter *itemSorter) Swap(i, j int) {
-	sorter.items[i], sorter.items[j] = sorter.items[j], sorter.items[i]
-}
-
-func (sorter *itemSorter) Less(i, j int) bool {
-	return sorter.by(sorter.items[i], sorter.items[j])
 }

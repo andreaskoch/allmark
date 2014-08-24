@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -19,6 +19,10 @@ const (
 	LogLevelError = "Error"
 	LogLevelFatal = "Fatal"
 )
+
+func Default() *ConsoleLogger {
+	return New(loglevel.Info)
+}
 
 func New(level loglevel.LogLevel) *ConsoleLogger {
 	return &ConsoleLogger{

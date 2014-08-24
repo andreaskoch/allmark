@@ -1,4 +1,4 @@
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -21,7 +21,8 @@ func newNode(parent *Node, name string, value interface{}) *Node {
 		name:  name,
 		value: value,
 
-		childs: make(map[string]*Node),
+		childs:       make(map[string]*Node),
+		childsSorted: make([]*Node, 0),
 	}
 
 	// add the new node to the parents' childs
@@ -37,7 +38,9 @@ type Node struct {
 	value interface{}
 
 	parent *Node
-	childs map[string]*Node
+
+	childs       map[string]*Node
+	childsSorted []*Node
 }
 
 func (node *Node) String() string {
@@ -80,11 +83,7 @@ func (node *Node) Level() int {
 }
 
 func (node *Node) Childs() []*Node {
-	childNodes := make([]*Node, 0)
-	for _, childNode := range node.childs {
-		childNodes = append(childNodes, childNode)
-	}
-	return childNodes
+	return node.childsSorted
 }
 
 func (parentNode *Node) Insert(nodeToInsert *Node) (bool, error) {
@@ -105,6 +104,7 @@ func (parentNode *Node) Insert(nodeToInsert *Node) (bool, error) {
 
 		// insert the child node as a new entry
 		parentNode.childs[key] = nodeToInsert
+		parentNode.childsSorted = append(parentNode.childsSorted, nodeToInsert)
 
 		return true, nil // success
 	}
@@ -135,6 +135,8 @@ func (parentNode *Node) Delete(nodeToDelete *Node) (bool, error) {
 
 	// remove the node from the childs
 	delete(parentNode.childs, key)
+	parentNode.childsSorted = deleteFromSlice(nodeToDelete, parentNode.childsSorted)
+
 	return true, nil
 }
 
@@ -191,4 +193,17 @@ func getIndent(level int) string {
 		indent += "    "
 	}
 	return indent
+}
+
+func deleteFromSlice(nodeToDelete *Node, nodes []*Node) []*Node {
+	newNodes := make([]*Node, 0)
+
+	for _, node := range nodes {
+		if node.Name() == nodeToDelete.Name() {
+			continue
+		}
+		newNodes = append(newNodes, node)
+	}
+
+	return newNodes
 }
