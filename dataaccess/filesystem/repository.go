@@ -349,7 +349,13 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 
 	// Update-Hub: OnStart Trigger
 	repository.updateHub.RegisterOnStartTrigger(route, func() {
-		repository.discoverItems(itemDirectory, repository.changedItem)
+
+		// update file
+		newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+		item.SetFiles(newFiles)
+
+		// todo: discover new childs
+
 	})
 
 	// Update-Hub: Sub-Directory Watcher
@@ -435,7 +441,13 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 
 	// Update-Hub: OnStart Trigger
 	repository.updateHub.RegisterOnStartTrigger(route, func() {
-		repository.discoverItems(itemDirectory, repository.changedItem)
+
+		// update file
+		newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+		item.SetFiles(newFiles)
+
+		// todo: discover new childs
+
 	})
 
 	// Update-Hub: Sub-Directory Watcher
@@ -524,7 +536,13 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 
 	// Update-Hub: OnStart Trigger
 	repository.updateHub.RegisterOnStartTrigger(route, func() {
-		repository.discoverItems(itemDirectory, repository.changedItem)
+
+		// update file
+		newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+		item.SetFiles(newFiles)
+
+		// todo: discover new childs
+
 	})
 
 	// Update-Hub: File-Change Watcher

@@ -45,7 +45,7 @@ func (hub *Hub) StartWatching(route route.Route) {
 	}
 
 	// execute the onStart trigger
-	// hub.executeOnStartTrigger(route)
+	hub.executeOnStartTrigger(route)
 
 	hub.logger.Debug("Watchers (Folder: %s, File: %s)", fswatch.NumberOfFolderWatchers(), fswatch.NumberOfFileWatchers())
 }
