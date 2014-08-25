@@ -345,6 +345,11 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 		return
 	}
 
+	// Update-Hub: OnStart Trigger
+	repository.updateHub.RegisterOnStartTrigger(route, func() {
+		repository.discoverItems(itemDirectory, repository.changedItem)
+	})
+
 	// Update-Hub: Sub-Directory Watcher
 	repository.updateHub.Attach(route, "sub-directory-watcher", func() fswatch.Watcher {
 		return repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
@@ -425,6 +430,11 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 		repository.logger.Error("Cannot create Item %q. Error: %s", route, err)
 		return
 	}
+
+	// Update-Hub: OnStart Trigger
+	repository.updateHub.RegisterOnStartTrigger(route, func() {
+		repository.discoverItems(itemDirectory, repository.changedItem)
+	})
 
 	// Update-Hub: Sub-Directory Watcher
 	repository.updateHub.Attach(route, "sub-directory-watcher", func() fswatch.Watcher {
@@ -509,6 +519,11 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 		repository.logger.Error("Cannot create Item %q. Error: %s", route, err)
 		return
 	}
+
+	// Update-Hub: OnStart Trigger
+	repository.updateHub.RegisterOnStartTrigger(route, func() {
+		repository.discoverItems(itemDirectory, repository.changedItem)
+	})
 
 	// Update-Hub: File-Change Watcher
 	repository.updateHub.Attach(route, "file-change-watcher", func() fswatch.Watcher {

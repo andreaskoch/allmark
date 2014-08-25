@@ -174,14 +174,16 @@ func newUpdateHub(logger logger.Logger) *UpdateHub {
 	return &UpdateHub{
 		logger: logger,
 
-		registry: newRegistry(),
+		registry:              newRegistry(),
+		triggerActionsByRoute: make(map[string]func()),
 	}
 }
 
 type UpdateHub struct {
 	logger logger.Logger
 
-	registry *Registry
+	registry              *Registry
+	triggerActionsByRoute map[string]func()
 }
 
 func (hub *UpdateHub) StartWatching(route route.Route) {
@@ -200,6 +202,9 @@ func (hub *UpdateHub) StartWatching(route route.Route) {
 	for _, registryEntry := range collection.Entries() {
 		registryEntry.Start()
 	}
+
+	// execute the onStart trigger
+	// hub.executeOnStartTrigger(route)
 
 	hub.logger.Debug("Watchers (Folder: %s, File: %s)", fswatch.NumberOfFolderWatchers(), fswatch.NumberOfFileWatchers())
 }
@@ -234,6 +239,11 @@ func (hub *UpdateHub) Detach(route route.Route) {
 	hub.registry.Remove(route)
 }
 
+func (hub *UpdateHub) RegisterOnStartTrigger(route route.Route, action func()) {
+	key := routeToKey(route)
+	hub.triggerActionsByRoute[key] = action
+}
+
 func (hub *UpdateHub) Attach(route route.Route, callbackType string, callback func() fswatch.Watcher) {
 	hub.logger.Debug("Attaching callback %q for route %q", callbackType, route.String())
 
@@ -254,4 +264,11 @@ func (hub *UpdateHub) watcherExists(route route.Route, callbackType string) bool
 	}
 
 	return true
+}
+
+func (hub *UpdateHub) executeOnStartTrigger(route route.Route) {
+	key := routeToKey(route)
+	if trigger, exists := hub.triggerActionsByRoute[key]; exists {
+		go trigger()
+	}
 }
