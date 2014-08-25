@@ -11,6 +11,8 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
+	"github.com/andreaskoch/allmark2/dataaccess/filesystem/index"
+	"github.com/andreaskoch/allmark2/dataaccess/filesystem/updates"
 	"github.com/andreaskoch/go-fswatch"
 	"io/ioutil"
 	"path/filepath"
@@ -24,10 +26,10 @@ type Repository struct {
 	directory string
 	watcher   *watcherFactory
 
-	index      *Index
+	index      *index.Index
 	itemSearch *dataaccess.ItemSearch
 
-	updateHub *UpdateHub
+	updateHub *updates.Hub
 
 	newItem     chan *dataaccess.RepositoryEvent // new items which are discovered after the first index has been built
 	changedItem chan *dataaccess.RepositoryEvent // items with changed content
@@ -74,8 +76,8 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 		directory: directory,
 		hash:      hash,
 
-		index:     newIndex(logger),
-		updateHub: newUpdateHub(logger),
+		index:     index.New(logger),
+		updateHub: updates.NewHub(logger),
 		watcher:   newWatcherFactory(logger),
 
 		// item channels

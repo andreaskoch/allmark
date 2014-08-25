@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+func ToKey(route Route) string {
+	return route.Value()
+}
+
 func EncodeUrl(rawUrl string) string {
 	encodedUrl := strings.Replace(rawUrl, "%", "%25", -1)
 	encodedUrl = strings.Replace(encodedUrl, "+", "%2B", -1)

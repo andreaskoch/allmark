@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package filesystem
+package index
 
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
@@ -10,7 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/dataaccess"
 )
 
-func newIndex(logger logger.Logger) *Index {
+func New(logger logger.Logger) *Index {
 	return &Index{
 		logger: logger,
 
@@ -33,10 +33,10 @@ func (index *Index) String() string {
 	return index.itemTree.String()
 }
 
-func (index *Index) IsMatch(route route.Route) (item *dataaccess.Item, isMatch bool) {
+func (index *Index) IsMatch(r route.Route) (item *dataaccess.Item, isMatch bool) {
 
 	// check for a direct match
-	if item, isMatch = index.routeMap[routeToKey(route)]; isMatch {
+	if item, isMatch = index.routeMap[route.ToKey(r)]; isMatch {
 		return item, isMatch
 	}
 
@@ -44,10 +44,10 @@ func (index *Index) IsMatch(route route.Route) (item *dataaccess.Item, isMatch b
 	return nil, false
 }
 
-func (index *Index) IsFileMatch(route route.Route) (*dataaccess.File, bool) {
+func (index *Index) IsFileMatch(r route.Route) (*dataaccess.File, bool) {
 
 	var parent *dataaccess.Item
-	parentRoute := route
+	parentRoute := r
 	for !parentRoute.IsEmpty() && parentRoute.Level() >= 0 {
 
 		parent, _ = index.IsMatch(parentRoute)
@@ -70,12 +70,12 @@ func (index *Index) IsFileMatch(route route.Route) (*dataaccess.File, bool) {
 
 	// abort if there is no non-virtual parent
 	if parent == nil {
-		index.logger.Warn("No file found for route %q", route)
+		index.logger.Warn("No file found for route %q", r)
 		return nil, false
 	}
 
 	// check if the parent has a file with the supplied route
-	if file := parent.GetFile(route); file != nil {
+	if file := parent.GetFile(r); file != nil {
 		return file, true
 	}
 
@@ -179,7 +179,7 @@ func (index *Index) addItemToItemList(item *dataaccess.Item) {
 }
 
 func (index *Index) addItemToRouteMap(item *dataaccess.Item) {
-	index.routeMap[routeToKey(item.Route())] = item
+	index.routeMap[route.ToKey(item.Route())] = item
 }
 
 func (index *Index) addItemToTree(item *dataaccess.Item) {
@@ -224,7 +224,7 @@ func (index *Index) removeItemFromItemList(item *dataaccess.Item) {
 }
 
 func (index *Index) removeItemFromRouteMap(item *dataaccess.Item) {
-	delete(index.routeMap, routeToKey(item.Route()))
+	delete(index.routeMap, route.ToKey(item.Route()))
 }
 
 func (index *Index) removeItemFromTree(item *dataaccess.Item) {
