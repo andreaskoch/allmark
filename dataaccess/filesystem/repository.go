@@ -189,8 +189,8 @@ func (repository *Repository) startItemDiscovery() {
 						repository.logger.Info("New item %q", item)
 						repository.index.Add(item)
 
-						// Send out updates
-						go repository.onUpdateCallback(item.Route())
+						// Inform subscribers about change
+						repository.notifySubscribers(item.Route())
 
 					}
 				}
@@ -210,8 +210,8 @@ func (repository *Repository) startItemDiscovery() {
 						repository.logger.Info("Changed item %q", item)
 						repository.index.Add(item)
 
-						// Send out updates
-						go repository.onUpdateCallback(item.Route())
+						// Inform subscribers about change
+						repository.notifySubscribers(item.Route())
 
 					}
 				}
@@ -230,6 +230,10 @@ func (repository *Repository) startItemDiscovery() {
 						repository.logger.Info("Moved item %q", item)
 						repository.index.Remove(item.Route())
 
+					} else {
+
+						repository.logger.Warn("Empty repository event in the moved item channel.")
+
 					}
 				}
 
@@ -239,6 +243,10 @@ func (repository *Repository) startItemDiscovery() {
 	}()
 
 	repository.discoverItems(repository.directory, repository.newItem)
+}
+
+func (repository *Repository) notifySubscribers(route route.Route) {
+	go repository.onUpdateCallback(route)
 }
 
 // Start the fulltext search indexing process
