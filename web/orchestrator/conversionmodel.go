@@ -43,7 +43,7 @@ func (orchestrator *ConversionModelOrchestrator) GetConversionModel(hostname str
 
 	// create a view model
 	model = viewmodel.ConversionModel{
-		Base:    getBaseModel(root, item),
+		Base:    getBaseModel(root, item, pathProvider),
 		Content: convertedContent,
 
 		// files

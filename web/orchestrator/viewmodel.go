@@ -43,7 +43,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 
 	// create a view model
 	viewModel = viewmodel.Model{
-		Base:    getBaseModel(root, item),
+		Base:    getBaseModel(root, item, orchestrator.relativePather(itemRoute)),
 		Content: convertedContent,
 		Childs:  orchestrator.getChildModels(itemRoute, orchestrator.relativePather(itemRoute)),
 
@@ -87,7 +87,7 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route,
 
 	childItems := orchestrator.getChilds(itemRoute)
 	for _, childItem := range childItems {
-		baseModel := getBaseModel(rootItem, childItem)
+		baseModel := getBaseModel(rootItem, childItem, pathProvider)
 		childModels = append(childModels, &baseModel)
 	}
 

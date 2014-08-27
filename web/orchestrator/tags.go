@@ -40,7 +40,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 		}
 
 		itemViewModel := &viewmodel.Model{
-			Base: getBaseModel(rootItem, parsedItem),
+			Base: getBaseModel(rootItem, parsedItem, orchestrator.relativePather(rootItem.Route())),
 		}
 
 		tags := []model.Tag{}
