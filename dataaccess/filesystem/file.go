@@ -6,6 +6,7 @@ package filesystem
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
@@ -13,7 +14,19 @@ import (
 	"path/filepath"
 )
 
-func getFiles(repositoryPath, itemDirectory, filesDirectory string) []*dataaccess.File {
+func newFileProvider(logger logger.Logger, repositoryPath string) *fileProvider {
+	return &fileProvider{
+		logger:         logger,
+		repositoryPath: repositoryPath,
+	}
+}
+
+type fileProvider struct {
+	logger         logger.Logger
+	repositoryPath string
+}
+
+func (provider *fileProvider) GetFilesFromDirectory(itemDirectory, filesDirectory string) []*dataaccess.File {
 
 	childs := make([]*dataaccess.File, 0)
 
@@ -28,14 +41,15 @@ func getFiles(repositoryPath, itemDirectory, filesDirectory string) []*dataacces
 
 		// recurse if the path is a directory
 		if isDir, _ := fsutil.IsDirectory(filePath); isDir {
-			childs = append(childs, getFiles(repositoryPath, itemDirectory, filePath)...)
+			childs = append(childs, provider.GetFilesFromDirectory(itemDirectory, filePath)...)
 			continue
 		}
 
 		// append new file
-		file, err := newFile(repositoryPath, itemDirectory, filePath)
+		file, err := newFile(provider.repositoryPath, itemDirectory, filePath)
 		if err != nil {
-			fmt.Printf("Unable to add file %q to index.\nError: %s\n", filePath, err)
+			provider.logger.Error("Unable to add file %q to index. Error: %s", filePath, err)
+			continue
 		}
 
 		childs = append(childs, file)

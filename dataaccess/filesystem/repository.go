@@ -39,6 +39,8 @@ type Repository struct {
 	directory string
 	watcher   *watcherFactory
 
+	fileProvider *fileProvider
+
 	index      *index.Index
 	itemSearch *dataaccess.ItemSearch
 
@@ -91,6 +93,8 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 		logger:    logger,
 		directory: directory,
 		hash:      hash,
+
+		fileProvider: newFileProvider(logger, directory),
 
 		index:     index.New(logger),
 		updateHub: updates.NewHub(logger),
@@ -354,7 +358,7 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := getFiles(repositoryPath, itemDirectory, filesDirectory)
+	files := repository.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 
 	// create the item
 	item, err = dataaccess.NewItem(route, contentProvider, files)
@@ -397,7 +401,7 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := getFiles(repositoryPath, itemDirectory, filesDirectory)
+	files := repository.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 
 	// create the item
 	item, err = dataaccess.NewItem(route, contentProvider, files)
@@ -440,7 +444,7 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 
 	// create the file index
 	filesDirectory := itemDirectory
-	files := getFiles(repositoryPath, itemDirectory, filesDirectory)
+	files := repository.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 
 	// create the item
 	item, err = dataaccess.NewItem(route, contentProvider, files)
@@ -462,7 +466,7 @@ func (repository *Repository) onStartTriggerFunc(item *dataaccess.Item, itemDire
 	return func() {
 
 		// update files
-		newFiles := getFiles(repository.directory, itemDirectory, filesDirectory)
+		newFiles := repository.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 		item.SetFiles(newFiles)
 
 		go func() {
@@ -479,7 +483,7 @@ func (repository *Repository) fileDirectoryWatcher(item *dataaccess.Item, itemDi
 
 			// update file list
 			repository.logger.Debug("Updating the file list for item %q", item.String())
-			newFiles := getFiles(repository.directory, itemDirectory, filesDirectory)
+			newFiles := repository.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 			item.SetFiles(newFiles)
 
 			go func() {
