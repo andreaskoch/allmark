@@ -21,6 +21,18 @@ import (
 	"time"
 )
 
+type event struct {
+	Item  *dataaccess.Item
+	Error error
+}
+
+func newRepositoryEvent(item *dataaccess.Item, err error) *event {
+	return &event{
+		Item:  item,
+		Error: err,
+	}
+}
+
 type Repository struct {
 	logger    logger.Logger
 	hash      string
@@ -32,9 +44,9 @@ type Repository struct {
 
 	updateHub *updates.Hub
 
-	newItem     chan *dataaccess.RepositoryEvent // new items which are discovered after the first index has been built
-	changedItem chan *dataaccess.RepositoryEvent // items with changed content
-	movedItem   chan *dataaccess.RepositoryEvent // items which moved
+	newItem     chan *event // new items which are discovered after the first index has been built
+	changedItem chan *event // items with changed content
+	movedItem   chan *event // items which moved
 
 	onUpdateCallback func(route.Route)
 }
@@ -85,9 +97,9 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 		watcher:   newWatcherFactory(logger),
 
 		// item channels
-		newItem:     make(chan *dataaccess.RepositoryEvent, 1),
-		changedItem: make(chan *dataaccess.RepositoryEvent, 1),
-		movedItem:   make(chan *dataaccess.RepositoryEvent, 1),
+		newItem:     make(chan *event, 1),
+		changedItem: make(chan *event, 1),
+		movedItem:   make(chan *event, 1),
 
 		onUpdateCallback: func(r route.Route) {},
 	}
@@ -272,17 +284,17 @@ func (repository *Repository) startFullTextSearch() {
 }
 
 // Create a new Item for the specified path.
-func (repository *Repository) discoverItems(itemPath string, targetChannel chan *dataaccess.RepositoryEvent) {
+func (repository *Repository) discoverItems(itemPath string, targetChannel chan *event) {
 
 	// abort if path does not exist
 	if !fsutil.PathExists(itemPath) {
-		targetChannel <- dataaccess.NewEvent(nil, fmt.Errorf("The path %q does not exist.", itemPath))
+		targetChannel <- newRepositoryEvent(nil, fmt.Errorf("The path %q does not exist.", itemPath))
 		return
 	}
 
 	// abort if path is reserved
 	if isReservedDirectory(itemPath) {
-		targetChannel <- dataaccess.NewEvent(nil, fmt.Errorf("The path %q is using a reserved name and cannot be an item.", itemPath))
+		targetChannel <- newRepositoryEvent(nil, fmt.Errorf("The path %q is using a reserved name and cannot be an item.", itemPath))
 		return
 	}
 
@@ -296,7 +308,7 @@ func (repository *Repository) discoverItems(itemPath string, targetChannel chan 
 	item, recurse := repository.getItemFromDirectory(repository.Path(), itemDirectory)
 
 	// send the item to the target channel
-	targetChannel <- dataaccess.NewEvent(item, nil)
+	targetChannel <- newRepositoryEvent(item, nil)
 
 	// recurse for child items
 	if recurse {
@@ -454,7 +466,7 @@ func (repository *Repository) onStartTriggerFunc(item *dataaccess.Item, itemDire
 		item.SetFiles(newFiles)
 
 		go func() {
-			repository.changedItem <- dataaccess.NewEvent(item, nil)
+			repository.changedItem <- newRepositoryEvent(item, nil)
 		}()
 
 	}
@@ -471,7 +483,7 @@ func (repository *Repository) fileDirectoryWatcher(item *dataaccess.Item, itemDi
 			item.SetFiles(newFiles)
 
 			go func() {
-				repository.changedItem <- dataaccess.NewEvent(item, nil)
+				repository.changedItem <- newRepositoryEvent(item, nil)
 			}()
 		})
 	}
@@ -520,14 +532,14 @@ func (repository *Repository) fileWatcher(item *dataaccess.Item, filePath string
 		modifiedCallback := func() {
 			repository.logger.Debug("Item %q changed.", item)
 			go func() {
-				repository.changedItem <- dataaccess.NewEvent(item, nil)
+				repository.changedItem <- newRepositoryEvent(item, nil)
 			}()
 		}
 
 		movedCallback := func() {
 			repository.logger.Debug("Item %q moved.", item)
 			go func() {
-				repository.movedItem <- dataaccess.NewEvent(item, nil)
+				repository.movedItem <- newRepositoryEvent(item, nil)
 			}()
 		}
 

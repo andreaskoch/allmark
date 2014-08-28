@@ -8,18 +8,6 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 )
 
-type RepositoryEvent struct {
-	Item  *Item
-	Error error
-}
-
-func NewEvent(item *Item, err error) *RepositoryEvent {
-	return &RepositoryEvent{
-		Item:  item,
-		Error: err,
-	}
-}
-
 type Repository interface {
 	String() string
 
