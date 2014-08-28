@@ -348,65 +348,16 @@ func (repository *Repository) newItemFromFile(repositoryPath, itemDirectory, fil
 	}
 
 	// Update-Hub: OnStart Trigger
-	repository.updateHub.RegisterOnStartTrigger(route, func() {
-
-		// update file
-		newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
-		item.SetFiles(newFiles)
-
-		// todo: discover new childs
-
-	})
+	repository.updateHub.RegisterOnStartTrigger(route, repository.onStartTriggerFunc(item, itemDirectory, filesDirectory))
 
 	// Update-Hub: Sub-Directory Watcher
-	repository.updateHub.Attach(route, "sub-directory-watcher", func() fswatch.Watcher {
-		return repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
-
-			// remove the parent item since we cannot easily determine which child has gone away
-			go func() {
-				repository.movedItem <- dataaccess.NewEvent(item, nil)
-			}()
-
-			// recreate this item
-			repository.discoverItems(itemDirectory, repository.newItem)
-		})
-	})
+	repository.updateHub.Attach(route, "sub-directory-watcher", repository.subDirectoryWatcher(item, itemDirectory))
 
 	// Update-Hub: File-Directory Watcher
-	repository.updateHub.Attach(route, "file-directory-watcher", func() fswatch.Watcher {
-		return repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
-
-			// update file list
-			repository.logger.Debug("Updating the file list for item %q", item.String())
-			newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
-			item.SetFiles(newFiles)
-
-			// update the parent item
-			go func() {
-				repository.changedItem <- dataaccess.NewEvent(item, nil)
-			}()
-		})
-	})
+	repository.updateHub.Attach(route, "file-directory-watcher", repository.fileDirectoryWatcher(item, itemDirectory, filesDirectory))
 
 	// Update-Hub: Markdown-File Watcher
-	repository.updateHub.Attach(route, "markdown-file-watcher", func() fswatch.Watcher {
-
-		modifiedCallback := func() {
-			repository.logger.Debug("Item %q changed.", item)
-			go func() {
-				repository.changedItem <- dataaccess.NewEvent(item, nil)
-			}()
-		}
-
-		movedCallback := func() {
-			repository.logger.Debug("Item %q moved.", item)
-			go func() {
-				repository.movedItem <- dataaccess.NewEvent(item, nil)
-			}()
-		}
-
-		return repository.watcher.File(filePath, 2, modifiedCallback, movedCallback)
-	})
+	repository.updateHub.Attach(route, "markdown-file-watcher", repository.fileWatcher(item, filePath))
 
 	return item, true
 }
@@ -440,68 +391,16 @@ func (repository *Repository) newVirtualItem(repositoryPath, itemDirectory strin
 	}
 
 	// Update-Hub: OnStart Trigger
-	repository.updateHub.RegisterOnStartTrigger(route, func() {
-
-		// update file
-		newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
-		item.SetFiles(newFiles)
-
-		// todo: discover new childs
-
-	})
+	repository.updateHub.RegisterOnStartTrigger(route, repository.onStartTriggerFunc(item, itemDirectory, filesDirectory))
 
 	// Update-Hub: Sub-Directory Watcher
-	repository.updateHub.Attach(route, "sub-directory-watcher", func() fswatch.Watcher {
-		return repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
-
-			// remove the parent item since we cannot easily determine which child has gone away
-			go func() {
-				repository.movedItem <- dataaccess.NewEvent(item, nil)
-			}()
-
-			// recreate this item
-			repository.discoverItems(itemDirectory, repository.newItem)
-		})
-	})
+	repository.updateHub.Attach(route, "sub-directory-watcher", repository.subDirectoryWatcher(item, itemDirectory))
 
 	// Update-Hub: Type-Change Watcher
-	repository.updateHub.Attach(route, "type-change-watcher", func() fswatch.Watcher {
-		return repository.watcher.Directory(itemDirectory, 2, func(change *fswatch.FolderChange) {
-
-			for _, newFile := range change.New() {
-				if !isMarkdownFile(newFile) {
-					continue
-				}
-
-				// remove the parent item since we cannot easily determine which child has gone away
-				go func() {
-					repository.movedItem <- dataaccess.NewEvent(item, nil)
-				}()
-
-				// recreate this item
-				repository.discoverItems(itemDirectory, repository.newItem)
-
-				break
-
-			}
-		})
-	})
+	repository.updateHub.Attach(route, "type-change-watcher", repository.newMarkdownFileWatcher(item, itemDirectory))
 
 	// Update-Hub: File-Directory Watcher
-	repository.updateHub.Attach(route, "file-directory-watcher", func() fswatch.Watcher {
-		return repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
-
-			// update file list
-			repository.logger.Debug("Updating the file list for item %q", item.String())
-			newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
-			item.SetFiles(newFiles)
-
-			// update the parent item
-			go func() {
-				repository.changedItem <- dataaccess.NewEvent(item, nil)
-			}()
-		})
-	})
+	repository.updateHub.Attach(route, "file-directory-watcher", repository.fileDirectoryWatcher(item, itemDirectory, filesDirectory))
 
 	return item, true
 }
@@ -535,22 +434,71 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 	}
 
 	// Update-Hub: OnStart Trigger
-	repository.updateHub.RegisterOnStartTrigger(route, func() {
+	repository.updateHub.RegisterOnStartTrigger(route, repository.onStartTriggerFunc(item, itemDirectory, filesDirectory))
+
+	// Update-Hub: File-Change Watcher
+	repository.updateHub.Attach(route, "file-change-watcher", repository.newMarkdownFileWatcher(item, itemDirectory))
+
+	return item, false
+}
+
+func (repository *Repository) onStartTriggerFunc(item *dataaccess.Item, itemDirectory, filesDirectory string) func() {
+	return func() {
 
 		// update file
-		newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
+		newFiles := getFiles(repository.directory, itemDirectory, filesDirectory)
 		item.SetFiles(newFiles)
 
 		// todo: discover new childs
 
-	})
+	}
+}
 
-	// Update-Hub: File-Change Watcher
-	repository.updateHub.Attach(route, "file-change-watcher", func() fswatch.Watcher {
-		return repository.watcher.AllFiles(itemDirectory, 2, func(change *fswatch.FolderChange) {
+func (repository *Repository) fileDirectoryWatcher(item *dataaccess.Item, itemDirectory, filesDirectory string) func() fswatch.Watcher {
 
-			if directoryContainsItems(itemDirectory, 1) {
-				// type change
+	return func() fswatch.Watcher {
+		return repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
+
+			// update file list
+			repository.logger.Debug("Updating the file list for item %q", item.String())
+			newFiles := getFiles(repository.directory, itemDirectory, filesDirectory)
+			item.SetFiles(newFiles)
+
+			// update the parent item
+			go func() {
+				repository.changedItem <- dataaccess.NewEvent(item, nil)
+			}()
+		})
+	}
+
+}
+
+func (repository *Repository) subDirectoryWatcher(item *dataaccess.Item, itemDirectory string) func() fswatch.Watcher {
+
+	return func() fswatch.Watcher {
+		return repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
+
+			// remove the parent item since we cannot easily determine which child has gone away
+			go func() {
+				repository.movedItem <- dataaccess.NewEvent(item, nil)
+			}()
+
+			// recreate this item
+			repository.discoverItems(itemDirectory, repository.newItem)
+		})
+	}
+
+}
+
+func (repository *Repository) newMarkdownFileWatcher(item *dataaccess.Item, itemDirectory string) func() fswatch.Watcher {
+
+	return func() fswatch.Watcher {
+		return repository.watcher.Directory(itemDirectory, 2, func(change *fswatch.FolderChange) {
+
+			for _, newFile := range change.New() {
+				if !isMarkdownFile(newFile) {
+					continue
+				}
 
 				// remove the parent item since we cannot easily determine which child has gone away
 				go func() {
@@ -560,21 +508,33 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 				// recreate this item
 				repository.discoverItems(itemDirectory, repository.newItem)
 
-			} else {
+				break
 
-				// update files
-				newFiles := getFiles(repositoryPath, itemDirectory, filesDirectory)
-				item.SetFiles(newFiles)
-
-				// update the parent item
-				go func() {
-					repository.changedItem <- dataaccess.NewEvent(item, nil)
-				}()
 			}
 		})
-	})
+	}
+}
 
-	return item, false
+func (repository *Repository) fileWatcher(item *dataaccess.Item, filePath string) func() fswatch.Watcher {
+
+	return func() fswatch.Watcher {
+
+		modifiedCallback := func() {
+			repository.logger.Debug("Item %q changed.", item)
+			go func() {
+				repository.changedItem <- dataaccess.NewEvent(item, nil)
+			}()
+		}
+
+		movedCallback := func() {
+			repository.logger.Debug("Item %q moved.", item)
+			go func() {
+				repository.movedItem <- dataaccess.NewEvent(item, nil)
+			}()
+		}
+
+		return repository.watcher.File(filePath, 2, modifiedCallback, movedCallback)
+	}
 }
 
 // Check if the specified directory contains an item within the range of the given max depth.
