@@ -449,8 +449,6 @@ func (repository *Repository) onStartTriggerFunc(item *dataaccess.Item, itemDire
 		newFiles := getFiles(repository.directory, itemDirectory, filesDirectory)
 		item.SetFiles(newFiles)
 
-		// todo: discover new childs
-
 	}
 }
 
@@ -477,13 +475,6 @@ func (repository *Repository) subDirectoryWatcher(item *dataaccess.Item, itemDir
 
 	return func() fswatch.Watcher {
 		return repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
-
-			// remove the parent item since we cannot easily determine which child has gone away
-			go func() {
-				repository.movedItem <- dataaccess.NewEvent(item, nil)
-			}()
-
-			// recreate this item
 			repository.discoverItems(itemDirectory, repository.newItem)
 		})
 	}
@@ -495,22 +486,22 @@ func (repository *Repository) newMarkdownFileWatcher(item *dataaccess.Item, item
 	return func() fswatch.Watcher {
 		return repository.watcher.Directory(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
+			// check if one of the files is a markdown file
+			oneOfTheNewFilesIsAMarkdownFile := false
 			for _, newFile := range change.New() {
-				if !isMarkdownFile(newFile) {
-					continue
+				if isMarkdownFile(newFile) {
+					oneOfTheNewFilesIsAMarkdownFile = true
+					break
 				}
-
-				// remove the parent item since we cannot easily determine which child has gone away
-				go func() {
-					repository.movedItem <- dataaccess.NewEvent(item, nil)
-				}()
-
-				// recreate this item
-				repository.discoverItems(itemDirectory, repository.newItem)
-
-				break
-
 			}
+
+			// no change if there is no markdown file
+			if !oneOfTheNewFilesIsAMarkdownFile {
+				return
+			}
+
+			// reindex this item
+			repository.discoverItems(itemDirectory, repository.changedItem)
 		})
 	}
 }
