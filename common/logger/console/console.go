@@ -48,6 +48,10 @@ func (logger *ConsoleLogger) Debug(format string, v ...interface{}) {
 	logger.print(LogLevelDebug, fmt.Sprintf(format, v...))
 }
 
+func (logger *ConsoleLogger) Level() loglevel.LogLevel {
+	return logger.level
+}
+
 func (logger *ConsoleLogger) Info(format string, v ...interface{}) {
 	if logger.level > loglevel.Info {
 		return

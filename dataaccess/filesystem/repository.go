@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/logger/loglevel"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
@@ -62,13 +63,16 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 		return nil, fmt.Errorf("Cannot create a hash for the repository with the name %q. Error: %s", directoryName, err)
 	}
 
-	// enable debug mode
-	// debugMessages := fswatch.EnableDebug()
-	// go func() {
-	// 	for message := range debugMessages {
-	// 		logger.Debug("fs-watch: %s", message)
-	// 	}
-	// }()
+	if logger.Level() == loglevel.Debug {
+
+		// enable the debug mode for the filesystem watcher
+		debugMessages := fswatch.EnableDebug()
+		go func() {
+			for message := range debugMessages {
+				logger.Debug("fs-watch: %s", message)
+			}
+		}()
+	}
 
 	// create the repository
 	repository := &Repository{
@@ -445,9 +449,13 @@ func (repository *Repository) newFileCollectionItem(repositoryPath, itemDirector
 func (repository *Repository) onStartTriggerFunc(item *dataaccess.Item, itemDirectory, filesDirectory string) func() {
 	return func() {
 
-		// update file
+		// update files
 		newFiles := getFiles(repository.directory, itemDirectory, filesDirectory)
 		item.SetFiles(newFiles)
+
+		go func() {
+			repository.changedItem <- dataaccess.NewEvent(item, nil)
+		}()
 
 	}
 }
@@ -462,7 +470,6 @@ func (repository *Repository) fileDirectoryWatcher(item *dataaccess.Item, itemDi
 			newFiles := getFiles(repository.directory, itemDirectory, filesDirectory)
 			item.SetFiles(newFiles)
 
-			// update the parent item
 			go func() {
 				repository.changedItem <- dataaccess.NewEvent(item, nil)
 			}()

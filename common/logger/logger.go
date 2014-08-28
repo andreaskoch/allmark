@@ -4,7 +4,13 @@
 
 package logger
 
+import (
+	"github.com/andreaskoch/allmark2/common/logger/loglevel"
+)
+
 type Logger interface {
+	Level() loglevel.LogLevel
+
 	Debug(format string, v ...interface{})
 	Info(format string, v ...interface{})
 	Warn(format string, v ...interface{})
