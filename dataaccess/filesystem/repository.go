@@ -23,8 +23,8 @@ type event struct {
 	Error error
 }
 
-func newRepositoryEvent(item *dataaccess.Item, err error) *event {
-	return &event{
+func newRepositoryEvent(item *dataaccess.Item, err error) event {
+	return event{
 		Item:  item,
 		Error: err,
 	}
@@ -39,10 +39,6 @@ type Repository struct {
 
 	index      *index.Index
 	itemSearch *dataaccess.ItemSearch
-
-	newItem     chan *event // new items which are discovered after the first index has been built
-	changedItem chan *event // items with changed content
-	movedItem   chan *event // items which moved
 
 	onUpdateCallback func(route.Route)
 }
@@ -94,13 +90,7 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 		hash:      hash,
 
 		itemProvider: itemProvider,
-
-		index: index.New(logger),
-
-		// item channels
-		newItem:     make(chan *event, 1),
-		changedItem: make(chan *event, 1),
-		movedItem:   make(chan *event, 1),
+		index:        index.New(logger),
 
 		onUpdateCallback: func(r route.Route) {},
 	}
@@ -186,7 +176,7 @@ func (repository *Repository) StopWatching(route route.Route) {
 // Initialize the repository - scan all folders and update the index.
 func (repository *Repository) init() {
 
-	newItems := make(chan *event, 1)
+	newItems := make(chan event, 1)
 
 	go func() {
 		repository.discoverItems(repository.directory, newItems)
@@ -211,6 +201,9 @@ func (repository *Repository) init() {
 
 	// scheduled reindex of the fulltext index
 	repository.startFullTextSearch()
+
+	// start watching for updates
+	repository.startWatching()
 }
 
 func (repository *Repository) notifySubscribers(route route.Route) {
@@ -233,8 +226,81 @@ func (repository *Repository) startFullTextSearch() {
 	}()
 }
 
+// Start watching for updates
+func (repository *Repository) startWatching() {
+	updateChannel := repository.itemProvider.Updates()
+
+	go func() {
+
+		for {
+			select {
+			case newItemEvent := <-updateChannel.New:
+				{
+					item := newItemEvent.Item
+					err := newItemEvent.Error
+
+					if err != nil {
+
+						repository.logger.Warn("New Item. Error: %s", err)
+
+					} else if item != nil {
+
+						// Add item to index
+						repository.logger.Info("New item %q", item)
+						repository.index.Add(item)
+
+						// Send out updates
+						go repository.onUpdateCallback(item.Route())
+
+					}
+				}
+
+			case changedItemEvent := <-updateChannel.Changed:
+				{
+					item := changedItemEvent.Item
+					err := changedItemEvent.Error
+
+					if err != nil {
+
+						repository.logger.Warn("Changed Item. Error: %s", err)
+
+					} else if item != nil {
+
+						// Add item to index
+						repository.logger.Info("Changed item %q", item)
+						repository.index.Add(item)
+
+						// Send out updates
+						go repository.onUpdateCallback(item.Route())
+
+					}
+				}
+
+			case movedItemEvent := <-updateChannel.Moved:
+				{
+					item := movedItemEvent.Item
+					err := movedItemEvent.Error
+
+					if err != nil {
+
+						repository.logger.Warn("Moved Item. Error: %s", err)
+
+					} else if item != nil {
+
+						repository.logger.Info("Moved item %q", item)
+						repository.index.Remove(item.Route())
+
+					}
+				}
+
+			}
+		}
+
+	}()
+}
+
 // Create a new Item for the specified path.
-func (repository *Repository) discoverItems(itemDirectory string, targetChannel chan *event) {
+func (repository *Repository) discoverItems(itemDirectory string, targetChannel chan event) {
 
 	// create the item
 	item, recurse, err := repository.itemProvider.GetItemFromDirectory(itemDirectory)

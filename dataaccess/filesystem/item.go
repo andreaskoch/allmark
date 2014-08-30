@@ -17,6 +17,20 @@ import (
 	"path/filepath"
 )
 
+type itemUpdateChannel struct {
+	Moved   chan event
+	Changed chan event
+	New     chan event
+}
+
+func newItemUpdateChannel() *itemUpdateChannel {
+	return &itemUpdateChannel{
+		Moved:   make(chan event, 1),
+		Changed: make(chan event, 1),
+		New:     make(chan event, 1),
+	}
+}
+
 func newItemProvider(logger logger.Logger, repositoryPath string) (*itemProvider, error) {
 
 	// abort if repoistory path does not exist
@@ -40,8 +54,9 @@ func newItemProvider(logger logger.Logger, repositoryPath string) (*itemProvider
 		repositoryPath: repositoryPath,
 		fileProvider:   fileProvider,
 
-		updateHub: updates.NewHub(logger),
-		watcher:   newWatcherFactory(logger),
+		updateChannel: newItemUpdateChannel(),
+		updateHub:     updates.NewHub(logger),
+		watcher:       newWatcherFactory(logger),
 	}, nil
 }
 
@@ -51,8 +66,13 @@ type itemProvider struct {
 
 	fileProvider *fileProvider
 
-	updateHub *updates.Hub
-	watcher   *watcherFactory
+	updateChannel *itemUpdateChannel
+	updateHub     *updates.Hub
+	watcher       *watcherFactory
+}
+
+func (itemProvider *itemProvider) Updates() *itemUpdateChannel {
+	return itemProvider.updateChannel
 }
 
 func (itemProvider *itemProvider) StartWatching(route route.Route) {
@@ -220,7 +240,7 @@ func (itemProvider *itemProvider) onStartTriggerFunc(item *dataaccess.Item, item
 		item.SetFiles(newFiles)
 
 		go func() {
-			// itemProvider.changedItem <- newRepositoryEvent(item, nil)
+			itemProvider.updateChannel.Changed <- newRepositoryEvent(item, nil)
 		}()
 
 	}
@@ -237,7 +257,7 @@ func (itemProvider *itemProvider) fileDirectoryWatcher(item *dataaccess.Item, it
 			item.SetFiles(newFiles)
 
 			go func() {
-				// itemProvider.changedItem <- newRepositoryEvent(item, nil)
+				itemProvider.updateChannel.Changed <- newRepositoryEvent(item, nil)
 			}()
 		})
 	}
@@ -286,14 +306,14 @@ func (itemProvider *itemProvider) fileWatcher(item *dataaccess.Item, filePath st
 		modifiedCallback := func() {
 			itemProvider.logger.Debug("Item %q changed.", item)
 			go func() {
-				// itemProvider.changedItem <- newRepositoryEvent(item, nil)
+				itemProvider.updateChannel.Changed <- newRepositoryEvent(item, nil)
 			}()
 		}
 
 		movedCallback := func() {
 			itemProvider.logger.Debug("Item %q moved.", item)
 			go func() {
-				// itemProvider.movedItem <- newRepositoryEvent(item, nil)
+				itemProvider.updateChannel.Moved <- newRepositoryEvent(item, nil)
 			}()
 		}
 
