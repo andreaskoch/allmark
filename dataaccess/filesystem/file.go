@@ -14,11 +14,22 @@ import (
 	"path/filepath"
 )
 
-func newFileProvider(logger logger.Logger, repositoryPath string) *fileProvider {
+func newFileProvider(logger logger.Logger, repositoryPath string) (*fileProvider, error) {
+
+	// abort if repoistory path does not exist
+	if !fsutil.PathExists(repositoryPath) {
+		return nil, fmt.Errorf("The repository path %q does not exist.", repositoryPath)
+	}
+
+	// abort if the supplied repository path is not a directory
+	if isDirectory, _ := fsutil.IsDirectory(repositoryPath); !isDirectory {
+		return nil, fmt.Errorf("The supplied item repository path %q is not a directory.", repositoryPath)
+	}
+
 	return &fileProvider{
 		logger:         logger,
 		repositoryPath: repositoryPath,
-	}
+	}, nil
 }
 
 type fileProvider struct {
