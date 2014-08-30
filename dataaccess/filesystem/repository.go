@@ -234,63 +234,62 @@ func (repository *Repository) startWatching() {
 
 		for {
 			select {
-			case newItemEvent := <-updateChannel.New:
+
+			case event := <-updateChannel.New:
 				{
-					item := newItemEvent.Item
-					err := newItemEvent.Error
+					if err := event.Error; err != nil {
+						repository.logger.Warn("New item. Error: %s", err)
+						break
+					}
 
-					if err != nil {
-
-						repository.logger.Warn("New Item. Error: %s", err)
-
-					} else if item != nil {
-
+					if item := event.Item; item != nil {
 						// Add item to index
 						repository.logger.Info("New item %q", item)
 						repository.index.Add(item)
 
 						// Send out updates
-						go repository.onUpdateCallback(item.Route())
-
+						repository.notifySubscribers(item.Route())
+						break
 					}
+
 				}
 
-			case changedItemEvent := <-updateChannel.Changed:
+			case event := <-updateChannel.Changed:
 				{
-					item := changedItemEvent.Item
-					err := changedItemEvent.Error
 
-					if err != nil {
+					if err := event.Error; err != nil {
+						repository.logger.Warn("Changed item. Error: %s", err)
+						break
+					}
 
-						repository.logger.Warn("Changed Item. Error: %s", err)
-
-					} else if item != nil {
-
+					if item := event.Item; item != nil {
 						// Add item to index
 						repository.logger.Info("Changed item %q", item)
 						repository.index.Add(item)
 
 						// Send out updates
-						go repository.onUpdateCallback(item.Route())
-
+						repository.notifySubscribers(item.Route())
+						break
 					}
+
 				}
 
-			case movedItemEvent := <-updateChannel.Moved:
+			case event := <-updateChannel.Moved:
 				{
-					item := movedItemEvent.Item
-					err := movedItemEvent.Error
 
-					if err != nil {
+					if err := event.Error; err != nil {
+						repository.logger.Warn("Moved item. Error: %s", err)
+						break
+					}
 
-						repository.logger.Warn("Moved Item. Error: %s", err)
-
-					} else if item != nil {
-
+					if item := event.Item; item != nil {
+						// Remove item from index
 						repository.logger.Info("Moved item %q", item)
 						repository.index.Remove(item.Route())
 
+						break
 					}
+
 				}
 
 			}
