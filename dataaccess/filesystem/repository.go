@@ -109,10 +109,7 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 	}
 
 	// index the repository
-	repository.startItemDiscovery()
-
-	// scheduled reindex of the fulltext index
-	repository.startFullTextSearch()
+	repository.init()
 
 	return repository, nil
 }
@@ -189,82 +186,34 @@ func (repository *Repository) StopWatching(route route.Route) {
 	repository.updateHub.StopWatching(route)
 }
 
-// Start indexing the the repository
-func (repository *Repository) startItemDiscovery() {
+// Initialize the repository - scan all folders and update the index.
+func (repository *Repository) init() {
+
+	newItems := make(chan *event, 1)
 
 	go func() {
-
-		for {
-			select {
-			case newItemEvent := <-repository.newItem:
-				{
-					item := newItemEvent.Item
-					err := newItemEvent.Error
-
-					if err != nil {
-
-						repository.logger.Warn("New Item. Error: %s", err)
-
-					} else if item != nil {
-
-						// Add item to index
-						repository.logger.Info("New item %q", item)
-						repository.index.Add(item)
-
-						// Inform subscribers about change
-						repository.notifySubscribers(item.Route())
-
-					}
-				}
-
-			case changedItemEvent := <-repository.changedItem:
-				{
-					item := changedItemEvent.Item
-					err := changedItemEvent.Error
-
-					if err != nil {
-
-						repository.logger.Warn("Changed Item. Error: %s", err)
-
-					} else if item != nil {
-
-						// Add item to index
-						repository.logger.Info("Changed item %q", item)
-						repository.index.Add(item)
-
-						// Inform subscribers about change
-						repository.notifySubscribers(item.Route())
-
-					}
-				}
-
-			case movedItemEvent := <-repository.movedItem:
-				{
-					item := movedItemEvent.Item
-					err := movedItemEvent.Error
-
-					if err != nil {
-
-						repository.logger.Warn("Moved Item. Error: %s", err)
-
-					} else if item != nil {
-
-						repository.logger.Info("Moved item %q", item)
-						repository.index.Remove(item.Route())
-
-					} else {
-
-						repository.logger.Warn("Empty repository event in the moved item channel.")
-
-					}
-				}
-
-			}
-		}
-
+		repository.discoverItems(repository.directory, newItems)
+		close(newItems)
 	}()
 
-	repository.discoverItems(repository.directory, repository.newItem)
+	for event := range newItems {
+
+		err := event.Error
+		if err != nil {
+			repository.logger.Warn(err.Error())
+		}
+
+		item := event.Item
+		if item == nil {
+			continue
+		}
+
+		repository.logger.Info("Adding item %q", item)
+		repository.index.Add(item)
+	}
+
+	// scheduled reindex of the fulltext index
+	repository.startFullTextSearch()
 }
 
 func (repository *Repository) notifySubscribers(route route.Route) {
