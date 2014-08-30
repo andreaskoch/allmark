@@ -12,7 +12,6 @@ import (
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem/index"
-	"github.com/andreaskoch/allmark2/dataaccess/filesystem/updates"
 	"github.com/andreaskoch/go-fswatch"
 	"path/filepath"
 	"strings"
@@ -35,12 +34,10 @@ type Repository struct {
 	logger    logger.Logger
 	hash      string
 	directory string
-	watcher   *watcherFactory
 
 	itemProvider *itemProvider
 
 	index      *index.Index
-	updateHub  *updates.Hub
 	itemSearch *dataaccess.ItemSearch
 
 	newItem     chan *event // new items which are discovered after the first index has been built
@@ -98,9 +95,7 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 
 		itemProvider: itemProvider,
 
-		index:     index.New(logger),
-		updateHub: updates.NewHub(logger),
-		watcher:   newWatcherFactory(logger),
+		index: index.New(logger),
 
 		// item channels
 		newItem:     make(chan *event, 1),
@@ -181,11 +176,11 @@ func (repository *Repository) Size() int {
 }
 
 func (repository *Repository) StartWatching(route route.Route) {
-	repository.updateHub.StartWatching(route)
+	repository.itemProvider.StartWatching(route)
 }
 
 func (repository *Repository) StopWatching(route route.Route) {
-	repository.updateHub.StopWatching(route)
+	repository.itemProvider.StopWatching(route)
 }
 
 // Initialize the repository - scan all folders and update the index.
@@ -239,13 +234,13 @@ func (repository *Repository) startFullTextSearch() {
 }
 
 // Create a new Item for the specified path.
-func (repository *Repository) discoverItems(itemPath string, targetChannel chan *event) {
+func (repository *Repository) discoverItems(itemDirectory string, targetChannel chan *event) {
 
 	// create the item
-	item, recurse := repository.itemProvider.GetItemFromDirectory(repository.Path(), itemDirectory)
+	item, recurse, err := repository.itemProvider.GetItemFromDirectory(itemDirectory)
 
 	// send the item to the target channel
-	targetChannel <- newRepositoryEvent(item, nil)
+	targetChannel <- newRepositoryEvent(item, err)
 
 	// recurse for child items
 	if recurse {

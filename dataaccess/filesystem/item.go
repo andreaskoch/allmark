@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
+	"github.com/andreaskoch/allmark2/dataaccess/filesystem/updates"
 	"github.com/andreaskoch/go-fswatch"
 	"io/ioutil"
 	"path/filepath"
@@ -19,12 +20,12 @@ import (
 func newItemProvider(logger logger.Logger, repositoryPath string) (*itemProvider, error) {
 
 	// abort if repoistory path does not exist
-	if !fsutil.PathExists(itemDirectory) {
-		return nil, fmt.Errorf("The repository path %q does not exist.", repositoryPath), false
+	if !fsutil.PathExists(repositoryPath) {
+		return nil, fmt.Errorf("The repository path %q does not exist.", repositoryPath)
 	}
 
 	// abort if the supplied repository path is not a directory
-	if isDirectory, _ := fsutil.IsDirectory(itemDirectory); !isDirectory {
+	if isDirectory, _ := fsutil.IsDirectory(repositoryPath); !isDirectory {
 		return nil, fmt.Errorf("The supplied item repository path %q is not a directory.", repositoryPath)
 	}
 
@@ -38,6 +39,9 @@ func newItemProvider(logger logger.Logger, repositoryPath string) (*itemProvider
 		logger:         logger,
 		repositoryPath: repositoryPath,
 		fileProvider:   fileProvider,
+
+		updateHub: updates.NewHub(logger),
+		watcher:   newWatcherFactory(logger),
 	}, nil
 }
 
@@ -46,13 +50,24 @@ type itemProvider struct {
 	repositoryPath string
 
 	fileProvider *fileProvider
+
+	updateHub *updates.Hub
+	watcher   *watcherFactory
 }
 
-func (itemProvider *itemProvider) GetItemFromDirectory(itemDirectory string) (item *dataaccess.Item, err error, recurse bool) {
+func (itemProvider *itemProvider) StartWatching(route route.Route) {
+	itemProvider.updateHub.StartWatching(route)
+}
+
+func (itemProvider *itemProvider) StopWatching(route route.Route) {
+	itemProvider.updateHub.StopWatching(route)
+}
+
+func (itemProvider *itemProvider) GetItemFromDirectory(itemDirectory string) (item *dataaccess.Item, recurse bool, err error) {
 
 	// abort if path does not exist
 	if !fsutil.PathExists(itemDirectory) {
-		return nil, fmt.Errorf("The path %q does not exist.", itemDirectory), false
+		return nil, false, fmt.Errorf("The path %q does not exist.", itemDirectory)
 	}
 
 	// make sure the item directory points to a folder not a file
@@ -63,36 +78,34 @@ func (itemProvider *itemProvider) GetItemFromDirectory(itemDirectory string) (it
 
 	// abort if path is reserved
 	if isReservedDirectory(itemDirectory) {
-		targetChannel <- newRepositoryEvent(nil, fmt.Errorf("The path %q is using a reserved name and cannot be an item.", itemDirectory))
-		return
+		return nil, false, fmt.Errorf("The path %q is using a reserved name and cannot be an item.", itemDirectory)
 	}
 
 	// physical item from markdown file
 	if found, markdownFilePath := findMarkdownFileInDirectory(itemDirectory); found {
 
 		// create an item from the markdown file
-		return repository.newItemFromFile(repositoryPath, itemDirectory, markdownFilePath)
+		return itemProvider.newItemFromFile(itemDirectory, markdownFilePath)
 
 	}
 
 	// virtual item
 	if directoryContainsItems(itemDirectory, 3) {
-		return repository.newVirtualItem(repositoryPath, itemDirectory)
+		return itemProvider.newVirtualItem(itemDirectory)
 	}
 
 	// file collection item
-	return repository.newFileCollectionItem(repositoryPath, itemDirectory)
+	return itemProvider.newFileCollectionItem(itemDirectory)
 }
 
-func (itemProvider *itemProvider) newItemFromFile(repositoryPath, itemDirectory, filePath string) (item *dataaccess.Item, recurse bool) {
+func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string) (item *dataaccess.Item, recurse bool, err error) {
 	// route
-	route, err := route.NewFromItemPath(repositoryPath, filePath)
+	route, err := route.NewFromItemPath(itemProvider.repositoryPath, filePath)
 	if err != nil {
-		repository.logger.Error("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
-		return
+		return nil, false, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
 	}
 
-	repository.logger.Info("Creating a physical item from route %q", route)
+	itemProvider.logger.Info("Creating a physical item from route %q", route)
 
 	// content provider
 	checkIntervalInSeconds := 2
@@ -100,119 +113,114 @@ func (itemProvider *itemProvider) newItemFromFile(repositoryPath, itemDirectory,
 
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := repository.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
+	files := itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 
 	// create the item
 	item, err = dataaccess.NewItem(route, contentProvider, files)
 	if err != nil {
-		repository.logger.Error("Cannot create Item %q. Error: %s", route, err)
-		return
+		return nil, false, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
 	}
 
 	// Update-Hub: OnStart Trigger
-	repository.updateHub.RegisterOnStartTrigger(route, repository.onStartTriggerFunc(item, itemDirectory, filesDirectory))
+	itemProvider.updateHub.RegisterOnStartTrigger(route, itemProvider.onStartTriggerFunc(item, itemDirectory, filesDirectory))
 
 	// Update-Hub: Sub-Directory Watcher
-	repository.updateHub.Attach(route, "sub-directory-watcher", repository.subDirectoryWatcher(item, itemDirectory))
+	itemProvider.updateHub.Attach(route, "sub-directory-watcher", itemProvider.subDirectoryWatcher(item, itemDirectory))
 
 	// Update-Hub: File-Directory Watcher
-	repository.updateHub.Attach(route, "file-directory-watcher", repository.fileDirectoryWatcher(item, itemDirectory, filesDirectory))
+	itemProvider.updateHub.Attach(route, "file-directory-watcher", itemProvider.fileDirectoryWatcher(item, itemDirectory, filesDirectory))
 
 	// Update-Hub: Markdown-File Watcher
-	repository.updateHub.Attach(route, "markdown-file-watcher", repository.fileWatcher(item, filePath))
+	itemProvider.updateHub.Attach(route, "markdown-file-watcher", itemProvider.fileWatcher(item, filePath))
 
-	return item, true
+	return item, true, nil
 }
 
-func (itemProvider *itemProvider) newVirtualItem(repositoryPath, itemDirectory string) (item *dataaccess.Item, recurse bool) {
+func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (item *dataaccess.Item, recurse bool, err error) {
 
 	title := filepath.Base(itemDirectory)
 	content := fmt.Sprintf(`# %s`, title)
 
 	// route
-	route, err := route.NewFromItemDirectory(repositoryPath, itemDirectory)
+	route, err := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
 	if err != nil {
-		repository.logger.Error("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
-		return
+		return nil, false, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
 	}
 
-	repository.logger.Info("Creating a virtual item from route %q", route)
+	itemProvider.logger.Info("Creating a virtual item from route %q", route)
 
 	// content provider
 	contentProvider := newTextContentProvider(content, route)
 
 	// create the file index
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := repository.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
+	files := itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 
 	// create the item
 	item, err = dataaccess.NewItem(route, contentProvider, files)
 	if err != nil {
-		repository.logger.Error("Cannot create Item %q. Error: %s", route, err)
-		return
+		return nil, false, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
 	}
 
 	// Update-Hub: OnStart Trigger
-	repository.updateHub.RegisterOnStartTrigger(route, repository.onStartTriggerFunc(item, itemDirectory, filesDirectory))
+	itemProvider.updateHub.RegisterOnStartTrigger(route, itemProvider.onStartTriggerFunc(item, itemDirectory, filesDirectory))
 
 	// Update-Hub: Sub-Directory Watcher
-	repository.updateHub.Attach(route, "sub-directory-watcher", repository.subDirectoryWatcher(item, itemDirectory))
+	itemProvider.updateHub.Attach(route, "sub-directory-watcher", itemProvider.subDirectoryWatcher(item, itemDirectory))
 
 	// Update-Hub: Type-Change Watcher
-	repository.updateHub.Attach(route, "type-change-watcher", repository.newMarkdownFileWatcher(item, itemDirectory))
+	itemProvider.updateHub.Attach(route, "type-change-watcher", itemProvider.newMarkdownFileWatcher(item, itemDirectory))
 
 	// Update-Hub: File-Directory Watcher
-	repository.updateHub.Attach(route, "file-directory-watcher", repository.fileDirectoryWatcher(item, itemDirectory, filesDirectory))
+	itemProvider.updateHub.Attach(route, "file-directory-watcher", itemProvider.fileDirectoryWatcher(item, itemDirectory, filesDirectory))
 
-	return item, true
+	return item, true, nil
 }
 
-func (itemProvider *itemProvider) newFileCollectionItem(repositoryPath, itemDirectory string) (item *dataaccess.Item, recurse bool) {
+func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (item *dataaccess.Item, recurse bool, err error) {
 
 	title := filepath.Base(itemDirectory)
 	content := fmt.Sprintf(`# %s`, title)
 
 	// route
-	route, err := route.NewFromItemDirectory(repositoryPath, itemDirectory)
+	route, err := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
 	if err != nil {
-		repository.logger.Error("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
-		return
+		return nil, false, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
 	}
 
-	repository.logger.Info("Creating a file collection item from route %q", route)
+	itemProvider.logger.Info("Creating a file collection item from route %q", route)
 
 	// content provider
 	contentProvider := newTextContentProvider(content, route)
 
 	// create the file index
 	filesDirectory := itemDirectory
-	files := repository.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
+	files := itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 
 	// create the item
 	item, err = dataaccess.NewItem(route, contentProvider, files)
 	if err != nil {
-		repository.logger.Error("Cannot create Item %q. Error: %s", route, err)
-		return
+		return nil, false, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
 	}
 
 	// Update-Hub: OnStart Trigger
-	repository.updateHub.RegisterOnStartTrigger(route, repository.onStartTriggerFunc(item, itemDirectory, filesDirectory))
+	itemProvider.updateHub.RegisterOnStartTrigger(route, itemProvider.onStartTriggerFunc(item, itemDirectory, filesDirectory))
 
 	// Update-Hub: File-Change Watcher
-	repository.updateHub.Attach(route, "file-change-watcher", repository.newMarkdownFileWatcher(item, itemDirectory))
+	itemProvider.updateHub.Attach(route, "file-change-watcher", itemProvider.newMarkdownFileWatcher(item, itemDirectory))
 
-	return item, false
+	return item, true, nil
 }
 
 func (itemProvider *itemProvider) onStartTriggerFunc(item *dataaccess.Item, itemDirectory, filesDirectory string) func() {
 	return func() {
 
 		// update files
-		newFiles := repository.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
+		newFiles := itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 		item.SetFiles(newFiles)
 
 		go func() {
-			repository.changedItem <- newRepositoryEvent(item, nil)
+			// itemProvider.changedItem <- newRepositoryEvent(item, nil)
 		}()
 
 	}
@@ -221,15 +229,15 @@ func (itemProvider *itemProvider) onStartTriggerFunc(item *dataaccess.Item, item
 func (itemProvider *itemProvider) fileDirectoryWatcher(item *dataaccess.Item, itemDirectory, filesDirectory string) func() fswatch.Watcher {
 
 	return func() fswatch.Watcher {
-		return repository.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
+		return itemProvider.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
 
 			// update file list
-			repository.logger.Debug("Updating the file list for item %q", item.String())
-			newFiles := repository.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
+			itemProvider.logger.Debug("Updating the file list for item %q", item.String())
+			newFiles := itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 			item.SetFiles(newFiles)
 
 			go func() {
-				repository.changedItem <- newRepositoryEvent(item, nil)
+				// itemProvider.changedItem <- newRepositoryEvent(item, nil)
 			}()
 		})
 	}
@@ -239,8 +247,8 @@ func (itemProvider *itemProvider) fileDirectoryWatcher(item *dataaccess.Item, it
 func (itemProvider *itemProvider) subDirectoryWatcher(item *dataaccess.Item, itemDirectory string) func() fswatch.Watcher {
 
 	return func() fswatch.Watcher {
-		return repository.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
-			repository.discoverItems(itemDirectory, repository.newItem)
+		return itemProvider.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
+			// itemProvider.discoverItems(itemDirectory, itemProvider.newItem)
 		})
 	}
 
@@ -249,7 +257,7 @@ func (itemProvider *itemProvider) subDirectoryWatcher(item *dataaccess.Item, ite
 func (itemProvider *itemProvider) newMarkdownFileWatcher(item *dataaccess.Item, itemDirectory string) func() fswatch.Watcher {
 
 	return func() fswatch.Watcher {
-		return repository.watcher.Directory(itemDirectory, 2, func(change *fswatch.FolderChange) {
+		return itemProvider.watcher.Directory(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
 			// check if one of the files is a markdown file
 			oneOfTheNewFilesIsAMarkdownFile := false
@@ -266,7 +274,7 @@ func (itemProvider *itemProvider) newMarkdownFileWatcher(item *dataaccess.Item, 
 			}
 
 			// reindex this item
-			repository.discoverItems(itemDirectory, repository.changedItem)
+			// itemProvider.discoverItems(itemDirectory, itemProvider.changedItem)
 		})
 	}
 }
@@ -276,20 +284,20 @@ func (itemProvider *itemProvider) fileWatcher(item *dataaccess.Item, filePath st
 	return func() fswatch.Watcher {
 
 		modifiedCallback := func() {
-			repository.logger.Debug("Item %q changed.", item)
+			itemProvider.logger.Debug("Item %q changed.", item)
 			go func() {
-				repository.changedItem <- newRepositoryEvent(item, nil)
+				// itemProvider.changedItem <- newRepositoryEvent(item, nil)
 			}()
 		}
 
 		movedCallback := func() {
-			repository.logger.Debug("Item %q moved.", item)
+			itemProvider.logger.Debug("Item %q moved.", item)
 			go func() {
-				repository.movedItem <- newRepositoryEvent(item, nil)
+				// itemProvider.movedItem <- newRepositoryEvent(item, nil)
 			}()
 		}
 
-		return repository.watcher.File(filePath, 2, modifiedCallback, movedCallback)
+		return itemProvider.watcher.File(filePath, 2, modifiedCallback, movedCallback)
 	}
 }
 
