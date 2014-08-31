@@ -77,9 +77,15 @@ func (hub *Hub) Unsubscribe(connection *connection) {
 func (hub *Hub) connectionsByRoute(routeValue string) []*connection {
 	connectionsByRoute := make([]*connection, 0)
 
-	for c := range hub.connections {
-		if routeValue == c.Route.Value() {
-			connectionsByRoute = append(connectionsByRoute, c)
+	hub.logger.Debug("----- CONNNNECTIONNNNNNNNNNNNNNS -----------")
+	hub.logger.Debug("\n%#v\n", hub.connections)
+
+	for connection := range hub.connections {
+
+		hub.logger.Debug("\n%#v\n", connection)
+
+		if routeValue == connection.Route.Value() {
+			connectionsByRoute = append(connectionsByRoute, connection)
 		}
 	}
 
@@ -89,38 +95,55 @@ func (hub *Hub) connectionsByRoute(routeValue string) []*connection {
 func (hub *Hub) run() {
 	for {
 		select {
-		case c := <-hub.subscribe:
-			{
-				hub.logger.Debug("Subscring connection %s", c.String())
-				hub.logger.Debug("Number of Connections - Before: %v", len(hub.connections))
-				hub.connections[c] = true
-				hub.logger.Debug("Number of Connections - After: %v", len(hub.connections))
-			}
-		case c := <-hub.unsubscribe:
-			{
-				hub.logger.Debug("Unsubscribing connection %s", c.String())
-				hub.logger.Debug("Number of Connections - Before: %v", len(hub.connections))
-				delete(hub.connections, c)
-				hub.logger.Debug("Number of Connections - After: %v", len(hub.connections))
-			}
-		case m := <-hub.broadcast:
-			{
-				hub.logger.Debug("Revieved a broadcast message %#v", m)
 
-				affectedConnections := hub.connectionsByRoute(m.Route)
-				for _, c := range affectedConnections {
+		// subscribe a new connection
+		case connection := <-hub.subscribe:
+			{
+				hub.logger.Debug("Subscring connection %s", connection.String())
+				hub.logger.Debug("Number of Connections - Before: %v", len(hub.connections))
+
+				// register the connection
+				hub.connections[connection] = true
+
+				hub.logger.Debug("Number of Connections - After: %v", len(hub.connections))
+			}
+
+		// unsubscribe an existing connection
+		case connection := <-hub.unsubscribe:
+			{
+				hub.logger.Debug("Unsubscribing connection %s", connection.String())
+				hub.logger.Debug("Number of Connections - Before: %v", len(hub.connections))
+
+				// remove the connection
+				delete(hub.connections, connection)
+
+				hub.logger.Debug("Number of Connections - After: %v", len(hub.connections))
+			}
+
+		// handle broadcasts
+		case broadcastMsg := <-hub.broadcast:
+			{
+				affectedConnections := hub.connectionsByRoute(broadcastMsg.Route)
+
+				hub.logger.Debug("Revieved a broadcast message\n%#v", broadcastMsg)
+				hub.logger.Debug("Connections affected: %v", len(affectedConnections))
+
+				for _, connection := range affectedConnections {
 
 					select {
-					case c.send <- m:
+
+					// send the message to the websocket
+					case connection.send <- broadcastMsg:
 						{
-							hub.logger.Debug("Sending an update to: %s", c.String())
+							hub.logger.Debug("Sending an update to: %s", connection.String())
 						}
+
 					default:
 						{
 							// todo: find out when this is happening
-							hub.logger.Debug("Revieved a non-send message for %s", c.String())
-							delete(hub.connections, c)
-							go c.ws.Close()
+							hub.logger.Debug("Revieved a non-send message for %s", connection.String())
+							delete(hub.connections, connection)
+							go connection.ws.Close()
 							hub.logger.Debug("Number of Connections: %v", len(hub.connections))
 						}
 					}
