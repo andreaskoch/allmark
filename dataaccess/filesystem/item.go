@@ -278,6 +278,9 @@ func (itemProvider *itemProvider) onStartTriggerFunc(item *dataaccess.Item, item
 				itemProvider.updateChannel.New <- newRepositoryEvent(child, nil)
 			}
 
+			// update the previous childs list for the next tiem
+			previousChilds = item.GetChilds()
+
 			itemProvider.updateChannel.Changed <- itemRoute
 		}()
 
