@@ -17,15 +17,15 @@ import (
 )
 
 type itemUpdateChannel struct {
-	Moved   chan event
-	Changed chan event
+	Moved   chan route.Route
+	Changed chan route.Route
 	New     chan event
 }
 
 func newItemUpdateChannel() *itemUpdateChannel {
 	return &itemUpdateChannel{
-		Moved:   make(chan event, 1),
-		Changed: make(chan event, 1),
+		Moved:   make(chan route.Route, 1),
+		Changed: make(chan route.Route, 1),
 		New:     make(chan event, 1),
 	}
 }
@@ -262,10 +262,13 @@ func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (i
 }
 
 func (itemProvider *itemProvider) onStartTriggerFunc(item *dataaccess.Item, itemDirectory, filesDirectory string) func() {
+
+	itemRoute := item.Route()
+
 	return func() {
 
 		go func() {
-			itemProvider.updateChannel.Changed <- newRepositoryEvent(item, nil)
+			itemProvider.updateChannel.Changed <- itemRoute
 		}()
 
 	}
@@ -273,11 +276,13 @@ func (itemProvider *itemProvider) onStartTriggerFunc(item *dataaccess.Item, item
 
 func (itemProvider *itemProvider) fileDirectoryWatcher(item *dataaccess.Item, itemDirectory, filesDirectory string) func() fswatch.Watcher {
 
+	itemRoute := item.Route()
+
 	return func() fswatch.Watcher {
 		return itemProvider.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
 
 			go func() {
-				itemProvider.updateChannel.Changed <- newRepositoryEvent(item, nil)
+				itemProvider.updateChannel.Changed <- itemRoute
 			}()
 		})
 	}
@@ -288,13 +293,37 @@ func (itemProvider *itemProvider) subDirectoryWatcher(item *dataaccess.Item, ite
 
 	return func() fswatch.Watcher {
 		return itemProvider.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
-			// itemProvider.discoverItems(itemDirectory, itemProvider.newItem)
+
+			// new items
+			for _, newFolder := range change.New() {
+				newItem, err := itemProvider.GetItemFromDirectory(newFolder)
+				if err != nil {
+					itemProvider.logger.Warn(err.Error())
+					continue
+				}
+
+				itemProvider.updateChannel.New <- newRepositoryEvent(newItem, nil)
+			}
+
+			// moved items
+			for _, movedFolder := range change.Moved() {
+				movedItemRoute, err := route.NewFromItemPath(itemProvider.repositoryPath, movedFolder)
+				if err != nil {
+					itemProvider.logger.Warn(err.Error())
+					continue
+				}
+
+				itemProvider.updateChannel.Moved <- movedItemRoute
+			}
+
 		})
 	}
 
 }
 
 func (itemProvider *itemProvider) newMarkdownFileWatcher(item *dataaccess.Item, itemDirectory string) func() fswatch.Watcher {
+
+	itemRoute := item.Route()
 
 	return func() fswatch.Watcher {
 		return itemProvider.watcher.Directory(itemDirectory, 2, func(change *fswatch.FolderChange) {
@@ -313,27 +342,30 @@ func (itemProvider *itemProvider) newMarkdownFileWatcher(item *dataaccess.Item, 
 				return
 			}
 
-			// reindex this item
-			// itemProvider.discoverItems(itemDirectory, itemProvider.changedItem)
+			go func() {
+				itemProvider.updateChannel.Changed <- itemRoute
+			}()
 		})
 	}
 }
 
 func (itemProvider *itemProvider) fileWatcher(item *dataaccess.Item, filePath string) func() fswatch.Watcher {
 
+	itemRoute := item.Route()
+
 	return func() fswatch.Watcher {
 
 		modifiedCallback := func() {
-			itemProvider.logger.Debug("Item %q changed.", item)
+			itemProvider.logger.Debug("Item %q changed.", itemRoute)
 			go func() {
-				itemProvider.updateChannel.Changed <- newRepositoryEvent(item, nil)
+				itemProvider.updateChannel.Changed <- itemRoute
 			}()
 		}
 
 		movedCallback := func() {
-			itemProvider.logger.Debug("Item %q moved.", item)
+			itemProvider.logger.Debug("Item %q moved.", itemRoute)
 			go func() {
-				itemProvider.updateChannel.Moved <- newRepositoryEvent(item, nil)
+				itemProvider.updateChannel.Moved <- itemRoute
 			}()
 		}
 

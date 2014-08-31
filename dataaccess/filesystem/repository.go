@@ -254,42 +254,16 @@ func (repository *Repository) startWatching() {
 
 				}
 
-			case event := <-updateChannel.Changed:
+			case routeOfChangedItem := <-updateChannel.Changed:
 				{
-
-					if err := event.Error; err != nil {
-						repository.logger.Warn("Changed item. Error: %s", err)
-						break
-					}
-
-					if item := event.Item; item != nil {
-						// Add item to index
-						repository.logger.Info("Changed item %q", item)
-						repository.index.Add(item)
-
-						// Send out updates
-						repository.notifySubscribers(item.Route())
-						break
-					}
-
+					repository.logger.Info("Item %q changed.", routeOfChangedItem)
+					repository.notifySubscribers(routeOfChangedItem)
 				}
 
-			case event := <-updateChannel.Moved:
+			case routeOfMovedItem := <-updateChannel.Moved:
 				{
-
-					if err := event.Error; err != nil {
-						repository.logger.Warn("Moved item. Error: %s", err)
-						break
-					}
-
-					if item := event.Item; item != nil {
-						// Remove item from index
-						repository.logger.Info("Moved item %q", item)
-						repository.index.Remove(item.Route())
-
-						break
-					}
-
+					repository.logger.Info("Removing route %q from index", routeOfMovedItem)
+					repository.index.Remove(routeOfMovedItem)
 				}
 
 			}
