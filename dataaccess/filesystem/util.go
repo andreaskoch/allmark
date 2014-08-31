@@ -16,6 +16,40 @@ var (
 	ReservedDirectoryNames = []string{config.FilesDirectoryName, config.MetaDataFolderName}
 )
 
+// Check if the specified directory contains an item within the range of the given max depth.
+func directoryContainsItems(directory string, maxdepth int) bool {
+
+	directoryEntries, _ := ioutil.ReadDir(directory)
+	for _, entry := range directoryEntries {
+
+		childDirectory := filepath.Join(directory, entry.Name())
+
+		if entry.IsDir() {
+			if isReservedDirectory(childDirectory) {
+				continue
+			}
+
+			if maxdepth > 0 {
+
+				// recurse
+				if directoryContainsItems(childDirectory, maxdepth-1) {
+					return true
+				}
+			}
+
+			continue
+		}
+
+		if isMarkdownFile(childDirectory) {
+			return true
+		}
+
+		continue
+	}
+
+	return false
+}
+
 func isReservedDirectory(path string) bool {
 
 	if isFile, _ := fsutil.IsFile(path); isFile {

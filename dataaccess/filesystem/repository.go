@@ -302,16 +302,19 @@ func (repository *Repository) startWatching() {
 func (repository *Repository) discoverItems(itemDirectory string, targetChannel chan event) {
 
 	// create the item
-	item, recurse, err := repository.itemProvider.GetItemFromDirectory(itemDirectory)
+	item, err := repository.itemProvider.GetItemFromDirectory(itemDirectory)
 
 	// send the item to the target channel
 	targetChannel <- newRepositoryEvent(item, err)
 
+	// abort if the item cannot have childs
+	if !item.CanHaveChilds() {
+		return
+	}
+
 	// recurse for child items
-	if recurse {
-		childItemDirectories := getChildDirectories(itemDirectory)
-		for _, childItemDirectory := range childItemDirectories {
-			repository.discoverItems(childItemDirectory, targetChannel)
-		}
+	childItemDirectories := getChildDirectories(itemDirectory)
+	for _, childItemDirectory := range childItemDirectories {
+		repository.discoverItems(childItemDirectory, targetChannel)
 	}
 }

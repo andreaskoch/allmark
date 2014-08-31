@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-func newFileContentProvider(path string, route route.Route, watchIntervalInSeconds int) *content.ContentProvider {
+func newFileContentProvider(path string, route route.Route) *content.ContentProvider {
 
 	// mimeType
 	mimeType := func() (string, error) {

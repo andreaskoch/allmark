@@ -13,7 +13,6 @@ import (
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem/updates"
 	"github.com/andreaskoch/go-fswatch"
-	"io/ioutil"
 	"path/filepath"
 )
 
@@ -83,11 +82,11 @@ func (itemProvider *itemProvider) StopWatching(route route.Route) {
 	itemProvider.updateHub.StopWatching(route)
 }
 
-func (itemProvider *itemProvider) GetItemFromDirectory(itemDirectory string) (item *dataaccess.Item, recurse bool, err error) {
+func (itemProvider *itemProvider) GetItemFromDirectory(itemDirectory string) (item *dataaccess.Item, err error) {
 
 	// abort if path does not exist
 	if !fsutil.PathExists(itemDirectory) {
-		return nil, false, fmt.Errorf("The path %q does not exist.", itemDirectory)
+		return nil, fmt.Errorf("The path %q does not exist.", itemDirectory)
 	}
 
 	// make sure the item directory points to a folder not a file
@@ -98,7 +97,7 @@ func (itemProvider *itemProvider) GetItemFromDirectory(itemDirectory string) (it
 
 	// abort if path is reserved
 	if isReservedDirectory(itemDirectory) {
-		return nil, false, fmt.Errorf("The path %q is using a reserved name and cannot be an item.", itemDirectory)
+		return nil, fmt.Errorf("The path %q is using a reserved name and cannot be an item.", itemDirectory)
 	}
 
 	// physical item from markdown file
@@ -118,27 +117,50 @@ func (itemProvider *itemProvider) GetItemFromDirectory(itemDirectory string) (it
 	return itemProvider.newFileCollectionItem(itemDirectory)
 }
 
-func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string) (item *dataaccess.Item, recurse bool, err error) {
+func (itemProvider *itemProvider) getChildItemsFromDirectory(itemDirectory string) (childItems []*dataaccess.Item) {
+
+	childItems = make([]*dataaccess.Item, 0)
+
+	childItemDirectories := getChildDirectories(itemDirectory)
+	for _, childItemDirectory := range childItemDirectories {
+		child, err := itemProvider.GetItemFromDirectory(childItemDirectory)
+		if err != nil {
+			itemProvider.logger.Warn("Cannot create item from directory. Error: %s", err.Error())
+		}
+
+		childItems = append(childItems, child)
+	}
+
+	return childItems
+}
+
+func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string) (item *dataaccess.Item, err error) {
 	// route
 	route, err := route.NewFromItemPath(itemProvider.repositoryPath, filePath)
 	if err != nil {
-		return nil, false, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
+		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
 	}
 
 	itemProvider.logger.Info("Creating a physical item from route %q", route)
 
-	// content provider
-	checkIntervalInSeconds := 2
-	contentProvider := newFileContentProvider(filePath, route, checkIntervalInSeconds)
+	// content
+	contentProvider := newFileContentProvider(filePath, route)
 
-	// create the file index
+	// files
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
+	files := func() []*dataaccess.File {
+		return itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
+	}
+
+	// childs
+	childs := func() []*dataaccess.Item {
+		return itemProvider.getChildItemsFromDirectory(itemDirectory)
+	}
 
 	// create the item
-	item, err = dataaccess.NewItem(route, contentProvider, files)
+	item, err = dataaccess.NewPhysicalItem(route, contentProvider, files, childs)
 	if err != nil {
-		return nil, false, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
+		return nil, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
 	}
 
 	// Update-Hub: OnStart Trigger
@@ -153,33 +175,39 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 	// Update-Hub: Markdown-File Watcher
 	itemProvider.updateHub.Attach(route, "markdown-file-watcher", itemProvider.fileWatcher(item, filePath))
 
-	return item, true, nil
+	return item, nil
 }
 
-func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (item *dataaccess.Item, recurse bool, err error) {
-
-	title := filepath.Base(itemDirectory)
-	content := fmt.Sprintf(`# %s`, title)
+func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (item *dataaccess.Item, err error) {
 
 	// route
 	route, err := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
 	if err != nil {
-		return nil, false, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
+		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
 	}
 
 	itemProvider.logger.Info("Creating a virtual item from route %q", route)
 
-	// content provider
+	// content
+	title := filepath.Base(itemDirectory)
+	content := fmt.Sprintf(`# %s`, title)
 	contentProvider := newTextContentProvider(content, route)
 
-	// create the file index
+	// files
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
+	files := func() []*dataaccess.File {
+		return itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
+	}
+
+	// childs
+	childs := func() []*dataaccess.Item {
+		return itemProvider.getChildItemsFromDirectory(itemDirectory)
+	}
 
 	// create the item
-	item, err = dataaccess.NewItem(route, contentProvider, files)
+	item, err = dataaccess.NewVirtualItem(route, contentProvider, files, childs)
 	if err != nil {
-		return nil, false, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
+		return nil, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
 	}
 
 	// Update-Hub: OnStart Trigger
@@ -194,33 +222,34 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (item *da
 	// Update-Hub: File-Directory Watcher
 	itemProvider.updateHub.Attach(route, "file-directory-watcher", itemProvider.fileDirectoryWatcher(item, itemDirectory, filesDirectory))
 
-	return item, true, nil
+	return item, nil
 }
 
-func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (item *dataaccess.Item, recurse bool, err error) {
-
-	title := filepath.Base(itemDirectory)
-	content := fmt.Sprintf(`# %s`, title)
+func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (item *dataaccess.Item, err error) {
 
 	// route
 	route, err := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
 	if err != nil {
-		return nil, false, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
+		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
 	}
 
 	itemProvider.logger.Info("Creating a file collection item from route %q", route)
 
-	// content provider
+	// content
+	title := filepath.Base(itemDirectory)
+	content := fmt.Sprintf(`# %s`, title)
 	contentProvider := newTextContentProvider(content, route)
 
-	// create the file index
+	// files
 	filesDirectory := itemDirectory
-	files := itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
+	files := func() []*dataaccess.File {
+		return itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
+	}
 
 	// create the item
-	item, err = dataaccess.NewItem(route, contentProvider, files)
+	item, err = dataaccess.NewFileCollectionItem(route, contentProvider, files)
 	if err != nil {
-		return nil, false, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
+		return nil, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
 	}
 
 	// Update-Hub: OnStart Trigger
@@ -229,15 +258,11 @@ func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (i
 	// Update-Hub: File-Change Watcher
 	itemProvider.updateHub.Attach(route, "file-change-watcher", itemProvider.newMarkdownFileWatcher(item, itemDirectory))
 
-	return item, true, nil
+	return item, nil
 }
 
 func (itemProvider *itemProvider) onStartTriggerFunc(item *dataaccess.Item, itemDirectory, filesDirectory string) func() {
 	return func() {
-
-		// update files
-		newFiles := itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
-		item.SetFiles(newFiles)
 
 		go func() {
 			itemProvider.updateChannel.Changed <- newRepositoryEvent(item, nil)
@@ -250,11 +275,6 @@ func (itemProvider *itemProvider) fileDirectoryWatcher(item *dataaccess.Item, it
 
 	return func() fswatch.Watcher {
 		return itemProvider.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
-
-			// update file list
-			itemProvider.logger.Debug("Updating the file list for item %q", item.String())
-			newFiles := itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
-			item.SetFiles(newFiles)
 
 			go func() {
 				itemProvider.updateChannel.Changed <- newRepositoryEvent(item, nil)
@@ -319,38 +339,4 @@ func (itemProvider *itemProvider) fileWatcher(item *dataaccess.Item, filePath st
 
 		return itemProvider.watcher.File(filePath, 2, modifiedCallback, movedCallback)
 	}
-}
-
-// Check if the specified directory contains an item within the range of the given max depth.
-func directoryContainsItems(directory string, maxdepth int) bool {
-
-	directoryEntries, _ := ioutil.ReadDir(directory)
-	for _, entry := range directoryEntries {
-
-		childDirectory := filepath.Join(directory, entry.Name())
-
-		if entry.IsDir() {
-			if isReservedDirectory(childDirectory) {
-				continue
-			}
-
-			if maxdepth > 0 {
-
-				// recurse
-				if directoryContainsItems(childDirectory, maxdepth-1) {
-					return true
-				}
-			}
-
-			continue
-		}
-
-		if isMarkdownFile(childDirectory) {
-			return true
-		}
-
-		continue
-	}
-
-	return false
 }
