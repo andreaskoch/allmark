@@ -108,7 +108,7 @@ func (item *Item) Route() route.Route {
 
 // Get the childs of this item. Returns nil if this item cannot have childs; otherwise returns a slice with zero or more childs.
 func (item *Item) GetChilds() (childs []*Item) {
-	if !item.CanHaveChilds() || item.childs == nil {
+	if !item.CanHaveChilds() || item.childsFunc == nil {
 		return
 	}
 
