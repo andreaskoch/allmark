@@ -46,9 +46,6 @@ type Item struct {
 	route      route.Route
 	filesFunc  func() []*File
 	childsFunc func() []*Item
-
-	files  []*File
-	childs []*Item
 }
 
 func NewPhysicalItem(route route.Route, contentProvider *content.ContentProvider, files func() []*File, childs func() []*Item) (*Item, error) {
@@ -70,8 +67,6 @@ func newItem(itemType ItemType, route route.Route, contentProvider *content.Cont
 		route,
 		files,
 		childs,
-		nil,
-		nil,
 	}, nil
 }
 
@@ -112,21 +107,17 @@ func (item *Item) GetChilds() (childs []*Item) {
 		return
 	}
 
-	if item.childs == nil {
-		item.childs = item.childsFunc()
-	}
-
-	return item.childs
+	return item.childsFunc()
 }
 
 // Get the files of this item. Returns a slice of zero or more files.
-func (item *Item) Files() []*File {
+func (item *Item) Files() (files []*File) {
 
-	if item.files == nil {
-		item.files = item.filesFunc()
+	if item.filesFunc == nil {
+		return []*File{}
 	}
 
-	return item.files
+	return item.filesFunc()
 }
 
 // Get the file which matches the supplied route. Returns nil if there is no matching file.
@@ -142,16 +133,13 @@ func (item *Item) GetFile(fileRoute route.Route) *File {
 	return nil
 }
 
-func (item *Item) ChildChanges() (newChilds []*Item, removedChilds []route.Route) {
+func (item *Item) GetChildItemChanges(list []*Item) (newChilds []*Item, removedChilds []route.Route) {
 
 	// capture the status quo
 	previousChilds := make(map[string]*Item, 0)
-	for _, child := range item.GetChilds() {
+	for _, child := range list {
 		previousChilds[child.Route().Value()] = child
 	}
-
-	// force a reload!
-	item.childs = nil
 
 	// get the new childs
 	currentChilds := make(map[string]*Item, 0)
@@ -181,17 +169,4 @@ func (item *Item) ChildChanges() (newChilds []*Item, removedChilds []route.Route
 
 	return newChilds, removedChilds
 
-}
-
-func (item *Item) Refresh() {
-	item.RefreshFiles()
-	item.RefreshChilds()
-}
-
-func (item *Item) RefreshFiles() {
-	item.files = nil
-}
-
-func (item *Item) RefreshChilds() {
-	item.childs = nil
 }
