@@ -77,12 +77,7 @@ func (hub *Hub) Unsubscribe(connection *connection) {
 func (hub *Hub) connectionsByRoute(routeValue string) []*connection {
 	connectionsByRoute := make([]*connection, 0)
 
-	hub.logger.Debug("----- CONNNNECTIONNNNNNNNNNNNNNS -----------")
-	hub.logger.Debug("\n%#v\n", hub.connections)
-
 	for connection := range hub.connections {
-
-		hub.logger.Debug("\n%#v\n", connection)
 
 		if routeValue == connection.Route.Value() {
 			connectionsByRoute = append(connectionsByRoute, connection)
