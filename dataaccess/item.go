@@ -142,7 +142,7 @@ func (item *Item) GetFile(fileRoute route.Route) *File {
 	return nil
 }
 
-func (item *Item) ChildChanges() (newChilds []route.Route, removedChilds []route.Route) {
+func (item *Item) ChildChanges() (newChilds []*Item, removedChilds []route.Route) {
 
 	// capture the status quo
 	previousChilds := make(map[string]*Item, 0)
@@ -160,11 +160,11 @@ func (item *Item) ChildChanges() (newChilds []route.Route, removedChilds []route
 	}
 
 	// find new childs
-	newChilds = make([]route.Route, 0)
+	newChilds = make([]*Item, 0)
 	for key, child := range currentChilds {
 
 		if _, exists := previousChilds[key]; !exists {
-			newChilds = append(newChilds, child.Route())
+			newChilds = append(newChilds, child)
 		}
 
 	}

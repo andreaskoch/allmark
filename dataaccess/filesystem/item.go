@@ -268,6 +268,15 @@ func (itemProvider *itemProvider) onStartTriggerFunc(item *dataaccess.Item, item
 	return func() {
 
 		go func() {
+			newChilds, removedChilds := item.ChildChanges()
+			for _, childRoute := range removedChilds {
+				itemProvider.updateChannel.Moved <- childRoute
+			}
+
+			for _, child := range newChilds {
+				itemProvider.updateChannel.New <- newRepositoryEvent(child, nil)
+			}
+
 			itemProvider.updateChannel.Changed <- itemRoute
 		}()
 
