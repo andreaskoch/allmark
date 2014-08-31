@@ -306,6 +306,8 @@ func (itemProvider *itemProvider) fileDirectoryWatcher(item *dataaccess.Item, it
 
 func (itemProvider *itemProvider) subDirectoryWatcher(item *dataaccess.Item, itemDirectory string) func() fswatch.Watcher {
 
+	itemRoute := item.Route()
+
 	return func() fswatch.Watcher {
 		return itemProvider.watcher.SubDirectories(itemDirectory, 2, func(change *fswatch.FolderChange) {
 
@@ -336,6 +338,15 @@ func (itemProvider *itemProvider) subDirectoryWatcher(item *dataaccess.Item, ite
 				}
 
 				itemProvider.updateChannel.Moved <- movedItemRoute
+			}
+
+			// update the parent
+			if len(change.New()) > 0 || len(change.Moved()) > 0 {
+
+				go func() {
+					itemProvider.updateChannel.Changed <- itemRoute
+				}()
+
 			}
 
 		})
