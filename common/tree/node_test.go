@@ -301,3 +301,25 @@ func Test_getNodeLevel_ThreeParents_ResultIsThree(t *testing.T) {
 		t.Errorf("The level of a root node should be %v but was %v.", expected, result)
 	}
 }
+
+func Test_Node_Delete(t *testing.T) {
+	// arrange
+	rootNode := newNode(nil, "root", nil)
+	firstLevelNode := newNode(rootNode, "first level node", nil)
+	secondLevelNode := newNode(firstLevelNode, "first level child node 1", nil)
+	newNode(secondLevelNode, "Third level node 1", nil)
+	newNode(firstLevelNode, "first level child node 2", nil)
+
+	// act
+	rootNode.Delete(Path{"first level node", "first level child node 1", "Third level node 1"})
+	result := rootNode.String()
+
+	// assert
+	expected := `- root
+    - first level node
+        - first level child node 1
+        - first level child node 2`
+	if strings.TrimSpace(result) != strings.TrimSpace(expected) {
+		t.Errorf(`The String method of the node should return %q but returned %q instead.`, expected, result)
+	}
+}

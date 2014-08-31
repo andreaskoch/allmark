@@ -119,23 +119,28 @@ func (parentNode *Node) Insert(nodeToInsert *Node) (bool, error) {
 	return true, nil // success
 }
 
-func (parentNode *Node) Delete(nodeToDelete *Node) (bool, error) {
+func (parentNode *Node) Delete(path Path) (bool, error) {
 
-	if nodeToDelete == nil {
-		return false, fmt.Errorf("The supplied node is nil.")
+	if path.IsEmpty() {
+		return false, fmt.Errorf("The path is empty.")
 	}
 
-	// determine the lookup key
-	key := nodeToDelete.Name()
+	firstComponent := path[0]
 
-	// check if the given node already exists
-	if _, exists := parentNode.childs[key]; !exists {
-		return false, fmt.Errorf("The node %q was not found.", key)
+	// find a matching child
+	matchingChild, matchingChildExists := parentNode.childs[firstComponent]
+	if !matchingChildExists {
+		return false, fmt.Errorf("The node %q was not found.", path)
+	}
+
+	// recurse
+	if len(path) > 1 {
+		return matchingChild.Delete(path[1:])
 	}
 
 	// remove the node from the childs
-	delete(parentNode.childs, key)
-	parentNode.childsSorted = deleteFromSlice(nodeToDelete, parentNode.childsSorted)
+	delete(parentNode.childs, firstComponent)
+	parentNode.childsSorted = deleteFromSlice(matchingChild, parentNode.childsSorted)
 
 	return true, nil
 }
