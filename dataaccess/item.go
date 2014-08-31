@@ -42,10 +42,13 @@ const (
 // An Item represents a single document in a repository.
 type Item struct {
 	*content.ContentProvider
-	itemType ItemType
-	route    route.Route
-	files    func() []*File
-	childs   func() []*Item
+	itemType   ItemType
+	route      route.Route
+	filesFunc  func() []*File
+	childsFunc func() []*Item
+
+	files  []*File
+	childs []*Item
 }
 
 func NewPhysicalItem(route route.Route, contentProvider *content.ContentProvider, files func() []*File, childs func() []*Item) (*Item, error) {
@@ -67,6 +70,8 @@ func newItem(itemType ItemType, route route.Route, contentProvider *content.Cont
 		route,
 		files,
 		childs,
+		nil,
+		nil,
 	}, nil
 }
 
@@ -107,12 +112,21 @@ func (item *Item) GetChilds() (childs []*Item) {
 		return
 	}
 
-	return item.childs()
+	if item.childs == nil {
+		item.childs = item.childsFunc()
+	}
+
+	return item.childs
 }
 
 // Get the files of this item. Returns a slice of zero or more files.
 func (item *Item) Files() []*File {
-	return item.files()
+
+	if item.files == nil {
+		item.files = item.filesFunc()
+	}
+
+	return item.files
 }
 
 // Get the file which matches the supplied route. Returns nil if there is no matching file.
@@ -126,4 +140,50 @@ func (item *Item) GetFile(fileRoute route.Route) *File {
 	}
 
 	return nil
+}
+
+func (item *Item) ChildChanges() (newChilds []route.Route, removedChilds []route.Route) {
+
+	// capture the status quo
+	previousChilds := make(map[string]*Item, 0)
+	for _, child := range item.GetChilds() {
+		previousChilds[child.Route().Value()] = child
+	}
+
+	// force a reload!
+	item.childs = nil
+
+	// get the new childs
+	currentChilds := make(map[string]*Item, 0)
+	for _, child := range item.GetChilds() {
+		currentChilds[child.Route().Value()] = child
+	}
+
+	// find new childs
+	newChilds = make([]route.Route, 0)
+	for key, child := range currentChilds {
+
+		if _, exists := previousChilds[key]; !exists {
+			newChilds = append(newChilds, child.Route())
+		}
+
+	}
+
+	// find removed childs
+	removedChilds = make([]route.Route, 0)
+	for key, child := range previousChilds {
+
+		if _, exists := currentChilds[key]; !exists {
+			removedChilds = append(removedChilds, child.Route())
+		}
+
+	}
+
+	return newChilds, removedChilds
+
+}
+
+func (item *Item) Refresh() {
+	item.files = nil
+	item.childs = nil
 }
