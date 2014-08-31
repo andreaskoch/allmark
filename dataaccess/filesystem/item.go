@@ -277,6 +277,7 @@ func (itemProvider *itemProvider) onStartTriggerFunc(item *dataaccess.Item, item
 				itemProvider.updateChannel.New <- newRepositoryEvent(child, nil)
 			}
 
+			item.Refresh()
 			itemProvider.updateChannel.Changed <- itemRoute
 		}()
 
@@ -291,6 +292,7 @@ func (itemProvider *itemProvider) fileDirectoryWatcher(item *dataaccess.Item, it
 		return itemProvider.watcher.AllFiles(filesDirectory, 2, func(change *fswatch.FolderChange) {
 
 			go func() {
+				item.RefreshFiles()
 				itemProvider.updateChannel.Changed <- itemRoute
 			}()
 		})
@@ -325,6 +327,8 @@ func (itemProvider *itemProvider) subDirectoryWatcher(item *dataaccess.Item, ite
 				itemProvider.updateChannel.Moved <- movedItemRoute
 			}
 
+			item.RefreshChilds()
+
 		})
 	}
 
@@ -352,6 +356,7 @@ func (itemProvider *itemProvider) newMarkdownFileWatcher(item *dataaccess.Item, 
 			}
 
 			go func() {
+				item.Refresh()
 				itemProvider.updateChannel.Changed <- itemRoute
 			}()
 		})
@@ -367,6 +372,7 @@ func (itemProvider *itemProvider) fileWatcher(item *dataaccess.Item, filePath st
 		modifiedCallback := func() {
 			itemProvider.logger.Debug("Item %q changed.", itemRoute)
 			go func() {
+				item.Refresh()
 				itemProvider.updateChannel.Changed <- itemRoute
 			}()
 		}

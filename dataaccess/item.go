@@ -184,6 +184,14 @@ func (item *Item) ChildChanges() (newChilds []*Item, removedChilds []route.Route
 }
 
 func (item *Item) Refresh() {
+	item.RefreshFiles()
+	item.RefreshChilds()
+}
+
+func (item *Item) RefreshFiles() {
 	item.files = nil
+}
+
+func (item *Item) RefreshChilds() {
 	item.childs = nil
 }
