@@ -271,10 +271,12 @@ func (itemProvider *itemProvider) onStartTriggerFunc(item *dataaccess.Item, item
 		go func() {
 			newChilds, removedChilds := item.GetChildItemChanges(previousChilds)
 			for _, childRoute := range removedChilds {
+				itemProvider.logger.Debug("Route %q has moved.", childRoute)
 				itemProvider.updateChannel.Moved <- childRoute
 			}
 
 			for _, child := range newChilds {
+				itemProvider.logger.Debug("New child %q .", child)
 				itemProvider.updateChannel.New <- newRepositoryEvent(child, nil)
 			}
 
@@ -309,6 +311,8 @@ func (itemProvider *itemProvider) subDirectoryWatcher(item *dataaccess.Item, ite
 
 			// new items
 			for _, newFolder := range change.New() {
+
+				itemProvider.logger.Debug("The folder %q has been detected as a new child of %q.", newFolder, itemDirectory)
 				newItem, err := itemProvider.GetItemFromDirectory(newFolder)
 				if err != nil {
 					itemProvider.logger.Warn(err.Error())
@@ -320,7 +324,12 @@ func (itemProvider *itemProvider) subDirectoryWatcher(item *dataaccess.Item, ite
 
 			// moved items
 			for _, movedFolder := range change.Moved() {
-				movedItemRoute, err := route.NewFromItemPath(itemProvider.repositoryPath, movedFolder)
+				itemProvider.logger.Debug("Folder %q has moved.", movedFolder)
+
+				movedItemRoute, err := route.NewFromItemDirectory(itemProvider.repositoryPath, movedFolder)
+
+				itemProvider.logger.Debug("Route of the moved folder is %q.", movedItemRoute)
+
 				if err != nil {
 					itemProvider.logger.Warn(err.Error())
 					continue
