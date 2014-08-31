@@ -72,7 +72,8 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 		return nil, fmt.Errorf("Cannot create a hash for the repository with the name %q. Error: %s", directoryName, err)
 	}
 
-	if logger.Level() == loglevel.Debug {
+	enableFsWatchDebugging := false
+	if logger.Level() == loglevel.Debug && enableFsWatchDebugging {
 
 		// enable the debug mode for the filesystem watcher
 		debugMessages := fswatch.EnableDebug()
