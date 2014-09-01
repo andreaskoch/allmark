@@ -112,8 +112,8 @@ var Autoupdate = (function () {
             // update the content
             $('.content').html(model.content);
 
-            // update childs (if available)
-            if (model.childs === null || typeof(model.childs) !== 'object') {
+            // stop here if there are no childs
+            if (model.childs === null || typeof(model.childs) !== 'object' || model.childs.length == 0) {
 
                 // execute the on change callbacks
                 executeOnChangeCallbacks();
@@ -143,9 +143,10 @@ var Autoupdate = (function () {
             // check if the childs container exists
             if ($(".childs").length === 0) {
 
-                // reload the page
-                document.location.reload()
-                return
+                // This indicates that the document type has changed.
+                // Reload the page if the container does not exists yet
+                document.location.reload();
+                return;
 
             }
 
