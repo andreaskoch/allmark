@@ -17,6 +17,7 @@ import (
 	"github.com/andreaskoch/allmark2/web/server/handler"
 	"github.com/andreaskoch/allmark2/web/webpaths"
 	"github.com/gorilla/mux"
+	"github.com/skratchdot/open-golang/open"
 	"math"
 	"net/http"
 )
@@ -135,6 +136,8 @@ func (server *Server) Start() chan error {
 
 		server.isRunning = false
 	}()
+
+	open.Run("http://localhost:8080")
 
 	return result
 }
