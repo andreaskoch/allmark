@@ -26,16 +26,6 @@ var Autoupdate = (function () {
     };
 
     /**
-     * Check whether the supplied routes are alike
-     * @param string route1 The first route
-     * @param string route2 The second route
-     * @return bool true if the supplied routes are alike; otherwise false
-     */
-    var routesAreAlike = function(route1, route2) {
-        return decodeURIComponent(route1) === decodeURIComponent(route2);
-    };
-
-    /**
      * Get the Url for the web socket connection
      * @return string The url for the web socket connection (e.g. "ws://example.com:8080/documents/Sample-Document.ws")
      */
@@ -102,11 +92,6 @@ var Autoupdate = (function () {
             // check if all required fields are present
             if (message === null || typeof(message) !== 'object' || typeof(message.route) !== 'string' || message.model === null || typeof(message.model) !== 'object') {
                 console.log("Invalid response format.", message);
-                return;
-            }
-
-            // check if update is applicable for the current route
-            if (!routesAreAlike(message.route, getCurrentRoute())) {
                 return;
             }
 
