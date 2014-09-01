@@ -101,16 +101,16 @@ func (server *Server) Start() chan error {
 		requestRouter.Handle(UpdateHandlerRoute, websocket.Handler(updateHandler.Func()))
 
 		// serve auxiliary dynamic files
-		requestRouter.HandleFunc(RobotsTxtHandlerRoute, server.handlerFactory.NewRobotsTxtHandler().Func())
-		requestRouter.HandleFunc(XmlSitemapHandlerRoute, server.handlerFactory.NewXmlSitemapHandler().Func())
-		requestRouter.HandleFunc(TagmapHandlerRoute, server.handlerFactory.NewTagsHandler().Func())
-		requestRouter.HandleFunc(SitemapHandlerRoute, server.handlerFactory.NewSitemapHandler().Func())
-		requestRouter.HandleFunc(RssHandlerRoute, server.handlerFactory.NewRssHandler().Func())
-		requestRouter.HandleFunc(PrintHandlerRoute, server.handlerFactory.NewPrintHandler().Func())
-		requestRouter.HandleFunc(SearchHandlerRoute, server.handlerFactory.NewSearchHandler().Func())
-		requestRouter.HandleFunc(OpenSearchDescriptionHandlerRoute, server.handlerFactory.NewOpenSearchDescriptionHandler().Func())
-		requestRouter.HandleFunc(TypeAheadSearchHandlerRoute, server.handlerFactory.NewTypeAheadSearchHandler().Func())
-		requestRouter.HandleFunc(TypeAheadTitlesHandlerRoute, server.handlerFactory.NewTypeAheadTitlesHandler().Func())
+		requestRouter.HandleFunc(RobotsTxtHandlerRoute, gzipReponse(server.handlerFactory.NewRobotsTxtHandler().Func()))
+		requestRouter.HandleFunc(XmlSitemapHandlerRoute, gzipReponse(server.handlerFactory.NewXmlSitemapHandler().Func()))
+		requestRouter.HandleFunc(TagmapHandlerRoute, gzipReponse(server.handlerFactory.NewTagsHandler().Func()))
+		requestRouter.HandleFunc(SitemapHandlerRoute, gzipReponse(server.handlerFactory.NewSitemapHandler().Func()))
+		requestRouter.HandleFunc(RssHandlerRoute, gzipReponse(server.handlerFactory.NewRssHandler().Func()))
+		requestRouter.HandleFunc(PrintHandlerRoute, gzipReponse(server.handlerFactory.NewPrintHandler().Func()))
+		requestRouter.HandleFunc(SearchHandlerRoute, gzipReponse(server.handlerFactory.NewSearchHandler().Func()))
+		requestRouter.HandleFunc(OpenSearchDescriptionHandlerRoute, gzipReponse(server.handlerFactory.NewOpenSearchDescriptionHandler().Func()))
+		requestRouter.HandleFunc(TypeAheadSearchHandlerRoute, gzipReponse(server.handlerFactory.NewTypeAheadSearchHandler().Func()))
+		requestRouter.HandleFunc(TypeAheadTitlesHandlerRoute, gzipReponse(server.handlerFactory.NewTypeAheadTitlesHandler().Func()))
 
 		// serve static files
 		if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
@@ -120,8 +120,8 @@ func (server *Server) Start() chan error {
 
 		// serve items
 		requestRouter.HandleFunc(RtfHandlerRoute, server.handlerFactory.NewRtfHandler().Func())
-		requestRouter.HandleFunc(JsonHandlerRoute, server.handlerFactory.NewJsonHandler().Func())
-		requestRouter.HandleFunc(ItemHandlerRoute, server.handlerFactory.NewItemHandler().Func())
+		requestRouter.HandleFunc(JsonHandlerRoute, gzipReponse(server.handlerFactory.NewJsonHandler().Func()))
+		requestRouter.HandleFunc(ItemHandlerRoute, gzipReponse(server.handlerFactory.NewItemHandler().Func()))
 
 		// start http server: http
 		httpBinding := server.getHttpBinding()
