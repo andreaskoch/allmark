@@ -131,7 +131,7 @@ var Autoupdate = (function () {
                 $(entryToUpdate).find(".child-link:first").html(model.title);
 
                 // update the title link
-                $(entryToUpdate).find(".child-link:first").attr("href", model.relativeRoute);
+                $(entryToUpdate).find(".child-link:first").attr("href", model.route);
 
                 // update the description
                 $(entryToUpdate).find(".child-description:first").html(model.description);
