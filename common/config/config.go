@@ -80,6 +80,7 @@ func Default(baseFolder string) *Config {
 
 	// apply default values
 	config.Server.ThemeFolderName = ThemeFolderName
+	config.Server.Http.Hostname = "localhost"
 	config.Server.Http.Port = 8080
 	config.Web.DefaultLanguage = "en"
 	config.Conversion.Tool = DefaultConversionToolPath
@@ -89,7 +90,8 @@ func Default(baseFolder string) *Config {
 }
 
 type Http struct {
-	Port int
+	Hostname string
+	Port     int
 }
 
 type Web struct {

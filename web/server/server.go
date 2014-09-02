@@ -20,6 +20,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 	"math"
 	"net/http"
+	"strings"
 )
 
 var (
@@ -137,18 +138,52 @@ func (server *Server) Start() chan error {
 		server.isRunning = false
 	}()
 
-	open.Run("http://localhost:8080")
+	// open the repository in the browser
+	open.Run(server.getAddress())
 
 	return result
 }
 
 func (server *Server) getHttpBinding() string {
 
-	// validate the port
+	hostname := server.getHostname()
+	port := server.getPort()
+
+	if strings.TrimSpace(hostname) == "" {
+		fmt.Sprintf(":%v", port)
+	}
+
+	return fmt.Sprintf("%s:%v", hostname, port)
+}
+
+func (server *Server) getAddress() string {
+	hostname := server.getHostname()
+	port := server.getPort()
+
+	switch port {
+	case 80:
+		return fmt.Sprintf("http://%s", hostname)
+	default:
+		return fmt.Sprintf("http://%s:%v", hostname, port)
+	}
+
+	panic("Unreachable")
+}
+
+func (server *Server) getHostname() string {
+	hostname := strings.ToLower(strings.TrimSpace(server.config.Server.Http.Hostname))
+	if hostname == "" {
+		return "localhost"
+	}
+
+	return hostname
+}
+
+func (server *Server) getPort() int {
 	port := server.config.Server.Http.Port
 	if port < 1 || port > math.MaxUint16 {
 		panic(fmt.Sprintf("%q is an invalid value for a port. Ports can only be in the range of %v to %v,", port, 1, math.MaxUint16))
 	}
 
-	return fmt.Sprintf(":%v", port)
+	return port
 }
