@@ -7,12 +7,10 @@ package filesystem
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
-	"github.com/andreaskoch/allmark2/common/logger/loglevel"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem/index"
-	"github.com/andreaskoch/go-fswatch"
 	"path/filepath"
 	"strings"
 	"time"
@@ -40,7 +38,8 @@ type Repository struct {
 	index      *index.Index
 	itemSearch *dataaccess.ItemSearch
 
-	onUpdateCallback func(route.Route)
+	routesWithSubscribers map[string]route.Route
+	onUpdateCallback      func(route.Route)
 }
 
 func NewRepository(logger logger.Logger, directory string) (*Repository, error) {
@@ -72,18 +71,6 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 		return nil, fmt.Errorf("Cannot create a hash for the repository with the name %q. Error: %s", directoryName, err)
 	}
 
-	enableFsWatchDebugging := false
-	if logger.Level() == loglevel.Debug && enableFsWatchDebugging {
-
-		// enable the debug mode for the filesystem watcher
-		debugMessages := fswatch.EnableDebug()
-		go func() {
-			for message := range debugMessages {
-				logger.Debug("fs-watch: %s", message)
-			}
-		}()
-	}
-
 	// create the repository
 	repository := &Repository{
 		logger:    logger,
@@ -92,14 +79,12 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 
 		itemProvider: itemProvider,
 
-		onUpdateCallback: func(r route.Route) {},
+		routesWithSubscribers: make(map[string]route.Route),
+		onUpdateCallback:      func(r route.Route) {},
 	}
 
 	// index the repository
 	repository.init()
-
-	// watch for changes
-	repository.startWatching()
 
 	// scheduled reindex
 	repository.reindex()
@@ -117,10 +102,6 @@ func (repository *Repository) Root() *dataaccess.Item {
 
 func (repository *Repository) Items() []*dataaccess.Item {
 	return repository.index.Items()
-}
-
-func (repository *Repository) OnUpdate(callback func(route.Route)) {
-	repository.onUpdateCallback = callback
 }
 
 func (repository *Repository) Item(route route.Route) (*dataaccess.Item, bool) {
@@ -171,14 +152,6 @@ func (repository *Repository) Size() int {
 	return repository.index.Size()
 }
 
-func (repository *Repository) StartWatching(route route.Route) {
-	repository.itemProvider.StartWatching(route)
-}
-
-func (repository *Repository) StopWatching(route route.Route) {
-	repository.itemProvider.StopWatching(route)
-}
-
 // Initialize the repository - scan all folders and update the index.
 func (repository *Repository) init() {
 
@@ -212,10 +185,28 @@ func (repository *Repository) init() {
 	// update search index
 	repository.logger.Info("Refreshing the search index.")
 	repository.itemSearch = dataaccess.NewItemSearch(repository.logger, repository)
+
+	// inform subscribers about updates
+	repository.notifySubscribers()
 }
 
-func (repository *Repository) notifySubscribers(route route.Route) {
-	go repository.onUpdateCallback(route)
+func (repository *Repository) OnUpdate(callback func(route.Route)) {
+	repository.onUpdateCallback = callback
+}
+
+func (repository *Repository) StartWatching(r route.Route) {
+	repository.routesWithSubscribers[route.ToKey(r)] = r
+}
+
+func (repository *Repository) StopWatching(r route.Route) {
+	key := route.ToKey(r)
+	delete(repository.routesWithSubscribers, key)
+}
+
+func (repository *Repository) notifySubscribers() {
+	for _, route := range repository.routesWithSubscribers {
+		go repository.onUpdateCallback(route)
+	}
 }
 
 // Start the fulltext search indexing process
@@ -229,29 +220,6 @@ func (repository *Repository) reindex() {
 
 			time.Sleep(sleepInterval)
 		}
-	}()
-}
-
-// Start watching for updates
-func (repository *Repository) startWatching() {
-	updateChannel := repository.itemProvider.Updates()
-
-	go func() {
-
-		for {
-			select {
-
-			case <-updateChannel.New:
-				repository.reindex()
-
-			case <-updateChannel.Changed:
-				repository.reindex()
-
-			case <-updateChannel.Moved:
-				repository.reindex()
-			}
-		}
-
 	}()
 }
 
