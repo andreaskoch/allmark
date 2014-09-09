@@ -91,13 +91,18 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 		hash:      hash,
 
 		itemProvider: itemProvider,
-		index:        index.New(logger),
 
 		onUpdateCallback: func(r route.Route) {},
 	}
 
 	// index the repository
 	repository.init()
+
+	// watch for changes
+	repository.startWatching()
+
+	// scheduled reindex
+	repository.reindex()
 
 	return repository, nil
 }
@@ -177,6 +182,7 @@ func (repository *Repository) StopWatching(route route.Route) {
 // Initialize the repository - scan all folders and update the index.
 func (repository *Repository) init() {
 
+	index := index.New(repository.logger)
 	newItems := make(chan event, 1)
 
 	go func() {
@@ -197,14 +203,15 @@ func (repository *Repository) init() {
 		}
 
 		repository.logger.Info("Adding item %q", item)
-		repository.index.Add(item)
+		index.Add(item)
 	}
 
-	// scheduled reindex of the fulltext index
-	repository.startFullTextSearch()
+	// assign the new index
+	repository.index = index
 
-	// start watching for updates
-	repository.startWatching()
+	// update search index
+	repository.logger.Info("Refreshing the search index.")
+	repository.itemSearch = dataaccess.NewItemSearch(repository.logger, repository)
 }
 
 func (repository *Repository) notifySubscribers(route route.Route) {
@@ -212,15 +219,13 @@ func (repository *Repository) notifySubscribers(route route.Route) {
 }
 
 // Start the fulltext search indexing process
-func (repository *Repository) startFullTextSearch() {
-
-	repository.itemSearch = dataaccess.NewItemSearch(repository.logger, repository)
+func (repository *Repository) reindex() {
 
 	go func() {
-		sleepInterval := time.Minute * 3
+		sleepInterval := time.Second * 30
 		for {
-			repository.logger.Info("Refreshing the search index.")
-			repository.itemSearch.Update()
+			repository.logger.Info("Reindexing")
+			repository.init()
 
 			time.Sleep(sleepInterval)
 		}
@@ -236,37 +241,14 @@ func (repository *Repository) startWatching() {
 		for {
 			select {
 
-			case event := <-updateChannel.New:
-				{
-					if err := event.Error; err != nil {
-						repository.logger.Warn("New item. Error: %s", err)
-						break
-					}
+			case <-updateChannel.New:
+				repository.reindex()
 
-					if item := event.Item; item != nil {
-						// Add item to index
-						repository.logger.Info("New item %q", item)
-						repository.index.Add(item)
+			case <-updateChannel.Changed:
+				repository.reindex()
 
-						// Send out updates
-						repository.notifySubscribers(item.Route())
-						break
-					}
-
-				}
-
-			case routeOfChangedItem := <-updateChannel.Changed:
-				{
-					repository.logger.Info("Item %q changed.", routeOfChangedItem)
-					repository.notifySubscribers(routeOfChangedItem)
-				}
-
-			case routeOfMovedItem := <-updateChannel.Moved:
-				{
-					repository.logger.Info("Removing route %q from index", routeOfMovedItem)
-					repository.index.Remove(routeOfMovedItem)
-				}
-
+			case <-updateChannel.Moved:
+				repository.reindex()
 			}
 		}
 

@@ -72,11 +72,6 @@ func (itemSearch *ItemSearch) Search(keywords string, maxiumNumberOfResults int)
 	return itemSearch.itemContentFullTextIndex.Search(keywords, maxiumNumberOfResults)
 }
 
-func (itemSearch *ItemSearch) Update() {
-	go itemSearch.routesFullTextIndex.Update()
-	go itemSearch.itemContentFullTextIndex.Update()
-}
-
 func getContentFromItem(item *Item) string {
 
 	// fetch the item data
