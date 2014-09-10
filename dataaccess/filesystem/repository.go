@@ -175,7 +175,7 @@ func (repository *Repository) init() {
 			continue
 		}
 
-		repository.logger.Info("Adding item %q", item)
+		repository.logger.Debug("Adding item %q", item)
 		index.Add(item)
 	}
 
@@ -183,7 +183,7 @@ func (repository *Repository) init() {
 	repository.index = index
 
 	// update search index
-	repository.logger.Info("Refreshing the search index.")
+	repository.logger.Debug("Refreshing the search index.")
 	repository.itemSearch = dataaccess.NewItemSearch(repository.logger, repository)
 
 	// inform subscribers about updates
@@ -204,9 +204,9 @@ func (repository *Repository) StopWatching(r route.Route) {
 }
 
 func (repository *Repository) notifySubscribers() {
-	for _, route := range repository.routesWithSubscribers {
-		go repository.onUpdateCallback(route)
-	}
+	// for _, route := range repository.routesWithSubscribers {
+	// 	go repository.onUpdateCallback(route)
+	// }
 }
 
 // Start the fulltext search indexing process
@@ -215,7 +215,7 @@ func (repository *Repository) reindex() {
 	go func() {
 		sleepInterval := time.Second * 30
 		for {
-			repository.logger.Info("Reindexing")
+			repository.logger.Debug("Reindexing")
 			repository.init()
 
 			time.Sleep(sleepInterval)

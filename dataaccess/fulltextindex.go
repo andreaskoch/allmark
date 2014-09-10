@@ -19,7 +19,7 @@ type indexValueProvider func(item *Item) []string
 
 func newIndex(logger logger.Logger, repository Repository, name string, indexValueFunc indexValueProvider) *FullTextIndex {
 
-	return &FullTextIndex{
+	index := &FullTextIndex{
 		logger: logger,
 
 		repository: repository,
@@ -27,6 +27,10 @@ func newIndex(logger logger.Logger, repository Repository, name string, indexVal
 		filepath:       getTempFileName(name),
 		indexValueFunc: indexValueFunc,
 	}
+
+	go index.initialize()
+
+	return index
 }
 
 type FullTextIndex struct {
@@ -36,40 +40,6 @@ type FullTextIndex struct {
 
 	filepath       string
 	indexValueFunc indexValueProvider
-}
-
-func (index *FullTextIndex) Update() {
-
-	// fulltext search
-	idx, err := fulltext.NewIndexer("")
-	if err != nil {
-		panic(err)
-	}
-	defer idx.Close()
-
-	for _, item := range index.repository.Items() {
-
-		doc := fulltext.IndexDoc{
-			Id:         []byte(item.Route().Value()),              // unique identifier (the path to a webpage works...)
-			StoreValue: []byte(getContentFromItem(item)),          // bytes you want to be able to retrieve from search results
-			IndexValue: getIndexValue(index.indexValueFunc(item)), // bytes you want to be split into words and indexed
-		}
-
-		idx.AddDoc(doc)
-	}
-
-	// when done, write out to final index
-	f, err := fsutil.OpenFile(index.filepath)
-	if err != nil {
-		index.logger.Error(err.Error())
-	}
-
-	defer f.Close()
-
-	err = idx.FinalizeAndWrite(f)
-	if err != nil {
-		index.logger.Error(err.Error())
-	}
 }
 
 func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) []SearchResult {
@@ -115,6 +85,40 @@ func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) [
 	}
 
 	return searchResults
+}
+
+func (index *FullTextIndex) initialize() {
+
+	// fulltext search
+	idx, err := fulltext.NewIndexer("")
+	if err != nil {
+		panic(err)
+	}
+	defer idx.Close()
+
+	for _, item := range index.repository.Items() {
+
+		doc := fulltext.IndexDoc{
+			Id:         []byte(item.Route().Value()),              // unique identifier (the path to a webpage works...)
+			StoreValue: []byte(getContentFromItem(item)),          // bytes you want to be able to retrieve from search results
+			IndexValue: getIndexValue(index.indexValueFunc(item)), // bytes you want to be split into words and indexed
+		}
+
+		idx.AddDoc(doc)
+	}
+
+	// when done, write out to final index
+	f, err := fsutil.OpenFile(index.filepath)
+	if err != nil {
+		index.logger.Error(err.Error())
+	}
+
+	defer f.Close()
+
+	err = idx.FinalizeAndWrite(f)
+	if err != nil {
+		index.logger.Error(err.Error())
+	}
 }
 
 func getTempFileName(prefix string) string {
