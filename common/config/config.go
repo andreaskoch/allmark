@@ -20,6 +20,13 @@ const (
 	ConfigurationFileName = "config"
 	ThemeFolderName       = "theme"
 	TemplatesFolderName   = "templates"
+
+	// Global Defaults
+	DefaultHostName                 = "localhost"
+	DefaultPort                     = 8080
+	DefaultLanguage                 = "en"
+	DefaultLogLevel                 = loglevel.Info
+	DefaultReindexIntervalInSeconds = 60
 )
 
 var homeDirectory func() string
@@ -80,11 +87,12 @@ func Default(baseFolder string) *Config {
 
 	// apply default values
 	config.Server.ThemeFolderName = ThemeFolderName
-	config.Server.Http.Hostname = "localhost"
-	config.Server.Http.Port = 8080
-	config.Web.DefaultLanguage = "en"
+	config.Server.Http.Hostname = DefaultHostName
+	config.Server.Http.Port = DefaultPort
+	config.Web.DefaultLanguage = DefaultLanguage
 	config.Conversion.Tool = DefaultConversionToolPath
-	config.LogLevel = loglevel.Info.String()
+	config.LogLevel = DefaultLogLevel.String()
+	config.Indexing.IntervalInSeconds = DefaultReindexIntervalInSeconds
 
 	return config
 }
@@ -103,6 +111,10 @@ type Server struct {
 	Http            Http
 }
 
+type Indexing struct {
+	IntervalInSeconds int
+}
+
 type Conversion struct {
 	Tool string
 }
@@ -112,6 +124,7 @@ type Config struct {
 	Web        Web
 	Conversion Conversion
 	LogLevel   string
+	Indexing   Indexing
 
 	baseFolder      string
 	metaDataFolder  string
@@ -168,6 +181,7 @@ func (config *Config) Load() (*Config, error) {
 	config.Web = loadedConfig.Web
 	config.Conversion = loadedConfig.Conversion
 	config.LogLevel = loadedConfig.LogLevel
+	config.Indexing = loadedConfig.Indexing
 
 	return config, nil
 }
@@ -212,6 +226,7 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 	config.Web = newConfig.Web
 	config.Conversion = newConfig.Conversion
 	config.LogLevel = newConfig.LogLevel
+	config.Indexing = newConfig.Indexing
 
 	return config, nil
 }

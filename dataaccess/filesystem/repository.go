@@ -42,7 +42,7 @@ type Repository struct {
 	onUpdateCallback      func(route.Route)
 }
 
-func NewRepository(logger logger.Logger, directory string) (*Repository, error) {
+func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeconds int) (*Repository, error) {
 
 	// check if path exists
 	if !fsutil.PathExists(directory) {
@@ -87,7 +87,7 @@ func NewRepository(logger logger.Logger, directory string) (*Repository, error) 
 	repository.init()
 
 	// scheduled reindex
-	repository.reindex()
+	repository.reindex(reindexIntervalInSeconds)
 
 	return repository, nil
 }
@@ -219,12 +219,17 @@ func (repository *Repository) notifySubscribers() {
 }
 
 // Start the fulltext search indexing process
-func (repository *Repository) reindex() {
+func (repository *Repository) reindex(intervalInSeconds int) {
+
+	if intervalInSeconds <= 1 {
+		repository.logger.Debug("Reindexing is disabled.")
+		return
+	}
 
 	go func() {
-		sleepInterval := time.Second * 30
+		sleepInterval := time.Second * time.Duration(intervalInSeconds)
 		for {
-			repository.logger.Debug("Reindexing")
+			repository.logger.Info("Reindexing")
 			repository.init()
 
 			time.Sleep(sleepInterval)

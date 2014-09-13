@@ -107,7 +107,7 @@ func serve(repositoryPath string) bool {
 	logger := console.New(loglevel.FromString(config.LogLevel))
 
 	// data access
-	repository, err := filesystem.NewRepository(logger, repositoryPath)
+	repository, err := filesystem.NewRepository(logger, repositoryPath, config.Indexing.IntervalInSeconds)
 	if err != nil {
 		logger.Error("Unable to create a repository. Error: %s", err)
 	}
