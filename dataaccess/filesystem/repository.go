@@ -184,6 +184,15 @@ func (repository *Repository) init() {
 
 	// update search index
 	repository.logger.Debug("Refreshing the search index.")
+
+	// cleanup
+	previousItemSearch := repository.itemSearch
+	if previousItemSearch != nil {
+		defer func() {
+			previousItemSearch.Destroy()
+		}()
+	}
+
 	repository.itemSearch = dataaccess.NewItemSearch(repository.logger, repository)
 
 	// inform subscribers about updates

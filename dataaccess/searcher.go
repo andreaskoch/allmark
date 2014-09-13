@@ -60,6 +60,16 @@ type ItemSearch struct {
 	itemContentFullTextIndex *FullTextIndex
 }
 
+func (itemSearch *ItemSearch) Destroy() {
+
+	// destroy the indizes
+	itemSearch.itemContentFullTextIndex.Destroy()
+	itemSearch.routesFullTextIndex.Destroy()
+
+	// self-destruct
+	itemSearch = nil
+}
+
 func (itemSearch *ItemSearch) Search(keywords string, maxiumNumberOfResults int) []SearchResult {
 
 	// routes

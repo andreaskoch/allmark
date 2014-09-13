@@ -42,11 +42,22 @@ type FullTextIndex struct {
 	indexValueFunc indexValueProvider
 }
 
+func (index *FullTextIndex) Destroy() {
+	// remove the index file
+	os.Remove(index.filepath)
+
+	// self-destruct
+	index = nil
+}
+
 func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) []SearchResult {
 
 	searcher, err := fulltext.NewSearcher(index.filepath)
 	if err != nil {
 		index.logger.Error(err.Error())
+
+		index.initialize()
+		return []SearchResult{}
 	}
 
 	defer searcher.Close()
