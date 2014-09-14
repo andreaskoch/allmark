@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
 	"github.com/andreaskoch/allmark2/web/view/templates"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
@@ -57,6 +58,7 @@ func (self *Tags) Func() func(w http.ResponseWriter, r *http.Request) {
 		tagmapViewModel.Type = "tagmap"
 		tagmapViewModel.Title = "Tags"
 		tagmapViewModel.ToplevelNavigation = self.navigationOrchestrator.GetToplevelNavigation()
+		tagmapViewModel.BreadcrumbNavigation = self.navigationOrchestrator.GetBreadcrumbNavigation(route.New())
 		tagmapViewModel.TagCloud = self.tagsOrchestrator.GetTagCloud()
 
 		renderTemplate(tagmapViewModel, tagmapTemplate, w)
