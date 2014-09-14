@@ -175,7 +175,9 @@ func (factory *Factory) NewRtfHandler() Handler {
 		config: factory.config,
 
 		converterModelOrchestrator: factory.orchestratorFactory.NewConversionModelOrchestrator(),
-		error404Handler:            factory.NewErrorHandler(),
+		templateProvider:           factory.templateProvider,
+
+		error404Handler: factory.NewErrorHandler(),
 	}
 
 }

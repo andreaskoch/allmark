@@ -5,12 +5,15 @@
 package handler
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
+	"github.com/andreaskoch/allmark2/web/view/templates"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"github.com/gorilla/mux"
 	"io"
@@ -26,7 +29,9 @@ type Rtf struct {
 	config config.Config
 
 	converterModelOrchestrator orchestrator.ConversionModelOrchestrator
-	error404Handler            Handler
+	templateProvider           templates.Provider
+
+	error404Handler Handler
 }
 
 func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -61,6 +66,19 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		html := handler.convertToHtml(model)
+
+		// write the html to a temp file
+		htmlFilePath := getTempFileName("html-source") + ".html"
+		htmlFile, err := fsutil.OpenFile(htmlFilePath)
+		if err != nil {
+			handler.logger.Error("Cannot open HTML file for writing. Error: %s", err.Error())
+			return
+		}
+
+		defer htmlFile.Close()
+		htmlFile.WriteString(html)
+
 		// check if the a converter tool has been supplied
 		converterToolIsConfigured := len(handler.config.Conversion.Tool) > 0
 		if !converterToolIsConfigured {
@@ -74,16 +92,13 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		}
 
-		// assemble the item url
-		sourceUrl := model.Route
-
 		// get a target file path
 		targetFile := getTempFileName("rtf-target") + ".rtf"
 
 		// call pandoc
 		args := []string{
 			"-s",
-			fmt.Sprintf(`%s`, sourceUrl),
+			fmt.Sprintf(`%s`, htmlFilePath),
 			"-o",
 			fmt.Sprintf(`%s`, targetFile),
 		}
@@ -112,6 +127,28 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+}
+
+func (handler *Rtf) convertToHtml(viewModel viewmodel.ConversionModel) string {
+
+	// get a template
+	template, err := handler.templateProvider.GetSubTemplate(templates.ConversionTemplateName)
+	if err != nil {
+		handler.logger.Error("No template for item of type %q.", viewModel.Type)
+		return ""
+	}
+
+	// render template
+	buffer := new(bytes.Buffer)
+	writer := bufio.NewWriter(buffer)
+	if err := renderTemplate(viewModel, template, writer); err != nil {
+		handler.logger.Error("%s", err)
+		return ""
+	}
+
+	writer.Flush()
+
+	return buffer.String()
 }
 
 func getRichTextFilename(model viewmodel.ConversionModel) string {
