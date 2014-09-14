@@ -25,8 +25,7 @@ import (
 )
 
 var (
-	// [*description text*](*folder path*)
-	markdownLinkPattern = regexp.MustCompile(`\[(.*)\]\(([^)]+)\)`)
+	htmlLinkPattern = regexp.MustCompile(`(src|href)="([^"]+)"`)
 
 	markdownItemLinkPattern = regexp.MustCompile(`\[(.*)\]\(/([^)]+)\)`)
 )
@@ -98,11 +97,11 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 		converter.logger.Warn("Error while converting csv table extensions. Error: %s", csvTableConversionError)
 	}
 
-	// fix links
-	content = converter.rewireLinks(pathProvider, item, content)
-
 	// markdown to html
 	content = markdown.Convert(content)
+
+	// fix links
+	content = converter.rewireLinks(pathProvider, item, content)
 
 	// presentation
 	isPresentation := item.Type == model.TypePresentation
@@ -149,9 +148,9 @@ func getBaseFolder(referenceRoute route.Route, files []*model.File) string {
 	return baseFolder
 }
 
-func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.Item, markdown string) string {
+func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.Item, html string) string {
 
-	allMatches := markdownLinkPattern.FindAllStringSubmatch(markdown, -1)
+	allMatches := htmlLinkPattern.FindAllStringSubmatch(html, -1)
 	for _, matches := range allMatches {
 
 		if len(matches) != 3 {
@@ -160,7 +159,7 @@ func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.I
 
 		// components
 		originalText := strings.TrimSpace(matches[0])
-		descriptionText := strings.TrimSpace(matches[1])
+		linkType := strings.TrimSpace(matches[1])
 		path := strings.TrimSpace(matches[2])
 
 		// get matching file
@@ -181,14 +180,14 @@ func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.I
 		matchingFilePath := pathProvider.Path(fullFileRoute.Value())
 
 		// assemble the new link
-		newLinkText := fmt.Sprintf("[%s](%s)", descriptionText, matchingFilePath)
+		newLinkText := fmt.Sprintf("%s=\"%s\"", linkType, matchingFilePath)
 
 		// replace the old text
-		markdown = strings.Replace(markdown, originalText, newLinkText, 1)
+		html = strings.Replace(html, originalText, newLinkText, -1)
 
 	}
 
-	return markdown
+	return html
 }
 
 func getMatchingFiles(path string, item *model.Item) *model.File {
