@@ -31,7 +31,6 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 	// get the requested item
 	item := orchestrator.getItem(itemRoute)
 	if item == nil {
-		orchestrator.logger.Warn("Cannot get viewmodel for route %q because no item was found.", itemRoute)
 		return viewModel, false
 	}
 

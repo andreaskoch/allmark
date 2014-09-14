@@ -48,7 +48,7 @@ func (index *Index) IsFileMatch(r route.Route) (*dataaccess.File, bool) {
 
 	var parent *dataaccess.Item
 	parentRoute := r
-	for !parentRoute.IsEmpty() && parentRoute.Level() >= 0 {
+	for parentRoute.Level() >= 0 {
 
 		parent, _ = index.IsMatch(parentRoute)
 		if parent == nil {
