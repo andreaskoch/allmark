@@ -20,7 +20,6 @@ func NewFactory(logger logger.Logger, repository dataaccess.Repository, parser p
 		logger: logger,
 
 		baseOrchestrator: baseOrchestrator,
-		webPathProvider:  webPathProvider,
 	}
 }
 
@@ -28,7 +27,6 @@ type Factory struct {
 	logger logger.Logger
 
 	baseOrchestrator *Orchestrator
-	webPathProvider  webpaths.WebPathProvider
 }
 
 func (factory *Factory) NewConversionModelOrchestrator() ConversionModelOrchestrator {
