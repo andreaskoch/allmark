@@ -5,13 +5,11 @@
 package dataaccess
 
 import (
-	"fmt"
+	"github.com/andreaskoch/allmark2/common/cleanup"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/bradleypeabody/fulltext"
-	"io/ioutil"
-	"os"
 	"strings"
 )
 
@@ -24,7 +22,7 @@ func newIndex(logger logger.Logger, repository Repository, name string, indexVal
 
 		repository: repository,
 
-		filepath:       getTempFileName(name),
+		filepath:       fsutil.GetTempFileName(name),
 		indexValueFunc: indexValueFunc,
 	}
 
@@ -44,7 +42,7 @@ type FullTextIndex struct {
 
 func (index *FullTextIndex) Destroy() {
 	// remove the index file
-	os.Remove(index.filepath)
+	cleanup.Now(index.filepath)
 
 	// self-destruct
 	index = nil
@@ -130,17 +128,6 @@ func (index *FullTextIndex) initialize() {
 	if err != nil {
 		index.logger.Error(err.Error())
 	}
-}
-
-func getTempFileName(prefix string) string {
-	file, err := ioutil.TempFile(os.TempDir(), fmt.Sprintf("%s-index", prefix))
-	if err != nil {
-		panic(err)
-	}
-
-	defer file.Close()
-
-	return file.Name()
 }
 
 func getIndexValue(values []string) []byte {

@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/cleanup"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/logger/loglevel"
@@ -16,6 +17,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/parser"
 	"github.com/andreaskoch/allmark2/web/server"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -29,16 +31,35 @@ const (
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
+	// Handle CTRL-C
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		select {
+		case _ = <-c:
+			{
+				fmt.Println("Stopping")
+
+				// cleanup temporary files
+				cleanup.Cleanup()
+
+				os.Exit(0)
+			}
+		}
+	}()
+
 	parseCommandLineArguments(os.Args, func(commandName, repositoryPath string) (commandWasFound bool) {
 		switch strings.ToLower(commandName) {
 		case CommandNameInit:
-			return initialize(repositoryPath)
+			initialize(repositoryPath)
+			return
 
 		case CommandNameServe:
-			return serve(repositoryPath)
+			serve(repositoryPath)
+			return
 
 		default:
-			return false
+			return
 		}
 
 		panic("Unreachable")

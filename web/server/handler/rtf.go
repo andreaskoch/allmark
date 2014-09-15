@@ -17,7 +17,6 @@ import (
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"github.com/gorilla/mux"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -69,7 +68,7 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 		html := handler.convertToHtml(model)
 
 		// write the html to a temp file
-		htmlFilePath := getTempFileName("html-source") + ".html"
+		htmlFilePath := fsutil.GetTempFileName("html-source") + ".html"
 		htmlFile, err := fsutil.OpenFile(htmlFilePath)
 		if err != nil {
 			handler.logger.Error("Cannot open HTML file for writing. Error: %s", err.Error())
@@ -93,7 +92,7 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// get a target file path
-		targetFile := getTempFileName("rtf-target") + ".rtf"
+		targetFile := fsutil.GetTempFileName("rtf-target") + ".rtf"
 
 		// call pandoc
 		args := []string{
@@ -172,17 +171,6 @@ func getRichTextFilename(model viewmodel.ConversionModel) string {
 	}
 
 	return fmt.Sprintf("%s.rtf", fileNameRoute.Value())
-}
-
-func getTempFileName(prefix string) string {
-	file, err := ioutil.TempFile(os.TempDir(), fmt.Sprintf("%s-rtf-converter", prefix))
-	if err != nil {
-		panic(err)
-	}
-
-	defer file.Close()
-
-	return file.Name()
 }
 
 func execute(directory, commandText string) error {

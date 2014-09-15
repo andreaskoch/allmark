@@ -7,6 +7,7 @@ package fsutil
 import (
 	"bufio"
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/cleanup"
 	"io"
 	"io/ioutil"
 	"os"
@@ -182,4 +183,20 @@ func GetModificationTime(path string) (time.Time, error) {
 	}
 
 	return info.ModTime(), nil
+}
+
+func GetTempFileName(prefix string) string {
+	file, err := ioutil.TempFile(os.TempDir(), fmt.Sprintf("%s-index", prefix))
+	if err != nil {
+		panic(err)
+	}
+
+	defer file.Close()
+
+	filename := file.Name()
+
+	// make sure the file is deleted on shutdown
+	cleanup.OnShutdown(filename)
+
+	return filename
 }
