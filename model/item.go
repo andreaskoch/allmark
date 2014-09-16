@@ -7,6 +7,7 @@ package model
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/dataaccess"
 )
 
 type ItemType int
@@ -47,11 +48,12 @@ const (
 
 // An Item represents a single document.
 type Item struct {
-	isVirtual bool
-	route     route.Route
-	files     []*File
+	route      route.Route
+	files      []*File
+	sourceType dataaccess.ItemType
 
-	Type        ItemType
+	Type ItemType
+
 	Title       string
 	Description string
 	Content     string
@@ -59,20 +61,14 @@ type Item struct {
 	MetaData *MetaData
 }
 
-func NewVirtualItem(route route.Route, itemType ItemType) (*Item, error) {
-	return &Item{
-		isVirtual: true,
-		route:     route,
-		Type:      itemType,
-	}, nil
-}
+func NewItem(route route.Route, files []*File, sourceType dataaccess.ItemType) *Item {
 
-func NewItem(route route.Route, files []*File) (*Item, error) {
 	return &Item{
-		isVirtual: false,
-		route:     route,
-		files:     files,
-	}, nil
+		route:      route,
+		files:      files,
+		sourceType: sourceType,
+	}
+
 }
 
 func (item *Item) String() string {
@@ -83,14 +79,22 @@ func (item *Item) FolderName() string {
 	return item.route.LastComponentName()
 }
 
-func (item *Item) IsVirtual() bool {
-	return item.isVirtual
-}
-
 func (item *Item) Route() route.Route {
 	return item.route
 }
 
 func (item *Item) Files() []*File {
 	return item.files
+}
+
+func (item *Item) IsPhysical() bool {
+	return item.sourceType == dataaccess.TypePhysical
+}
+
+func (item *Item) IsVirtual() bool {
+	return item.sourceType == dataaccess.TypeVirtual
+}
+
+func (item *Item) IsFileCollection() bool {
+	return item.sourceType == dataaccess.TypeFileCollection
 }

@@ -177,9 +177,7 @@ func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (i
 
 	// content
 	title := filepath.Base(itemDirectory)
-	content := fmt.Sprintf(`# %s
-
-files: [Attachments](files)`, title)
+	content := fmt.Sprintf(`# %s`, title)
 	contentProvider := newTextContentProvider(content, route)
 
 	// files

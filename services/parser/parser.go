@@ -42,13 +42,13 @@ func (parser *Parser) ParseItem(item *dataaccess.Item) (*model.Item, error) {
 	files := parser.convertFiles(item.Files())
 
 	// create a new item model
-	itemModel, err := model.NewItem(route, files)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to convert Item %q. Error: %s", item, err)
-	}
+	itemModel := model.NewItem(route, files, item.Type())
 
 	// capture the last modified date
 	lastModifiedDate, err := item.LastModified()
+	if err != nil {
+		return nil, fmt.Errorf("Cannot determine last modified date for item %q. Error: %s", item, err.Error())
+	}
 
 	// fetch the item data
 	byteBuffer := new(bytes.Buffer)

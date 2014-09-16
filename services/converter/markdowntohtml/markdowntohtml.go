@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
+	"github.com/andreaskoch/allmark2/services/converter/filetreerenderer"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/audio"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/csvtable"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/filepreview"
@@ -113,7 +114,13 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 		}
 
 		content = presentationContent
+	}
 
+	// append the file list
+	if item.IsFileCollection() && len(item.Files()) > 0 {
+		fileTreeRenderer := filetreerenderer.New(pathProvider, itemRoute, item.Files())
+		fileBaseFolder := getBaseFolder(itemRoute, item.Files())
+		content += fileTreeRenderer.Render("Attachments", "attachments", fileBaseFolder)
 	}
 
 	return content, nil
