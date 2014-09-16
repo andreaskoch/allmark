@@ -22,7 +22,9 @@ func newIndex(logger logger.Logger, repository Repository, name string, indexVal
 
 		repository: repository,
 
-		filepath:       fsutil.GetTempFileName(name),
+		filepath:      fsutil.GetTempFileName(name),
+		tempDirectory: fsutil.GetTempDirectory(),
+
 		indexValueFunc: indexValueFunc,
 	}
 
@@ -36,13 +38,19 @@ type FullTextIndex struct {
 
 	repository Repository
 
-	filepath       string
+	filepath      string
+	tempDirectory string
+
 	indexValueFunc indexValueProvider
 }
 
 func (index *FullTextIndex) Destroy() {
+
 	// remove the index file
 	cleanup.Now(index.filepath)
+
+	// remove the temp directory
+	cleanup.Now(index.tempDirectory)
 
 	// self-destruct
 	index = nil
@@ -99,7 +107,7 @@ func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) [
 func (index *FullTextIndex) initialize() {
 
 	// fulltext search
-	idx, err := fulltext.NewIndexer("")
+	idx, err := fulltext.NewIndexer(index.tempDirectory)
 	if err != nil {
 		panic(err)
 	}

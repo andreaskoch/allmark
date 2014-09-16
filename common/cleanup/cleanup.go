@@ -59,9 +59,9 @@ func OnShutdown(filename string) {
 func Cleanup() {
 
 	// try to remove all files from the list
-	for filename, _ := range removeLater {
-		if err := os.Remove(filename); err != nil && os.IsNotExist(err) == false {
-			fmt.Printf("Failed to remove %q \n", filename)
+	for entry, _ := range removeLater {
+		if err := os.RemoveAll(entry); err != nil && os.IsNotExist(err) == false {
+			fmt.Printf("Failed to remove %q \n", entry)
 		}
 	}
 

@@ -6,6 +6,8 @@ package fsutil
 
 import (
 	"bufio"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/cleanup"
 	"io"
@@ -199,4 +201,30 @@ func GetTempFileName(prefix string) string {
 	cleanup.OnShutdown(filename)
 
 	return filename
+}
+
+func GetTempDirectory() string {
+	randomString := rand_str()
+	tempDir := filepath.Join(os.TempDir(), randomString)
+
+	if !CreateDirectory(tempDir) {
+		panic(fmt.Sprintf("Cannot create temp directory %q.", tempDir))
+	}
+
+	// make sure the file is deleted on shutdown
+	cleanup.OnShutdown(tempDir)
+
+	return tempDir
+}
+
+func rand_str() string {
+	size := 8
+	rb := make([]byte, size)
+	_, err := rand.Read(rb)
+	if err != nil {
+		panic(err)
+	}
+
+	rs := base64.URLEncoding.EncodeToString(rb)
+	return rs
 }
