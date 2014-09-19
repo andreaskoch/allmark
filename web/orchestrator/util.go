@@ -15,7 +15,7 @@ import (
 
 func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.Base {
 
-	return viewmodel.Base{
+	baseModel := viewmodel.Base{
 		RepositoryName:        root.Title,
 		RepositoryDescription: root.Description,
 
@@ -31,6 +31,12 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 		Title:       item.Title,
 		Description: item.Description,
 	}
+
+	if item.MetaData != nil {
+		baseModel.Alias = item.MetaData.Alias
+	}
+
+	return baseModel
 
 }
 

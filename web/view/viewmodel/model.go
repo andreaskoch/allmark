@@ -15,6 +15,7 @@ type Base struct {
 	Type  string `json:"type"`
 	Level int    `json:"level"`
 	Route string `json:"route"`
+	Alias string `json:"alias"`
 
 	BaseUrl  string `json:"baseUrl"`
 	PrintUrl string `json:"printUrl"`
