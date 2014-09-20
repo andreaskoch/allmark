@@ -12,6 +12,11 @@ import (
 )
 
 func getGeoLocation(item *model.Item) viewmodel.GeoLocation {
+	emptyLocation := model.GeoInformation{}
+	if item.MetaData == nil || item.MetaData.GeoInformation == emptyLocation {
+		return viewmodel.GeoLocation{}
+	}
+
 	return viewmodel.GeoLocation{
 		PlaceName:   getPlaceName(item),
 		Address:     getAddress(item.MetaData.GeoInformation),
