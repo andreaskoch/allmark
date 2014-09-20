@@ -89,7 +89,7 @@ func (orchestrator *FeedOrchestrator) createFeedEntryModel(pathProvider paths.Pa
 
 	// last modified date
 	lastModifiedDate := ""
-	if item.MetaData != nil && item.MetaData.LastModifiedDate != nil {
+	if item.MetaData != nil {
 		lastModifiedDate = item.MetaData.LastModifiedDate.Format("2006-01-02")
 	}
 

@@ -27,6 +27,7 @@ func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseE
 	remainingLines = parseCreationDate(metaData, lastModifiedDate, remainingLines)
 	remainingLines = parseLastModifiedDate(metaData, lastModifiedDate, remainingLines)
 	remainingLines = parseTags(metaData, remainingLines)
+	remainingLines = parseGeoInformation(metaData, remainingLines)
 	remainingLines = parseLocations(metaData, remainingLines)
 
 	// assign the meta data to the item
@@ -94,16 +95,16 @@ func parseLocations(metaData *model.MetaData, lines []string) (remainingLines []
 		metaData.Locations = model.NewLocationsFromNames(locations)
 	}
 
-	return remainingLines
+	return lines
 }
 
 func parseCreationDate(metaData *model.MetaData, fallbackDate time.Time, lines []string) (remainingLines []string) {
 	found, value, remainingLines := getSingleLineMetaData([]string{"created at", "date"}, lines)
 	if found {
 		date, _ := dateutil.ParseIso8601Date(value, fallbackDate)
-		metaData.CreationDate = &date
+		metaData.CreationDate = date
 	} else {
-		metaData.LastModifiedDate = &fallbackDate
+		metaData.LastModifiedDate = fallbackDate
 	}
 
 	return remainingLines
@@ -113,9 +114,9 @@ func parseLastModifiedDate(metaData *model.MetaData, fallbackDate time.Time, lin
 	found, value, remainingLines := getSingleLineMetaData([]string{"modified at", "modified"}, lines)
 	if found {
 		date, _ := dateutil.ParseIso8601Date(value, fallbackDate)
-		metaData.LastModifiedDate = &date
+		metaData.LastModifiedDate = date
 	} else {
-		metaData.LastModifiedDate = &fallbackDate
+		metaData.LastModifiedDate = fallbackDate
 	}
 
 	return remainingLines

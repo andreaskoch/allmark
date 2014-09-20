@@ -41,7 +41,7 @@ func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(hostname string) [
 
 		// last modified date
 		lastModifiedDate := ""
-		if parsedItem.MetaData != nil && parsedItem.MetaData.LastModifiedDate != nil {
+		if parsedItem.MetaData != nil {
 			lastModifiedDate = parsedItem.MetaData.LastModifiedDate.Format("2006-01-02")
 		}
 

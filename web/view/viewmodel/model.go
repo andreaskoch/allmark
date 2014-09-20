@@ -45,8 +45,8 @@ type Model struct {
 
 	Files []File `json:files`
 
-	Locations   []*Model     `json:"locations"`
-	GeoLocation *GeoLocation `json:"geoLocation"`
+	Locations   []*Model    `json:"locations"`
+	GeoLocation GeoLocation `json:"geoLocation"`
 }
 
 func Error(title, content, route string) *Model {

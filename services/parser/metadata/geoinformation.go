@@ -11,13 +11,17 @@ import (
 
 func parseGeoInformation(metaData *model.MetaData, lines []string) (remainingLines []string) {
 
-	remainingLines = parseStreet(metaData.GeoInformation, lines)
-	remainingLines = parseCity(metaData.GeoInformation, lines)
-	remainingLines = parseCountry(metaData.GeoInformation, lines)
-	remainingLines = parseLatituide(metaData.GeoInformation, lines)
-	remainingLines = parseLongitude(metaData.GeoInformation, lines)
-	remainingLines = parseMapType(metaData.GeoInformation, lines)
-	remainingLines = parseZoom(metaData.GeoInformation, lines)
+	geoData := &metaData.GeoInformation
+
+	remainingLines = parseStreet(geoData, lines)
+	remainingLines = parseCity(geoData, lines)
+	remainingLines = parseCountry(geoData, lines)
+	remainingLines = parseLatituide(geoData, lines)
+	remainingLines = parseLongitude(geoData, lines)
+	remainingLines = parseMapType(geoData, lines)
+	remainingLines = parseZoom(geoData, lines)
+
+	metaData.GeoInformation = *geoData
 
 	return remainingLines
 }

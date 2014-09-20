@@ -55,6 +55,9 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 
 		// files
 		Files: orchestrator.fileOrchestrator.GetFiles(itemRoute),
+
+		// Geo
+		GeoLocation: getGeoLocation(item),
 	}
 
 	// special viewmodel attributes

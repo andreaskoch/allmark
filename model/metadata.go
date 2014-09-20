@@ -10,13 +10,13 @@ import (
 
 type MetaData struct {
 	Language         string
-	CreationDate     *time.Time
-	LastModifiedDate *time.Time
+	CreationDate     time.Time
+	LastModifiedDate time.Time
 	Tags             Tags
 	Alias            string
 	Author           string
 	Locations        Locations
-	GeoInformation   *GeoInformation
+	GeoInformation   GeoInformation
 }
 
 func NewMetaData() *MetaData {
