@@ -33,7 +33,36 @@ func (orchestrator *LocationOrchestrator) GetLocations(locations model.Locations
 	return locationModels
 }
 
-func (Orchestrator *LocationOrchestrator) getItemFromLocationName(locationName string) *model.Item {
+func (orchestrator *LocationOrchestrator) getItemFromLocationName(locationName string) *model.Item {
+	for _, repositoryItem := range orchestrator.repository.Items() {
+
+		item := orchestrator.parseItem(repositoryItem)
+		if item == nil {
+			orchestrator.logger.Warn("Cannot parse repository item %q.", repositoryItem.String())
+			continue
+		}
+
+		// skip items without meta data
+		if item.MetaData == nil {
+			continue
+		}
+
+		// skip non-location items
+		if item.Type != model.TypeLocation {
+			continue
+		}
+
+		// skip non-matching locations
+		if item.MetaData.Alias != locationName {
+			continue
+		}
+
+		// item was found
+		return item
+	}
+
+	// no location item found for the specified name
+	orchestrator.logger.Warn("There was no location found that has the name %q.", locationName)
 	return nil
 }
 
