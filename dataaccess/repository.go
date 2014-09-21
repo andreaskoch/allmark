@@ -26,6 +26,8 @@ type Repository interface {
 	AllChilds(route route.Route) []*Item
 	AllMatchingChilds(route route.Route, matchExpression func(item *Item) bool) []*Item
 
+	AfterReindex() chan bool
+
 	// update handling
 	OnUpdate(callback func(route.Route))
 	StartWatching(route route.Route)

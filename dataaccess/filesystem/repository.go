@@ -38,6 +38,8 @@ type Repository struct {
 	index      *index.Index
 	itemSearch *dataaccess.ItemSearch
 
+	reindexNotificationChannels []chan bool
+
 	routesWithSubscribers map[string]route.Route
 	onUpdateCallback      func(route.Route)
 }
@@ -81,6 +83,8 @@ func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeco
 
 		routesWithSubscribers: make(map[string]route.Route),
 		onUpdateCallback:      func(r route.Route) {},
+
+		reindexNotificationChannels: make([]chan bool, 0),
 	}
 
 	// index the repository
@@ -197,6 +201,23 @@ func (repository *Repository) init() {
 
 	// inform subscribers about updates
 	repository.notifySubscribers()
+
+	// send out after reindex notifications
+	repository.sendAfterReindexUpdates()
+}
+
+func (repository *Repository) AfterReindex() chan bool {
+	notificationChannel := make(chan bool, 1)
+	repository.reindexNotificationChannels = append(repository.reindexNotificationChannels, notificationChannel)
+	return notificationChannel
+}
+
+func (repository *Repository) sendAfterReindexUpdates() {
+	for _, updateChannel := range repository.reindexNotificationChannels {
+		go func() {
+			updateChannel <- true
+		}()
+	}
 }
 
 func (repository *Repository) OnUpdate(callback func(route.Route)) {

@@ -70,6 +70,18 @@ func (orchestrator *LocationOrchestrator) getLocationByName(locationName string)
 			locationsByAlias[key] = item
 		}
 
+		// refresh control
+		go func() {
+			for {
+				select {
+				case <-orchestrator.repository.AfterReindex():
+					// reset the location list
+					orchestrator.logger.Info("Resetting the location list")
+					orchestrator.locationsByAlias = nil
+				}
+			}
+		}()
+
 		orchestrator.locationsByAlias = locationsByAlias
 	}
 
