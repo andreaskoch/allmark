@@ -5,6 +5,7 @@
 package orchestrator
 
 import (
+	"fmt"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
@@ -22,27 +23,35 @@ type ViewModelOrchestrator struct {
 
 func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
 
-	// get the root item
-	root := orchestrator.rootItem()
-	if root == nil {
-		orchestrator.logger.Warn("Cannot get viewmodel for route %q because no root item was found.", itemRoute)
-		return viewModel, false
-	}
-
 	// get the requested item
 	item := orchestrator.getItem(itemRoute)
 	if item == nil {
 		return viewModel, false
 	}
 
+	return orchestrator.getViewModel(item), true
+
+}
+
+func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmodel.Model {
+
+	itemRoute := item.Route()
+
+	// get the root item
+	root := orchestrator.rootItem()
+	if root == nil {
+		panic(fmt.Sprintf("Cannot get viewmodel for route %q because no root item was found.", itemRoute))
+	}
+
 	// convert content
 	convertedContent, err := orchestrator.converter.Convert(orchestrator.relativePather(itemRoute), item)
 	if err != nil {
-		return viewModel, false
+		orchestrator.logger.Warn("Cannot convert content for item %q. Error: %s.", item.String(), err.Error())
+		convertedContent = "<!-- Conversion Error -->"
 	}
 
 	// create a view model
-	viewModel = viewmodel.Model{
+	viewModel := viewmodel.Model{
 		Base:    getBaseModel(root, item, orchestrator.itemPather()),
 		Content: convertedContent,
 		Childs:  orchestrator.getChildModels(itemRoute, orchestrator.relativePather(itemRoute)),
@@ -58,7 +67,9 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 		Files: orchestrator.fileOrchestrator.GetFiles(itemRoute),
 
 		// Locations
-		Locations: orchestrator.locationOrchestrator.GetLocations(item.MetaData.Locations),
+		Locations: orchestrator.locationOrchestrator.GetLocations(item.MetaData.Locations, func(i *model.Item) viewmodel.Model {
+			return orchestrator.getViewModel(i)
+		}),
 
 		// Geo Coordinates
 		GeoLocation: getGeoLocation(item),
@@ -79,7 +90,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 
 	}
 
-	return viewModel, true
+	return viewModel
 }
 
 func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route, pathProvider paths.Pather) []*viewmodel.Base {

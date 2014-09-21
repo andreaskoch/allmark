@@ -13,7 +13,7 @@ type LocationOrchestrator struct {
 	*Orchestrator
 }
 
-func (orchestrator *LocationOrchestrator) GetLocations(locations model.Locations) []*viewmodel.Model {
+func (orchestrator *LocationOrchestrator) GetLocations(locations model.Locations, conversion func(*model.Item) viewmodel.Model) []*viewmodel.Model {
 	locationModels := make([]*viewmodel.Model, 0)
 
 	for _, location := range locations {
@@ -23,7 +23,8 @@ func (orchestrator *LocationOrchestrator) GetLocations(locations model.Locations
 			continue
 		}
 
-		locationModels = append(locationModels, nil)
+		viewmodel := conversion(item)
+		locationModels = append(locationModels, &viewmodel)
 	}
 
 	// sort locations from north to south
