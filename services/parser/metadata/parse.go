@@ -57,9 +57,9 @@ func parseAlias(metaData *model.MetaData, fallback string, lines []string) (rema
 	found, value, remainingLines := getSingleLineMetaData([]string{"alias"}, lines)
 
 	if found {
-		metaData.Alias = value
+		metaData.Alias = strings.ToLower(strings.TrimSpace(value))
 	} else {
-		metaData.Alias = fallback
+		metaData.Alias = strings.ToLower(strings.TrimSpace(fallback))
 	}
 
 	return remainingLines

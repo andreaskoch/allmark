@@ -7,6 +7,7 @@ package orchestrator
 import (
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
+	"strings"
 )
 
 type LocationOrchestrator struct {
@@ -41,6 +42,8 @@ func (orchestrator *LocationOrchestrator) getItemFromLocationName(locationName s
 
 func (orchestrator *LocationOrchestrator) getLocationByName(locationName string) *model.Item {
 
+	locationName = strings.TrimSpace(strings.ToLower(locationName))
+
 	if orchestrator.locationsByAlias == nil {
 
 		locationsByAlias := make(map[string]*model.Item)
@@ -63,7 +66,8 @@ func (orchestrator *LocationOrchestrator) getLocationByName(locationName string)
 				continue
 			}
 
-			locationsByAlias[item.MetaData.Alias] = item
+			key := strings.TrimSpace(strings.ToLower(item.MetaData.Alias))
+			locationsByAlias[key] = item
 		}
 
 		orchestrator.locationsByAlias = locationsByAlias
