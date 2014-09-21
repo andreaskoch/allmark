@@ -11,6 +11,8 @@ import (
 
 type LocationOrchestrator struct {
 	*Orchestrator
+
+	locationsByAlias map[string]*model.Item
 }
 
 func (orchestrator *LocationOrchestrator) GetLocations(locations model.Locations, conversion func(*model.Item) viewmodel.Model) []*viewmodel.Model {
@@ -34,36 +36,45 @@ func (orchestrator *LocationOrchestrator) GetLocations(locations model.Locations
 }
 
 func (orchestrator *LocationOrchestrator) getItemFromLocationName(locationName string) *model.Item {
-	for _, repositoryItem := range orchestrator.repository.Items() {
+	return orchestrator.getLocationByName(locationName)
+}
 
-		item := orchestrator.parseItem(repositoryItem)
-		if item == nil {
-			orchestrator.logger.Warn("Cannot parse repository item %q.", repositoryItem.String())
-			continue
+func (orchestrator *LocationOrchestrator) getLocationByName(locationName string) *model.Item {
+
+	if orchestrator.locationsByAlias == nil {
+
+		locationsByAlias := make(map[string]*model.Item)
+
+		for _, repositoryItem := range orchestrator.repository.Items() {
+
+			item := orchestrator.parseItem(repositoryItem)
+			if item == nil {
+				orchestrator.logger.Warn("Cannot parse repository item %q.", repositoryItem.String())
+				continue
+			}
+
+			// skip non-location items
+			if item.Type != model.TypeLocation {
+				continue
+			}
+
+			// skip items without meta data
+			if item.MetaData == nil {
+				continue
+			}
+
+			// continue items without an alias
+			if item.MetaData.Alias == "" {
+				continue
+			}
+
+			locationsByAlias[item.MetaData.Alias] = item
 		}
 
-		// skip items without meta data
-		if item.MetaData == nil {
-			continue
-		}
-
-		// skip non-location items
-		if item.Type != model.TypeLocation {
-			continue
-		}
-
-		// skip non-matching locations
-		if item.MetaData.Alias != locationName {
-			continue
-		}
-
-		// item was found
-		return item
+		orchestrator.locationsByAlias = locationsByAlias
 	}
 
-	// no location item found for the specified name
-	orchestrator.logger.Warn("There was no location found that has the name %q.", locationName)
-	return nil
+	return orchestrator.locationsByAlias[locationName]
 }
 
 // sort tags by name

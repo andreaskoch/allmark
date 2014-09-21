@@ -118,5 +118,6 @@ func (factory *Factory) NewUpdateOrchestrator() UpdateOrchestrator {
 func (factory *Factory) NewLocationOrchestrator() LocationOrchestrator {
 	return LocationOrchestrator{
 		factory.baseOrchestrator,
+		nil,
 	}
 }
