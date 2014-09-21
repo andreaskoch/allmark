@@ -17,6 +17,7 @@ type ViewModelOrchestrator struct {
 	navigationOrchestrator NavigationOrchestrator
 	tagOrchestrator        TagsOrchestrator
 	fileOrchestrator       FileOrchestrator
+	locationOrchestrator   LocationOrchestrator
 }
 
 func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
@@ -56,7 +57,10 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 		// files
 		Files: orchestrator.fileOrchestrator.GetFiles(itemRoute),
 
-		// Geo
+		// Locations
+		Locations: orchestrator.locationOrchestrator.GetLocations(item.MetaData.Locations),
+
+		// Geo Coordinates
 		GeoLocation: getGeoLocation(item),
 	}
 

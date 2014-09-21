@@ -86,6 +86,7 @@ func (factory *Factory) NewViewModelOrchestrator() ViewModelOrchestrator {
 		factory.NewNavigationOrchestrator(),
 		factory.NewTagsOrchestrator(),
 		factory.NewFileOrchestrator(),
+		factory.NewLocationOrchestrator(),
 	}
 }
 
@@ -111,5 +112,11 @@ func (factory *Factory) NewUpdateOrchestrator() UpdateOrchestrator {
 	return UpdateOrchestrator{
 		factory.baseOrchestrator,
 		factory.NewViewModelOrchestrator(),
+	}
+}
+
+func (factory *Factory) NewLocationOrchestrator() LocationOrchestrator {
+	return LocationOrchestrator{
+		factory.baseOrchestrator,
 	}
 }
