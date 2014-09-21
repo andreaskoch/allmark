@@ -88,10 +88,7 @@ func (orchestrator *FeedOrchestrator) createFeedEntryModel(pathProvider paths.Pa
 	}
 
 	// last modified date
-	lastModifiedDate := ""
-	if item.MetaData != nil {
-		lastModifiedDate = item.MetaData.LastModifiedDate.Format("2006-01-02")
-	}
+	lastModifiedDate := item.MetaData.LastModifiedDate.Format("2006-01-02")
 
 	return viewmodel.FeedEntry{
 		Title:       item.Title,

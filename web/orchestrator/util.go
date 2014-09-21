@@ -23,6 +23,7 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 		Route:   pathProvider.Path(item.Route().Value()),
 		Level:   item.Route().Level(),
 		BaseUrl: GetBaseUrl(item.Route()),
+		Alias:   item.MetaData.Alias,
 
 		PrintUrl: GetTypedItemUrl(item.Route(), "print"),
 		JsonUrl:  GetTypedItemUrl(item.Route(), "json"),
@@ -30,10 +31,6 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 
 		Title:       item.Title,
 		Description: item.Description,
-	}
-
-	if item.MetaData != nil {
-		baseModel.Alias = item.MetaData.Alias
 	}
 
 	return baseModel

@@ -58,11 +58,6 @@ func (orchestrator *LocationOrchestrator) getLocationByName(locationName string)
 				continue
 			}
 
-			// skip items without meta data
-			if item.MetaData == nil {
-				continue
-			}
-
 			// continue items without an alias
 			if item.MetaData.Alias == "" {
 				continue

@@ -31,7 +31,7 @@ func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseE
 	remainingLines = parseLocations(metaData, remainingLines)
 
 	// assign the meta data to the item
-	item.MetaData = metaData
+	item.MetaData = *metaData
 	return
 }
 

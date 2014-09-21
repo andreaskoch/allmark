@@ -22,10 +22,8 @@ func (orchestrator *OpenSearchDescriptionOrchestrator) GetDescriptionModel(hostn
 	}
 
 	tags := make([]string, 0)
-	if rootItem.MetaData != nil {
-		for _, tag := range rootItem.MetaData.Tags {
-			tags = append(tags, tag.Name())
-		}
+	for _, tag := range rootItem.MetaData.Tags {
+		tags = append(tags, tag.Name())
 	}
 
 	addressPrefix := fmt.Sprintf("http://%s/", hostname)

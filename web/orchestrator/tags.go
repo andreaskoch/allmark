@@ -44,7 +44,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 		}
 
 		tags := []model.Tag{}
-		if parsedItem.MetaData != nil && len(parsedItem.MetaData.Tags) > 0 {
+		if len(parsedItem.MetaData.Tags) > 0 {
 			tags = parsedItem.MetaData.Tags
 		}
 
@@ -85,7 +85,7 @@ func (orchestrator *TagsOrchestrator) getItemTags(route route.Route) []*viewmode
 
 	// abort if the item has no tags
 	item := orchestrator.getItem(route)
-	if item == nil || item.MetaData == nil {
+	if item == nil {
 		return tags
 	}
 

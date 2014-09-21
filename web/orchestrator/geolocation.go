@@ -13,7 +13,7 @@ import (
 
 func getGeoLocation(item *model.Item) viewmodel.GeoLocation {
 	emptyLocation := model.GeoInformation{}
-	if item.MetaData == nil || item.MetaData.GeoInformation == emptyLocation {
+	if item.MetaData.GeoInformation == emptyLocation {
 		return viewmodel.GeoLocation{}
 	}
 

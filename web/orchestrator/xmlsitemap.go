@@ -40,10 +40,7 @@ func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(hostname string) [
 		location := pathProvider.Path(parsedItem.Route().Value())
 
 		// last modified date
-		lastModifiedDate := ""
-		if parsedItem.MetaData != nil {
-			lastModifiedDate = parsedItem.MetaData.LastModifiedDate.Format("2006-01-02")
-		}
+		lastModifiedDate := parsedItem.MetaData.LastModifiedDate.Format("2006-01-02")
 
 		childs = append(childs, viewmodel.XmlSitemapEntry{
 			Loc:          location,
