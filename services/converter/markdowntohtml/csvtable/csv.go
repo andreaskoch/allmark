@@ -126,7 +126,7 @@ func (converter *CsvTableExtension) getTableCode(title, path string) string {
 	}
 
 	// fallback
-	return util.GetFallbackLink(title, path)
+	return util.GetHtmlLinkCode(title, path)
 }
 
 func readCSV(file *model.File) (data [][]string, err error) {

@@ -19,6 +19,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/markdown"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/pdf"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/presentation"
+	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/reference"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/video"
 	"regexp"
 	"strings"
@@ -41,7 +42,7 @@ func New(logger logger.Logger) (*Converter, error) {
 }
 
 // Convert the supplied item with all paths relative to the supplied base route
-func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item) (convertedContent string, converterError error) {
+func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item, pathProvider paths.Pather, item *model.Item) (convertedContent string, converterError error) {
 
 	converter.logger.Debug("Converting item %q.", item)
 
@@ -95,6 +96,13 @@ func (converter *Converter) Convert(pathProvider paths.Pather, item *model.Item)
 	content, csvTableConversionError := csvTableConverter.Convert(content)
 	if csvTableConversionError != nil {
 		converter.logger.Warn("Error while converting csv table extensions. Error: %s", csvTableConversionError)
+	}
+
+	// markdown extension: reference
+	referenceConverter := reference.New(pathProvider, aliasResolver)
+	content, referenceConversionError := referenceConverter.Convert(content)
+	if referenceConversionError != nil {
+		converter.logger.Warn("Error while converting reference extensions. Error: %s", referenceConversionError)
 	}
 
 	// markdown to html

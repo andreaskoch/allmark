@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func GetFallbackLink(title, path string) string {
+func GetHtmlLinkCode(title, path string) string {
 	return fmt.Sprintf(`<a href="%s" target="_blank" title="%s">%s</a>`, path, title, title)
 }
 

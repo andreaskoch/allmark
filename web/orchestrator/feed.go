@@ -82,7 +82,7 @@ func (orchestrator *FeedOrchestrator) createFeedEntryModel(pathProvider paths.Pa
 	location := pathProvider.Path(item.Route().Value())
 
 	// content
-	content, err := orchestrator.converter.Convert(pathProvider, item)
+	content, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, pathProvider, item)
 	if err != nil {
 		content = err.Error()
 	}

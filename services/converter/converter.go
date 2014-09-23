@@ -12,5 +12,5 @@ import (
 type Converter interface {
 
 	// Convert the supplied item with all paths relative to the supplied base route
-	Convert(pathProvider paths.Pather, item *model.Item) (convertedContent string, converterError error)
+	Convert(aliasResolver func(alias string) *model.Item, pathProvider paths.Pather, item *model.Item) (convertedContent string, converterError error)
 }

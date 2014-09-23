@@ -78,7 +78,7 @@ func (converter *PDFExtension) getPDFCode(title, path string) string {
 	}
 
 	// fallback
-	return util.GetFallbackLink(title, path)
+	return util.GetHtmlLinkCode(title, path)
 }
 
 func getPDFFileLink(title, link string) string {

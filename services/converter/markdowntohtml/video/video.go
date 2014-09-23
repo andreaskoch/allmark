@@ -77,7 +77,7 @@ func (converter *VideoExtension) getMatchingFile(path string) *model.File {
 
 func (converter *VideoExtension) getVideoCode(title, path string) string {
 
-	fallback := util.GetFallbackLink(title, path)
+	fallback := util.GetHtmlLinkCode(title, path)
 
 	// internal video file
 	if util.IsInternalLink(path) {

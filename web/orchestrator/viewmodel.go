@@ -44,7 +44,7 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmo
 	}
 
 	// convert content
-	convertedContent, err := orchestrator.converter.Convert(orchestrator.relativePather(itemRoute), item)
+	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, orchestrator.relativePather(itemRoute), item)
 	if err != nil {
 		orchestrator.logger.Warn("Cannot convert content for item %q. Error: %s.", item.String(), err.Error())
 		convertedContent = "<!-- Conversion Error -->"

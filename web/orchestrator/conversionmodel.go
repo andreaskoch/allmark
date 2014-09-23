@@ -36,7 +36,7 @@ func (orchestrator *ConversionModelOrchestrator) GetConversionModel(hostname str
 	pathProvider := orchestrator.absolutePather(addressPrefix)
 
 	// convert content
-	convertedContent, err := orchestrator.converter.Convert(pathProvider, item)
+	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, pathProvider, item)
 	if err != nil {
 		return model, false
 	}

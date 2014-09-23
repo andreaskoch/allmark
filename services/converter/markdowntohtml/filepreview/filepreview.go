@@ -73,7 +73,7 @@ func (converter *FilePreviewExtension) getPreviewCode(title, path string) string
 		contentType, err := file.MimeType()
 		if err != nil {
 			// could not determine the mime type
-			return util.GetFallbackLink(title, path)
+			return util.GetHtmlLinkCode(title, path)
 		}
 
 		// prepare reading the file data
@@ -100,7 +100,7 @@ func (converter *FilePreviewExtension) getPreviewCode(title, path string) string
 	}
 
 	// fallback
-	return util.GetFallbackLink(title, path)
+	return util.GetHtmlLinkCode(title, path)
 }
 
 func (converter *FilePreviewExtension) getMatchingFile(path string) *model.File {

@@ -71,7 +71,7 @@ func (converter *AudioExtension) getMatchingFile(path string) *model.File {
 
 func (converter *AudioExtension) getAudioCode(title, path string) string {
 
-	fallback := util.GetFallbackLink(title, path)
+	fallback := util.GetHtmlLinkCode(title, path)
 
 	// internal audio file
 	if util.IsInternalLink(path) {
