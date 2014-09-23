@@ -41,7 +41,7 @@ func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 	// abort if no matching routes have been found
 	if noMatchingChildsFound := len(baseRouteChilds) == 0; noMatchingChildsFound {
 		// path could not be resolved, try to trim the path
-		return strings.TrimPrefix(strings.TrimPrefix(itemPath, baseRouteString), "/")
+		return "/" + itemPath
 	}
 
 	// use only the first child
