@@ -7,7 +7,6 @@ package orchestrator
 import (
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
-	"strings"
 )
 
 type LocationOrchestrator struct {
@@ -20,7 +19,7 @@ func (orchestrator *LocationOrchestrator) GetLocations(locations model.Locations
 	locationModels := make([]*viewmodel.Model, 0)
 
 	for _, location := range locations {
-		item := orchestrator.getItemFromLocationName(location.Name())
+		item := orchestrator.getLocationByName(location.Name())
 		if item == nil {
 			orchestrator.logger.Warn("Location %q was not found.", location.Name())
 			continue
@@ -36,56 +35,14 @@ func (orchestrator *LocationOrchestrator) GetLocations(locations model.Locations
 	return locationModels
 }
 
-func (orchestrator *LocationOrchestrator) getItemFromLocationName(locationName string) *model.Item {
-	return orchestrator.getLocationByName(locationName)
-}
-
 func (orchestrator *LocationOrchestrator) getLocationByName(locationName string) *model.Item {
 
-	locationName = strings.TrimSpace(strings.ToLower(locationName))
-
-	if orchestrator.locationsByAlias == nil {
-
-		locationsByAlias := make(map[string]*model.Item)
-
-		for _, repositoryItem := range orchestrator.repository.Items() {
-
-			item := orchestrator.parseItem(repositoryItem)
-			if item == nil {
-				orchestrator.logger.Warn("Cannot parse repository item %q.", repositoryItem.String())
-				continue
-			}
-
-			// skip non-location items
-			if item.Type != model.TypeLocation {
-				continue
-			}
-
-			// continue items without an alias
-			if item.MetaData.Alias == "" {
-				continue
-			}
-
-			key := strings.TrimSpace(strings.ToLower(item.MetaData.Alias))
-			locationsByAlias[key] = item
-		}
-
-		// refresh control
-		go func() {
-			for {
-				select {
-				case <-orchestrator.repository.AfterReindex():
-					// reset the location list
-					orchestrator.logger.Info("Resetting the location list")
-					orchestrator.locationsByAlias = nil
-				}
-			}
-		}()
-
-		orchestrator.locationsByAlias = locationsByAlias
+	item := orchestrator.getItemByAlias(locationName)
+	if item != nil && item.Type == model.TypeLocation {
+		return item
 	}
 
-	return orchestrator.locationsByAlias[locationName]
+	return nil
 }
 
 // sort tags by name

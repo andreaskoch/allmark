@@ -13,6 +13,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/converter"
 	"github.com/andreaskoch/allmark2/services/parser"
 	"github.com/andreaskoch/allmark2/web/webpaths"
+	"strings"
 )
 
 func newBaseOrchestrator(logger logger.Logger, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
@@ -35,6 +36,8 @@ type Orchestrator struct {
 	converter  converter.Converter
 
 	webPathProvider webpaths.WebPathProvider
+
+	itemsByAlias map[string]*model.Item
 }
 
 func (orchestrator *Orchestrator) ItemExists(route route.Route) bool {
@@ -123,4 +126,49 @@ func (orchestrator *Orchestrator) getChilds(route route.Route) (childs []*model.
 	}
 
 	return childs
+}
+
+// Get the item that has the specified alias. Returns nil if there is no matching item.
+func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
+
+	alias = strings.TrimSpace(strings.ToLower(alias))
+
+	if orchestrator.itemsByAlias == nil {
+
+		orchestrator.logger.Info("Initializing alias list")
+		itemsByAlias := make(map[string]*model.Item)
+
+		for _, repositoryItem := range orchestrator.repository.Items() {
+
+			item := orchestrator.parseItem(repositoryItem)
+			if item == nil {
+				orchestrator.logger.Warn("Cannot parse repository item %q.", repositoryItem.String())
+				continue
+			}
+
+			// continue items without an alias
+			if item.MetaData.Alias == "" {
+				continue
+			}
+
+			itemAlias := strings.TrimSpace(strings.ToLower(item.MetaData.Alias))
+			itemsByAlias[itemAlias] = item
+		}
+
+		// refresh control
+		go func() {
+			for {
+				select {
+				case <-orchestrator.repository.AfterReindex():
+					// reset the list
+					orchestrator.logger.Info("Resetting the alias list")
+					orchestrator.itemsByAlias = nil
+				}
+			}
+		}()
+
+		orchestrator.itemsByAlias = itemsByAlias
+	}
+
+	return orchestrator.itemsByAlias[alias]
 }
