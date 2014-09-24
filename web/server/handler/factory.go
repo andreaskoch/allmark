@@ -193,6 +193,17 @@ func (factory *Factory) NewJsonHandler() Handler {
 
 }
 
+func (factory *Factory) NewLatestHandler() Handler {
+
+	return &Latest{
+		logger: factory.logger,
+
+		viewModelOrchestrator: factory.orchestratorFactory.NewViewModelOrchestrator(),
+		fallbackHandler:       factory.NewItemHandler(),
+	}
+
+}
+
 func (factory *Factory) NewUpdateHandler() *Update {
 
 	return &Update{

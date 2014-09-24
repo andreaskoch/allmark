@@ -6,7 +6,6 @@ package orchestrator
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
@@ -54,7 +53,7 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmo
 	viewModel := viewmodel.Model{
 		Base:    getBaseModel(root, item, orchestrator.itemPather()),
 		Content: convertedContent,
-		Childs:  orchestrator.getChildModels(itemRoute, orchestrator.relativePather(itemRoute)),
+		Childs:  orchestrator.getChildModels(itemRoute),
 
 		// navigation
 		ToplevelNavigation:   orchestrator.navigationOrchestrator.GetToplevelNavigation(),
@@ -93,12 +92,14 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmo
 	return viewModel
 }
 
-func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route, pathProvider paths.Pather) []*viewmodel.Base {
+func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route) []*viewmodel.Base {
 
 	rootItem := orchestrator.rootItem()
 	if rootItem == nil {
 		orchestrator.logger.Fatal("No root item found")
 	}
+
+	pathProvider := orchestrator.relativePather(itemRoute)
 
 	childModels := make([]*viewmodel.Base, 0)
 
@@ -108,11 +109,14 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route,
 		childModels = append(childModels, &baseModel)
 	}
 
+	// sort the models
+	viewmodel.SortBaseModelBy(sortModelsByDate).Sort(childModels)
+
 	return childModels
 }
 
 // sort the models by date and name
-func sortModelsByDate(model1, model2 *viewmodel.Model) bool {
+func sortModelsByDate(model1, model2 *viewmodel.Base) bool {
 
 	return model1.CreationDate > model2.CreationDate
 

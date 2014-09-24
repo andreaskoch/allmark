@@ -8,28 +8,6 @@ import (
 	"sort"
 )
 
-type Base struct {
-	RepositoryName        string `json:"repositoryName"`
-	RepositoryDescription string `json:"repositoryDescription"`
-
-	Type  string `json:"type"`
-	Level int    `json:"level"`
-	Route string `json:"route"`
-	Alias string `json:"alias"`
-
-	BaseUrl  string `json:"baseUrl"`
-	PrintUrl string `json:"printUrl"`
-	JsonUrl  string `json:"jsonUrl"`
-	RtfUrl   string `json:"rtfUrl"`
-
-	Title       string `json:"title"`
-	Description string `json:"description"`
-
-	LanguageTag      string `json:"languageTag"`
-	CreationDate     string `json:"creationdate"`
-	LastModifiedDate string `json:"lastmodifieddate"`
-}
-
 type Model struct {
 	Base
 
