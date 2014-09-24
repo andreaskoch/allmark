@@ -46,7 +46,7 @@ func (handler *Json) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		// stage 1: check if there is a item for the request
 		if viewModel, found := handler.viewModelOrchestrator.GetViewModel(requestRoute); found {
-			writeJson(w, viewModel)
+			writeViewModelAsJson(w, viewModel)
 			return
 		}
 
@@ -56,7 +56,7 @@ func (handler *Json) Func() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func writeJson(writer io.Writer, viewModel viewmodel.Model) error {
+func writeViewModelAsJson(writer io.Writer, viewModel viewmodel.Model) error {
 	bytes, err := json.MarshalIndent(viewModel, "", "\t")
 	if err != nil {
 		return err

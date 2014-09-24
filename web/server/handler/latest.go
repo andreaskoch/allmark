@@ -5,10 +5,13 @@
 package handler
 
 import (
+	"encoding/json"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
+	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"github.com/gorilla/mux"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -27,8 +30,8 @@ func (handler *Latest) Func() func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		path := vars["path"]
 
-		// strip the "json" or ".json" suffix from the path
-		path = strings.TrimSuffix(path, "json")
+		// strip the "latest" or ".latest" suffix from the path
+		path = strings.TrimSuffix(path, "latest")
 		path = strings.TrimSuffix(path, ".")
 
 		// get the request route
@@ -42,8 +45,8 @@ func (handler *Latest) Func() func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
 		// stage 1: check if there is a item for the request
-		if viewModel, found := handler.viewModelOrchestrator.GetViewModel(requestRoute); found {
-			writeJson(w, viewModel)
+		if latestModels, found := handler.viewModelOrchestrator.GetLatest(requestRoute, 5, 1); found {
+			writeViewModelsAsJson(w, latestModels)
 			return
 		}
 
@@ -51,4 +54,14 @@ func (handler *Latest) Func() func(w http.ResponseWriter, r *http.Request) {
 		fallbackHandler := handler.fallbackHandler.Func()
 		fallbackHandler(w, r)
 	}
+}
+
+func writeViewModelsAsJson(writer io.Writer, viewModels []*viewmodel.Model) error {
+	bytes, err := json.MarshalIndent(viewModels, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	writer.Write(bytes)
+	return nil
 }

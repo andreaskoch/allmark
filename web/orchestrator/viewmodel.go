@@ -32,6 +32,19 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 
 }
 
+func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (models []*viewmodel.Model, found bool) {
+
+	item := orchestrator.getItem(itemRoute)
+	if item == nil {
+		return []*viewmodel.Model{}, false
+	}
+
+	leafes := orchestrator.getAllLeafes(item)
+	viewmodel.SortModelBy(sortModelsByDate).Sort(leafes)
+
+	return leafes, true
+}
+
 func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmodel.Model {
 
 	itemRoute := item.Route()
@@ -92,6 +105,26 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmo
 	return viewModel
 }
 
+func (orchestrator *ViewModelOrchestrator) getAllLeafes(item *model.Item) []*viewmodel.Model {
+
+	childModels := make([]*viewmodel.Model, 0)
+
+	childItems := orchestrator.getChilds(item.Route())
+	if hasNoMoreChilds := len(childItems) == 0; hasNoMoreChilds {
+
+		viewModel := orchestrator.getViewModel(item)
+		return []*viewmodel.Model{&viewModel}
+	}
+
+	// recurse
+	for _, childItem := range childItems {
+		childModels = append(childModels, orchestrator.getAllLeafes(childItem)...)
+	}
+
+	return childModels
+
+}
+
 func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route) []*viewmodel.Base {
 
 	rootItem := orchestrator.rootItem()
@@ -110,13 +143,20 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route)
 	}
 
 	// sort the models
-	viewmodel.SortBaseModelBy(sortModelsByDate).Sort(childModels)
+	viewmodel.SortBaseModelBy(sortBaseModelsByDate).Sort(childModels)
 
 	return childModels
 }
 
 // sort the models by date and name
-func sortModelsByDate(model1, model2 *viewmodel.Base) bool {
+func sortBaseModelsByDate(model1, model2 *viewmodel.Base) bool {
+
+	return model1.CreationDate > model2.CreationDate
+
+}
+
+// sort the models by date and name
+func sortModelsByDate(model1, model2 *viewmodel.Model) bool {
 
 	return model1.CreationDate > model2.CreationDate
 

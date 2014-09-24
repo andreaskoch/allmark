@@ -30,6 +30,7 @@ var (
 	// Dynamic Routes
 	PrintHandlerRoute  = `/{path:.+\.print$|print$}`
 	JsonHandlerRoute   = `/{path:.+\.json$|json$}`
+	LatestHandlerRoute = `/{path:.+\.latest$|latest$}`
 	RtfHandlerRoute    = `/{path:.+\.rtf$|rtf$}`
 	UpdateHandlerRoute = `/{path:.+\.ws$|ws$}`
 
@@ -123,6 +124,7 @@ func (server *Server) Start() chan error {
 		// serve items
 		requestRouter.HandleFunc(RtfHandlerRoute, server.handlerFactory.NewRtfHandler().Func())
 		requestRouter.HandleFunc(JsonHandlerRoute, server.handlerFactory.NewJsonHandler().Func())
+		requestRouter.HandleFunc(LatestHandlerRoute, server.handlerFactory.NewLatestHandler().Func())
 		requestRouter.HandleFunc(ItemHandlerRoute, server.handlerFactory.NewItemHandler().Func())
 
 		// start http server: http
