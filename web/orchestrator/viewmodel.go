@@ -39,7 +39,19 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 	leafes := orchestrator.getAllLeafes(itemRoute)
 	viewmodel.SortModelBy(sortModelsByDate).Sort(leafes)
 
-	return leafes, true
+	// determine the start index
+	startIndex := pageSize * (page - 1)
+	if startIndex >= len(leafes) {
+		return models, false
+	}
+
+	// determine the end index
+	endIndex := startIndex + pageSize
+	if endIndex > len(leafes) {
+		endIndex = len(leafes)
+	}
+
+	return leafes[startIndex:endIndex], true
 }
 
 func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmodel.Model {
