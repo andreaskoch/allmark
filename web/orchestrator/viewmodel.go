@@ -18,6 +18,8 @@ type ViewModelOrchestrator struct {
 	tagOrchestrator        TagsOrchestrator
 	fileOrchestrator       FileOrchestrator
 	locationOrchestrator   LocationOrchestrator
+
+	viewmodelsByRoute map[string][]*viewmodel.Model
 }
 
 func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
@@ -102,6 +104,12 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmo
 
 func (orchestrator *ViewModelOrchestrator) getAllLeafes(parentRoute route.Route) []*viewmodel.Model {
 
+	// cache lookup
+	key := parentRoute.Value()
+	if leafes, isset := orchestrator.viewmodelsByRoute[key]; isset {
+		return leafes
+	}
+
 	childModels := make([]*viewmodel.Model, 0)
 
 	childItems := orchestrator.getChilds(parentRoute)
@@ -119,6 +127,9 @@ func (orchestrator *ViewModelOrchestrator) getAllLeafes(parentRoute route.Route)
 	for _, childItem := range childItems {
 		childModels = append(childModels, orchestrator.getAllLeafes(childItem.Route())...)
 	}
+
+	// store the value
+	orchestrator.viewmodelsByRoute[key] = childModels
 
 	return childModels
 

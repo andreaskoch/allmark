@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/services/converter"
 	"github.com/andreaskoch/allmark2/services/parser"
+	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"github.com/andreaskoch/allmark2/web/webpaths"
 )
 
@@ -87,6 +88,8 @@ func (factory *Factory) NewViewModelOrchestrator() ViewModelOrchestrator {
 		factory.NewTagsOrchestrator(),
 		factory.NewFileOrchestrator(),
 		factory.NewLocationOrchestrator(),
+
+		make(map[string][]*viewmodel.Model),
 	}
 }
 
