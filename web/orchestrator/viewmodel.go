@@ -34,12 +34,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 
 func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (models []*viewmodel.Model, found bool) {
 
-	item := orchestrator.getItem(itemRoute)
-	if item == nil {
-		return []*viewmodel.Model{}, false
-	}
-
-	leafes := orchestrator.getAllLeafes(item)
+	leafes := orchestrator.getAllLeafes(itemRoute)
 	viewmodel.SortModelBy(sortModelsByDate).Sort(leafes)
 
 	return leafes, true
@@ -105,20 +100,24 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmo
 	return viewModel
 }
 
-func (orchestrator *ViewModelOrchestrator) getAllLeafes(item *model.Item) []*viewmodel.Model {
+func (orchestrator *ViewModelOrchestrator) getAllLeafes(parentRoute route.Route) []*viewmodel.Model {
 
 	childModels := make([]*viewmodel.Model, 0)
 
-	childItems := orchestrator.getChilds(item.Route())
+	childItems := orchestrator.getChilds(parentRoute)
 	if hasNoMoreChilds := len(childItems) == 0; hasNoMoreChilds {
 
-		viewModel := orchestrator.getViewModel(item)
+		viewModel, found := orchestrator.GetViewModel(parentRoute)
+		if !found {
+			return []*viewmodel.Model{}
+		}
+
 		return []*viewmodel.Model{&viewModel}
 	}
 
 	// recurse
 	for _, childItem := range childItems {
-		childModels = append(childModels, orchestrator.getAllLeafes(childItem)...)
+		childModels = append(childModels, orchestrator.getAllLeafes(childItem.Route())...)
 	}
 
 	return childModels
