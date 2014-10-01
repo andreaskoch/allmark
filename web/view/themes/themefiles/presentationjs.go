@@ -7,62 +7,36 @@ package themefiles
 const PresentationJs = `
 $(function() {
 
-	var renderPresentation = function() {
+	/**
+	 * Get the currently opened web route
+	 * @return string The currently opened web route (e.g. "documents/Sample-Document")
+	 */
+	var getUrl = function() {
+	    var url = document.location.pathname;
 
-		var presentationSelector = 'body > article.presentation > .content';
+	    // remove leading slash
+	    var leadingSlash = /^\//;
+	    url = url.replace(leadingSlash, "");
 
-		if ($(presentationSelector).length == 0) {
-			// this document is not a presentation
-			return;
-		}
+	    if (url === "") {
+	    	return "/latest"
+	    }
 
-		/**
-		 * Toggle the page header elements
-		 */
-		var togglePresentationMode = function() {
-			$("body>nav.toplevel").toggle();
-			$("body>nav.breadcrumb").toggle();
-			$(".presentation>header").toggle();
-			$(".presentation>.description").toggle();
-			$("body>footer").toggle();
-		};
-
-		// render the presentation
-		$.deck('.slide', {
-			selectors: {
-				container: presentationSelector
-			},
-			
-			keys: {
-				goto: 71 // 'g'
-			}
-		});
-
-		// handle keyboard shortcuts
-		$(document).keydown(function(e) {
-
-			/* <ctrl> + <shift> */
-			if (e.ctrlKey && (e.which === 16) ) {
-				console.log( "You pressed Ctrl + Shift" );
-				togglePresentationMode();
-			}
-
-		});
-
+	    return "/" + url + ".latest";
 	};
 
-	// render the presentaton
-	renderPresentation();
+	var markup = '<li><h1><a href="${route}">${title}</a></h1><p><a href="${route}">${description}</a></p><section>{{html content}}</section></li>';
 
+	$.template( "itemTemplate", markup );
 
-    // register a on change listener
-    if (typeof(autoupdate) === 'object' && typeof(autoupdate.onchange) === 'function') {
-        autoupdate.onchange(
-            "Render Presentation",
-            function() {
-                renderPresentation();
-            }
-        );
-    }	
+	$.ajax({
+		url: getUrl(),
+		success: function(items) {
+			$.each(items, function(index, item) {
+				$.tmpl( "itemTemplate", item).appendTo( "article>.preview>ul" );
+			});
+		},
+		dataType: "json"
+	});
 
 });`

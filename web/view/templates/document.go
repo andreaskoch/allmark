@@ -22,7 +22,14 @@ const documentTemplate = `
 <div class="cleaner"></div>
 
 {{ if .Childs }}
+<section class="preview">
+	<ul>
+	</ul>
+</section>
+
 <section class="childs">
+<h1>Childs</h1>
+
 <ol class="list">
 {{range .Childs}}
 <li class="child">
@@ -35,6 +42,8 @@ const documentTemplate = `
 {{end}}
 
 {{ if .Locations }}
+<div class="cleaner"></div>
+
 <section class="locations">
 	<header>
 		Locations:
@@ -69,6 +78,8 @@ const documentTemplate = `
 {{end}}
 
 {{ if .Tags }}
+<div class="cleaner"></div>
+
 <section class="tags">
 	<header>
 		Tags:

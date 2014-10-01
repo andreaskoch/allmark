@@ -79,6 +79,8 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 %s
 </article>
 
+<div class="cleaner"></div>
+
 {{if or .PrintUrl .JsonUrl .RtfUrl}}
 <aside>
 <ul>
@@ -101,8 +103,11 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 </footer>
 
 <script src="/theme/jquery.js"></script>
+<script src="/theme/jquery.tmpl.js"></script>
+<script src="/theme/latest.js"></script>
 <script src="/theme/typeahead.js"></script>
 <script src="/theme/search.js"></script>
+
 <script src="/theme/autoupdate.js"></script>
 <script src="/theme/pdf.js"></script>
 <script src="/theme/pdf-preview.js"></script>

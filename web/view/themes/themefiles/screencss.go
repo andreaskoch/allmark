@@ -491,18 +491,42 @@ article>.tags>.tags>.tag>a {
     padding: 3px 6px;
 }
 
+article>.preview {
+    float: left;
+    width: 75%;
+}
+
+article>.preview>ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+article>.preview>ul>li:nth-child(even) {
+    padding: 2.5em 0 0;
+    margin: 2.5em 0 0;
+    border-top: 1px dashed black;
+}
+
 article>.childs {
-    margin: 2em 0 0 0;
+    display: inline;
+    float: right;
+    width: 20%;
+    margin: 0 0 15px 0;
+}
+
+article>.childs>h1 {
+    font-size: 1.5em;
 }
 
 article>.childs>.list {
     list-style: none;
-    padding: 5px 0 5px 0;
-    margin: 0 0 0 1.2em;
+    padding: 0;
+    margin: 0;
 }
 
 article>.childs>.list>.child {
-    margin: 0 0 1.2em 0;
+    margin: 0;
 }
 
 article>.childs>.list>.child:nth-child(odd) {
@@ -511,6 +535,16 @@ article>.childs>.list>.child:nth-child(odd) {
 
 article>.childs>.list>.child:nth-child(even) {
     background-color:transparent;
+}
+
+article>.tagcloud {
+    display: inline;
+    float: right;
+    width: 20%;
+}
+
+article>.tagcloud>h1 {
+    font-size: 1.5em;
 }
 
 .imagegallery {
@@ -616,31 +650,31 @@ section.video>header {
     font-size: 1.2em;
 }
 
-.presentation nav {
+article.presentation nav {
     float: left;
     margin: 2em 0 1.2em 0;
     width: 100%;
     text-align: center;
 }
 
-.presentation nav .controls {
+article.presentation nav .controls {
     float: left;
 }
 
-.presentation nav .pager {
+article.presentation nav .pager {
     display: inline;
     cursor: default;
 }
 
-.presentation nav .jumper {
+article.presentation nav .jumper {
     float: right;
 }
 
-.presentation .content {
+article.presentation .content {
     clear: left;
 }
 
-.presentation .slide {
+article.presentation .slide {
     float: none;
     box-shadow: 0 0 10px #000000;
     padding: 10px;
@@ -677,7 +711,6 @@ section.video>header {
 }
 
 .tagcloud {
-    margin: 0px 20px 35px 20px;
 }
 
 .tagcloud>.tags>span {
@@ -770,7 +803,7 @@ section.video>header {
         min-height: 300px;
     }
 
-    .presentation .slide {
+    article.presentation .slide {
         min-height: 220px;
     }
 }
@@ -780,7 +813,7 @@ section.video>header {
         min-height: 500px;
     }
 
-    .presentation .slide {
+    article.presentation .slide {
         min-height: 320px;
     }
 }
@@ -790,7 +823,7 @@ section.video>header {
         min-height: 600px;
     }
 
-    .presentation .slide {
+    article.presentation .slide {
         min-height: 420px;
     }
 }
@@ -800,7 +833,7 @@ section.video>header {
         min-height: 768px;
     }
 
-    .presentation .slide {
+    article.presentation .slide {
         min-height: 520px;
     }
 }
@@ -811,16 +844,16 @@ section.video>header {
         width: 95%;
     }
 
-    .presentation nav {
+    article.presentation nav {
         margin: 25px 0 15px 0;
         width: 100%;
     }
 
-    .presentation nav .pager {
+    article.presentation nav .pager {
         float: right;
     }
 
-    .presentation nav .jumper {
+    article.presentation nav .jumper {
         display: none;
     }
 }

@@ -12,7 +12,7 @@ var sitemapContentTemplate = fmt.Sprintf(`
 <li>
 	<a href="{{.Path}}" {{ if .Description }}title="{{.Description}}"{{ end }}>{{.Title}}</a>
 
-	{{ if .Childs }}	
+	{{ if .Childs }}
 	<ul>
 	%s
 	</ul>

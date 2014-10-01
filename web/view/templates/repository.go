@@ -22,7 +22,14 @@ const repositoryTemplate = `
 <div class="cleaner"></div>
 
 {{ if .Childs }}
+<section class="preview">
+	<ul>
+	</ul>
+</section>
+
 <section class="childs">
+<h1>Childs</h1>
+
 <ol class="list">
 {{range .Childs}}
 <li class="child">
@@ -37,6 +44,7 @@ const repositoryTemplate = `
 {{if .TagCloud}}
 <section class="tagcloud">
 	<h1>Tag Cloud</h1>
+
 	<div class="tags">
 	{{range .TagCloud}}
 	<span class="level-{{.Level}}">

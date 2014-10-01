@@ -39,22 +39,9 @@ const presentationTemplate = `
 {{.Content}}
 </section>
 
+{{ if .Tags }}
 <div class="cleaner"></div>
 
-{{ if .Childs }}
-<section class="childs">
-<ol class="list">
-{{range .Childs}}
-<li class="child">
-	<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
-	<p class="child-description">{{.Description}}</p>
-</li>
-{{end}}
-</ol>
-</section>
-{{end}}
-
-{{ if .Tags }}
 <section class="tags">
 	<header>
 		Tags:
