@@ -14,6 +14,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/parser"
 	"github.com/andreaskoch/allmark2/web/webpaths"
 	"strings"
+	"time"
 )
 
 func newBaseOrchestrator(logger logger.Logger, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
@@ -92,6 +93,16 @@ func (orchestrator *Orchestrator) getItem(route route.Route) *model.Item {
 	}
 
 	return orchestrator.parseItem(item)
+}
+
+func (orchestrator *ViewModelOrchestrator) getCreationDate(itemRoute route.Route) (creationDate time.Time, found bool) {
+
+	item := orchestrator.getItem(itemRoute)
+	if item == nil {
+		return time.Time{}, false
+	}
+
+	return item.MetaData.CreationDate, true
 }
 
 func (orchestrator *Orchestrator) getFile(route route.Route) *model.File {

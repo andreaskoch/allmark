@@ -9,6 +9,8 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
+	"sort"
+	"time"
 )
 
 type ViewModelOrchestrator struct {
@@ -19,7 +21,7 @@ type ViewModelOrchestrator struct {
 	fileOrchestrator       FileOrchestrator
 	locationOrchestrator   LocationOrchestrator
 
-	viewmodelsByRoute map[string][]*viewmodel.Model
+	leafesByRoute map[string][]route.Route
 }
 
 func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
@@ -37,21 +39,48 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (models []*viewmodel.Model, found bool) {
 
 	leafes := orchestrator.getAllLeafes(itemRoute)
-	viewmodel.SortModelBy(sortModelsByDate).Sort(leafes)
+
+	// collect the creation dates for all leafes
+	routesAndDates := make([]routeAndDate, len(leafes))
+	for _, leaf := range leafes {
+		creationDate, found := orchestrator.getCreationDate(leaf)
+		if !found {
+			// todo: log info
+			continue
+		}
+
+		routesAndDates = append(routesAndDates, routeAndDate{leaf, creationDate})
+	}
+
+	// sort the leafes by date
+	SortItemRoutesAndDatesBy(sortRoutesAndDatesDescending).Sort(routesAndDates)
 
 	// determine the start index
 	startIndex := pageSize * (page - 1)
-	if startIndex >= len(leafes) {
+	if startIndex >= len(routesAndDates) {
 		return models, false
 	}
 
 	// determine the end index
 	endIndex := startIndex + pageSize
-	if endIndex > len(leafes) {
-		endIndex = len(leafes)
+	if endIndex > len(routesAndDates) {
+		endIndex = len(routesAndDates)
 	}
 
-	return leafes[startIndex:endIndex], true
+	selectedRoutesAndDates := routesAndDates[startIndex:endIndex]
+	models = make([]*viewmodel.Model, len(selectedRoutesAndDates))
+	for _, itemRoute := range selectedRoutesAndDates {
+
+		viewModel, found := orchestrator.GetViewModel(itemRoute.route)
+		if !found {
+			// todo: log error
+			continue
+		}
+
+		models = append(models, &viewModel)
+	}
+
+	return models, true
 }
 
 func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmodel.Model {
@@ -114,36 +143,30 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmo
 	return viewModel
 }
 
-func (orchestrator *ViewModelOrchestrator) getAllLeafes(parentRoute route.Route) []*viewmodel.Model {
+func (orchestrator *ViewModelOrchestrator) getAllLeafes(parentRoute route.Route) []route.Route {
 
 	// cache lookup
 	key := parentRoute.Value()
-	if leafes, isset := orchestrator.viewmodelsByRoute[key]; isset {
+	if leafes, isset := orchestrator.leafesByRoute[key]; isset {
 		return leafes
 	}
 
-	childModels := make([]*viewmodel.Model, 0)
+	childRoutes := make([]route.Route, 0)
 
 	childItems := orchestrator.getChilds(parentRoute)
 	if hasNoMoreChilds := len(childItems) == 0; hasNoMoreChilds {
-
-		viewModel, found := orchestrator.GetViewModel(parentRoute)
-		if !found {
-			return []*viewmodel.Model{}
-		}
-
-		return []*viewmodel.Model{&viewModel}
+		return []route.Route{parentRoute}
 	}
 
 	// recurse
 	for _, childItem := range childItems {
-		childModels = append(childModels, orchestrator.getAllLeafes(childItem.Route())...)
+		childRoutes = append(childRoutes, orchestrator.getAllLeafes(childItem.Route())...)
 	}
 
 	// store the value
-	orchestrator.viewmodelsByRoute[key] = childModels
+	orchestrator.leafesByRoute[key] = childRoutes
 
-	return childModels
+	return childRoutes
 
 }
 
@@ -177,9 +200,39 @@ func sortBaseModelsByDate(model1, model2 *viewmodel.Base) bool {
 
 }
 
-// sort the models by date and name
-func sortModelsByDate(model1, model2 *viewmodel.Model) bool {
+func sortRoutesAndDatesDescending(itemRoute1, itemRoute2 routeAndDate) bool {
+	return itemRoute1.date.After(itemRoute2.date)
+}
 
-	return model1.CreationDate > model2.CreationDate
+type routeAndDate struct {
+	route route.Route
+	date  time.Time
+}
 
+type SortItemRoutesAndDatesBy func(itemRoute1, itemRoute2 routeAndDate) bool
+
+func (by SortItemRoutesAndDatesBy) Sort(routesAndDates []routeAndDate) {
+	sorter := &routeAndDateSorter{
+		routesAndDates: routesAndDates,
+		by:             by,
+	}
+
+	sort.Sort(sorter)
+}
+
+type routeAndDateSorter struct {
+	routesAndDates []routeAndDate
+	by             SortItemRoutesAndDatesBy
+}
+
+func (sorter *routeAndDateSorter) Len() int {
+	return len(sorter.routesAndDates)
+}
+
+func (sorter *routeAndDateSorter) Swap(i, j int) {
+	sorter.routesAndDates[i], sorter.routesAndDates[j] = sorter.routesAndDates[j], sorter.routesAndDates[i]
+}
+
+func (sorter *routeAndDateSorter) Less(i, j int) bool {
+	return sorter.by(sorter.routesAndDates[i], sorter.routesAndDates[j])
 }

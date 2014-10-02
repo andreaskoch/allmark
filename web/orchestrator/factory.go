@@ -6,10 +6,10 @@ package orchestrator
 
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/services/converter"
 	"github.com/andreaskoch/allmark2/services/parser"
-	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"github.com/andreaskoch/allmark2/web/webpaths"
 )
 
@@ -89,7 +89,7 @@ func (factory *Factory) NewViewModelOrchestrator() ViewModelOrchestrator {
 		factory.NewFileOrchestrator(),
 		factory.NewLocationOrchestrator(),
 
-		make(map[string][]*viewmodel.Model),
+		make(map[string][]route.Route),
 	}
 }
 
