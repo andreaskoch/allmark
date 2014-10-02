@@ -31,6 +31,10 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 
 		Title:       item.Title,
 		Description: item.Description,
+
+		LanguageTag:      item.MetaData.Language,
+		CreationDate:     item.MetaData.CreationDate.Format("2006-01-02"),
+		LastModifiedDate: item.MetaData.LastModifiedDate.Format("2006-01-02"),
 	}
 
 	return baseModel
