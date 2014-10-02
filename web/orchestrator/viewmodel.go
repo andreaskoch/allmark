@@ -41,7 +41,7 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 	leafes := orchestrator.getAllLeafes(itemRoute)
 
 	// collect the creation dates for all leafes
-	routesAndDates := make([]routeAndDate, len(leafes))
+	routesAndDates := make([]routeAndDate, 0, len(leafes))
 	for _, leaf := range leafes {
 		creationDate, found := orchestrator.getCreationDate(leaf)
 		if !found {
@@ -68,7 +68,7 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 	}
 
 	selectedRoutesAndDates := routesAndDates[startIndex:endIndex]
-	models = make([]*viewmodel.Model, len(selectedRoutesAndDates))
+	models = make([]*viewmodel.Model, 0, len(selectedRoutesAndDates))
 	for _, itemRoute := range selectedRoutesAndDates {
 
 		viewModel, found := orchestrator.GetViewModel(itemRoute.route)
