@@ -40,7 +40,7 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 		handler.logger.Info("Requesting %q", requestRoute)
 
 		// stage 1: check if there is a item for the request
-		if model, found := handler.viewModelOrchestrator.GetViewModel(requestRoute); found {
+		if model, found := handler.viewModelOrchestrator.GetFullViewModel(requestRoute); found {
 			handler.logger.Info("Returning item %q", requestRoute)
 			handler.render(w, model)
 			return

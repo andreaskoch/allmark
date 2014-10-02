@@ -24,6 +24,50 @@ type ViewModelOrchestrator struct {
 	leafesByRoute map[string][]route.Route
 }
 
+func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
+
+	// get the requested item
+	item := orchestrator.getItem(itemRoute)
+	if item == nil {
+		return viewModel, false
+	}
+
+	// get the base view model
+	viewModel = orchestrator.getViewModel(item)
+
+	// navigation
+	viewModel.ToplevelNavigation = orchestrator.navigationOrchestrator.GetToplevelNavigation()
+	viewModel.BreadcrumbNavigation = orchestrator.navigationOrchestrator.GetBreadcrumbNavigation(itemRoute)
+
+	// tags
+	viewModel.Tags = orchestrator.tagOrchestrator.getItemTags(itemRoute)
+
+	// Locations
+	viewModel.Locations = orchestrator.locationOrchestrator.GetLocations(item.MetaData.Locations, func(i *model.Item) viewmodel.Model {
+		return orchestrator.getViewModel(i)
+	})
+
+	// Geo Coordinates
+	viewModel.GeoLocation = getGeoLocation(item)
+
+	// special viewmodel attributes
+	isRepositoryItem := item.Type == model.TypeRepository
+	if isRepositoryItem {
+
+		// tag cloud
+		repositoryIsNotEmpty := orchestrator.repository.Size() > 5 // don't bother to create a tag cloud if there aren't enough documents
+		if repositoryIsNotEmpty {
+
+			tagCloud := orchestrator.tagOrchestrator.GetTagCloud()
+			viewModel.TagCloud = tagCloud
+
+		}
+
+	}
+
+	return viewModel, true
+}
+
 func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
 
 	// get the requested item
@@ -106,38 +150,8 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmo
 		Content: convertedContent,
 		Childs:  orchestrator.getChildModels(itemRoute),
 
-		// navigation
-		ToplevelNavigation:   orchestrator.navigationOrchestrator.GetToplevelNavigation(),
-		BreadcrumbNavigation: orchestrator.navigationOrchestrator.GetBreadcrumbNavigation(itemRoute),
-
-		// tags
-		Tags: orchestrator.tagOrchestrator.getItemTags(itemRoute),
-
 		// files
 		Files: orchestrator.fileOrchestrator.GetFiles(itemRoute),
-
-		// Locations
-		Locations: orchestrator.locationOrchestrator.GetLocations(item.MetaData.Locations, func(i *model.Item) viewmodel.Model {
-			return orchestrator.getViewModel(i)
-		}),
-
-		// Geo Coordinates
-		GeoLocation: getGeoLocation(item),
-	}
-
-	// special viewmodel attributes
-	isRepositoryItem := item.Type == model.TypeRepository
-	if isRepositoryItem {
-
-		// tag cloud
-		repositoryIsNotEmpty := orchestrator.repository.Size() > 5 // don't bother to create a tag cloud if there aren't enough documents
-		if repositoryIsNotEmpty {
-
-			tagCloud := orchestrator.tagOrchestrator.GetTagCloud()
-			viewModel.TagCloud = tagCloud
-
-		}
-
 	}
 
 	return viewModel
