@@ -45,7 +45,19 @@ func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, 
 	pathProvider := orchestrator.absolutePather(addressPrefix)
 
 	feedEntries := make([]viewmodel.FeedEntry, 0)
-	for _, item := range orchestrator.getItems(itemsPerPage, page) {
+
+	latestRoutes, found := orchestrator.getLatestRoutes(rootItem.Route(), itemsPerPage, page)
+	if !found {
+		return feedEntries
+	}
+
+	for _, route := range latestRoutes {
+		item := orchestrator.getItem(route)
+		if item == nil {
+			// todo: log warning
+			continue
+		}
+
 		feedEntries = append(feedEntries, orchestrator.createFeedEntryModel(pathProvider, item))
 	}
 

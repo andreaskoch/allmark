@@ -6,7 +6,6 @@ package orchestrator
 
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
-	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/services/converter"
 	"github.com/andreaskoch/allmark2/services/parser"
@@ -82,8 +81,6 @@ func (factory *Factory) NewTagsOrchestrator() TagsOrchestrator {
 
 func (factory *Factory) NewViewModelOrchestrator() ViewModelOrchestrator {
 
-	leafesByRoute := make(map[string][]route.Route)
-
 	orchestrator := ViewModelOrchestrator{
 		factory.baseOrchestrator,
 
@@ -91,8 +88,6 @@ func (factory *Factory) NewViewModelOrchestrator() ViewModelOrchestrator {
 		factory.NewTagsOrchestrator(),
 		factory.NewFileOrchestrator(),
 		factory.NewLocationOrchestrator(),
-
-		leafesByRoute,
 	}
 
 	// refresh control
