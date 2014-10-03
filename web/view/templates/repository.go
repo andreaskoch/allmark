@@ -30,6 +30,12 @@ const repositoryTemplate = `
 
 <aside class="sidebar">
 
+	{{if .ParentRoute}}
+	<section class="navigation">
+		<a href="{{.ParentRoute}}">↑ Parent</a>
+	</section>
+	{{end}}
+
 	{{ if .Childs }}
 	<section class="childs">
 	<h1>Childs</h1>

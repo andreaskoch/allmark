@@ -17,6 +17,8 @@ type Base struct {
 	Route string `json:"route"`
 	Alias string `json:"alias"`
 
+	ParentRoute string `json:parentRoute`
+
 	BaseUrl  string `json:"baseUrl"`
 	PrintUrl string `json:"printUrl"`
 	JsonUrl  string `json:"jsonUrl"`

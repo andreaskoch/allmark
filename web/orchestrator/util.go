@@ -38,6 +38,12 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 		LastModifiedDate: item.MetaData.LastModifiedDate.Format("2006-01-02"),
 	}
 
+	if item.Route().Level() > 0 {
+		if parentRoute, exists := item.Route().Parent(); exists {
+			baseModel.ParentRoute = pathProvider.Path(parentRoute.Value())
+		}
+	}
+
 	return baseModel
 
 }

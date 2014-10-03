@@ -512,6 +512,10 @@ article>.preview>ul>li:nth-child(even) {
     border-top: 1px dashed black;
 }
 
+aside.sidebar>.navigation {
+    margin: 0 0 15px 0;
+}
+
 aside.sidebar {
     display: inline;
     float: right;
