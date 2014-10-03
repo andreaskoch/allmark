@@ -508,43 +508,43 @@ article>.preview>ul>li:nth-child(even) {
     border-top: 1px dashed black;
 }
 
-article>.childs {
+aside.sidebar {
     display: inline;
     float: right;
     width: 20%;
+}
+
+aside.sidebar>.childs {
     margin: 0 0 15px 0;
 }
 
-article>.childs>h1 {
+aside.sidebar>.childs>h1 {
     font-size: 1.5em;
 }
 
-article>.childs>.list {
+aside.sidebar>.childs>.list {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-article>.childs>.list>.child {
+aside.sidebar>.childs>.list>.child {
     margin: 0;
     margin: 0 0 1.2em 0;
 }
 
-article>.childs>.list>.child:nth-child(odd) {
+aside.sidebar>.childs>.list>.child:nth-child(odd) {
     background-color:#eee;
 }
 
-article>.childs>.list>.child:nth-child(even) {
+aside.sidebar>.childs>.list>.child:nth-child(even) {
     background-color:transparent;
 }
 
-article>.tagcloud {
-    display: inline;
-    float: right;
-    width: 20%;
+aside.sidebar>.tagcloud {
 }
 
-article>.tagcloud>h1 {
+aside.sidebar>.tagcloud>h1 {
     font-size: 1.5em;
 }
 

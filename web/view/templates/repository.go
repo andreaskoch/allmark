@@ -26,32 +26,38 @@ const repositoryTemplate = `
 	<ul>
 	</ul>
 </section>
-
-<section class="childs">
-<h1>Childs</h1>
-
-<ol class="list">
-{{range .Childs}}
-<li class="child">
-	<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
-	<p class="child-description">{{.Description}}</p>
-</li>
-{{end}}
-</ol>
-</section>
 {{end}}
 
-{{if .TagCloud}}
-<section class="tagcloud">
-	<h1>Tag Cloud</h1>
+<aside class="sidebar">
 
-	<div class="tags">
-	{{range .TagCloud}}
-	<span class="level-{{.Level}}">
-		<a href="{{.Route}}">{{.Name}}</a>
-	</span>
+	{{ if .Childs }}
+	<section class="childs">
+	<h1>Childs</h1>
+
+	<ol class="list">
+	{{range .Childs}}
+	<li class="child">
+		<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
+		<p class="child-description">{{.Description}}</p>
+	</li>
 	{{end}}
-	</div>
-</section>
-{{end}}
+	</ol>
+	</section>
+	{{end}}
+
+	{{if .TagCloud}}
+	<section class="tagcloud">
+		<h1>Tag Cloud</h1>
+
+		<div class="tags">
+		{{range .TagCloud}}
+		<span class="level-{{.Level}}">
+			<a href="{{.Route}}">{{.Name}}</a>
+		</span>
+		{{end}}
+		</div>
+	</section>
+	{{end}}
+
+</aside>
 `

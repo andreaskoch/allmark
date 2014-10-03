@@ -26,20 +26,26 @@ const documentTemplate = `
 	<ul>
 	</ul>
 </section>
-
-<section class="childs">
-<h1>Childs</h1>
-
-<ol class="list">
-{{range .Childs}}
-<li class="child">
-	<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
-	<p class="child-description">{{.Description}}</p>
-</li>
 {{end}}
-</ol>
-</section>
-{{end}}
+
+<aside class="sidebar">
+
+	<section class="childs">
+	<h1>Childs</h1>
+
+	{{ if .Childs }}
+	<ol class="list">
+	{{range .Childs}}
+	<li class="child">
+		<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
+		<p class="child-description">{{.Description}}</p>
+	</li>
+	{{end}}
+	</ol>
+	</section>
+	{{end}}
+
+</aside>
 
 {{ if .Locations }}
 <div class="cleaner"></div>

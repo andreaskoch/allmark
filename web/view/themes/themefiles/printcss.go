@@ -89,6 +89,10 @@ body>aside {
     display: none;
 }
 
+aside.sidebar {
+    display: none;
+}
+
 body>footer {
     display: none;
 }
