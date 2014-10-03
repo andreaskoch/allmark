@@ -496,6 +496,10 @@ article>.preview {
     width: 75%;
 }
 
+article>.preview hr {
+    display: none;
+}
+
 article>.preview>ul {
     margin: 0;
     padding: 0;

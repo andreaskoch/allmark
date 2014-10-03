@@ -18,7 +18,6 @@ import (
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/imagegallery"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/markdown"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/pdf"
-	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/presentation"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/reference"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/video"
 	"regexp"
@@ -112,19 +111,6 @@ func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item
 
 	// fix links
 	content = converter.rewireLinks(pathProvider, item, content)
-
-	// presentation
-	isPresentation := item.Type == model.TypePresentation
-	if isPresentation {
-
-		presentationConverter := presentation.New(pathProvider, item.Files())
-		presentationContent, presentationConversionError := presentationConverter.Convert(content)
-		if presentationConversionError != nil {
-			converter.logger.Warn("Error while converting presentation extensions. Error: %s", presentationConversionError)
-		}
-
-		content = presentationContent
-	}
 
 	// append the file list
 	if item.IsFileCollection() && len(item.Files()) > 0 {

@@ -7,9 +7,17 @@ package themefiles
 const PresentationJs = `
 $(function() {
 
+	var presentationSelector = 'article.presentation > .content';
+
+	var transformPresentationStructure = function() {
+		var presentationContent = $(presentationSelector).html();
+		var slides = presentationContent.split("<hr>")
+		var newHtml = '<section class="slide">' + slides.join('</section><section class="slide">') + '</section>';
+		$(presentationSelector).html(newHtml);
+	};
+
 	var renderPresentation = function() {
 
-		var presentationSelector = 'body > article.presentation > .content';
 
 		if ($(presentationSelector).length == 0) {
 			// this document is not a presentation
@@ -22,8 +30,8 @@ $(function() {
 		var togglePresentationMode = function() {
 			$("body>nav.toplevel").toggle();
 			$("body>nav.breadcrumb").toggle();
-			$(".presentation>header").toggle();
-			$(".presentation>.description").toggle();
+			$("article.presentation>header").toggle();
+			$("article.presentation>.description").toggle();
 			$("body>footer").toggle();
 		};
 
@@ -51,9 +59,11 @@ $(function() {
 
 	};
 
+	// transform the content
+	transformPresentationStructure();
+
 	// render the presentaton
 	renderPresentation();
-
 
     // register a on change listener
     if (typeof(autoupdate) === 'object' && typeof(autoupdate.onchange) === 'function') {
