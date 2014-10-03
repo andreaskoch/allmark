@@ -527,6 +527,7 @@ article>.childs>.list {
 
 article>.childs>.list>.child {
     margin: 0;
+    margin: 0 0 1.2em 0;
 }
 
 article>.childs>.list>.child:nth-child(odd) {
