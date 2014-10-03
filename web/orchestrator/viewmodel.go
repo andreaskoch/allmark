@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
+	converter "github.com/andreaskoch/allmark2/services/converter/markdowntohtml"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 )
 
@@ -116,6 +117,9 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 			// todo: log error
 			continue
 		}
+
+		// prepare lazy loading
+		viewModel.Content = converter.LazyLoad(viewModel.Content)
 
 		models = append(models, &viewModel)
 	}

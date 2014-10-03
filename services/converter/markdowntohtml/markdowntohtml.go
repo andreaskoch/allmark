@@ -26,6 +26,8 @@ import (
 )
 
 var (
+	htmlImageSourcePattern = regexp.MustCompile(`src="([^"]+)"`)
+
 	htmlLinkPattern = regexp.MustCompile(`(src|href)="([^"]+)"`)
 
 	markdownItemLinkPattern = regexp.MustCompile(`\[(.*)\]\(/([^)]+)\)`)
@@ -205,4 +207,28 @@ func getMatchingFiles(path string, item *model.Item) *model.File {
 	}
 
 	return nil
+}
+
+func LazyLoad(html string) string {
+
+	allMatches := htmlImageSourcePattern.FindAllStringSubmatch(html, -1)
+	for _, matches := range allMatches {
+
+		if len(matches) != 2 {
+			continue
+		}
+
+		// components
+		originalText := strings.TrimSpace(matches[0])
+		path := strings.TrimSpace(matches[1])
+
+		// assemble the new link
+		newLinkText := fmt.Sprintf("data-lazyload=\"true\" %s=\"%s\"", "data-src", path)
+
+		// replace the old text
+		html = strings.Replace(html, originalText, newLinkText, -1)
+
+	}
+
+	return html
 }

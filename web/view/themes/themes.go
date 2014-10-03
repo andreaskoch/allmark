@@ -54,6 +54,12 @@ func init() {
 			// latest/preview
 			newFileFromText("latest.js", themefiles.LatestJs),
 			newFileFromText("jquery.tmpl.js", themefiles.JqueryTempl),
+
+			// lazy-loading
+			newFileFromText("jquery.lazyload.js", themefiles.JqueryLazyLoadJs),
+
+			// global
+			newFileFromText("site.js", themefiles.SiteJs),
 		},
 	}
 
