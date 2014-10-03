@@ -14,7 +14,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<meta charset="utf-8">
 	<base href="{{ .BaseUrl }}">
 
-	<title>{{.Title}}</title>
+	<title>{{.PageTitle}}</title>
 
 	<link rel="schema.DC" href="http://purl.org/dc/terms/">
 	<link rel="search" type="application/opensearchdescription+xml" title="{{.RepositoryName}}" href="/opensearch.xml" />

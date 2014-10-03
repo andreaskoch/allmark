@@ -29,6 +29,7 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 		JsonUrl:  GetTypedItemUrl(item.Route(), "json"),
 		RtfUrl:   GetTypedItemUrl(item.Route(), "rtf"),
 
+		PageTitle:   getPageTitle(root, item),
 		Title:       item.Title,
 		Description: item.Description,
 
@@ -39,6 +40,14 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 
 	return baseModel
 
+}
+
+func getPageTitle(rootItem, item *model.Item) string {
+	if item.Route().Value() == rootItem.Route().Value() {
+		return item.Title
+	}
+
+	return fmt.Sprintf("%s - %s", item.Title, rootItem.Title)
 }
 
 func GetBaseUrl(route route.Route) string {

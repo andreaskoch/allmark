@@ -22,6 +22,7 @@ type Base struct {
 	JsonUrl  string `json:"jsonUrl"`
 	RtfUrl   string `json:"rtfUrl"`
 
+	PageTitle   string `json:"pageTitle"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 
