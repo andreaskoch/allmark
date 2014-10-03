@@ -17,6 +17,7 @@ type Model struct {
 
 	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
 	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
+	ItemNavigation       *ItemNavigation       `json:itemNavigation`
 
 	Tags     []*Tag    `json:"tags"`
 	TagCloud *TagCloud `json:"tagCloud"`

@@ -255,26 +255,31 @@ td {
     vertical-align: top;
 }
 
-body>aside {
+body>article {
+    float: left;
+    width: 75%;
+}
+
+body>aside.export {
     margin: 0px;
 }
 
-body>aside {
+body>aside.export {
     text-align: right;
 }
 
-body>aside>ul {
+body>aside.export>ul {
     list-style: none;
     margin: 0px;
     padding: 0px;
 }
 
-body>aside>ul>li {
+body>aside.export>ul>li {
     display: inline;
     margin-left: 1em;
 }
 
-body>aside>ul>li>a {
+body>aside.export>ul>li>a {
     color: #000000;
     font-size: 0.8em;
 }

@@ -60,3 +60,28 @@ func (orchestrator *NavigationOrchestrator) GetBreadcrumbNavigation(route route.
 
 	return navigation
 }
+
+func (orchestrator *NavigationOrchestrator) GetItemNavigation(route route.Route) *viewmodel.ItemNavigation {
+
+	// create a new item navigation
+	navigation := &viewmodel.ItemNavigation{}
+
+	// get the item for the supplied route
+	item := orchestrator.getItem(route)
+	if item == nil {
+		return navigation
+	}
+
+	// get the parent
+	if route.Level() > 0 {
+		if parent := orchestrator.getParent(item.Route()); parent != nil {
+			navigation.Parent = &viewmodel.NavEntry{
+				Title:       parent.Title,
+				Description: parent.Description,
+				Path:        orchestrator.itemPather().Path(parent.Route().Value()),
+			}
+		}
+	}
+
+	return navigation
+}

@@ -21,6 +21,13 @@ const locationTemplate = `
 
 <div class="cleaner"></div>
 
+{{ if .Childs }}
+<section class="preview">
+	<ul>
+	</ul>
+</section>
+{{end}}
+
 {{ if .RelatedItems }}
 <section class="related-items">
 <ol class="list">
@@ -28,26 +35,6 @@ const locationTemplate = `
 <li class="related-item">
 	<a href="{{.Route}}">{{.Title}}</a>
 	<p>{{.Description}}</p>
-</li>
-{{end}}
-</ol>
-</section>
-{{end}}
-
-{{ if .Childs }}
-<section class="preview">
-	<ul>
-	</ul>
-</section>
-
-<section class="childs">
-<h1>Childs</h1>
-
-<ol class="list">
-{{range .Childs}}
-<li class="child">
-	<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
-	<p class="child-description">{{.Description}}</p>
 </li>
 {{end}}
 </ol>

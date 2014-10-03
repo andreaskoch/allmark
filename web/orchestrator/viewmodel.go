@@ -35,6 +35,7 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	// navigation
 	viewModel.ToplevelNavigation = orchestrator.navigationOrchestrator.GetToplevelNavigation()
 	viewModel.BreadcrumbNavigation = orchestrator.navigationOrchestrator.GetBreadcrumbNavigation(itemRoute)
+	viewModel.ItemNavigation = orchestrator.navigationOrchestrator.GetItemNavigation(itemRoute)
 
 	// tags
 	viewModel.Tags = orchestrator.tagOrchestrator.getItemTags(itemRoute)

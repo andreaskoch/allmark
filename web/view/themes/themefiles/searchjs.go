@@ -46,7 +46,7 @@ $('.typeahead').typeahead(
 		source: searchDataSource.ttAdapter(),
 		templates: {
 			header: '<h3>Search Results</h3>'
-		}			
+		}
 	}
 ).on('typeahead:selected', function(event, datum) {
 	window.location = datum.route;

@@ -79,10 +79,51 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 %s
 </article>
 
+<aside class="sidebar">
+
+	{{if .ItemNavigation}}
+	<section class="navigation">
+		{{if .ItemNavigation.Parent}}
+		<a href="{{.ItemNavigation.Parent.Path}}" title="{{.ItemNavigation.Parent.Title}}">↑ Parent</a>
+		{{end}}
+	</section>
+	{{end}}
+
+	{{ if .Childs }}
+	<section class="childs">
+	<h1>Childs</h1>
+
+	<ol class="list">
+	{{range .Childs}}
+	<li class="child">
+		<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
+		<p class="child-description">{{.Description}}</p>
+	</li>
+	{{end}}
+	</ol>
+	</section>
+	{{end}}
+
+	{{if .TagCloud}}
+	<section class="tagcloud">
+		<h1>Tag Cloud</h1>
+
+		<div class="tags">
+		{{range .TagCloud}}
+		<span class="level-{{.Level}}">
+			<a href="{{.Route}}">{{.Name}}</a>
+		</span>
+		{{end}}
+		</div>
+	</section>
+	{{end}}
+
+</aside>
+
 <div class="cleaner"></div>
 
 {{if or .PrintUrl .JsonUrl .RtfUrl}}
-<aside>
+<aside class="export">
 <ul>
 	{{if .PrintUrl}}<li><a href="{{.PrintUrl}}">Print</a></li>{{end}}
 	{{if .JsonUrl}}<li><a href="{{.JsonUrl}}">JSON</a></li>{{end}}

@@ -5,6 +5,6 @@
 package viewmodel
 
 type XmlSitemapEntry struct {
-	Loc          string
-	LastModified string
+	Loc          string `json:loc`
+	LastModified string `json:lastModified`
 }

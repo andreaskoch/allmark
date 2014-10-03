@@ -22,31 +22,6 @@ const messageTemplate = `
 </section>
 {{end}}
 
-<aside class="sidebar">
-
-	{{if .ParentRoute}}
-	<section class="navigation">
-		<a href="{{.ParentRoute}}">↑ Parent</a>
-	</section>
-	{{end}}
-
-	{{ if .Childs }}
-	<section class="childs">
-	<h1>Childs</h1>
-
-	<ol class="list">
-	{{range .Childs}}
-	<li class="child">
-		<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
-		<p class="child-description">{{.Description}}</p>
-	</li>
-	{{end}}
-	</ol>
-	</section>
-	{{end}}
-
-</aside>
-
 {{ if .Tags }}
 <div class="cleaner"></div>
 
