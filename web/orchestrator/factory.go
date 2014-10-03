@@ -81,7 +81,10 @@ func (factory *Factory) NewTagsOrchestrator() TagsOrchestrator {
 }
 
 func (factory *Factory) NewViewModelOrchestrator() ViewModelOrchestrator {
-	return ViewModelOrchestrator{
+
+	leafesByRoute := make(map[string][]route.Route)
+
+	orchestrator := ViewModelOrchestrator{
 		factory.baseOrchestrator,
 
 		factory.NewNavigationOrchestrator(),
@@ -89,8 +92,22 @@ func (factory *Factory) NewViewModelOrchestrator() ViewModelOrchestrator {
 		factory.NewFileOrchestrator(),
 		factory.NewLocationOrchestrator(),
 
-		make(map[string][]route.Route),
+		leafesByRoute,
 	}
+
+	// refresh control
+	go func() {
+		for {
+			select {
+			case <-orchestrator.repository.AfterReindex():
+				// reset the list
+				factory.logger.Info("Resetting the leafes list")
+				orchestrator.ResetCache()
+			}
+		}
+	}()
+
+	return orchestrator
 }
 
 func (factory *Factory) NewXmlSitemapOrchestrator() XmlSitemapOrchestrator {

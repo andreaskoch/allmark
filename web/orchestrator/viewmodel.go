@@ -24,6 +24,10 @@ type ViewModelOrchestrator struct {
 	leafesByRoute map[string][]route.Route
 }
 
+func (orchestrator *ViewModelOrchestrator) ResetCache() {
+	orchestrator.leafesByRoute = make(map[string][]route.Route)
+}
+
 func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
 
 	// get the requested item
