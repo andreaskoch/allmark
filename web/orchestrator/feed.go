@@ -40,40 +40,16 @@ func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, 
 		orchestrator.logger.Fatal("No root item found")
 	}
 
-	// determine start item
-	startItemNumber := itemsPerPage * (page - 1)
-
-	// determine end item
-	endItemNumber := itemsPerPage * page
-
 	// create the path provider
 	addressPrefix := fmt.Sprintf("http://%s/", hostname)
 	pathProvider := orchestrator.absolutePather(addressPrefix)
 
-	childs := make([]viewmodel.FeedEntry, 0)
-	for _, item := range orchestrator.repository.Items() {
-
-		parsedItem := orchestrator.parseItem(item)
-		if parsedItem == nil {
-			orchestrator.logger.Warn("Cannot parse item %q", item.String())
-			continue
-		}
-
-		// skip virtual items
-		if parsedItem.IsVirtual() {
-			continue
-		}
-
-		// paging
-		currentNumberOfItems := len(childs)
-		if currentNumberOfItems < startItemNumber || currentNumberOfItems >= endItemNumber {
-			continue
-		}
-
-		childs = append(childs, orchestrator.createFeedEntryModel(pathProvider, parsedItem))
+	feedEntries := make([]viewmodel.FeedEntry, 0)
+	for _, item := range orchestrator.getItems(itemsPerPage, page) {
+		feedEntries = append(feedEntries, orchestrator.createFeedEntryModel(pathProvider, item))
 	}
 
-	return childs
+	return feedEntries
 }
 
 func (orchestrator *FeedOrchestrator) createFeedEntryModel(pathProvider paths.Pather, item *model.Item) viewmodel.FeedEntry {
@@ -87,13 +63,13 @@ func (orchestrator *FeedOrchestrator) createFeedEntryModel(pathProvider paths.Pa
 		content = err.Error()
 	}
 
-	// last modified date
-	lastModifiedDate := item.MetaData.LastModifiedDate.Format("2006-01-02")
+	// creation date
+	creationDate := item.MetaData.CreationDate.Format("2006-01-02")
 
 	return viewmodel.FeedEntry{
 		Title:       item.Title,
 		Description: content,
 		Link:        location,
-		PubDate:     lastModifiedDate,
+		PubDate:     creationDate,
 	}
 }

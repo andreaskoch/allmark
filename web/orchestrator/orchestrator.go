@@ -95,6 +95,43 @@ func (orchestrator *Orchestrator) getItem(route route.Route) *model.Item {
 	return orchestrator.parseItem(item)
 }
 
+func (orchestrator *Orchestrator) getAllItems() []*model.Item {
+
+	allItems := make([]*model.Item, 0)
+
+	for _, repositoryItem := range orchestrator.repository.Items() {
+		item := orchestrator.parseItem(repositoryItem)
+		if item == nil {
+			continue
+		}
+
+		allItems = append(allItems, item)
+	}
+
+	model.SortItemsBy(sortItemsByDate).Sort(allItems)
+
+	return allItems
+}
+
+func (orchestrator *Orchestrator) getItems(pageSize, page int) []*model.Item {
+
+	allItems := orchestrator.getAllItems()
+
+	// determine the start index
+	startIndex := pageSize * (page - 1)
+	if startIndex >= len(allItems) {
+		return []*model.Item{}
+	}
+
+	// determine the end index
+	endIndex := startIndex + pageSize
+	if endIndex > len(allItems) {
+		endIndex = len(allItems)
+	}
+
+	return allItems[startIndex:endIndex]
+}
+
 func (orchestrator *ViewModelOrchestrator) getCreationDate(itemRoute route.Route) (creationDate time.Time, found bool) {
 
 	item := orchestrator.getItem(itemRoute)
@@ -182,4 +219,11 @@ func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 	}
 
 	return orchestrator.itemsByAlias[alias]
+}
+
+// sort the models by date and name
+func sortItemsByDate(model1, model2 *model.Item) bool {
+
+	return model1.MetaData.CreationDate.Before(model2.MetaData.CreationDate)
+
 }

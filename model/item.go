@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/dataaccess"
+	"sort"
 )
 
 type ItemType int
@@ -97,4 +98,32 @@ func (item *Item) IsVirtual() bool {
 
 func (item *Item) IsFileCollection() bool {
 	return item.sourceType == dataaccess.TypeFileCollection
+}
+
+type SortItemsBy func(item1, item2 *Item) bool
+
+func (by SortItemsBy) Sort(items []*Item) {
+	sorter := &modelSorter{
+		items: items,
+		by:    by,
+	}
+
+	sort.Sort(sorter)
+}
+
+type modelSorter struct {
+	items []*Item
+	by    SortItemsBy
+}
+
+func (sorter *modelSorter) Len() int {
+	return len(sorter.items)
+}
+
+func (sorter *modelSorter) Swap(i, j int) {
+	sorter.items[i], sorter.items[j] = sorter.items[j], sorter.items[i]
+}
+
+func (sorter *modelSorter) Less(i, j int) bool {
+	return sorter.by(sorter.items[i], sorter.items[j])
 }
