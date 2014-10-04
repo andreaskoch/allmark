@@ -28,19 +28,6 @@ const locationTemplate = `
 </section>
 {{end}}
 
-{{ if .RelatedItems }}
-<section class="related-items">
-<ol class="list">
-{{range .RelatedItems}}
-<li class="related-item">
-	<a href="{{.Route}}">{{.Title}}</a>
-	<p>{{.Description}}</p>
-</li>
-{{end}}
-</ol>
-</section>
-{{end}}
-
 {{ if .Tags }}
 <div class="cleaner"></div>
 
