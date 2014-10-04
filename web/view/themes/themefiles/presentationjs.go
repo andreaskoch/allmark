@@ -9,6 +9,11 @@ $(function() {
 
 	var presentationSelector = 'article.presentation > .content';
 
+	// abort if the presentation selector is not found
+	if ($(presentationSelector).length === 0) {
+		return;
+	}
+
 	var transformPresentationStructure = function() {
 		var presentationContent = $(presentationSelector).html();
 		var slides = presentationContent.split("<hr>")
@@ -30,8 +35,14 @@ $(function() {
 		var togglePresentationMode = function() {
 			$("body>nav.toplevel").toggle();
 			$("body>nav.breadcrumb").toggle();
+			$("body>nav.search").toggle();
+			$("aside.sidebar").toggle();
+			$("article.presentation").toggleClass("presentation-mode");
 			$("article.presentation>header").toggle();
+			$("article.presentation>nav").toggle();
 			$("article.presentation>.description").toggle();
+			$("article.presentation>.tags").toggle();
+			$("aside.export").toggle();
 			$("body>footer").toggle();
 		};
 

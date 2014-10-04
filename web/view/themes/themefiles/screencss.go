@@ -671,6 +671,11 @@ section.video>header {
     font-size: 1.2em;
 }
 
+article.presentation-mode {
+    width: 100%;
+    padding: 3em 0 0 0;
+}
+
 article.presentation nav {
     float: left;
     margin: 2em 0 1.2em 0;

@@ -169,6 +169,12 @@ func (orchestrator *Orchestrator) getAllLeafes(parentRoute route.Route) []route.
 
 	// recurse
 	for _, childItem := range childItems {
+
+		// skip locations
+		if childItem.Type == model.TypeLocation {
+			continue
+		}
+
 		childRoutes = append(childRoutes, orchestrator.getAllLeafes(childItem.Route())...)
 	}
 
