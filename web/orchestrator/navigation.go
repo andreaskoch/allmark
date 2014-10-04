@@ -73,13 +73,29 @@ func (orchestrator *NavigationOrchestrator) GetItemNavigation(route route.Route)
 	}
 
 	// get the parent
-	if route.Level() > 0 {
-		if parent := orchestrator.getParent(item.Route()); parent != nil {
-			navigation.Parent = &viewmodel.NavEntry{
-				Title:       parent.Title,
-				Description: parent.Description,
-				Path:        orchestrator.itemPather().Path(parent.Route().Value()),
-			}
+	if parent := orchestrator.getParent(item.Route()); parent != nil {
+		navigation.Parent = &viewmodel.NavEntry{
+			Title:       parent.Title,
+			Description: parent.Description,
+			Path:        orchestrator.itemPather().Path(parent.Route().Value()),
+		}
+	}
+
+	// previous
+	if previous := orchestrator.getPrevious(item.Route()); previous != nil {
+		navigation.Previous = &viewmodel.NavEntry{
+			Title:       previous.Title,
+			Description: previous.Description,
+			Path:        orchestrator.itemPather().Path(previous.Route().Value()),
+		}
+	}
+
+	// next
+	if next := orchestrator.getNext(item.Route()); next != nil {
+		navigation.Next = &viewmodel.NavEntry{
+			Title:       next.Title,
+			Description: next.Description,
+			Path:        orchestrator.itemPather().Path(next.Route().Value()),
 		}
 	}
 

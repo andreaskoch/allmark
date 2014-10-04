@@ -235,6 +235,60 @@ func (orchestrator *Orchestrator) getParent(route route.Route) *model.Item {
 	return orchestrator.parseItem(parent)
 }
 
+func (orchestrator *Orchestrator) getPrevious(route route.Route) *model.Item {
+	allItems := orchestrator.getAllItems()
+
+	// determine the position of the supplied route
+	matchingIndex := -1
+	for index, item := range allItems {
+		if item.Route().Value() == route.Value() {
+			matchingIndex = index
+			break
+		}
+	}
+
+	// abort if the route was not found at all
+	if noMatchFound := (matchingIndex == -1); noMatchFound {
+		return nil
+	}
+
+	// abort if there is no previous item
+	if noPreviousItem := (matchingIndex == 0); noPreviousItem {
+		return nil
+	}
+
+	// return the previous item
+	previousIndex := matchingIndex - 1
+	return allItems[previousIndex]
+}
+
+func (orchestrator *Orchestrator) getNext(route route.Route) *model.Item {
+	allItems := orchestrator.getAllItems()
+
+	// determine the position of the supplied route
+	matchingIndex := -1
+	for index, item := range allItems {
+		if item.Route().Value() == route.Value() {
+			matchingIndex = index
+			break
+		}
+	}
+
+	// abort if the route was not found at all
+	if noMatchFound := (matchingIndex == -1); noMatchFound {
+		return nil
+	}
+
+	// abort if there is no next item
+	nextIndex := matchingIndex + 1
+	if nextIndex >= len(allItems) {
+		return nil
+	}
+
+	// return the next item
+	return allItems[nextIndex]
+}
+
 func (orchestrator *Orchestrator) getChilds(route route.Route) (childs []*model.Item) {
 
 	childs = make([]*model.Item, 0)

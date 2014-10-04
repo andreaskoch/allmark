@@ -83,8 +83,16 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 	{{if .ItemNavigation}}
 	<section class="navigation">
+		{{if .ItemNavigation.Previous}}
+		<a href="{{.ItemNavigation.Previous.Path}}" title="{{.ItemNavigation.Previous.Title}}">← Previous</a>
+		{{end}}
+
 		{{if .ItemNavigation.Parent}}
 		<a href="{{.ItemNavigation.Parent.Path}}" title="{{.ItemNavigation.Parent.Title}}">↑ Parent</a>
+		{{end}}
+
+		{{if .ItemNavigation.Next}}
+		<a href="{{.ItemNavigation.Next.Path}}" title="{{.ItemNavigation.Next.Title}}">Next →</a>
 		{{end}}
 	</section>
 	{{end}}
