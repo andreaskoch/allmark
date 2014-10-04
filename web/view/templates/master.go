@@ -82,19 +82,25 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <aside class="sidebar">
 
 	{{if .ItemNavigation}}
-	<section class="navigation">
-		{{if .ItemNavigation.Previous}}
-		<a href="{{.ItemNavigation.Previous.Path}}" title="{{.ItemNavigation.Previous.Title}}">← Previous</a>
-		{{end}}
+	<nav class="navigation">
+		<div class="navelement parent">
+			{{if .ItemNavigation.Parent}}
+			<a href="{{.ItemNavigation.Parent.Path}}" title="{{.ItemNavigation.Parent.Title}}">↑ Parent</a>
+			{{end}}
+		</div>
 
-		{{if .ItemNavigation.Parent}}
-		<a href="{{.ItemNavigation.Parent.Path}}" title="{{.ItemNavigation.Parent.Title}}">↑ Parent</a>
-		{{end}}
+		<div class="navelement previous">
+			{{if .ItemNavigation.Previous}}
+			<a class="previous" href="{{.ItemNavigation.Previous.Path}}" title="{{.ItemNavigation.Previous.Title}}">← Previous</a>
+			{{end}}
+		</div>
 
-		{{if .ItemNavigation.Next}}
-		<a href="{{.ItemNavigation.Next.Path}}" title="{{.ItemNavigation.Next.Title}}">Next →</a>
-		{{end}}
-	</section>
+		<div class="navelement next">
+			{{if .ItemNavigation.Next}}
+			<a class="next" href="{{.ItemNavigation.Next.Path}}" title="{{.ItemNavigation.Next.Title}}">Next →</a>
+			{{end}}
+		</div>
+	</nav>
 	{{end}}
 
 	{{ if .Childs }}

@@ -519,6 +519,13 @@ article>.preview>ul>li:nth-child(even) {
 
 aside.sidebar>.navigation {
     margin: 0 0 15px 0;
+    padding: 0 0 10px 0;
+    text-align: right;
+}
+
+aside.sidebar>.navigation>.navelement {
+    display: block;
+    height: 1.2em;
 }
 
 aside.sidebar {
