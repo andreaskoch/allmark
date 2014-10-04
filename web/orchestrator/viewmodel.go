@@ -80,40 +80,17 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 
 func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (models []*viewmodel.Model, found bool) {
 
-	leafes := orchestrator.getAllLeafes(itemRoute)
-
-	// collect the creation dates for all leafes
-	routesAndDates := make([]routeAndDate, 0, len(leafes))
-	for _, leaf := range leafes {
-		creationDate, found := orchestrator.getCreationDate(leaf)
-		if !found {
-			// todo: log info
-			continue
-		}
-
-		routesAndDates = append(routesAndDates, routeAndDate{leaf, creationDate})
-	}
-
-	// sort the leafes by date
-	SortItemRoutesAndDatesBy(sortRoutesAndDatesDescending).Sort(routesAndDates)
-
-	// determine the start index
-	startIndex := pageSize * (page - 1)
-	if startIndex >= len(routesAndDates) {
+	// get the latest routes
+	latestRoutes, found := orchestrator.getLatestRoutesByPage(itemRoute, pageSize, page)
+	if !found {
 		return models, false
 	}
 
-	// determine the end index
-	endIndex := startIndex + pageSize
-	if endIndex > len(routesAndDates) {
-		endIndex = len(routesAndDates)
-	}
+	// create viewmodels
+	models = make([]*viewmodel.Model, 0, len(latestRoutes))
+	for _, route := range latestRoutes {
 
-	selectedRoutesAndDates := routesAndDates[startIndex:endIndex]
-	models = make([]*viewmodel.Model, 0, len(selectedRoutesAndDates))
-	for _, itemRoute := range selectedRoutesAndDates {
-
-		viewModel, found := orchestrator.GetViewModel(itemRoute.route)
+		viewModel, found := orchestrator.GetViewModel(route)
 		if !found {
 			// todo: log error
 			continue

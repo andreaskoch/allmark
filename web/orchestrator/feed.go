@@ -46,7 +46,7 @@ func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, 
 
 	feedEntries := make([]viewmodel.FeedEntry, 0)
 
-	latestRoutes, found := orchestrator.getLatestRoutes(rootItem.Route(), itemsPerPage, page)
+	latestRoutes, found := orchestrator.getLatestRoutesByPage(rootItem.Route(), itemsPerPage, page)
 	if !found {
 		return feedEntries
 	}

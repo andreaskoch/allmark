@@ -103,7 +103,29 @@ func (orchestrator *Orchestrator) getItem(route route.Route) *model.Item {
 	return orchestrator.parseItem(item)
 }
 
-func (orchestrator *Orchestrator) getLatestRoutes(parentRoute route.Route, pageSize, page int) (routes []route.Route, found bool) {
+func (orchestrator *Orchestrator) getLatestRoutesByPage(parentRoute route.Route, pageSize, page int) (routes []route.Route, found bool) {
+
+	latestRoutes, found := orchestrator.getLatestRoutes(parentRoute)
+	if !found {
+		return []route.Route{}, false
+	}
+
+	// determine the start index
+	startIndex := pageSize * (page - 1)
+	if startIndex >= len(latestRoutes) {
+		return []route.Route{}, false
+	}
+
+	// determine the end index
+	endIndex := startIndex + pageSize
+	if endIndex > len(latestRoutes) {
+		endIndex = len(latestRoutes)
+	}
+
+	return latestRoutes[startIndex:endIndex], true
+}
+
+func (orchestrator *Orchestrator) getLatestRoutes(parentRoute route.Route) (routes []route.Route, found bool) {
 
 	leafes := orchestrator.getAllLeafes(parentRoute)
 
@@ -122,21 +144,8 @@ func (orchestrator *Orchestrator) getLatestRoutes(parentRoute route.Route, pageS
 	// sort the leafes by date
 	SortItemRoutesAndDatesBy(sortRoutesAndDatesDescending).Sort(routesAndDates)
 
-	// determine the start index
-	startIndex := pageSize * (page - 1)
-	if startIndex >= len(routesAndDates) {
-		return []route.Route{}, false
-	}
-
-	// determine the end index
-	endIndex := startIndex + pageSize
-	if endIndex > len(routesAndDates) {
-		endIndex = len(routesAndDates)
-	}
-
 	routes = make([]route.Route, 0)
-	selectedRoutesAndDates := routesAndDates[startIndex:endIndex]
-	for _, routeAndDate := range selectedRoutesAndDates {
+	for _, routeAndDate := range routesAndDates {
 		routes = append(routes, routeAndDate.route)
 	}
 
@@ -235,13 +244,16 @@ func (orchestrator *Orchestrator) getParent(route route.Route) *model.Item {
 	return orchestrator.parseItem(parent)
 }
 
-func (orchestrator *Orchestrator) getPrevious(route route.Route) *model.Item {
-	allItems := orchestrator.getAllItems()
+func (orchestrator *Orchestrator) getPrevious(currentRoute route.Route) *model.Item {
+	latestRoutes, found := orchestrator.getLatestRoutes(route.New())
+	if !found {
+		return nil
+	}
 
 	// determine the position of the supplied route
 	matchingIndex := -1
-	for index, item := range allItems {
-		if item.Route().Value() == route.Value() {
+	for index, route := range latestRoutes {
+		if route.Value() == currentRoute.Value() {
 			matchingIndex = index
 			break
 		}
@@ -253,22 +265,27 @@ func (orchestrator *Orchestrator) getPrevious(route route.Route) *model.Item {
 	}
 
 	// abort if there is no previous item
-	if noPreviousItem := (matchingIndex == 0); noPreviousItem {
+	previousIndex := matchingIndex - 1
+	if noPreviousItem := (previousIndex < 0); noPreviousItem {
 		return nil
 	}
 
-	// return the previous item
-	previousIndex := matchingIndex - 1
-	return allItems[previousIndex]
+	// determine the previous route
+	previousRoute := latestRoutes[previousIndex]
+
+	return orchestrator.getItem(previousRoute)
 }
 
-func (orchestrator *Orchestrator) getNext(route route.Route) *model.Item {
-	allItems := orchestrator.getAllItems()
+func (orchestrator *Orchestrator) getNext(currentRoute route.Route) *model.Item {
+	latestRoutes, found := orchestrator.getLatestRoutes(route.New())
+	if !found {
+		return nil
+	}
 
 	// determine the position of the supplied route
 	matchingIndex := -1
-	for index, item := range allItems {
-		if item.Route().Value() == route.Value() {
+	for index, route := range latestRoutes {
+		if route.Value() == currentRoute.Value() {
 			matchingIndex = index
 			break
 		}
@@ -281,12 +298,14 @@ func (orchestrator *Orchestrator) getNext(route route.Route) *model.Item {
 
 	// abort if there is no next item
 	nextIndex := matchingIndex + 1
-	if nextIndex >= len(allItems) {
+	if nextIndex >= len(latestRoutes) {
 		return nil
 	}
 
-	// return the next item
-	return allItems[nextIndex]
+	// determine the next route
+	nextRoute := latestRoutes[nextIndex]
+
+	return orchestrator.getItem(nextRoute)
 }
 
 func (orchestrator *Orchestrator) getChilds(route route.Route) (childs []*model.Item) {
