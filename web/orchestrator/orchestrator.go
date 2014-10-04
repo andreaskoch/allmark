@@ -245,38 +245,7 @@ func (orchestrator *Orchestrator) getParent(route route.Route) *model.Item {
 }
 
 func (orchestrator *Orchestrator) getPrevious(currentRoute route.Route) *model.Item {
-	latestRoutes, found := orchestrator.getLatestRoutes(route.New())
-	if !found {
-		return nil
-	}
 
-	// determine the position of the supplied route
-	matchingIndex := -1
-	for index, route := range latestRoutes {
-		if route.Value() == currentRoute.Value() {
-			matchingIndex = index
-			break
-		}
-	}
-
-	// abort if the route was not found at all
-	if noMatchFound := (matchingIndex == -1); noMatchFound {
-		return nil
-	}
-
-	// abort if there is no previous item
-	previousIndex := matchingIndex - 1
-	if noPreviousItem := (previousIndex < 0); noPreviousItem {
-		return nil
-	}
-
-	// determine the previous route
-	previousRoute := latestRoutes[previousIndex]
-
-	return orchestrator.getItem(previousRoute)
-}
-
-func (orchestrator *Orchestrator) getNext(currentRoute route.Route) *model.Item {
 	latestRoutes, found := orchestrator.getLatestRoutes(route.New())
 	if !found {
 		return nil
@@ -306,6 +275,39 @@ func (orchestrator *Orchestrator) getNext(currentRoute route.Route) *model.Item 
 	nextRoute := latestRoutes[nextIndex]
 
 	return orchestrator.getItem(nextRoute)
+}
+
+func (orchestrator *Orchestrator) getNext(currentRoute route.Route) *model.Item {
+
+	latestRoutes, found := orchestrator.getLatestRoutes(route.New())
+	if !found {
+		return nil
+	}
+
+	// determine the position of the supplied route
+	matchingIndex := -1
+	for index, route := range latestRoutes {
+		if route.Value() == currentRoute.Value() {
+			matchingIndex = index
+			break
+		}
+	}
+
+	// abort if the route was not found at all
+	if noMatchFound := (matchingIndex == -1); noMatchFound {
+		return nil
+	}
+
+	// abort if there is no previous item
+	previousIndex := matchingIndex - 1
+	if noPreviousItem := (previousIndex < 0); noPreviousItem {
+		return nil
+	}
+
+	// determine the previous route
+	previousRoute := latestRoutes[previousIndex]
+
+	return orchestrator.getItem(previousRoute)
 }
 
 func (orchestrator *Orchestrator) getChilds(route route.Route) (childs []*model.Item) {
