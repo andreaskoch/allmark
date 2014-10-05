@@ -17,7 +17,7 @@ import (
 
 var (
 	// imagegallery: [*description text*](*folder path*)
-	markdownPattern = regexp.MustCompile(`imagegallery: \[([^\]]+)\]\(([^)]+)\)`)
+	markdownPattern = regexp.MustCompile(`imagegallery: \[([^\]]*)\]\(([^)]+)\)`)
 )
 
 func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File) *FilePreviewExtension {
@@ -63,14 +63,24 @@ func (converter *FilePreviewExtension) Convert(markdown string) (convertedConten
 func (converter *FilePreviewExtension) getGalleryCode(galleryTitle, path string) string {
 
 	imageLinks := converter.getImageLinksByPath(galleryTitle, path)
+	if galleryTitle != "" {
+		return fmt.Sprintf(`<section class="imagegallery">
+					<header>%s</header>
+					<ol>
+						<li>
+						%s
+						</li>
+					</ol>
+				</section>`, galleryTitle, strings.Join(imageLinks, "\n</li>\n<li>\n"))
+	}
+
 	return fmt.Sprintf(`<section class="imagegallery">
-				<header>%s</header>
-				<ol>
-					<li>
-					%s
-					</li>
-				</ol>
-			</section>`, galleryTitle, strings.Join(imageLinks, "\n</li>\n<li>\n"))
+					<ol>
+						<li>
+						%s
+						</li>
+					</ol>
+				</section>`, strings.Join(imageLinks, "\n</li>\n<li>\n"))
 }
 
 func (converter *FilePreviewExtension) getImageLinksByPath(galleryTitle, path string) []string {
@@ -86,6 +96,11 @@ func (converter *FilePreviewExtension) getImageLinksByPath(galleryTitle, path st
 	if err != nil {
 		// todo: log error
 		return []string{}
+	}
+
+	// default gallery title
+	if galleryTitle == "" {
+		galleryTitle = "Gallery"
 	}
 
 	numberOfFiles := len(converter.files)
