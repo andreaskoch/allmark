@@ -7,6 +7,7 @@ package orchestrator
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
+	"time"
 )
 
 type XmlSitemapOrchestrator struct {
@@ -19,6 +20,8 @@ func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(hostname string) [
 	if rootItem == nil {
 		orchestrator.logger.Fatal("No root item found")
 	}
+
+	zeroTime := time.Time{}
 
 	childs := make([]viewmodel.XmlSitemapEntry, 0)
 	for _, child := range orchestrator.repository.Items() {
@@ -40,7 +43,10 @@ func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(hostname string) [
 		location := pathProvider.Path(parsedItem.Route().Value())
 
 		// last modified date
-		lastModifiedDate := parsedItem.MetaData.LastModifiedDate.Format("2006-01-02")
+		lastModifiedDate := ""
+		if parsedItem.MetaData.LastModifiedDate != zeroTime {
+			lastModifiedDate = parsedItem.MetaData.LastModifiedDate.Format("2006-01-02")
+		}
 
 		childs = append(childs, viewmodel.XmlSitemapEntry{
 			Loc:          location,
