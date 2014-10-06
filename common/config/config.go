@@ -119,12 +119,23 @@ type Conversion struct {
 	Tool string
 }
 
+type Analytics struct {
+	Enabled         bool
+	GoogleAnalytics GoogleAnalytics
+}
+
+type GoogleAnalytics struct {
+	Enabled    bool
+	TrackingId string
+}
+
 type Config struct {
 	Server     Server
 	Web        Web
 	Conversion Conversion
 	LogLevel   string
 	Indexing   Indexing
+	Analytics  Analytics
 
 	baseFolder      string
 	metaDataFolder  string
@@ -182,6 +193,7 @@ func (config *Config) Load() (*Config, error) {
 	config.Conversion = loadedConfig.Conversion
 	config.LogLevel = loadedConfig.LogLevel
 	config.Indexing = loadedConfig.Indexing
+	config.Analytics = loadedConfig.Analytics
 
 	return config, nil
 }
@@ -227,6 +239,7 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 	config.Conversion = newConfig.Conversion
 	config.LogLevel = newConfig.LogLevel
 	config.Indexing = newConfig.Indexing
+	config.Analytics = newConfig.Analytics
 
 	return config, nil
 }

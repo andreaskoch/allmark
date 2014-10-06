@@ -5,6 +5,7 @@
 package orchestrator
 
 import (
+	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/services/converter"
@@ -12,9 +13,9 @@ import (
 	"github.com/andreaskoch/allmark2/web/webpaths"
 )
 
-func NewFactory(logger logger.Logger, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Factory {
+func NewFactory(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Factory {
 
-	baseOrchestrator := newBaseOrchestrator(logger, repository, parser, converter, webPathProvider)
+	baseOrchestrator := newBaseOrchestrator(logger, config, repository, parser, converter, webPathProvider)
 
 	return &Factory{
 		logger: logger,

@@ -60,7 +60,7 @@ func New(logger logger.Logger, config config.Config, repository dataaccess.Repos
 	webPathProvider := webpaths.NewWebPathProvider(patherFactory, itemPathProvider, tagPathProvider)
 
 	// orchestrator
-	orchestratorFactory := orchestrator.NewFactory(logger, repository, parser, converter, webPathProvider)
+	orchestratorFactory := orchestrator.NewFactory(logger, config, repository, parser, converter, webPathProvider)
 
 	// handlers
 	handlerFactory := handler.NewFactory(logger, config, *orchestratorFactory)

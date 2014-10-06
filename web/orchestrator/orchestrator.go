@@ -5,6 +5,7 @@
 package orchestrator
 
 import (
+	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
@@ -12,16 +13,18 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/converter"
 	"github.com/andreaskoch/allmark2/services/parser"
+	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"github.com/andreaskoch/allmark2/web/webpaths"
 	"sort"
 	"strings"
 	"time"
 )
 
-func newBaseOrchestrator(logger logger.Logger, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
+func newBaseOrchestrator(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
 	return &Orchestrator{
 		logger: logger,
 
+		config:     config,
 		repository: repository,
 		parser:     parser,
 		converter:  converter,
@@ -33,6 +36,7 @@ func newBaseOrchestrator(logger logger.Logger, repository dataaccess.Repository,
 type Orchestrator struct {
 	logger logger.Logger
 
+	config     config.Config
 	repository dataaccess.Repository
 	parser     parser.Parser
 	converter  converter.Converter
@@ -375,6 +379,16 @@ func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 	}
 
 	return orchestrator.itemsByAlias[alias]
+}
+
+func (orchestrator *Orchestrator) getAnalyticsSettings() viewmodel.Analytics {
+	return viewmodel.Analytics{
+		Enabled: orchestrator.config.Analytics.Enabled,
+		GoogleAnalytics: viewmodel.GoogleAnalytics{
+			Enabled:    orchestrator.config.Analytics.GoogleAnalytics.Enabled,
+			TrackingId: orchestrator.config.Analytics.GoogleAnalytics.TrackingId,
+		},
+	}
 }
 
 // sort the models by date and name

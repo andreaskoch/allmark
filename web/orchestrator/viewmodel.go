@@ -48,6 +48,9 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	// Geo Coordinates
 	viewModel.GeoLocation = getGeoLocation(item)
 
+	// Analytics Settings
+	viewModel.Analytics = orchestrator.getAnalyticsSettings()
+
 	// special viewmodel attributes
 	isRepositoryItem := item.Type == model.TypeRepository
 	if isRepositoryItem {
