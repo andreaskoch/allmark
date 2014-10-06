@@ -10,6 +10,7 @@ allmark is a lightweight markdown web server for Linux, Mac OS and Windows writt
 
 - [Blackfriday: a markdown processor for Go](https://github.com/russross/blackfriday)
 - [bradleypeabody/fulltext: a Pure-Go full text indexer and search library](https://github.com/bradleypeabody/fulltext)
+- [Gorilla web toolkit: mux for request routing](http://www.gorillatoolkit.org/pkg/mux)
 
 ## Roadmap / To Dos
 
