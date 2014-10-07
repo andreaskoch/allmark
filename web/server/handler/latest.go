@@ -45,7 +45,7 @@ func (handler *Latest) Func() func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
 		// stage 1: check if there is a item for the request
-		if latestModels, found := handler.viewModelOrchestrator.GetLatest(requestRoute, 5, 1); found {
+		if latestModels, found := handler.viewModelOrchestrator.GetLatest(requestRoute, 3, 1); found {
 			writeViewModelsAsJson(w, latestModels)
 			return
 		}
