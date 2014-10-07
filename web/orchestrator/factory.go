@@ -98,7 +98,7 @@ func (factory *Factory) NewViewModelOrchestrator() ViewModelOrchestrator {
 			case <-orchestrator.repository.AfterReindex():
 				// reset the list
 				factory.logger.Info("Resetting the leafes list")
-				orchestrator.ResetCache()
+				factory.baseOrchestrator.ResetCache()
 			}
 		}
 	}()
