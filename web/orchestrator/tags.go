@@ -31,21 +31,15 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 
 	// items by tag
 	itemsByTag := make(map[string][]*viewmodel.Model)
-	for _, item := range orchestrator.repository.Items() {
-
-		parsedItem := orchestrator.parseItem(item)
-		if parsedItem == nil {
-			orchestrator.logger.Warn("Cannot parse item %q", item.String())
-			continue
-		}
+	for _, item := range orchestrator.getAllItems() {
 
 		itemViewModel := &viewmodel.Model{
-			Base: getBaseModel(rootItem, parsedItem, orchestrator.relativePather(rootItem.Route())),
+			Base: getBaseModel(rootItem, item, orchestrator.relativePather(rootItem.Route())),
 		}
 
 		tags := []model.Tag{}
-		if len(parsedItem.MetaData.Tags) > 0 {
-			tags = parsedItem.MetaData.Tags
+		if len(item.MetaData.Tags) > 0 {
+			tags = item.MetaData.Tags
 		}
 
 		for _, tag := range tags {

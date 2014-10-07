@@ -24,28 +24,22 @@ func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(hostname string) [
 	zeroTime := time.Time{}
 
 	childs := make([]viewmodel.XmlSitemapEntry, 0)
-	for _, child := range orchestrator.repository.Items() {
-
-		parsedItem := orchestrator.parseItem(child)
-		if parsedItem == nil {
-			orchestrator.logger.Warn("Cannot parse item %q", child.String())
-			continue
-		}
+	for _, item := range orchestrator.getAllItems() {
 
 		// skip virtual items
-		if parsedItem.IsVirtual() {
+		if item.IsVirtual() {
 			continue
 		}
 
 		// item location
 		addressPrefix := fmt.Sprintf("http://%s/", hostname)
 		pathProvider := orchestrator.absolutePather(addressPrefix)
-		location := pathProvider.Path(parsedItem.Route().Value())
+		location := pathProvider.Path(item.Route().Value())
 
 		// last modified date
 		lastModifiedDate := ""
-		if parsedItem.MetaData.LastModifiedDate != zeroTime {
-			lastModifiedDate = parsedItem.MetaData.LastModifiedDate.Format("2006-01-02")
+		if item.MetaData.LastModifiedDate != zeroTime {
+			lastModifiedDate = item.MetaData.LastModifiedDate.Format("2006-01-02")
 		}
 
 		childs = append(childs, viewmodel.XmlSitemapEntry{

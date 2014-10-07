@@ -356,13 +356,7 @@ func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 		orchestrator.logger.Info("Initializing alias list")
 		itemsByAlias := make(map[string]*model.Item)
 
-		for _, repositoryItem := range orchestrator.repository.Items() {
-
-			item := orchestrator.parseItem(repositoryItem)
-			if item == nil {
-				orchestrator.logger.Warn("Cannot parse repository item %q.", repositoryItem.String())
-				continue
-			}
+		for _, item := range orchestrator.getAllItems() {
 
 			// continue items without an alias
 			if item.MetaData.Alias == "" {

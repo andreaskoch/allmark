@@ -21,18 +21,12 @@ func (orchestrator *TitlesOrchestrator) GetTitles() []viewmodel.Title {
 	}
 
 	titleModels := make([]viewmodel.Title, 0)
-	for _, item := range orchestrator.repository.Items() {
-
-		parsedItem := orchestrator.parseItem(item)
-		if parsedItem == nil {
-			orchestrator.logger.Warn("Cannot parse item %q", item.String())
-			continue
-		}
+	for _, item := range orchestrator.getAllItems() {
 
 		titleModels = append(titleModels, viewmodel.Title{
-			Value:  parsedItem.Title,
-			Tokens: strings.Split(parsedItem.Title, " "),
-			Route:  orchestrator.itemPather().Path(parsedItem.Route().Value()),
+			Value:  item.Title,
+			Tokens: strings.Split(item.Title, " "),
+			Route:  orchestrator.itemPather().Path(item.Route().Value()),
 		})
 
 	}
