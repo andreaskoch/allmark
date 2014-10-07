@@ -33,7 +33,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 	<link rel="canonical" href="{{.BaseUrl}}">
 	<link rel="alternate" hreflang="{{.LanguageTag}}" href="{{.BaseUrl}}">
-	<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+	<link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.rss">
 	<link rel="shortcut icon" href="/theme/favicon.ico">
 
 	<link rel="stylesheet" href="/theme/deck.css" media="screen">
