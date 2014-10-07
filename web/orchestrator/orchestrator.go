@@ -44,11 +44,13 @@ type Orchestrator struct {
 	webPathProvider webpaths.WebPathProvider
 
 	// caches
+	items         []*model.Item
 	itemsByAlias  map[string]*model.Item
 	leafesByRoute map[string][]route.Route
 }
 
 func (orchestrator *Orchestrator) ResetCache() {
+	orchestrator.items = nil
 	orchestrator.itemsByAlias = make(map[string]*model.Item)
 	orchestrator.leafesByRoute = make(map[string][]route.Route)
 }
@@ -191,6 +193,11 @@ func (orchestrator *Orchestrator) getAllLeafes(parentRoute route.Route) []route.
 
 func (orchestrator *Orchestrator) getAllItems() []*model.Item {
 
+	// load from cache
+	if orchestrator.items != nil {
+		return orchestrator.items
+	}
+
 	allItems := make([]*model.Item, 0)
 
 	for _, repositoryItem := range orchestrator.repository.Items() {
@@ -203,6 +210,9 @@ func (orchestrator *Orchestrator) getAllItems() []*model.Item {
 	}
 
 	model.SortItemsBy(sortItemsByDate).Sort(allItems)
+
+	// store to cache
+	orchestrator.items = allItems
 
 	return allItems
 }
