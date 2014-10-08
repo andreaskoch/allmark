@@ -439,9 +439,19 @@ func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 
 	alias = strings.TrimSpace(strings.ToLower(alias))
 
-	if orchestrator.itemsByAlias == nil {
+	// load from cache
+	if orchestrator.itemsByAlias != nil {
 
-		orchestrator.logger.Info("Initializing alias list")
+		// re-prime the cache if it is stale
+		if orchestrator.isCacheStale(CacheTypeItemsByAlias) {
+			go orchestrator.primeCache(CacheTypeItemsByAlias)
+		}
+
+		return orchestrator.itemsByAlias[alias]
+	}
+
+	orchestrator.setCache(CacheTypeItemsByAlias, func() {
+
 		itemsByAlias := make(map[string]*model.Item)
 
 		for _, item := range orchestrator.getAllItems() {
@@ -455,20 +465,8 @@ func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 			itemsByAlias[itemAlias] = item
 		}
 
-		// refresh control
-		go func() {
-			for {
-				select {
-				case <-orchestrator.repository.AfterReindex():
-					// reset the list
-					orchestrator.logger.Info("Resetting the alias list")
-					orchestrator.itemsByAlias = nil
-				}
-			}
-		}()
-
 		orchestrator.itemsByAlias = itemsByAlias
-	}
+	})
 
 	return orchestrator.itemsByAlias[alias]
 }
