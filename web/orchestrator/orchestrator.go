@@ -20,6 +20,23 @@ import (
 	"time"
 )
 
+type CacheType int
+
+const (
+	CacheTypeItems CacheType = iota
+	CacheTypeItemsByAlias
+	CacheTypeLeafesByRoute
+)
+
+type CacheState int
+
+const (
+	CacheStateStale CacheState = iota
+	CacheStatePrimed
+)
+
+type CacheStatusMap map[CacheType]CacheState
+
 func newBaseOrchestrator(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
 	return &Orchestrator{
 		logger: logger,
@@ -43,16 +60,73 @@ type Orchestrator struct {
 
 	webPathProvider webpaths.WebPathProvider
 
+	// cache control
+	cacheStatusMap CacheStatusMap
+	cachePrimerMap map[CacheType]func()
+
 	// caches
 	items         []*model.Item
 	itemsByAlias  map[string]*model.Item
 	leafesByRoute map[string][]route.Route
 }
 
+// Reset all Caches
 func (orchestrator *Orchestrator) ResetCache() {
-	orchestrator.items = nil
-	orchestrator.itemsByAlias = make(map[string]*model.Item)
-	orchestrator.leafesByRoute = make(map[string][]route.Route)
+
+	// mark all caches as stale
+	for cacheType := range orchestrator.cacheStatusMap {
+		orchestrator.cacheStatusMap[cacheType] = CacheStateStale
+	}
+
+	// prime all caches asynchronously
+	go func() {
+		orchestrator.primeCaches()
+	}()
+
+}
+
+func (orchestrator *Orchestrator) setCache(cacheType CacheType, primer func()) {
+
+	// initialize the primer map on first use
+	if orchestrator.cachePrimerMap == nil {
+		orchestrator.cachePrimerMap = make(map[CacheType]func())
+	}
+
+	// initialize the status map on first use
+	if orchestrator.cacheStatusMap == nil {
+		orchestrator.cacheStatusMap = make(map[CacheType]CacheState)
+	}
+
+	// store the primer
+	orchestrator.cachePrimerMap[cacheType] = primer
+
+	// fill the cache
+	primer()
+
+	// mark the cache type as primed
+	orchestrator.cacheStatusMap[cacheType] = CacheStatePrimed
+}
+
+func (orchestrator *Orchestrator) isCacheStale(cacheType CacheType) bool {
+	if status, exists := orchestrator.cacheStatusMap[cacheType]; exists {
+		return status == CacheStateStale
+	}
+
+	// if there is no status it is definitly stale
+	return true
+}
+
+// Prime all caches
+func (orchestrator *Orchestrator) primeCaches() {
+	for cacheType := range orchestrator.cacheStatusMap {
+		orchestrator.primeCache(cacheType)
+	}
+}
+
+// Prime a particular cache
+func (orchestrator *Orchestrator) primeCache(cacheType CacheType) {
+	primerFunc := orchestrator.cachePrimerMap[cacheType]
+	primerFunc()
 }
 
 func (orchestrator *Orchestrator) ItemExists(route route.Route) bool {
@@ -160,6 +234,11 @@ func (orchestrator *Orchestrator) getLatestRoutes(parentRoute route.Route) (rout
 
 func (orchestrator *Orchestrator) getAllLeafes(parentRoute route.Route) []route.Route {
 
+	// initialize the leafes map on first use
+	if orchestrator.leafesByRoute == nil {
+		orchestrator.leafesByRoute = make(map[string][]route.Route)
+	}
+
 	// cache lookup
 	key := parentRoute.Value()
 	if leafes, isset := orchestrator.leafesByRoute[key]; isset {
@@ -195,26 +274,35 @@ func (orchestrator *Orchestrator) getAllItems() []*model.Item {
 
 	// load from cache
 	if orchestrator.items != nil {
+
+		// re-prime the cache if it is stale
+		if orchestrator.isCacheStale(CacheTypeItems) {
+			go orchestrator.primeCache(CacheTypeItems)
+		}
+
 		return orchestrator.items
 	}
 
-	allItems := make([]*model.Item, 0)
+	orchestrator.setCache(CacheTypeItems, func() {
 
-	for _, repositoryItem := range orchestrator.repository.Items() {
-		item := orchestrator.parseItem(repositoryItem)
-		if item == nil {
-			continue
+		allItems := make([]*model.Item, 0)
+
+		for _, repositoryItem := range orchestrator.repository.Items() {
+			item := orchestrator.parseItem(repositoryItem)
+			if item == nil {
+				continue
+			}
+
+			allItems = append(allItems, item)
 		}
 
-		allItems = append(allItems, item)
-	}
+		model.SortItemsBy(sortItemsByDate).Sort(allItems)
 
-	model.SortItemsBy(sortItemsByDate).Sort(allItems)
+		// store to cache
+		orchestrator.items = allItems
+	})
 
-	// store to cache
-	orchestrator.items = allItems
-
-	return allItems
+	return orchestrator.items
 }
 
 func (orchestrator *Orchestrator) getItems(pageSize, page int) []*model.Item {
