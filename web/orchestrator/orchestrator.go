@@ -20,22 +20,12 @@ import (
 	"time"
 )
 
-type CacheType int
-
-const (
-	CacheTypeItems CacheType = iota
-	CacheTypeItemsByAlias
-	CacheTypeLeafesByRoute
-)
-
 type CacheState int
 
 const (
 	CacheStateStale CacheState = iota
 	CacheStatePrimed
 )
-
-type CacheStatusMap map[CacheType]CacheState
 
 func newBaseOrchestrator(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
 	return &Orchestrator{
@@ -61,8 +51,8 @@ type Orchestrator struct {
 	webPathProvider webpaths.WebPathProvider
 
 	// cache control
-	cacheStatusMap CacheStatusMap
-	cachePrimerMap map[CacheType]func()
+	cacheStatusMap map[string]CacheState
+	cachePrimerMap map[string]func()
 
 	// caches
 	items         []*model.Item
@@ -85,16 +75,16 @@ func (orchestrator *Orchestrator) ResetCache() {
 
 }
 
-func (orchestrator *Orchestrator) setCache(cacheType CacheType, primer func()) {
+func (orchestrator *Orchestrator) setCache(cacheType string, primer func()) {
 
 	// initialize the primer map on first use
 	if orchestrator.cachePrimerMap == nil {
-		orchestrator.cachePrimerMap = make(map[CacheType]func())
+		orchestrator.cachePrimerMap = make(map[string]func())
 	}
 
 	// initialize the status map on first use
 	if orchestrator.cacheStatusMap == nil {
-		orchestrator.cacheStatusMap = make(map[CacheType]CacheState)
+		orchestrator.cacheStatusMap = make(map[string]CacheState)
 	}
 
 	// store the primer
@@ -107,7 +97,7 @@ func (orchestrator *Orchestrator) setCache(cacheType CacheType, primer func()) {
 	orchestrator.cacheStatusMap[cacheType] = CacheStatePrimed
 }
 
-func (orchestrator *Orchestrator) isCacheStale(cacheType CacheType) bool {
+func (orchestrator *Orchestrator) isCacheStale(cacheType string) bool {
 	if status, exists := orchestrator.cacheStatusMap[cacheType]; exists {
 		return status == CacheStateStale
 	}
@@ -124,7 +114,7 @@ func (orchestrator *Orchestrator) primeCaches() {
 }
 
 // Prime a particular cache
-func (orchestrator *Orchestrator) primeCache(cacheType CacheType) {
+func (orchestrator *Orchestrator) primeCache(cacheType string) {
 	primerFunc := orchestrator.cachePrimerMap[cacheType]
 	primerFunc()
 }
@@ -272,18 +262,20 @@ func (orchestrator *Orchestrator) getAllLeafes(parentRoute route.Route) []route.
 
 func (orchestrator *Orchestrator) getAllItems() []*model.Item {
 
+	cacheType := "allItems"
+
 	// load from cache
 	if orchestrator.items != nil {
 
 		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(CacheTypeItems) {
-			go orchestrator.primeCache(CacheTypeItems)
+		if orchestrator.isCacheStale(cacheType) {
+			go orchestrator.primeCache(cacheType)
 		}
 
 		return orchestrator.items
 	}
 
-	orchestrator.setCache(CacheTypeItems, func() {
+	orchestrator.setCache(cacheType, func() {
 
 		allItems := make([]*model.Item, 0)
 
@@ -437,20 +429,21 @@ func (orchestrator *Orchestrator) getChilds(route route.Route) (childs []*model.
 // Get the item that has the specified alias. Returns nil if there is no matching item.
 func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 
+	cacheType := "itembyalias"
 	alias = strings.TrimSpace(strings.ToLower(alias))
 
 	// load from cache
 	if orchestrator.itemsByAlias != nil {
 
 		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(CacheTypeItemsByAlias) {
-			go orchestrator.primeCache(CacheTypeItemsByAlias)
+		if orchestrator.isCacheStale(cacheType) {
+			go orchestrator.primeCache(cacheType)
 		}
 
 		return orchestrator.itemsByAlias[alias]
 	}
 
-	orchestrator.setCache(CacheTypeItemsByAlias, func() {
+	orchestrator.setCache(cacheType, func() {
 
 		itemsByAlias := make(map[string]*model.Item)
 
