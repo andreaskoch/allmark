@@ -148,6 +148,15 @@ func (index *Index) GetDirectChilds(route route.Route) []*dataaccess.Item {
 	return childs
 }
 
+// Get a list of all routes in this index.
+func (index *Index) Routes() []route.Route {
+	routes := make([]route.Route, 0, len(index.routeMap))
+	for _, item := range index.routeMap {
+		routes = append(routes, item.Route())
+	}
+	return routes
+}
+
 // Get a list of all item in this index.
 func (index *Index) Items() []*dataaccess.Item {
 	return index.itemList

@@ -124,6 +124,10 @@ func (repository *Repository) Childs(route route.Route) []*dataaccess.Item {
 	return repository.index.GetDirectChilds(route)
 }
 
+func (repository *Repository) AllRoutes() []route.Route {
+	return repository.index.Routes()
+}
+
 func (repository *Repository) AllChilds(route route.Route) []*dataaccess.Item {
 	return repository.index.GetAllChilds(route, func(item *dataaccess.Item) bool {
 		return true

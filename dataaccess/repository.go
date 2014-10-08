@@ -23,6 +23,7 @@ type Repository interface {
 	File(route route.Route) (*File, bool)
 	Parent(route route.Route) *Item
 	Childs(route route.Route) []*Item
+	AllRoutes() []route.Route
 	AllChilds(route route.Route) []*Item
 	AllMatchingChilds(route route.Route, matchExpression func(item *Item) bool) []*Item
 
