@@ -28,30 +28,35 @@ type RelativeWebPathProvider struct {
 
 // Get the path relative for the supplied item
 func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
-	baseRouteString := webPathProvider.baseRoute.Value()
 
-	// filter expression which includes only childs with matching routes
-	onlyMatchingItemsExpression := func(child *dataaccess.Item) bool {
-		return child.Route().IsMatch(itemPath)
+	var matchingRouteHasBeenFound bool
+	var matchingRoute route.Route
+	for _, route := range webPathProvider.repository.Routes() {
+
+		// ignore all routes which are not a child of the base route
+		if !route.IsChildOf(webPathProvider.baseRoute) {
+			continue
+		}
+
+		// ignore all non-matching routes
+		if !route.IsMatch(itemPath) {
+			continue
+		}
+
+		// a matching route has been found
+		matchingRouteHasBeenFound = true
+		matchingRoute = route
+		break
 	}
 
-	// get all childs which have a matching route
-	baseRouteChilds := webPathProvider.repository.AllMatchingChilds(webPathProvider.baseRoute, onlyMatchingItemsExpression)
-
-	// abort if no matching routes have been found
-	if noMatchingChildsFound := len(baseRouteChilds) == 0; noMatchingChildsFound {
-		// path could not be resolved, try to trim the path
+	if !matchingRouteHasBeenFound {
+		// path could not be resolved, return fallback
 		return "/" + itemPath
 	}
 
-	// use only the first child
-	child := baseRouteChilds[0]
-
 	// intersect the child route with the base route to get full path
-	childRouteString := child.Route().Value()
-	path := strings.TrimPrefix(strings.TrimPrefix(childRouteString, baseRouteString), "/")
-
-	return path
+	path := strings.TrimPrefix(matchingRoute.Value(), webPathProvider.baseRoute.Value())
+	return strings.TrimPrefix(path, "/")
 }
 
 func (webPathProvider *RelativeWebPathProvider) Base() route.Route {

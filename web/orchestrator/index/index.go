@@ -10,14 +10,20 @@ import (
 	"github.com/andreaskoch/allmark2/dataaccess"
 )
 
-func New(logger logger.Logger) *Index {
-	return &Index{
+func New(logger logger.Logger, items []*dataaccess.Item) *Index {
+	index := &Index{
 		logger: logger,
 
 		itemList: make([]*dataaccess.Item, 0),
 		routeMap: make(map[string]*dataaccess.Item),
 		itemTree: newItemTree(logger),
 	}
+
+	for _, item := range items {
+		index.add(item)
+	}
+
+	return index
 }
 
 type Index struct {
@@ -27,10 +33,6 @@ type Index struct {
 	itemList []*dataaccess.Item
 	routeMap map[string]*dataaccess.Item // route -> item,
 	itemTree *ItemTree
-}
-
-func (index *Index) String() string {
-	return index.itemTree.String()
 }
 
 func (index *Index) IsMatch(r route.Route) (item *dataaccess.Item, isMatch bool) {
@@ -112,6 +114,10 @@ func (index *Index) Root() *dataaccess.Item {
 	return index.itemTree.Root()
 }
 
+func (index *Index) Size() int {
+	return len(index.itemList)
+}
+
 // Get all childs that match the given expression
 func (index *Index) GetAllChilds(route route.Route, expression func(item *dataaccess.Item) bool) []*dataaccess.Item {
 
@@ -135,6 +141,9 @@ func (index *Index) GetAllChilds(route route.Route, expression func(item *dataac
 
 	}
 
+	// sort the items by ascending by route
+	dataaccess.SortItemBy(sortItemsByRoute).Sort(childs)
+
 	return childs
 }
 
@@ -148,26 +157,7 @@ func (index *Index) GetDirectChilds(route route.Route) []*dataaccess.Item {
 	return childs
 }
 
-// Get a list of all routes in this index.
-func (index *Index) Routes() []route.Route {
-	routes := make([]route.Route, 0, len(index.routeMap))
-	for _, item := range index.routeMap {
-		routes = append(routes, item.Route())
-	}
-	return routes
-}
-
-// Get a list of all item in this index.
-func (index *Index) Items() []*dataaccess.Item {
-	return index.itemList
-}
-
-// Get the number of entries in this index
-func (index *Index) Size() int {
-	return len(index.itemList)
-}
-
-func (index *Index) Add(item *dataaccess.Item) {
+func (index *Index) add(item *dataaccess.Item) {
 
 	// abort if item is invalid
 	if item == nil {
@@ -175,72 +165,10 @@ func (index *Index) Add(item *dataaccess.Item) {
 		return
 	}
 
-	index.logger.Debug("Adding item %q to index", item)
-
 	// the the item to the indizes
-	index.addItemToItemList(item)
-	index.addItemToRouteMap(item)
-	index.addItemToTree(item)
-}
-
-func (index *Index) addItemToItemList(item *dataaccess.Item) {
 	index.itemList = append(index.itemList, item)
-}
-
-func (index *Index) addItemToRouteMap(item *dataaccess.Item) {
 	index.routeMap[route.ToKey(item.Route())] = item
-}
-
-func (index *Index) addItemToTree(item *dataaccess.Item) {
 	index.itemTree.Insert(item)
-}
-
-func (index *Index) Remove(route route.Route) {
-
-	// locate the item
-	item, exists := index.IsMatch(route)
-	if !exists {
-		index.logger.Warn("The item with the route %q was not found in this index.", route)
-		return
-	}
-
-	index.logger.Debug("Removing item %q from index", item)
-
-	// the the item to the indizes
-	index.removeItemFromItemList(item)
-	index.removeItemFromRouteMap(item)
-	index.removeItemFromTree(item)
-}
-
-func (index *Index) removeItemFromItemList(item *dataaccess.Item) {
-
-	// find the index of the item to remove
-	indexToRemove := -1
-	for index, child := range index.itemList {
-		if item.String() == child.String() {
-			indexToRemove = index
-			break
-		}
-	}
-
-	if indexToRemove == -1 {
-		// the item was not found
-		index.logger.Warn("The item '%s' was not found in the item list.", item)
-		return
-	}
-
-	index.itemList = append(index.itemList[:indexToRemove], index.itemList[indexToRemove+1:]...)
-}
-
-func (index *Index) removeItemFromRouteMap(item *dataaccess.Item) {
-	delete(index.routeMap, route.ToKey(item.Route()))
-}
-
-func (index *Index) removeItemFromTree(item *dataaccess.Item) {
-	if _, err := index.itemTree.Delete(item); err != nil {
-		index.logger.Error("Unable to delete item '%s' from the item tree. Error: %s", item, err.Error())
-	}
-
 }
 
 // sort the items by name

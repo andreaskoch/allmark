@@ -5,7 +5,7 @@
 package orchestrator
 
 import (
-	"github.com/andreaskoch/allmark2/dataaccess"
+	"github.com/andreaskoch/allmark2/web/orchestrator/search"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"strings"
 )
@@ -24,7 +24,7 @@ func (orchestrator *TypeAheadOrchestrator) GetSuggestions(keywords string) []vie
 	if strings.TrimSpace(keywords) != "" {
 
 		// execute the search
-		searchResultItems := orchestrator.repository.Search(keywords, maximumNumberOfResults)
+		searchResultItems := orchestrator.search(keywords, maximumNumberOfResults)
 
 		// prepare the result models
 		for _, searchResult := range searchResultItems {
@@ -36,9 +36,9 @@ func (orchestrator *TypeAheadOrchestrator) GetSuggestions(keywords string) []vie
 	return typeAheadResults
 }
 
-func (orchestrator *TypeAheadOrchestrator) createTypeAheadResultModel(searchResult dataaccess.SearchResult) viewmodel.TypeAhead {
+func (orchestrator *TypeAheadOrchestrator) createTypeAheadResultModel(searchResult search.Result) viewmodel.TypeAhead {
 
-	item := orchestrator.parseItem(searchResult.Item)
+	item := orchestrator.getItem(searchResult.Route)
 	if item == nil {
 		return viewmodel.TypeAhead{}
 	}

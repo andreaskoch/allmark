@@ -9,31 +9,14 @@ import (
 )
 
 type Repository interface {
-	String() string
-
-	// Meta Data
-	Id() string
 	Path() string
-	Size() int
 
-	// Content Access
-	Root() *Item
 	Items() []*Item
-	Item(route route.Route) (*Item, bool)
-	File(route route.Route) (*File, bool)
-	Parent(route route.Route) *Item
-	Childs(route route.Route) []*Item
-	AllRoutes() []route.Route
-	AllChilds(route route.Route) []*Item
-	AllMatchingChilds(route route.Route, matchExpression func(item *Item) bool) []*Item
-
-	AfterReindex() chan bool
+	Routes() []route.Route
 
 	// update handling
+	AfterReindex() chan bool
 	OnUpdate(callback func(route.Route))
 	StartWatching(route route.Route)
 	StopWatching(route route.Route)
-
-	// Fulltext Search
-	Search(keywords string, maxiumNumberOfResults int) []SearchResult
 }

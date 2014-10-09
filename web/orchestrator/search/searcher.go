@@ -2,29 +2,34 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package dataaccess
+package search
 
 import (
-	"bufio"
-	"bytes"
 	"github.com/andreaskoch/allmark2/common/logger"
-	"io"
+	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/model"
 	"strings"
 )
 
-func NewItemSearch(logger logger.Logger, repository Repository) *ItemSearch {
+type Result struct {
+	Number int
+
+	Score      int64
+	StoreValue string
+	Route      route.Route
+}
+
+func NewItemSearch(logger logger.Logger, items []*model.Item) *ItemSearch {
 
 	return &ItemSearch{
 		logger: logger,
 
-		repository: repository,
-
-		routesFullTextIndex:      newIndex(logger, repository, "route", itemRouteKeywordProvider),
-		itemContentFullTextIndex: newIndex(logger, repository, "content", itemContentKeywordProvider),
+		routesFullTextIndex:      newIndex(logger, items, "route", itemRouteKeywordProvider),
+		itemContentFullTextIndex: newIndex(logger, items, "content", itemContentKeywordProvider),
 	}
 }
 
-func itemRouteKeywordProvider(item *Item) []string {
+func itemRouteKeywordProvider(item *model.Item) []string {
 	if item == nil {
 		return []string{}
 	}
@@ -40,7 +45,7 @@ func itemRouteKeywordProvider(item *Item) []string {
 	return routeComponents
 }
 
-func itemContentKeywordProvider(item *Item) []string {
+func itemContentKeywordProvider(item *model.Item) []string {
 
 	if item == nil {
 		return []string{}
@@ -53,8 +58,7 @@ func itemContentKeywordProvider(item *Item) []string {
 }
 
 type ItemSearch struct {
-	logger     logger.Logger
-	repository Repository
+	logger logger.Logger
 
 	routesFullTextIndex      *FullTextIndex
 	itemContentFullTextIndex *FullTextIndex
@@ -70,7 +74,7 @@ func (itemSearch *ItemSearch) Destroy() {
 	itemSearch = nil
 }
 
-func (itemSearch *ItemSearch) Search(keywords string, maxiumNumberOfResults int) []SearchResult {
+func (itemSearch *ItemSearch) Search(keywords string, maxiumNumberOfResults int) []Result {
 
 	// routes
 	if isRouteSearch(keywords) {
@@ -82,23 +86,9 @@ func (itemSearch *ItemSearch) Search(keywords string, maxiumNumberOfResults int)
 	return itemSearch.itemContentFullTextIndex.Search(keywords, maxiumNumberOfResults)
 }
 
-func getContentFromItem(item *Item) string {
+func getContentFromItem(item *model.Item) string {
 
-	// fetch the item data
-	byteBuffer := new(bytes.Buffer)
-	dataWriter := bufio.NewWriter(byteBuffer)
-
-	contentReader := func(content io.ReadSeeker) error {
-		_, err := io.Copy(dataWriter, content)
-		dataWriter.Flush()
-		return err
-	}
-
-	if err := item.Data(contentReader); err != nil {
-		return ""
-	}
-
-	return byteBuffer.String()
+	return item.Description + " " + item.Content
 }
 
 func isRouteSearch(keywords string) bool {

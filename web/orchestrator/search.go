@@ -5,7 +5,7 @@
 package orchestrator
 
 import (
-	"github.com/andreaskoch/allmark2/dataaccess"
+	"github.com/andreaskoch/allmark2/web/orchestrator/search"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"strings"
 )
@@ -32,7 +32,7 @@ func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page i
 	endItemNumber := itemsPerPage * page
 
 	// collect the search results
-	searchResults := make([]viewmodel.SearchResult, 0)
+	searchResultModels := make([]viewmodel.SearchResult, 0)
 
 	maximumNumberOfResults := 100
 	totalResultCount := 0
@@ -40,40 +40,40 @@ func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page i
 	if strings.TrimSpace(keywords) != "" {
 
 		// execute the search
-		searchResultItems := orchestrator.repository.Search(keywords, maximumNumberOfResults)
+		searchResults := orchestrator.search(keywords, maximumNumberOfResults)
 
 		// count the number of search results
-		totalResultCount = len(searchResultItems)
+		totalResultCount = len(searchResults)
 
 		// prepare the result models
-		for currentNumberOfItems, searchResult := range searchResultItems {
+		for currentNumberOfItems, searchResult := range searchResults {
 
 			// paging
 			if currentNumberOfItems < startItemNumber || currentNumberOfItems >= endItemNumber {
 				continue
 			}
 
-			searchResults = append(searchResults, orchestrator.createSearchResultModel(searchResult))
+			searchResultModels = append(searchResultModels, orchestrator.createSearchResultModel(searchResult))
 		}
 
 	}
 
 	return viewmodel.Search{
 		Query:   keywords,
-		Results: searchResults,
+		Results: searchResultModels,
 
 		Page:         page,
 		ItemsPerPage: itemsPerPage,
 
 		StartIndex:       getStartIndex(itemsPerPage, page),
-		ResultCount:      len(searchResults),
+		ResultCount:      len(searchResultModels),
 		TotalResultCount: totalResultCount,
 	}
 }
 
-func (orchestrator *SearchOrchestrator) createSearchResultModel(searchResult dataaccess.SearchResult) viewmodel.SearchResult {
+func (orchestrator *SearchOrchestrator) createSearchResultModel(searchResult search.Result) viewmodel.SearchResult {
 
-	item := orchestrator.parseItem(searchResult.Item)
+	item := orchestrator.getItem(searchResult.Route)
 	if item == nil {
 		return viewmodel.SearchResult{}
 	}

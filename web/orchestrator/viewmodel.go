@@ -56,7 +56,7 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	if isRepositoryItem {
 
 		// tag cloud
-		repositoryIsNotEmpty := orchestrator.repository.Size() > 5 // don't bother to create a tag cloud if there aren't enough documents
+		repositoryIsNotEmpty := orchestrator.index().Size() >= 5 // don't bother to create a tag cloud if there aren't enough documents
 		if repositoryIsNotEmpty {
 
 			tagCloud := orchestrator.tagOrchestrator.GetTagCloud()

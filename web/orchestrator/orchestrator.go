@@ -13,6 +13,8 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/converter"
 	"github.com/andreaskoch/allmark2/services/parser"
+	"github.com/andreaskoch/allmark2/web/orchestrator/index"
+	"github.com/andreaskoch/allmark2/web/orchestrator/search"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"github.com/andreaskoch/allmark2/web/webpaths"
 	"sort"
@@ -54,10 +56,12 @@ type Orchestrator struct {
 	cacheStatusMap map[string]CacheState
 	cachePrimerMap map[string]func()
 
-	// caches
-	items         []*model.Item
-	itemsByAlias  map[string]*model.Item
-	leafesByRoute map[string][]route.Route
+	// caches and indizes
+	fulltextIndex   *search.ItemSearch
+	repositoryIndex *index.Index
+	items           []*model.Item
+	itemsByAlias    map[string]*model.Item
+	leafesByRoute   map[string][]route.Route
 }
 
 // Reset all Caches
@@ -120,7 +124,7 @@ func (orchestrator *Orchestrator) primeCache(cacheType string) {
 }
 
 func (orchestrator *Orchestrator) ItemExists(route route.Route) bool {
-	_, exists := orchestrator.repository.Item(route)
+	_, exists := orchestrator.index().IsMatch(route)
 	return exists
 }
 
@@ -161,16 +165,16 @@ func (orchestrator *Orchestrator) parseFile(file *dataaccess.File) *model.File {
 }
 
 func (orchestrator *Orchestrator) rootItem() *model.Item {
-	return orchestrator.parseItem(orchestrator.repository.Root())
+	return orchestrator.parseItem(orchestrator.index().Root())
 }
 
 func (orchestrator *Orchestrator) getItem(route route.Route) *model.Item {
-	item, exists := orchestrator.repository.Item(route)
-	if !exists {
-		return nil
+
+	if item, exists := orchestrator.index().IsMatch(route); exists {
+		return orchestrator.parseItem(item)
 	}
 
-	return orchestrator.parseItem(item)
+	return nil
 }
 
 func (orchestrator *Orchestrator) getLatestRoutesByPage(parentRoute route.Route, pageSize, page int) (routes []route.Route, found bool) {
@@ -260,6 +264,61 @@ func (orchestrator *Orchestrator) getAllLeafes(parentRoute route.Route) []route.
 
 }
 
+func (orchestrator *Orchestrator) index() *index.Index {
+
+	cacheType := "index"
+
+	// load from cache
+	if orchestrator.repositoryIndex != nil {
+
+		// re-prime the cache if it is stale
+		if orchestrator.isCacheStale(cacheType) {
+			go orchestrator.primeCache(cacheType)
+		}
+
+		return orchestrator.repositoryIndex
+	}
+
+	orchestrator.setCache(cacheType, func() {
+
+		newIndex := index.New(orchestrator.logger, orchestrator.repository.Items())
+
+		// store to cache
+		orchestrator.repositoryIndex = newIndex
+	})
+
+	return orchestrator.repositoryIndex
+}
+
+func (orchestrator *Orchestrator) search(keywords string, maxiumNumberOfResults int) []search.Result {
+	cacheType := "fulltextIndex"
+
+	// load from cache
+	if orchestrator.fulltextIndex != nil {
+
+		// re-prime the cache if it is stale
+		if orchestrator.isCacheStale(cacheType) {
+			go orchestrator.primeCache(cacheType)
+		}
+
+		return orchestrator.fulltextIndex.Search(keywords, maxiumNumberOfResults)
+	}
+
+	orchestrator.setCache(cacheType, func() {
+
+		newFullTextIndex := search.NewItemSearch(orchestrator.logger, orchestrator.getAllItems())
+
+		// destroy the old index
+		oldIndex := orchestrator.fulltextIndex
+		go oldIndex.Destroy()
+
+		// store to cache
+		orchestrator.fulltextIndex = newFullTextIndex
+	})
+
+	return orchestrator.fulltextIndex.Search(keywords, maxiumNumberOfResults)
+}
+
 func (orchestrator *Orchestrator) getAllItems() []*model.Item {
 
 	cacheType := "allItems"
@@ -327,7 +386,7 @@ func (orchestrator *Orchestrator) getCreationDate(itemRoute route.Route) (creati
 }
 
 func (orchestrator *Orchestrator) getFile(route route.Route) *model.File {
-	file, exists := orchestrator.repository.File(route)
+	file, exists := orchestrator.index().IsFileMatch(route)
 	if !exists {
 		return nil
 	}
@@ -336,7 +395,7 @@ func (orchestrator *Orchestrator) getFile(route route.Route) *model.File {
 }
 
 func (orchestrator *Orchestrator) getParent(route route.Route) *model.Item {
-	parent := orchestrator.repository.Parent(route)
+	parent := orchestrator.index().GetParent(route)
 	if parent == nil {
 		return nil
 	}
@@ -414,7 +473,7 @@ func (orchestrator *Orchestrator) getChilds(route route.Route) (childs []*model.
 
 	childs = make([]*model.Item, 0)
 
-	for _, child := range orchestrator.repository.Childs(route) {
+	for _, child := range orchestrator.index().GetDirectChilds(route) {
 		parsed := orchestrator.parseItem(child)
 		if parsed == nil {
 			continue
@@ -422,6 +481,9 @@ func (orchestrator *Orchestrator) getChilds(route route.Route) (childs []*model.
 
 		childs = append(childs, parsed)
 	}
+
+	// sort the leafes by date
+	model.SortItemsBy(sortItemsByDate).Sort(childs)
 
 	return childs
 }

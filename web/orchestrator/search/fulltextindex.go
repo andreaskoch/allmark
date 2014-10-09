@@ -2,25 +2,24 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package dataaccess
+package search
 
 import (
 	"github.com/andreaskoch/allmark2/common/cleanup"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
+	"github.com/andreaskoch/allmark2/model"
 	"github.com/bradleypeabody/fulltext"
 	"strings"
 )
 
-type indexValueProvider func(item *Item) []string
+type indexValueProvider func(item *model.Item) []string
 
-func newIndex(logger logger.Logger, repository Repository, name string, indexValueFunc indexValueProvider) *FullTextIndex {
+func newIndex(logger logger.Logger, items []*model.Item, name string, indexValueFunc indexValueProvider) *FullTextIndex {
 
 	index := &FullTextIndex{
 		logger: logger,
-
-		repository: repository,
 
 		filepath:      fsutil.GetTempFileName(name),
 		tempDirectory: fsutil.GetTempDirectory(),
@@ -28,15 +27,13 @@ func newIndex(logger logger.Logger, repository Repository, name string, indexVal
 		indexValueFunc: indexValueFunc,
 	}
 
-	go index.initialize()
+	go index.initialize(items)
 
 	return index
 }
 
 type FullTextIndex struct {
 	logger logger.Logger
-
-	repository Repository
 
 	filepath      string
 	tempDirectory string
@@ -56,14 +53,12 @@ func (index *FullTextIndex) Destroy() {
 	index = nil
 }
 
-func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) []SearchResult {
+func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) []Result {
 
 	searcher, err := fulltext.NewSearcher(index.filepath)
 	if err != nil {
 		index.logger.Error(err.Error())
-
-		index.initialize()
-		return []SearchResult{}
+		return []Result{}
 	}
 
 	defer searcher.Close()
@@ -73,7 +68,7 @@ func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) [
 		index.logger.Error(err.Error())
 	}
 
-	searchResults := make([]SearchResult, 0)
+	searchResults := make([]Result, 0)
 
 	for number, v := range searchResult.Items {
 
@@ -83,20 +78,13 @@ func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) [
 			continue
 		}
 
-		item, exists := index.repository.Item(route)
-
-		// skip if the item was not found in the repository
-		if !exists {
-			continue
-		}
-
 		// append the search results
-		searchResults = append(searchResults, SearchResult{
+		searchResults = append(searchResults, Result{
 			Number: number + 1,
 
 			Score:      v.Score,
 			StoreValue: string(v.StoreValue),
-			Item:       item,
+			Route:      route,
 		})
 
 	}
@@ -104,7 +92,7 @@ func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) [
 	return searchResults
 }
 
-func (index *FullTextIndex) initialize() {
+func (index *FullTextIndex) initialize(items []*model.Item) {
 
 	// fulltext search
 	idx, err := fulltext.NewIndexer(index.tempDirectory)
@@ -113,11 +101,11 @@ func (index *FullTextIndex) initialize() {
 	}
 	defer idx.Close()
 
-	for _, item := range index.repository.Items() {
+	for _, item := range items {
 
 		doc := fulltext.IndexDoc{
 			Id:         []byte(item.Route().Value()),              // unique identifier (the path to a webpage works...)
-			StoreValue: []byte(getContentFromItem(item)),          // bytes you want to be able to retrieve from search results
+			StoreValue: []byte(item.Content),                      // bytes you want to be able to retrieve from search results
 			IndexValue: getIndexValue(index.indexValueFunc(item)), // bytes you want to be split into words and indexed
 		}
 
