@@ -51,6 +51,10 @@ var (
 	ThemeFolderRoute = "/theme"
 )
 
+const (
+	CACHE_MAXAGE_STATICCONTENT = 86400
+)
+
 func New(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter) (*Server, error) {
 
 	// paths
@@ -117,7 +121,7 @@ func (server *Server) Start() chan error {
 
 		// serve static files
 		if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
-			s := http.StripPrefix(ThemeFolderRoute, http.FileServer(http.Dir(themeFolder)))
+			s := http.StripPrefix(ThemeFolderRoute, maxAgeHandler(CACHE_MAXAGE_STATICCONTENT, http.FileServer(http.Dir(themeFolder))))
 			requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)
 		}
 
@@ -188,4 +192,11 @@ func (server *Server) getPort() int {
 	}
 
 	return port
+}
+
+func maxAgeHandler(seconds int, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", seconds))
+		h.ServeHTTP(w, r)
+	})
 }
