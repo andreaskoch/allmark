@@ -741,35 +741,35 @@ article.presentation .slide {
 
 .tagcloud>.tags>span {
     line-height: 1.0em;
-    padding: 3px 6px;
-    margin: 0px 5px;
+    padding: 3px 2px;
+    margin: 0;
 }
 
-.tagmap>.content>.tagcloud>.tags>span>a {
+.tagcloud>.tags>span>a {
     color: #00;
 }
 
-.tagmap>.content>.tagcloud>.tags>span.level-1 {
+.tagcloud>.tags>span.level-1 {
     font-size: 2em;
 }
 
-.tagmap>.content>.tagcloud>.tags>span.level-2 {
+.tagcloud>.tags>span.level-2 {
     font-size: 1.8em;
 }
 
-.tagmap>.content>.tagcloud>.tags>span.level-3 {
+.tagcloud>.tags>span.level-3 {
     font-size: 1.6em;
 }
 
-.tagmap>.content>.tagcloud>.tags>span.level-4 {
+.tagcloud>.tags>span.level-4 {
     font-size: 1.4em;
 }
 
-.tagmap>.content>.tagcloud>.tags>span.level-5 {
+.tagcloud>.tags>span.level-5 {
     font-size: 1.2em;
 }
 
-.tagmap>.content>.tagcloud>.tags>span.level-6 {
+.tagcloud>.tags>span.level-6 {
     font-size: 1.0em;
 }
 
