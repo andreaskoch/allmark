@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
+	"github.com/andreaskoch/allmark2/web/server/header"
 	"github.com/andreaskoch/allmark2/web/view/templates"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"net/http"
@@ -27,6 +28,9 @@ type Tags struct {
 func (self *Tags) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		// cache the response
+		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 
 		tagmapTemplate, err := self.templateProvider.GetFullTemplate(templates.TagmapTemplateName)
 		if err != nil {

@@ -7,6 +7,7 @@ package handler
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
+	"github.com/andreaskoch/allmark2/web/server/header"
 	"github.com/andreaskoch/allmark2/web/view/templates"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"io"
@@ -41,7 +42,12 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		// stage 1: check if there is a item for the request
 		if model, found := handler.viewModelOrchestrator.GetFullViewModel(requestRoute); found {
+
 			handler.logger.Info("Returning item %q", requestRoute)
+
+			// set cache headers
+			header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
+
 			handler.render(w, model)
 			return
 		}
@@ -50,6 +56,9 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 		if file, found := handler.fileOrchestrator.GetFile(requestRoute); found {
 
 			handler.logger.Info("Returning file %q", requestRoute)
+
+			// set cache headers
+			header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
 
 			// get the content provider
 			contentProvider := handler.fileOrchestrator.GetFileContentProvider(requestRoute)

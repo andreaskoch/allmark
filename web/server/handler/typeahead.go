@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
+	"github.com/andreaskoch/allmark2/web/server/header"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"io"
 	"net/http"
@@ -23,15 +24,13 @@ func (handler *TypeAhead) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// get the query parameter
-		query, _ := getQueryParameterFromUrl(*r.URL)
+		// set the headers
+		header.NoCache(w, r)
+		header.ContentType(w, r, "application/json")
 
 		// get the suggestions
+		query, _ := getQueryParameterFromUrl(*r.URL)
 		searchResults := handler.typeAheadOrchestrator.GetSuggestions(query)
-
-		// set content type to json
-		w.Header().Set("Cache-Control", "no-cache")
-		w.Header().Set("Content-Type", "application/json")
 
 		// convert to json
 		writeSearchResults(w, searchResults)

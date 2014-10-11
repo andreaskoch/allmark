@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
+	"github.com/andreaskoch/allmark2/web/server/header"
 	"github.com/andreaskoch/allmark2/web/view/templates"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	html "html/template"
@@ -31,6 +32,9 @@ type Search struct {
 func (handler *Search) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		// cache the response
+		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 
 		// get the query parameter
 		query, _ := getQueryParameterFromUrl(*r.URL)

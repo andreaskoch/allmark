@@ -15,6 +15,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/parser"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
 	"github.com/andreaskoch/allmark2/web/server/handler"
+	"github.com/andreaskoch/allmark2/web/server/header"
 	"github.com/andreaskoch/allmark2/web/webpaths"
 	"github.com/gorilla/mux"
 	"github.com/skratchdot/open-golang/open"
@@ -49,10 +50,6 @@ var (
 
 	// Static Routes
 	ThemeFolderRoute = "/theme"
-)
-
-const (
-	CACHE_MAXAGE_STATICCONTENT = 86400
 )
 
 func New(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter) (*Server, error) {
@@ -121,7 +118,7 @@ func (server *Server) Start() chan error {
 
 		// serve static files
 		if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
-			s := http.StripPrefix(ThemeFolderRoute, maxAgeHandler(CACHE_MAXAGE_STATICCONTENT, http.FileServer(http.Dir(themeFolder))))
+			s := http.StripPrefix(ThemeFolderRoute, maxAgeHandler(header.STATICCONTENT_CACHEDURATION_SECONDS, http.FileServer(http.Dir(themeFolder))))
 			requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)
 		}
 
@@ -196,7 +193,7 @@ func (server *Server) getPort() int {
 
 func maxAgeHandler(seconds int, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", seconds))
+		header.Cache(w, r, seconds)
 		h.ServeHTTP(w, r)
 	})
 }

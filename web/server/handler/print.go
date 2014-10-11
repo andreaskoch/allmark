@@ -8,6 +8,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
+	"github.com/andreaskoch/allmark2/web/server/header"
 	"github.com/andreaskoch/allmark2/web/view/templates"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"github.com/gorilla/mux"
@@ -28,6 +29,9 @@ type Print struct {
 func (handler *Print) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		// cache the response
+		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 
 		// get the path from the request variables
 		vars := mux.Vars(r)

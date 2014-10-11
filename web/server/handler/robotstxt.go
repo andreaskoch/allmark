@@ -7,6 +7,7 @@ package handler
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/web/server/header"
 	"net/http"
 )
 
@@ -17,6 +18,10 @@ type RobotsTxt struct {
 func (handler *RobotsTxt) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		// cache the response
+		header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
+
 		fmt.Fprintf(w, `User-agent: *
 allow: /
 
