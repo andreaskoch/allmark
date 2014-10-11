@@ -261,7 +261,7 @@ body>article {
 }
 
 body>aside.export {
-    margin: 0px;
+    margin: 4em 0 0 0;
 }
 
 body>aside.export {
