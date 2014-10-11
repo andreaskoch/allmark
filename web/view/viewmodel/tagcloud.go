@@ -13,8 +13,8 @@ type TagCloud []*TagCloudEntry
 type TagCloudEntry struct {
 	Name           string `json:"name"`
 	Route          string `json:"route"`
-	Level          int    `json:level`
-	NumberOfChilds int    `json:numberofchilds`
+	Level          int    `json:"level"`
+	NumberOfChilds int    `json:"numberofchilds"`
 }
 
 type SortTagCloudBy func(tagCloudEntry1, tagCloudEntry2 *TagCloudEntry) bool

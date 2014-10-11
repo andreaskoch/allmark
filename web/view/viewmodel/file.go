@@ -9,11 +9,11 @@ import (
 )
 
 type File struct {
-	Parent string `json:parent`
-	Path   string `json:path`
-	Route  string `json:route`
-	Name   string `json:name`
+	Parent string `json:"parent"`
+	Path   string `json:"path"`
+	Route  string `json:"route"`
+	Name   string `json:"name"`
 
-	LastModified time.Time `json:lastModified`
-	MimeType     string    `json:mimeType`
+	LastModified time.Time `json:"lastModified"`
+	MimeType     string    `json:"mimeType"`
 }

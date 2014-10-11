@@ -5,7 +5,7 @@
 package viewmodel
 
 type BreadcrumbNavigation struct {
-	Entries []*Breadcrumb `json:entries`
+	Entries []*Breadcrumb `json:"entries"`
 }
 
 func (navigation *BreadcrumbNavigation) IsAvailable() bool {
@@ -13,7 +13,7 @@ func (navigation *BreadcrumbNavigation) IsAvailable() bool {
 }
 
 type Breadcrumb struct {
-	Level int    `json:level`
-	Title string `json:title`
-	Path  string `json:path`
+	Level int    `json:"level"`
+	Title string `json:"title"`
+	Path  string `json:"path"`
 }

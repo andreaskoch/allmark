@@ -5,13 +5,13 @@
 package viewmodel
 
 type ItemNavigation struct {
-	Parent   *NavEntry `json:parent`
-	Previous *NavEntry `json:previous`
-	Next     *NavEntry `json:next`
+	Parent   *NavEntry `json:"parent"`
+	Previous *NavEntry `json:"previous"`
+	Next     *NavEntry `json:"next"`
 }
 
 type NavEntry struct {
-	Title       string `json:title`
-	Description string `json:description`
-	Path        string `json:path`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Path        string `json:"path"`
 }

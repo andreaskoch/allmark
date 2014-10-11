@@ -7,15 +7,15 @@ package index
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
-	"github.com/andreaskoch/allmark2/dataaccess"
+	"github.com/andreaskoch/allmark2/model"
 )
 
-func New(logger logger.Logger, items []*dataaccess.Item) *Index {
+func New(logger logger.Logger, items []*model.Item) *Index {
 	index := &Index{
 		logger: logger,
 
-		itemList: make([]*dataaccess.Item, 0),
-		routeMap: make(map[string]*dataaccess.Item),
+		itemList: make([]*model.Item, 0),
+		routeMap: make(map[string]*model.Item),
 		itemTree: newItemTree(logger),
 	}
 
@@ -30,12 +30,12 @@ type Index struct {
 	logger logger.Logger
 
 	// indizes
-	itemList []*dataaccess.Item
-	routeMap map[string]*dataaccess.Item // route -> item,
+	itemList []*model.Item
+	routeMap map[string]*model.Item // route -> item,
 	itemTree *ItemTree
 }
 
-func (index *Index) IsMatch(r route.Route) (item *dataaccess.Item, isMatch bool) {
+func (index *Index) IsMatch(r route.Route) (item *model.Item, isMatch bool) {
 
 	// check for a direct match
 	if item, isMatch = index.routeMap[route.ToKey(r)]; isMatch {
@@ -46,9 +46,9 @@ func (index *Index) IsMatch(r route.Route) (item *dataaccess.Item, isMatch bool)
 	return nil, false
 }
 
-func (index *Index) IsFileMatch(r route.Route) (*dataaccess.File, bool) {
+func (index *Index) IsFileMatch(r route.Route) (*model.File, bool) {
 
-	var parent *dataaccess.Item
+	var parent *model.Item
 	parentRoute := r
 	for parentRoute.Level() >= 0 {
 
@@ -85,7 +85,7 @@ func (index *Index) IsFileMatch(r route.Route) (*dataaccess.File, bool) {
 	return nil, false
 }
 
-func (index *Index) GetParent(childRoute route.Route) *dataaccess.Item {
+func (index *Index) GetParent(childRoute route.Route) *model.Item {
 
 	if childRoute.IsEmpty() {
 		return nil
@@ -110,7 +110,7 @@ func (index *Index) GetParent(childRoute route.Route) *dataaccess.Item {
 	return item
 }
 
-func (index *Index) Root() *dataaccess.Item {
+func (index *Index) Root() *model.Item {
 	return index.itemTree.Root()
 }
 
@@ -118,10 +118,15 @@ func (index *Index) Size() int {
 	return len(index.itemList)
 }
 
-// Get all childs that match the given expression
-func (index *Index) GetAllChilds(route route.Route, expression func(item *dataaccess.Item) bool) []*dataaccess.Item {
+// Get all items
+func (index *Index) GetAllItems() []*model.Item {
+	return index.itemList
+}
 
-	childs := make([]*dataaccess.Item, 0)
+// Get all childs that match the given expression
+func (index *Index) GetAllChilds(route route.Route, expression func(item *model.Item) bool) []*model.Item {
+
+	childs := make([]*model.Item, 0)
 
 	// get all direct childs of the supplied route
 	directChilds := index.GetDirectChilds(route)
@@ -142,22 +147,22 @@ func (index *Index) GetAllChilds(route route.Route, expression func(item *dataac
 	}
 
 	// sort the items by ascending by route
-	dataaccess.SortItemBy(sortItemsByRoute).Sort(childs)
+	model.SortItemsBy(sortItemsByDate).Sort(childs)
 
 	return childs
 }
 
-func (index *Index) GetDirectChilds(route route.Route) []*dataaccess.Item {
+func (index *Index) GetDirectChilds(route route.Route) []*model.Item {
 	// get all mathching childs
 	childs := index.itemTree.GetChildItems(route)
 
 	// sort the items by ascending by route
-	dataaccess.SortItemBy(sortItemsByRoute).Sort(childs)
+	model.SortItemsBy(sortItemsByDate).Sort(childs)
 
 	return childs
 }
 
-func (index *Index) add(item *dataaccess.Item) {
+func (index *Index) add(item *model.Item) {
 
 	// abort if item is invalid
 	if item == nil {
@@ -171,10 +176,9 @@ func (index *Index) add(item *dataaccess.Item) {
 	index.itemTree.Insert(item)
 }
 
-// sort the items by name
-func sortItemsByRoute(item1, item2 *dataaccess.Item) bool {
+// sort the models by date and name
+func sortItemsByDate(model1, model2 *model.Item) bool {
 
-	// ascending by route
-	return item1.Route().Value() > item2.Route().Value()
+	return model1.MetaData.CreationDate.Before(model2.MetaData.CreationDate)
 
 }

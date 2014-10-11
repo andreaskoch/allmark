@@ -17,12 +17,12 @@ type Model struct {
 
 	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
 	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
-	ItemNavigation       *ItemNavigation       `json:itemNavigation`
+	ItemNavigation       *ItemNavigation       `json:"itemNavigation"`
 
 	Tags     []*Tag    `json:"tags"`
 	TagCloud *TagCloud `json:"tagCloud"`
 
-	Files []File `json:files`
+	Files []File `json:"files"`
 
 	Locations   []*Model    `json:"locations"`
 	GeoLocation GeoLocation `json:"geoLocation"`

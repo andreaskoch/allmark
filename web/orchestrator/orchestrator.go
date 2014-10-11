@@ -17,7 +17,6 @@ import (
 	"github.com/andreaskoch/allmark2/web/orchestrator/search"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"github.com/andreaskoch/allmark2/web/webpaths"
-	"sort"
 	"strings"
 	"time"
 )
@@ -53,8 +52,9 @@ type Orchestrator struct {
 	webPathProvider webpaths.WebPathProvider
 
 	// cache control
-	cacheStatusMap map[string]CacheState
-	cachePrimerMap map[string]func()
+	cacheStatusMap    map[string]CacheState
+	cachePrimerMap    map[string]func()
+	cachePrimerStatus map[string]bool
 
 	// caches and indizes
 	fulltextIndex   *search.ItemSearch
@@ -119,8 +119,31 @@ func (orchestrator *Orchestrator) primeCaches() {
 
 // Prime a particular cache
 func (orchestrator *Orchestrator) primeCache(cacheType string) {
+
+	// initialize the mutex map
+	if orchestrator.cachePrimerStatus == nil {
+		orchestrator.cachePrimerStatus = make(map[string]bool)
+	}
+
+	// check if there is a mutex
+	if exists, _ := orchestrator.cachePrimerStatus[cacheType]; exists {
+
+		// abort. There is already a primer running for the supplied cache type
+		return
+	}
+
+	// set a mutex for the supplied cache type
+	orchestrator.cachePrimerStatus[cacheType] = true
+
+	// execute the primer func
 	primerFunc := orchestrator.cachePrimerMap[cacheType]
 	primerFunc()
+
+	// set the cache status to "primed"
+	orchestrator.cacheStatusMap[cacheType] = CacheStatePrimed
+
+	// release the mutex
+	defer delete(orchestrator.cachePrimerStatus, cacheType)
 }
 
 func (orchestrator *Orchestrator) ItemExists(route route.Route) bool {
@@ -165,13 +188,13 @@ func (orchestrator *Orchestrator) parseFile(file *dataaccess.File) *model.File {
 }
 
 func (orchestrator *Orchestrator) rootItem() *model.Item {
-	return orchestrator.parseItem(orchestrator.index().Root())
+	return orchestrator.index().Root()
 }
 
 func (orchestrator *Orchestrator) getItem(route route.Route) *model.Item {
 
 	if item, exists := orchestrator.index().IsMatch(route); exists {
-		return orchestrator.parseItem(item)
+		return item
 	}
 
 	return nil
@@ -281,7 +304,20 @@ func (orchestrator *Orchestrator) index() *index.Index {
 
 	orchestrator.setCache(cacheType, func() {
 
-		newIndex := index.New(orchestrator.logger, orchestrator.repository.Items())
+		// parse all items
+		repositoryItems := orchestrator.repository.Items()
+		parsedItems := make([]*model.Item, 0, len(repositoryItems))
+		for _, repositoryItem := range repositoryItems {
+			parsedItem := orchestrator.parseItem(repositoryItem)
+			if parsedItem == nil {
+				continue
+			}
+
+			parsedItems = append(parsedItems, parsedItem)
+		}
+
+		// create a new index
+		newIndex := index.New(orchestrator.logger, parsedItems)
 
 		// store to cache
 		orchestrator.repositoryIndex = newIndex
@@ -309,8 +345,10 @@ func (orchestrator *Orchestrator) search(keywords string, maxiumNumberOfResults 
 		newFullTextIndex := search.NewItemSearch(orchestrator.logger, orchestrator.getAllItems())
 
 		// destroy the old index
-		oldIndex := orchestrator.fulltextIndex
-		go oldIndex.Destroy()
+		if orchestrator.fulltextIndex != nil {
+			oldIndex := orchestrator.fulltextIndex
+			go oldIndex.Destroy()
+		}
 
 		// store to cache
 		orchestrator.fulltextIndex = newFullTextIndex
@@ -336,17 +374,10 @@ func (orchestrator *Orchestrator) getAllItems() []*model.Item {
 
 	orchestrator.setCache(cacheType, func() {
 
-		allItems := make([]*model.Item, 0)
+		// get all items
+		allItems := orchestrator.index().GetAllItems()
 
-		for _, repositoryItem := range orchestrator.repository.Items() {
-			item := orchestrator.parseItem(repositoryItem)
-			if item == nil {
-				continue
-			}
-
-			allItems = append(allItems, item)
-		}
-
+		// sort the items by date
 		model.SortItemsBy(sortItemsByDate).Sort(allItems)
 
 		// store to cache
@@ -391,7 +422,7 @@ func (orchestrator *Orchestrator) getFile(route route.Route) *model.File {
 		return nil
 	}
 
-	return orchestrator.parseFile(file)
+	return file
 }
 
 func (orchestrator *Orchestrator) getParent(route route.Route) *model.Item {
@@ -400,7 +431,7 @@ func (orchestrator *Orchestrator) getParent(route route.Route) *model.Item {
 		return nil
 	}
 
-	return orchestrator.parseItem(parent)
+	return parent
 }
 
 func (orchestrator *Orchestrator) getPrevious(currentRoute route.Route) *model.Item {
@@ -469,20 +500,12 @@ func (orchestrator *Orchestrator) getNext(currentRoute route.Route) *model.Item 
 	return orchestrator.getItem(previousRoute)
 }
 
-func (orchestrator *Orchestrator) getChilds(route route.Route) (childs []*model.Item) {
+func (orchestrator *Orchestrator) getChilds(route route.Route) []*model.Item {
 
-	childs = make([]*model.Item, 0)
+	// get all childs
+	childs := orchestrator.index().GetDirectChilds(route)
 
-	for _, child := range orchestrator.index().GetDirectChilds(route) {
-		parsed := orchestrator.parseItem(child)
-		if parsed == nil {
-			continue
-		}
-
-		childs = append(childs, parsed)
-	}
-
-	// sort the leafes by date
+	// sort the childs by date
 	model.SortItemsBy(sortItemsByDate).Sort(childs)
 
 	return childs
@@ -534,48 +557,4 @@ func (orchestrator *Orchestrator) getAnalyticsSettings() viewmodel.Analytics {
 			TrackingId: orchestrator.config.Analytics.GoogleAnalytics.TrackingId,
 		},
 	}
-}
-
-// sort the models by date and name
-func sortItemsByDate(model1, model2 *model.Item) bool {
-
-	return model1.MetaData.CreationDate.Before(model2.MetaData.CreationDate)
-
-}
-
-func sortRoutesAndDatesDescending(itemRoute1, itemRoute2 routeAndDate) bool {
-	return itemRoute1.date.After(itemRoute2.date)
-}
-
-type routeAndDate struct {
-	route route.Route
-	date  time.Time
-}
-
-type SortItemRoutesAndDatesBy func(itemRoute1, itemRoute2 routeAndDate) bool
-
-func (by SortItemRoutesAndDatesBy) Sort(routesAndDates []routeAndDate) {
-	sorter := &routeAndDateSorter{
-		routesAndDates: routesAndDates,
-		by:             by,
-	}
-
-	sort.Sort(sorter)
-}
-
-type routeAndDateSorter struct {
-	routesAndDates []routeAndDate
-	by             SortItemRoutesAndDatesBy
-}
-
-func (sorter *routeAndDateSorter) Len() int {
-	return len(sorter.routesAndDates)
-}
-
-func (sorter *routeAndDateSorter) Swap(i, j int) {
-	sorter.routesAndDates[i], sorter.routesAndDates[j] = sorter.routesAndDates[j], sorter.routesAndDates[i]
-}
-
-func (sorter *routeAndDateSorter) Less(i, j int) bool {
-	return sorter.by(sorter.routesAndDates[i], sorter.routesAndDates[j])
 }

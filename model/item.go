@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"sort"
+	"strings"
 )
 
 type ItemType int
@@ -86,6 +87,19 @@ func (item *Item) Route() route.Route {
 
 func (item *Item) Files() []*File {
 	return item.files
+}
+
+// Get the file which matches the supplied route. Returns nil if there is no matching file.
+func (item *Item) GetFile(fileRoute route.Route) *File {
+	for _, file := range item.Files() {
+		if !strings.HasSuffix(fileRoute.Value(), file.Route().Value()) {
+			continue
+		}
+
+		return file
+	}
+
+	return nil
 }
 
 func (item *Item) IsPhysical() bool {

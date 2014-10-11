@@ -37,6 +37,9 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	viewModel.BreadcrumbNavigation = orchestrator.navigationOrchestrator.GetBreadcrumbNavigation(itemRoute)
 	viewModel.ItemNavigation = orchestrator.navigationOrchestrator.GetItemNavigation(itemRoute)
 
+	// childs
+	viewModel.Childs = orchestrator.getChildModels(itemRoute)
+
 	// tags
 	viewModel.Tags = orchestrator.tagOrchestrator.getItemTags(itemRoute)
 
@@ -69,18 +72,6 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	return viewModel, true
 }
 
-func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
-
-	// get the requested item
-	item := orchestrator.getItem(itemRoute)
-	if item == nil {
-		return viewModel, false
-	}
-
-	return orchestrator.getViewModel(item), true
-
-}
-
 func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (models []*viewmodel.Model, found bool) {
 
 	// get the latest routes
@@ -95,7 +86,7 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 
 		viewModel, found := orchestrator.GetViewModel(route)
 		if !found {
-			// todo: log error
+			orchestrator.logger.Warn("Viewmode %q was not found.", route)
 			continue
 		}
 
@@ -106,6 +97,18 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 	}
 
 	return models, true
+}
+
+func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
+
+	// get the requested item
+	item := orchestrator.getItem(itemRoute)
+	if item == nil {
+		return viewModel, false
+	}
+
+	return orchestrator.getViewModel(item), true
+
 }
 
 func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmodel.Model {
@@ -129,7 +132,6 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmo
 	viewModel := viewmodel.Model{
 		Base:    getBaseModel(root, item, orchestrator.itemPather()),
 		Content: convertedContent,
-		Childs:  orchestrator.getChildModels(itemRoute),
 
 		// files
 		Files: orchestrator.fileOrchestrator.GetFiles(itemRoute),
@@ -159,11 +161,4 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route)
 	viewmodel.SortBaseModelBy(sortBaseModelsByDate).Sort(childModels)
 
 	return childModels
-}
-
-// sort the models by date and name
-func sortBaseModelsByDate(model1, model2 *viewmodel.Base) bool {
-
-	return model1.CreationDate > model2.CreationDate
-
 }

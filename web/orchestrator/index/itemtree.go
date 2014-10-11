@@ -9,7 +9,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/tree"
-	"github.com/andreaskoch/allmark2/dataaccess"
+	"github.com/andreaskoch/allmark2/model"
 )
 
 func newItemTree(logger logger.Logger) *ItemTree {
@@ -24,7 +24,7 @@ type ItemTree struct {
 	logger logger.Logger
 }
 
-func (itemTree *ItemTree) Root() *dataaccess.Item {
+func (itemTree *ItemTree) Root() *model.Item {
 	rootNode := itemTree.Tree.Root()
 	if rootNode == nil {
 		return nil
@@ -33,7 +33,7 @@ func (itemTree *ItemTree) Root() *dataaccess.Item {
 	return nodeToItem(rootNode)
 }
 
-func (itemTree *ItemTree) Insert(item *dataaccess.Item) {
+func (itemTree *ItemTree) Insert(item *model.Item) {
 
 	if item == nil {
 		return
@@ -47,7 +47,7 @@ func (itemTree *ItemTree) Insert(item *dataaccess.Item) {
 	}
 }
 
-func (itemTree *ItemTree) Delete(item *dataaccess.Item) (bool, error) {
+func (itemTree *ItemTree) Delete(item *model.Item) (bool, error) {
 
 	if item == nil {
 		return false, fmt.Errorf("The supplied item is empty.")
@@ -57,7 +57,7 @@ func (itemTree *ItemTree) Delete(item *dataaccess.Item) (bool, error) {
 	return itemTree.Tree.Delete(itemRoute.Components())
 }
 
-func (itemTree *ItemTree) GetItem(route route.Route) *dataaccess.Item {
+func (itemTree *ItemTree) GetItem(route route.Route) *model.Item {
 
 	// locate the node
 	node := itemTree.getNode(route)
@@ -69,9 +69,9 @@ func (itemTree *ItemTree) GetItem(route route.Route) *dataaccess.Item {
 	return nodeToItem(node)
 }
 
-func (itemTree *ItemTree) GetChildItems(route route.Route) []*dataaccess.Item {
+func (itemTree *ItemTree) GetChildItems(route route.Route) []*model.Item {
 
-	childItems := make([]*dataaccess.Item, 0)
+	childItems := make([]*model.Item, 0)
 
 	node := itemTree.getNode(route)
 	if node == nil {
@@ -105,11 +105,11 @@ func (itemTree *ItemTree) getNode(route route.Route) *tree.Node {
 	return node
 }
 
-func nodeToItem(node *tree.Node) *dataaccess.Item {
+func nodeToItem(node *tree.Node) *model.Item {
 
 	if node.Value() == nil {
 		return nil
 	}
 
-	return node.Value().(*dataaccess.Item)
+	return node.Value().(*model.Item)
 }

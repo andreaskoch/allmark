@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/route"
-	"strings"
 )
 
 type ItemType int
@@ -118,19 +117,6 @@ func (item *Item) Files() (files []*File) {
 	}
 
 	return item.filesFunc()
-}
-
-// Get the file which matches the supplied route. Returns nil if there is no matching file.
-func (item *Item) GetFile(fileRoute route.Route) *File {
-	for _, file := range item.Files() {
-		if !strings.HasSuffix(fileRoute.Value(), file.Route().Value()) {
-			continue
-		}
-
-		return file
-	}
-
-	return nil
 }
 
 func (item *Item) GetChildItemChanges(list []*Item) (newChilds []*Item, removedChilds []route.Route) {

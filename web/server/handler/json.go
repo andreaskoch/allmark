@@ -45,7 +45,7 @@ func (handler *Json) Func() func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
 		// stage 1: check if there is a item for the request
-		if viewModel, found := handler.viewModelOrchestrator.GetViewModel(requestRoute); found {
+		if viewModel, found := handler.viewModelOrchestrator.GetFullViewModel(requestRoute); found {
 			writeViewModelAsJson(w, viewModel)
 			return
 		}

@@ -9,5 +9,5 @@ type ConversionModel struct {
 
 	Content string `json:"content"`
 
-	Files []File `json:files`
+	Files []File `json:"files"`
 }

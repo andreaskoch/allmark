@@ -11,23 +11,44 @@ import (
 
 type SitemapOrchestrator struct {
 	*Orchestrator
+
+	// caches
+	sitemap *viewmodel.Sitemap
 }
 
 func (orchestrator *SitemapOrchestrator) GetSitemap() viewmodel.Sitemap {
 
-	rootItem := orchestrator.rootItem()
-	if rootItem == nil {
-		orchestrator.logger.Fatal("No root item found")
+	cacheType := "html sitmap"
+
+	// load from cache
+	if orchestrator.sitemap != nil {
+
+		// re-prime the cache if it is stale
+		if orchestrator.isCacheStale(cacheType) {
+			go orchestrator.primeCache(cacheType)
+		}
+
+		return *orchestrator.sitemap
 	}
 
-	rootModel := viewmodel.Sitemap{
-		Title:       rootItem.Title,
-		Description: rootItem.Description,
-		Childs:      orchestrator.getSitemapEntries(rootItem.Route()),
-		Path:        "/",
-	}
+	orchestrator.setCache(cacheType, func() {
 
-	return rootModel
+		rootItem := orchestrator.rootItem()
+		if rootItem == nil {
+			orchestrator.logger.Fatal("No root item found")
+		}
+
+		sitemapModel := viewmodel.Sitemap{
+			Title:       rootItem.Title,
+			Description: rootItem.Description,
+			Childs:      orchestrator.getSitemapEntries(rootItem.Route()),
+			Path:        "/",
+		}
+
+		orchestrator.sitemap = &sitemapModel
+	})
+
+	return *orchestrator.sitemap
 }
 
 func (orchestrator *SitemapOrchestrator) getSitemapEntries(startRoute route.Route) []viewmodel.Sitemap {

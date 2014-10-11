@@ -5,11 +5,11 @@
 package viewmodel
 
 type Analytics struct {
-	Enabled         bool
-	GoogleAnalytics GoogleAnalytics
+	Enabled         bool            `json:"enabled"`
+	GoogleAnalytics GoogleAnalytics `json:"googleAnalytics"`
 }
 
 type GoogleAnalytics struct {
-	Enabled    bool
-	TrackingId string
+	Enabled    bool   `json:"enabled"`
+	TrackingId string `json:"trackingId"`
 }
