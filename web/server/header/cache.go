@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-const STATICCONTENT_CACHEDURATION_SECONDS = 86400
+const STATICCONTENT_CACHEDURATION_SECONDS = 31536000
 const DYNAMICCONTENT_CACHEDURATION_SECONDS = 120
 
 func Cache(w http.ResponseWriter, r *http.Request, seconds int) {
