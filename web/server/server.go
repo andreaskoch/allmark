@@ -119,7 +119,7 @@ func (server *Server) Start() chan error {
 		// serve static files
 		if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
 			s := http.StripPrefix(ThemeFolderRoute, maxAgeHandler(header.STATICCONTENT_CACHEDURATION_SECONDS, http.FileServer(http.Dir(themeFolder))))
-			requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)
+			requestRouter.PathPrefix(ThemeFolderRoute).Handler(header.Gzip(s))
 		}
 
 		// serve items
