@@ -13,7 +13,7 @@ const STATICCONTENT_CACHEDURATION_SECONDS = 86400
 const DYNAMICCONTENT_CACHEDURATION_SECONDS = 120
 
 func Cache(w http.ResponseWriter, r *http.Request, seconds int) {
-	w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", seconds))
+	w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%d", seconds))
 }
 
 func NoCache(w http.ResponseWriter, r *http.Request) {
