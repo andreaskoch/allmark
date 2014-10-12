@@ -27,7 +27,8 @@ func (handler *OpenSearchDescription) Func() func(w http.ResponseWriter, r *http
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// cache the response
+		// set headers
+		header.ContentType(w, r, "text/xml")
 		header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
 
 		// get the template

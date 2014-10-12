@@ -45,7 +45,8 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 
 			handler.logger.Info("Returning item %q", requestRoute)
 
-			// set cache headers
+			// set headers
+			header.ContentType(w, r, "text/html")
 			header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 
 			handler.render(w, model)
@@ -57,7 +58,8 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 
 			handler.logger.Info("Returning file %q", requestRoute)
 
-			// set cache headers
+			// set  headers
+			header.ContentType(w, r, file.MimeType)
 			header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
 
 			// get the content provider

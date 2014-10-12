@@ -19,7 +19,8 @@ func (handler *RobotsTxt) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// cache the response
+		// set headers
+		header.ContentType(w, r, "text/plain")
 		header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
 
 		fmt.Fprintf(w, `User-agent: *
