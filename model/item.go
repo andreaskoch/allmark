@@ -60,6 +60,8 @@ type Item struct {
 	Description string
 	Content     string
 
+	Hash string
+
 	MetaData MetaData
 }
 

@@ -51,23 +51,12 @@ func (parser *Parser) ParseItem(item *dataaccess.Item) (*model.Item, error) {
 	}
 
 	// fetch the item data
-	byteBuffer := new(bytes.Buffer)
-	dataWriter := bufio.NewWriter(byteBuffer)
-	contentReader := func(content io.ReadSeeker) error {
-		_, err := io.Copy(dataWriter, content)
-		dataWriter.Flush()
-		return err
+	data, err := getItemData(item)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot get data from item %q. Error: %s", item, err.Error())
 	}
-
-	if err := item.Data(contentReader); err != nil {
-		return nil, err
-	}
-
-	data := byteBuffer.Bytes()
 
 	lines := getLines(bytes.NewReader(data))
-
-	// cleanup the markdown before parser it
 	lines = cleanup.Cleanup(lines)
 
 	// detect the item type
@@ -99,6 +88,14 @@ func (parser *Parser) ParseItem(item *dataaccess.Item) (*model.Item, error) {
 
 	}
 
+	// item hash
+	hash, err := item.Hash()
+	if err != nil {
+		return nil, fmt.Errorf("Unable to determine the hash for item %q. Error: %s", item, err.Error())
+	}
+
+	itemModel.Hash = hash
+
 	return itemModel, nil
 }
 
@@ -125,4 +122,22 @@ func (parser *Parser) convertFiles(dataaccessFiles []*dataaccess.File) []*model.
 	}
 
 	return convertedFiles
+}
+
+func getItemData(item *dataaccess.Item) ([]byte, error) {
+
+	// fetch the item data
+	byteBuffer := new(bytes.Buffer)
+	dataWriter := bufio.NewWriter(byteBuffer)
+	contentReader := func(content io.ReadSeeker) error {
+		_, err := io.Copy(dataWriter, content)
+		dataWriter.Flush()
+		return err
+	}
+
+	if err := item.Data(contentReader); err != nil {
+		return nil, err
+	}
+
+	return byteBuffer.Bytes(), nil
 }

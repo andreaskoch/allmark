@@ -20,6 +20,10 @@ func NoCache(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Cache-Control", "no-cache")
 }
 
+func ETag(w http.ResponseWriter, r *http.Request, hash string) {
+	w.Header().Add("ETag", hash)
+}
+
 func ContentType(w http.ResponseWriter, r *http.Request, contentType string) {
 	w.Header().Set("Content-Type", contentType)
 }

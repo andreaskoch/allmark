@@ -88,7 +88,7 @@ func newTextContentProvider(text string, route route.Route) *content.ContentProv
 			return "", fmt.Errorf("Unable to determine the hash for content %q. Error: %s", text, contentHashErr)
 		}
 
-		return fmt.Sprintf("%s+%s", routeHash, contentHash), nil
+		return fmt.Sprintf("%s%s", routeHash, contentHash), nil
 	}
 
 	// last modified provider
@@ -121,7 +121,7 @@ func getHashFromFile(filepath string, route route.Route) (string, error) {
 	}
 
 	// return the combined hash
-	return fmt.Sprintf("%s+%s", routeHash, fileHash), nil
+	return fmt.Sprintf("%s%s", routeHash, fileHash), nil
 }
 
 func getRouteHash(route route.Route) (string, error) {

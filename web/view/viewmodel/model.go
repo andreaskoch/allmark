@@ -28,6 +28,8 @@ type Model struct {
 	GeoLocation GeoLocation `json:"geoLocation"`
 
 	Analytics Analytics `json:"-"`
+
+	Hash string `json:"hash"`
 }
 
 func Error(title, content, route string) *Model {

@@ -67,9 +67,23 @@ func (orchestrator *FileOrchestrator) GetFiles(itemRoute route.Route) (files []v
 }
 
 func toViewModel(pathProvider paths.Pather, file *model.File) (fileModel viewmodel.File, err error) {
+
+	// mime type
 	mimeType, err := file.MimeType()
 	if err != nil {
 		return fileModel, fmt.Errorf("Unable to determine mime type of file %q. Error: %s", file, err.Error())
+	}
+
+	// hash
+	hash, err := file.Hash()
+	if err != nil {
+		return fileModel, fmt.Errorf("Unable to determine hash of file %q. Error: %s", file, err.Error())
+	}
+
+	// last modified date
+	lastModifiedDate, err := file.LastModified()
+	if err != nil {
+		return fileModel, fmt.Errorf("Unable to determine the last modified date of file %q. Error: %s", file, err.Error())
 	}
 
 	filePath := file.Route().Path()
@@ -81,7 +95,9 @@ func toViewModel(pathProvider paths.Pather, file *model.File) (fileModel viewmod
 		Route:  pathProvider.Path(fileRoute),
 		Name:   file.Route().LastComponentName(),
 
-		MimeType: mimeType,
+		LastModified: lastModifiedDate,
+		MimeType:     mimeType,
+		Hash:         hash,
 	}
 
 	return fileModel, nil

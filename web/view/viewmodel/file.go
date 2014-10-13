@@ -14,6 +14,7 @@ type File struct {
 	Route  string `json:"route"`
 	Name   string `json:"name"`
 
+	Hash         string    `json:"hash"`
 	LastModified time.Time `json:"lastModified"`
 	MimeType     string    `json:"mimeType"`
 }

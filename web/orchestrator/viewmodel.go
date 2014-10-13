@@ -54,6 +54,9 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	// Analytics Settings
 	viewModel.Analytics = orchestrator.getAnalyticsSettings()
 
+	// Hash / ETag
+	viewModel.Hash = item.Hash
+
 	// special viewmodel attributes
 	isRepositoryItem := item.Type == model.TypeRepository
 	if isRepositoryItem {
