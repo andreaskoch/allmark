@@ -172,9 +172,9 @@ func (repository *Repository) sendAfterReindexUpdates() {
 }
 
 func (repository *Repository) notifySubscribers() {
-	// for _, route := range repository.routesWithSubscribers {
-	// 	go repository.onUpdateCallback(route)
-	// }
+	for _, route := range repository.routesWithSubscribers {
+		go repository.onUpdateCallback(route)
+	}
 }
 
 // Start the fulltext search indexing process
