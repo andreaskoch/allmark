@@ -156,11 +156,15 @@ func (repository *Repository) OnUpdate(callback func(route.Route)) {
 
 func (repository *Repository) StartWatching(r route.Route) {
 	repository.routesWithSubscribers[route.ToKey(r)] = r
+
+	// todo: start a watcher
 }
 
 func (repository *Repository) StopWatching(r route.Route) {
 	key := route.ToKey(r)
 	delete(repository.routesWithSubscribers, key)
+
+	// todo: stop the watcher started earlier
 }
 
 func (repository *Repository) sendAfterReindexUpdates() {
@@ -173,6 +177,9 @@ func (repository *Repository) sendAfterReindexUpdates() {
 
 func (repository *Repository) notifySubscribers() {
 	for _, route := range repository.routesWithSubscribers {
+
+		// todo: check if item hash changed
+
 		go repository.onUpdateCallback(route)
 	}
 }
