@@ -17,6 +17,18 @@ func NewFactory(logger logger.Logger, config config.Config, repository dataacces
 
 	baseOrchestrator := newBaseOrchestrator(logger, config, repository, parser, converter, webPathProvider)
 
+	// refresh control
+	go func() {
+		for {
+			select {
+			case <-repository.AfterReindex():
+				// reset the list
+				logger.Debug("Resetting the the cache")
+				baseOrchestrator.ResetCache()
+			}
+		}
+	}()
+
 	return &Factory{
 		logger: logger,
 
@@ -90,18 +102,6 @@ func (factory *Factory) NewViewModelOrchestrator() ViewModelOrchestrator {
 		fileOrchestrator:       factory.NewFileOrchestrator(),
 		locationOrchestrator:   factory.NewLocationOrchestrator(),
 	}
-
-	// refresh control
-	go func() {
-		for {
-			select {
-			case <-orchestrator.repository.AfterReindex():
-				// reset the list
-				factory.logger.Info("Resetting the leafes list")
-				factory.baseOrchestrator.ResetCache()
-			}
-		}
-	}()
 
 	return orchestrator
 }
