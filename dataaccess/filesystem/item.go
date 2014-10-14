@@ -105,7 +105,7 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
 	}
 
-	itemProvider.logger.Info("Creating a physical item from route %q", route)
+	itemProvider.logger.Debug("Creating a physical item from route %q", route)
 
 	// content
 	contentProvider := newFileContentProvider(filePath, route)
@@ -138,7 +138,7 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (item *da
 		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
 	}
 
-	itemProvider.logger.Info("Creating a virtual item from route %q", route)
+	itemProvider.logger.Debug("Creating a virtual item from route %q", route)
 
 	// content
 	title := filepath.Base(itemDirectory)
@@ -173,7 +173,7 @@ func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (i
 		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
 	}
 
-	itemProvider.logger.Info("Creating a file collection item from route %q", route)
+	itemProvider.logger.Debug("Creating a file collection item from route %q", route)
 
 	// content
 	title := filepath.Base(itemDirectory)
