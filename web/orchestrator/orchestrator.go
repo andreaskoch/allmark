@@ -29,7 +29,7 @@ const (
 )
 
 func newBaseOrchestrator(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
-	return &Orchestrator{
+	orchestrator := &Orchestrator{
 		logger: logger,
 
 		config:     config,
@@ -39,6 +39,13 @@ func newBaseOrchestrator(logger logger.Logger, config config.Config, repository 
 
 		webPathProvider: webPathProvider,
 	}
+
+	// prime all caches asynchronously
+	go func() {
+		orchestrator.primeCaches()
+	}()
+
+	return orchestrator
 }
 
 type Orchestrator struct {
@@ -71,11 +78,6 @@ func (orchestrator *Orchestrator) ResetCache() {
 	for cacheType := range orchestrator.cacheStatusMap {
 		orchestrator.cacheStatusMap[cacheType] = CacheStateStale
 	}
-
-	// prime all caches asynchronously
-	go func() {
-		orchestrator.primeCaches()
-	}()
 
 }
 
