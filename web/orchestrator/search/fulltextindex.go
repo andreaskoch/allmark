@@ -27,7 +27,7 @@ func newIndex(logger logger.Logger, items []*model.Item, name string, indexValue
 		indexValueFunc: indexValueFunc,
 	}
 
-	go index.initialize(items)
+	index.initialize(items)
 
 	return index
 }

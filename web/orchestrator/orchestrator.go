@@ -342,16 +342,17 @@ func (orchestrator *Orchestrator) search(keywords string, maxiumNumberOfResults 
 
 	orchestrator.setCache(cacheType, func() {
 
+		// capture the old index
+		oldIndex := orchestrator.fulltextIndex
+
+		// create a new index
 		newFullTextIndex := search.NewItemSearch(orchestrator.logger, orchestrator.getAllItems())
+		orchestrator.fulltextIndex = newFullTextIndex
 
 		// destroy the old index
-		if orchestrator.fulltextIndex != nil {
-			oldIndex := orchestrator.fulltextIndex
+		if oldIndex != nil {
 			go oldIndex.Destroy()
 		}
-
-		// store to cache
-		orchestrator.fulltextIndex = newFullTextIndex
 	})
 
 	return orchestrator.fulltextIndex.Search(keywords, maxiumNumberOfResults)
