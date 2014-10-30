@@ -29,7 +29,7 @@ const (
 )
 
 func newBaseOrchestrator(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
-	orchestrator := &Orchestrator{
+	return &Orchestrator{
 		logger: logger,
 
 		config:     config,
@@ -39,13 +39,6 @@ func newBaseOrchestrator(logger logger.Logger, config config.Config, repository 
 
 		webPathProvider: webPathProvider,
 	}
-
-	// prime all caches asynchronously
-	go func() {
-		orchestrator.primeCaches()
-	}()
-
-	return orchestrator
 }
 
 type Orchestrator struct {
@@ -78,6 +71,11 @@ func (orchestrator *Orchestrator) ResetCache() {
 	for cacheType := range orchestrator.cacheStatusMap {
 		orchestrator.cacheStatusMap[cacheType] = CacheStateStale
 	}
+
+	// prime all caches asynchronously
+	go func() {
+		orchestrator.primeCaches()
+	}()
 
 }
 
@@ -344,17 +342,16 @@ func (orchestrator *Orchestrator) search(keywords string, maxiumNumberOfResults 
 
 	orchestrator.setCache(cacheType, func() {
 
-		// capture the old index
-		oldIndex := orchestrator.fulltextIndex
-
-		// create a new index
 		newFullTextIndex := search.NewItemSearch(orchestrator.logger, orchestrator.getAllItems())
-		orchestrator.fulltextIndex = newFullTextIndex
 
 		// destroy the old index
-		if oldIndex != nil {
+		if orchestrator.fulltextIndex != nil {
+			oldIndex := orchestrator.fulltextIndex
 			go oldIndex.Destroy()
 		}
+
+		// store to cache
+		orchestrator.fulltextIndex = newFullTextIndex
 	})
 
 	return orchestrator.fulltextIndex.Search(keywords, maxiumNumberOfResults)
