@@ -33,7 +33,7 @@ func init() {
 
 			// pdf preview
 			newFileFromText("pdf.js", themefiles.PdfJs),
-			newFileFromText("pdf-preview.js", themefiles.PdfPreviewJs),
+			newFileFromText("pdfpreview.js", themefiles.PdfPreviewJs),
 
 			// favicon
 			newFileFromBase64("favicon.ico", themefiles.FaviconIco),

@@ -7,12 +7,17 @@ package themefiles
 const PdfPreviewJs = `
 (function() {
 
-    PDFJS.disableWorker = true;
+    pdfSelector = ".pdf";
+
+    // abort if the pdf selector is not found
+    if ($(pdfSelector).length === 0) {
+        return;
+    }
 
     var createPdfPreview = function() {
 
         $(".pdf").each(function() {
-            
+
             var pdfDoc = null;
 
             // file link
@@ -34,7 +39,7 @@ const PdfPreviewJs = `
             var zoomControlContainer = $('<div>', { 'class': 'entry zoomlevel'}).html('<div class="display"><span class="label">Zoom:</span> <span class="zoomlevel-current"></span></div> <div class="controls"><button title="Click to zoom out. Or double-click the document area while holden the <ctl>-key." class="zoom-out">-</button><button title="Click to zoom in. Or double-click the document area." class="zoom-in">+</button></div>');
             var snapshotControlContainer = $('<div>', { 'class': 'entry snapshot'}).html('<a href="" class="open-new-window" title="Click to create a snapshot of the current view">Snapshot</a>');
             var downloadContainer = $('<div>', { 'class': 'entry download'}).html('<a href="' + pdfFilePath +  ' " title="Click to download the pdf: ' + pdfFilePath + '" target="_blank"><span>Download</span></a>');
-            
+
             var metaDataContainer = $('<nav>', { 'class': 'metadata'});
             metaDataContainer.append(pagerContainer);
             metaDataContainer.append(zoomControlContainer);
@@ -237,7 +242,7 @@ const PdfPreviewJs = `
 
                 return 1;
             };
-            
+
             /**
              * Set the total number of pages in the current pdf
              * @param {integer} newTotal The new total number of pages
@@ -299,14 +304,14 @@ const PdfPreviewJs = `
             // render on resize
             $(window).resize(function(){
                 waitForFinalEvent(function() {
-                    renderPage(getCurrentPage());   
+                    renderPage(getCurrentPage());
                 }, 500, "Render after resize");
             });
-            
+
             // goto the the previous page when the previous-page button is clicked
             $(previousPageButton).click(function() {
                 gotoPreviousPage();
-            });     
+            });
 
             // goto the the next page when the next-page button is clicked
             $(nextPageButton).click(function() {
@@ -321,7 +326,7 @@ const PdfPreviewJs = `
                  * @param {event} evt The key event
                  */
                 var listenForControlKey = function(evt) {
-                    controlKeyPressed = evt.ctrlKey;            
+                    controlKeyPressed = evt.ctrlKey;
                 };
 
                 // attach the control key listener to the keydown event (-> set controlKeyPressed to 'true')
@@ -364,8 +369,15 @@ const PdfPreviewJs = `
 
     }
 
-    // render all pdf documents
-    createPdfPreview();
+    // load pdf.js
+    $.getScript("/theme/pdf.js", function(){
+        PDFJS.disableWorker = true;
+
+        // render all pdf documents
+        createPdfPreview();
+
+    });
+
 
     // register a on change listener
     if (typeof(autoupdate) === 'object' && typeof(autoupdate.onchange) === 'function') {

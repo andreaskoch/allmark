@@ -164,17 +164,15 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <script src="/theme/jquery.js"></script>
 <script src="/theme/jquery.tmpl.js"></script>
 <script src="/theme/jquery.lazyload.js"></script>
+<script src="/theme/site.js"></script>
 <script src="/theme/latest.js"></script>
 <script src="/theme/typeahead.js"></script>
 <script src="/theme/search.js"></script>
-
 <script src="/theme/autoupdate.js"></script>
-<script src="/theme/pdf.js"></script>
-<script src="/theme/pdf-preview.js"></script>
+<script src="/theme/pdfpreview.js"></script>
 <script src="/theme/codehighlighting/highlight.js"></script>
 <script src="/theme/deck.js"></script>
 <script src="/theme/presentation.js"></script>
-<script src="/theme/site.js"></script>
 
 {{if .Analytics.Enabled}}
 {{if .Analytics.GoogleAnalytics.Enabled}}
