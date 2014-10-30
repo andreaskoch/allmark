@@ -11,6 +11,7 @@ import (
 type Repository interface {
 	Path() string
 
+	Item(route route.Route) *Item
 	Items() []*Item
 	Routes() []route.Route
 

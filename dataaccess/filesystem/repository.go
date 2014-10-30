@@ -35,7 +35,8 @@ type Repository struct {
 	itemProvider *itemProvider
 
 	// Indizes
-	items []*dataaccess.Item
+	items       []*dataaccess.Item
+	itemByRoute map[string]*dataaccess.Item
 
 	// Updates
 	reindexNotificationChannels []chan bool
@@ -73,7 +74,8 @@ func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeco
 		itemProvider: itemProvider,
 
 		// Indizes
-		items: make([]*dataaccess.Item, 0),
+		items:       make([]*dataaccess.Item, 0),
+		itemByRoute: make(map[string]*dataaccess.Item),
 
 		// Updates
 		routesWithSubscribers:       make(map[string]route.Route),
@@ -98,6 +100,10 @@ func (repository *Repository) Items() []*dataaccess.Item {
 	return repository.items
 }
 
+func (repository *Repository) Item(route route.Route) *dataaccess.Item {
+	return repository.itemByRoute[route.Value()]
+}
+
 func (repository *Repository) Routes() []route.Route {
 
 	routes := make([]route.Route, 0, len(repository.items))
@@ -119,6 +125,7 @@ func (repository *Repository) init() {
 	}()
 
 	newItems := make([]*dataaccess.Item, 0)
+	newItemsByRoute := make(map[string]*dataaccess.Item, 0)
 
 	for event := range newItemsChannel {
 
@@ -133,10 +140,13 @@ func (repository *Repository) init() {
 		}
 
 		repository.logger.Debug("Adding item %q", item)
+
 		newItems = append(newItems, item)
+		newItemsByRoute[item.Route().Value()] = item
 	}
 
 	repository.items = newItems
+	repository.itemByRoute = newItemsByRoute
 
 	// inform subscribers about updates
 	repository.notifySubscribers()
