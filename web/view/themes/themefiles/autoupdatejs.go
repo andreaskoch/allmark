@@ -209,7 +209,4 @@ var Autoupdate = (function () {
 
     return Autoupdate;
 })();
-
-var autoupdate = new Autoupdate();
-autoupdate.start();
 `

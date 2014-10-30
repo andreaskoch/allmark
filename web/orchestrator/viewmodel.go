@@ -138,6 +138,8 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmo
 
 		// files
 		Files: orchestrator.fileOrchestrator.GetFiles(itemRoute),
+
+		IsRepositoryItem: true,
 	}
 
 	return viewModel

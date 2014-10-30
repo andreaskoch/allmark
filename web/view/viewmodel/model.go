@@ -30,6 +30,8 @@ type Model struct {
 	Analytics Analytics `json:"-"`
 
 	Hash string `json:"hash"`
+
+	IsRepositoryItem bool `json:"isRepositoryItem"`
 }
 
 func Error(title, content, route string) *Model {
