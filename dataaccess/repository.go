@@ -15,7 +15,7 @@ type Repository interface {
 	Routes() []route.Route
 
 	// update handling
-	AfterReindex() chan bool
+	AfterReindex(notificationChannel chan bool)
 	OnUpdate(callback func(route.Route))
 	StartWatching(route route.Route)
 	StopWatching(route route.Route)

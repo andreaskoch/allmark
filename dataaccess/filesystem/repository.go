@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"path/filepath"
+	"runtime"
 	"time"
 )
 
@@ -144,10 +145,8 @@ func (repository *Repository) init() {
 	repository.sendAfterReindexUpdates()
 }
 
-func (repository *Repository) AfterReindex() chan bool {
-	notificationChannel := make(chan bool, 1)
+func (repository *Repository) AfterReindex(notificationChannel chan bool) {
 	repository.reindexNotificationChannels = append(repository.reindexNotificationChannels, notificationChannel)
-	return notificationChannel
 }
 
 func (repository *Repository) OnUpdate(callback func(route.Route)) {
@@ -169,9 +168,7 @@ func (repository *Repository) StopWatching(r route.Route) {
 
 func (repository *Repository) sendAfterReindexUpdates() {
 	for _, updateChannel := range repository.reindexNotificationChannels {
-		go func() {
-			updateChannel <- true
-		}()
+		updateChannel <- true
 	}
 }
 
@@ -179,7 +176,6 @@ func (repository *Repository) notifySubscribers() {
 	for _, route := range repository.routesWithSubscribers {
 
 		// todo: check if item hash changed
-
 		go repository.onUpdateCallback(route)
 	}
 }
@@ -195,6 +191,8 @@ func (repository *Repository) reindex(intervalInSeconds int) {
 	go func() {
 		sleepInterval := time.Second * time.Duration(intervalInSeconds)
 		for {
+
+			repository.logger.Info("Number of go routines: %s", runtime.NumGoroutine())
 			repository.logger.Info("Reindexing")
 			repository.init()
 
