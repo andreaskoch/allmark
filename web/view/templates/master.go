@@ -171,7 +171,6 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <script src="/theme/autoupdate.js"></script>
 <script src="/theme/pdfpreview.js"></script>
 <script src="/theme/codehighlighting/highlight.js"></script>
-<script src="/theme/deck.js"></script>
 <script src="/theme/presentation.js"></script>
 
 {{if .Analytics.Enabled}}

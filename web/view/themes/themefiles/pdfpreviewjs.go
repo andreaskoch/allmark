@@ -376,18 +376,16 @@ const PdfPreviewJs = `
         // render all pdf documents
         createPdfPreview();
 
+        // register a on change listener
+        if (typeof(autoupdate) === 'object' && typeof(autoupdate.onchange) === 'function') {
+            autoupdate.onchange(
+                "Render PDF Preview",
+                function() {
+                    createPdfPreview();
+                }
+            );
+        }
     });
-
-
-    // register a on change listener
-    if (typeof(autoupdate) === 'object' && typeof(autoupdate.onchange) === 'function') {
-        autoupdate.onchange(
-            "Render PDF Preview",
-            function() {
-                createPdfPreview();
-            }
-        );
-    }
 
 })();
 `

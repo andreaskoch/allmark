@@ -70,21 +70,28 @@ $(function() {
 
 	};
 
-	// transform the content
-	transformPresentationStructure();
+    // load deck.js
+    appendStyleSheet("/theme/deck.css");
+    $.getScript("/theme/deck.js", function(){
 
-	// render the presentaton
-	renderPresentation();
+		// transform the content
+		transformPresentationStructure();
 
-    // register a on change listener
-    if (typeof(autoupdate) === 'object' && typeof(autoupdate.onchange) === 'function') {
-        autoupdate.onchange(
-            "Render Presentation",
-            function() {
-                renderPresentation();
-            }
-        );
-    }
+		// render the presentaton
+		renderPresentation();
+
+	    // register a on change listener
+	    if (typeof(autoupdate) === 'object' && typeof(autoupdate.onchange) === 'function') {
+	        autoupdate.onchange(
+	            "Render Presentation",
+	            function() {
+	                renderPresentation();
+	            }
+	        );
+	    }
+
+    });
+
 
 });
 `

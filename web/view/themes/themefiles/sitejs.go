@@ -9,4 +9,12 @@ $(function() {
 	// initialize code highlighting
 	hljs.initHighlightingOnLoad();
 });
+
+function appendStyleSheet(path) {
+	$('<link/>', {
+		rel: 'stylesheet',
+		type: 'text/css',
+		href: path,
+	}).appendTo('head');
+}
 `
