@@ -167,11 +167,11 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <script src="/theme/site.js"></script>
 <script src="/theme/typeahead.js"></script>
 <script src="/theme/search.js"></script>
+
+{{ if .IsRepositoryItem }}
 <script src="/theme/pdfpreview.js"></script>
 <script src="/theme/codehighlighting/highlight.js"></script>
 <script src="/theme/presentation.js"></script>
-
-{{ if .IsRepositoryItem }}
 <script src="/theme/latest.js"></script>
 <script src="/theme/autoupdate.js"></script>
 <script>
