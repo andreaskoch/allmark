@@ -35,8 +35,10 @@ type Repository struct {
 	itemProvider *itemProvider
 
 	// Indizes
-	items       []*dataaccess.Item
-	itemByRoute map[string]*dataaccess.Item
+	items          []*dataaccess.Item
+	itemByRoute    map[string]*dataaccess.Item
+	itemByHash     map[string]*dataaccess.Item
+	itemHasChanged map[string]bool
 
 	// Updates
 	reindexNotificationChannels []chan bool
@@ -74,8 +76,10 @@ func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeco
 		itemProvider: itemProvider,
 
 		// Indizes
-		items:       make([]*dataaccess.Item, 0),
-		itemByRoute: make(map[string]*dataaccess.Item),
+		items:          make([]*dataaccess.Item, 0),
+		itemByRoute:    make(map[string]*dataaccess.Item),
+		itemByHash:     make(map[string]*dataaccess.Item),
+		itemHasChanged: make(map[string]bool),
 
 		// Updates
 		routesWithSubscribers:       make(map[string]route.Route),
@@ -125,7 +129,9 @@ func (repository *Repository) init() {
 	}()
 
 	newItems := make([]*dataaccess.Item, 0)
-	newItemsByRoute := make(map[string]*dataaccess.Item, 0)
+	newItemByRoute := make(map[string]*dataaccess.Item)
+	newItemByHash := make(map[string]*dataaccess.Item)
+	newItemHasChanged := make(map[string]bool)
 
 	for event := range newItemsChannel {
 
@@ -136,17 +142,35 @@ func (repository *Repository) init() {
 
 		item := event.Item
 		if item == nil {
+			repository.logger.Warn("The even contained an empty item but no error.")
 			continue
+		}
+
+		// determine the item hash
+		hash, err := item.Hash()
+		if err != nil {
+			repository.logger.Warn("Could not determine the hash for item %q. Error: %s", item.Route(), err.Error())
+			continue
+		}
+
+		// check if the hash changed
+		hasChanged := false
+		if _, itemByHashWasFound := repository.itemByHash[hash]; !itemByHashWasFound {
+			hasChanged = true // it's a new item
 		}
 
 		repository.logger.Debug("Adding item %q", item)
 
 		newItems = append(newItems, item)
-		newItemsByRoute[item.Route().Value()] = item
+		newItemByRoute[item.Route().Value()] = item
+		newItemHasChanged[item.Route().Value()] = hasChanged
+		newItemByHash[hash] = item
 	}
 
 	repository.items = newItems
-	repository.itemByRoute = newItemsByRoute
+	repository.itemByRoute = newItemByRoute
+	repository.itemHasChanged = newItemHasChanged
+	repository.itemByHash = newItemByHash
 
 	// inform subscribers about updates
 	repository.notifySubscribers()
@@ -185,7 +209,19 @@ func (repository *Repository) sendAfterReindexUpdates() {
 func (repository *Repository) notifySubscribers() {
 	for _, route := range repository.routesWithSubscribers {
 
-		// todo: check if item hash changed
+		hasChanged, exists := repository.itemHasChanged[route.Value()]
+		if !exists {
+			// don't notify if the item does no longer exists
+			continue
+		}
+
+		if !hasChanged {
+			// don't notify if the item has not changed
+			continue
+		}
+
+		repository.logger.Info("Item %q has changed.", route)
+
 		go repository.onUpdateCallback(route)
 	}
 }
