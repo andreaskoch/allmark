@@ -30,15 +30,18 @@ var Autoupdate = (function () {
      * @return string The url for the web socket connection (e.g. "ws://example.com:8080/documents/Sample-Document.ws")
      */
     var getWebSocketUrl = function() {
-        routeParameter = getCurrentRoute();
-        host = document.location.host;
-        webSocketHandler = "/ws";
-
-        if (routeParameter === "") {
-            return "ws://" + host + "/" + "ws";
+        var routeParameter = getCurrentRoute();
+        var host = document.location.host;
+        var protocol = "ws";
+        if (location.protocol === 'https:') {
+            protocol = "wss";
         }
 
-        return "ws://" + host + "/" + routeParameter + ".ws";
+        if (routeParameter === "") {
+            return protocol + "://" + host + "/" + "ws";
+        }
+
+        return protocol + "://" + host + "/" + routeParameter + ".ws";
     };
 
     /**
