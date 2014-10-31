@@ -49,7 +49,7 @@ func init() {
 
 			// code highlighting
 			newFileFromBase64("codehighlighting/highlight.js", themefiles.HighlightJs),
-			newFileFromBase64("codehighlighting/highlight.css", themefiles.HighlightCss),
+			newFileFromText("codehighlighting/highlight.css", themefiles.HighlightCss),
 
 			// latest/preview
 			newFileFromText("latest.js", themefiles.LatestJs),
