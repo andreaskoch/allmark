@@ -52,14 +52,14 @@ func main() {
 		switch strings.ToLower(commandName) {
 		case CommandNameInit:
 			initialize(repositoryPath)
-			return
+			return true
 
 		case CommandNameServe:
 			serve(repositoryPath)
-			return
+			return true
 
 		default:
-			return
+			return false
 		}
 
 		panic("Unreachable")
