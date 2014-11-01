@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
+	"github.com/andreaskoch/allmark2/common/util/hashutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/services/converter"
 	"github.com/andreaskoch/allmark2/services/parser"
@@ -21,6 +22,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 	"math"
 	"net/http"
+	"path/filepath"
 	"strings"
 )
 
@@ -118,7 +120,8 @@ func (server *Server) Start() chan error {
 
 		// serve static files
 		if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
-			s := http.StripPrefix(ThemeFolderRoute, maxAgeHandler(header.STATICCONTENT_CACHEDURATION_SECONDS, http.FileServer(http.Dir(themeFolder))))
+			themeFolderHandler := http.FileServer(http.Dir(themeFolder))
+			s := http.StripPrefix(ThemeFolderRoute, addStaticFileHeaders(themeFolder, header.STATICCONTENT_CACHEDURATION_SECONDS, themeFolderHandler))
 			requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)
 		}
 
@@ -193,8 +196,22 @@ func (server *Server) getPort() int {
 	return port
 }
 
-func maxAgeHandler(seconds int, h http.Handler) http.Handler {
+func addStaticFileHeaders(baseFolder string, seconds int, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// determine the hash
+		etag := ""
+		filePath := filepath.Join(baseFolder, r.RequestURI)
+		if file, err := fsutil.OpenFile(filePath); err == nil {
+			defer file.Close()
+			if fileHash, hashErr := hashutil.GetHash(file); hashErr == nil {
+				etag = fileHash
+			}
+		}
+		if etag != "" {
+			header.ETag(w, r, etag)
+		}
+
 		header.Cache(w, r, seconds)
 		h.ServeHTTP(w, r)
 	})
