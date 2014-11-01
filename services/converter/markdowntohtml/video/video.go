@@ -124,8 +124,8 @@ func isYouTubeLink(link string) (isYouTubeLink bool, videoId string) {
 
 func renderYouTubeVideo(title, videoId string) string {
 	return fmt.Sprintf(`<section class="video video-external video-youtube">
-		<header><a href="http://www.youtube.com/watch?v=%s" target="_blank" title="%s">%s</a></header>
-		<iframe width="560" height="315" src="http://www.youtube.com/embed/%s" frameborder="0" allowfullscreen></iframe>
+		<header><a href="://www.youtube.com/watch?v=%s" target="_blank" title="%s">%s</a></header>
+		<iframe width="560" height="315" src="://www.youtube.com/embed/%s" frameborder="0" allowfullscreen></iframe>
 	</section>`, videoId, title, title, videoId)
 }
 
@@ -139,8 +139,8 @@ func isVimeoLink(link string) (isVimeoLink bool, videoId string) {
 
 func renderVimeoVideo(title, videoId string) string {
 	return fmt.Sprintf(`<section class="video video-external video-vimeo">
-		<header><a href="https://vimeo.com/%s" target="_blank" title="%s">%s</a></header>
-		<iframe src="http://player.vimeo.com/video/%s" width="560" height="315" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+		<header><a href="://vimeo.com/%s" target="_blank" title="%s">%s</a></header>
+		<iframe src="://player.vimeo.com/video/%s" width="560" height="315" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
 	</section>`, videoId, title, title, videoId)
 }
 
