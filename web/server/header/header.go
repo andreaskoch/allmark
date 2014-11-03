@@ -9,8 +9,8 @@ import (
 	"net/http"
 )
 
-const STATICCONTENT_CACHEDURATION_SECONDS = 31536000
-const DYNAMICCONTENT_CACHEDURATION_SECONDS = 120
+const STATICCONTENT_CACHEDURATION_SECONDS = 31536000 // 1 year
+const DYNAMICCONTENT_CACHEDURATION_SECONDS = 86400   // 1 day
 
 func Cache(w http.ResponseWriter, r *http.Request, seconds int) {
 	w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%d", seconds))
