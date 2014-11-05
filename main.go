@@ -15,6 +15,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml"
 	"github.com/andreaskoch/allmark2/services/initialization"
 	"github.com/andreaskoch/allmark2/services/parser"
+	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"github.com/andreaskoch/allmark2/web/server"
 	"os"
 	"os/signal"
@@ -124,7 +125,7 @@ func printUsageInformation(args []string) {
 
 func serve(repositoryPath string) bool {
 
-	config := config.Get(repositoryPath)
+	config := *config.Get(repositoryPath)
 	logger := console.New(loglevel.FromString(config.LogLevel))
 
 	// data access
@@ -132,6 +133,9 @@ func serve(repositoryPath string) bool {
 	if err != nil {
 		logger.Error("Unable to create a repository. Error: %s", err)
 	}
+
+	// thumbnail conversion service
+	thumbnail.NewConversionService(logger, config, repository)
 
 	// parser
 	itemParser, err := parser.New(logger)
@@ -146,7 +150,7 @@ func serve(repositoryPath string) bool {
 	}
 
 	// server
-	server, err := server.New(logger, *config, repository, itemParser, converter)
+	server, err := server.New(logger, config, repository, itemParser, converter)
 	if err != nil {
 		logger.Error("Unable to instantiate a server. Error: %s", err.Error())
 		return false
