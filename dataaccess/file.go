@@ -30,6 +30,10 @@ func (file *File) String() string {
 	return fmt.Sprintf("%s", file.fileRoute.Value())
 }
 
+func (file *File) Name() string {
+	return fmt.Sprintf("%s", file.fileRoute.LastComponentName())
+}
+
 func (file *File) Parent() route.Route {
 	return file.parentRoute
 }

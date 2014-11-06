@@ -5,6 +5,7 @@
 package imageconversion
 
 import (
+	"fmt"
 	"github.com/nfnt/resize"
 	"image"
 	"image/gif"
@@ -13,7 +14,7 @@ import (
 	"io"
 )
 
-func Thumb(source io.Reader, mimeType string, maxWidth, maxHeight int, target io.Writer) error {
+func Thumb(source io.Reader, mimeType string, maxWidth, maxHeight uint, target io.Writer) error {
 
 	// read the source image
 	img, err := decode(source, mimeType)
@@ -22,13 +23,13 @@ func Thumb(source io.Reader, mimeType string, maxWidth, maxHeight int, target io
 	}
 
 	// resize the source image
-	thumb := resize.Thumb(maxWidth, maxHeight, img, resize.Lanczos3)
+	thumb := resize.Thumbnail(maxWidth, maxHeight, img, resize.Lanczos3)
 
 	// write the thumbnail to the target
 	return encode(mimeType, thumb, target)
 }
 
-func Resize(source io.Reader, mimeType string, width, height int, target io.Writer) error {
+func Resize(source io.Reader, mimeType string, width, height uint, target io.Writer) error {
 
 	// read the source image
 	img, err := decode(source, mimeType)
@@ -51,13 +52,13 @@ func encode(mimeType string, thumb image.Image, target io.Writer) error {
 		return png.Encode(target, thumb)
 
 	case "image/jpeg":
-		return jpeg.Encode(target, thumb)
+		return jpeg.Encode(target, thumb, nil)
 
 	case "image/gif":
-		return gif.Encode(target, thumb)
+		return gif.Encode(target, thumb, nil)
 
 	default:
-		return nil, fmt.Errorf("Unsupported mime type %s", mimeType)
+		return fmt.Errorf("Unsupported mime type %s", mimeType)
 
 	}
 
