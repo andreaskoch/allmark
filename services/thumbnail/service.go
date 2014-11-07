@@ -20,15 +20,19 @@ import (
 func NewConversionService(logger logger.Logger, config config.Config, repository dataaccess.Repository) *ConversionService {
 
 	// assemble the index file path
-	indexFilePath := filepath.Join(config.BaseFolder(), "thumbnails")
+	indexFilePath := filepath.Join(config.MetaDataFolder(), "thumbnails")
 	index, err := loadIndex(indexFilePath)
 	if err != nil {
-		logger.Debug("Could not loda thumbnail index. Error: %s", err.Error())
+		logger.Debug("No thumbnail index loaded (%s). Creating a new one.", err.Error())
 	}
 
 	// prepare the target folder
-	targetFolder := filepath.Join(config.BaseFolder(), "thumbnails")
-	fsutil.CreateDirectory(targetFolder)
+	targetFolder := filepath.Join(config.MetaDataFolder(), "thumbnails")
+	logger.Debug("Creating a thumbnail folder at %q.", targetFolder)
+	if !fsutil.CreateDirectory(targetFolder) {
+		logger.Warn("Could not create the thumbnail folder %q", targetFolder)
+		return nil
+	}
 
 	// create a new conversion service
 	conversionService := &ConversionService{
