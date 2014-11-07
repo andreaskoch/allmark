@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/common/util/hashutil"
 )
 
 type ItemType int
@@ -71,6 +72,15 @@ func newItem(itemType ItemType, route route.Route, contentProvider *content.Cont
 
 func (item *Item) String() string {
 	return fmt.Sprintf("%s", item.route.String())
+}
+
+func (item *Item) Id() string {
+	hash, err := hashutil.FromString(item.route.Value())
+	if err != nil {
+		panic(fmt.Sprintf("Unable to determine the id hash for %q.", item.String()))
+	}
+
+	return hash
 }
 
 // Get the type of this item (e.g. "physical", "virtual", ...)

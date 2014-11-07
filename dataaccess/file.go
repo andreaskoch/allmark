@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/content"
 	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/common/util/hashutil"
 )
 
 // A File represents a file ressource that is associated with an Item.
@@ -28,6 +29,15 @@ func NewFile(fileRoute, parentRoute route.Route, contentProvider *content.Conten
 
 func (file *File) String() string {
 	return fmt.Sprintf("%s", file.fileRoute.Value())
+}
+
+func (file *File) Id() string {
+	hash, err := hashutil.FromString(file.fileRoute.Value())
+	if err != nil {
+		panic(fmt.Sprintf("Unable to determine the id hash for %q.", file.String()))
+	}
+
+	return hash
 }
 
 func (file *File) Name() string {

@@ -111,10 +111,15 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File) {
 		return
 	}
 
+	// specifiy the image dimensions
 	maxWidth := 100
 	maxHeight := 100
 
-	filename := fmt.Sprintf("%s-%v-%v", file.Name(), maxWidth, maxHeight)
+	// determine the file name
+	fileExtension := getFileExtensionFromMimeType(mimeType)
+	filename := fmt.Sprintf("%s-%v-%v.%s", file.Id(), maxWidth, maxHeight, fileExtension)
+
+	// open the target file
 	filePath := filepath.Join(conversion.thumbnailFolder, filename)
 	target, err := fsutil.OpenFile(filePath)
 	if err != nil {
@@ -127,8 +132,29 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File) {
 		return imageconversion.Thumb(content, mimeType, 100, 100, target)
 	})
 
+	// handle errors
 	if conversionError != nil {
 		conversion.logger.Warn("Unable to create thumbnail for file %q. Error: %s", file, err.Error())
 		return
 	}
+}
+
+func getFileExtensionFromMimeType(mimeType string) string {
+	switch mimeType {
+
+	case "image/png":
+		return "png"
+
+	case "image/jpeg":
+		return "jpg"
+
+	case "image/gif":
+		return "gif"
+
+	default:
+		return strings.ToLower(strings.Replace(mimeType, "image/", "", 1))
+
+	}
+
+	panic("Unreachable")
 }

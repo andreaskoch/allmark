@@ -11,6 +11,10 @@ import (
 	"io/ioutil"
 )
 
+func FromString(text string) (string, error) {
+	return FromBytes([]byte(text))
+}
+
 func GetHash(reader io.Reader) (string, error) {
 
 	bytes, err := ioutil.ReadAll(reader)
@@ -18,6 +22,10 @@ func GetHash(reader io.Reader) (string, error) {
 		return "", err
 	}
 
+	return FromBytes(bytes)
+}
+
+func FromBytes(bytes []byte) (string, error) {
 	sha1Hash := sha1.New()
 	sha1Hash.Write(bytes)
 	hashBytes := sha1Hash.Sum(nil)
