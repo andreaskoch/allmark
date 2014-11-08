@@ -85,18 +85,17 @@ func (conversion *ConversionService) startConversion() {
 }
 
 func (conversion *ConversionService) createThumbnails() {
-ItemLoop:
 	for _, item := range conversion.repository.Items() {
 
 		for _, file := range item.Files() {
 
 			// create the thumbnail
-			conversion.createThumbnail(file, 100, 100)
+			conversion.createThumbnail(file, 200, 0)
+			conversion.createThumbnail(file, 400, 0)
+			conversion.createThumbnail(file, 800, 0)
 
 			// wait before processing the next image
 			time.Sleep(5 * time.Second)
-
-			break ItemLoop
 		}
 	}
 }
@@ -140,7 +139,7 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File, maxW
 
 	// convert the image
 	conversionError := file.Data(func(content io.ReadSeeker) error {
-		return imageconversion.Thumb(content, mimeType, 100, 100, target)
+		return imageconversion.Thumb(content, mimeType, maxWidth, maxHeight, target)
 	})
 
 	// handle errors
