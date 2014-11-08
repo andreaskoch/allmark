@@ -76,7 +76,8 @@ func (indexSerializer) DeserializeIndex(reader io.Reader) (Index, error) {
 func newThumb(route route.Route, path string, maxWidth, maxHeight uint) Thumb {
 
 	return Thumb{
-		Path: path,
+		Route: route.Value(),
+		Path:  path,
 		Dimensions: ThumbDimension{
 			MaxHeight: maxHeight,
 			MaxWidth:  maxWidth,
@@ -86,8 +87,9 @@ func newThumb(route route.Route, path string, maxWidth, maxHeight uint) Thumb {
 }
 
 type Thumb struct {
-	Dimensions ThumbDimension `json:"dimensions"`
+	Route      string         `json:"route"`
 	Path       string         `json:"path"`
+	Dimensions ThumbDimension `json:"dimensions"`
 }
 
 func (t Thumb) String() string {

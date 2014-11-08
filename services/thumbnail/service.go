@@ -137,10 +137,17 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File, maxW
 	fileExtension := imageconversion.GetFileExtensionFromMimeType(mimeType)
 	filename := fmt.Sprintf("%s-%v-%v.%s", file.Id(), maxWidth, maxHeight, fileExtension)
 
-	thumb := newThumb(file.Route(), filename, maxWidth, maxHeight)
+	// assemble the full file route
+	fullFileRoute, err := route.Combine(file.Parent(), file.Route())
+	if err != nil {
+		conversion.logger.Warn("Unable to combine routes %q and %q.", file.Parent(), file.Route())
+		return
+	}
+
+	thumb := newThumb(fullFileRoute, filename, maxWidth, maxHeight)
 
 	// check the index
-	if conversion.isInIndex(file.Route(), thumb) {
+	if conversion.isInIndex(thumb) {
 		conversion.logger.Debug("Thumb %q already available in the index", thumb.String())
 		return
 	}
@@ -169,12 +176,12 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File, maxW
 	}
 
 	// add to index
-	conversion.addToIndex(file.Route(), thumb)
+	conversion.addToIndex(thumb)
 	conversion.logger.Debug("Adding Thumb %q to index", thumb.String())
 }
 
-func (conversion *ConversionService) isInIndex(route route.Route, thumb Thumb) bool {
-	thumbs, entryExists := conversion.index[route.Value()]
+func (conversion *ConversionService) isInIndex(thumb Thumb) bool {
+	thumbs, entryExists := conversion.index[thumb.Route]
 	if !entryExists {
 		return false
 	}
@@ -183,12 +190,12 @@ func (conversion *ConversionService) isInIndex(route route.Route, thumb Thumb) b
 	return thumbExists
 }
 
-func (conversion *ConversionService) addToIndex(route route.Route, thumb Thumb) {
-	thumbs, entryExists := conversion.index[route.Value()]
+func (conversion *ConversionService) addToIndex(thumb Thumb) {
+	thumbs, entryExists := conversion.index[thumb.Route]
 	if !entryExists {
 		thumbs = make(Thumbs)
 	}
 
 	thumbs[thumb.Dimensions.String()] = thumb
-	conversion.index[route.Value()] = thumbs
+	conversion.index[thumb.Route] = thumbs
 }
