@@ -181,13 +181,21 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File, maxW
 }
 
 func (conversion *ConversionService) isInIndex(thumb Thumb) bool {
+
+	// check if there are thumb for the route
 	thumbs, entryExists := conversion.index[thumb.Route]
 	if !entryExists {
 		return false
 	}
 
-	_, thumbExists := thumbs[thumb.Dimensions.String()]
-	return thumbExists
+	// check if there is a thumb with that dimensions
+	if _, thumbExists := thumbs[thumb.Dimensions.String()]; thumbExists {
+		// check if the file exists
+		return fsutil.FileExists(filepath.Join(conversion.thumbnailFolder, thumb.Path))
+
+	}
+
+	return false
 }
 
 func (conversion *ConversionService) addToIndex(thumb Thumb) {
