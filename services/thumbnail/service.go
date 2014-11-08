@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/services/imageconversion"
@@ -88,14 +89,19 @@ ItemLoop:
 	for _, item := range conversion.repository.Items() {
 
 		for _, file := range item.Files() {
-			conversion.createThumbnail(file)
+
+			// create the thumbnail
+			conversion.createThumbnail(file, 100, 100)
+
+			// wait before processing the next image
 			time.Sleep(5 * time.Second)
+
 			break ItemLoop
 		}
 	}
 }
 
-func (conversion *ConversionService) createThumbnail(file *dataaccess.File) {
+func (conversion *ConversionService) createThumbnail(file *dataaccess.File, maxWidth, maxHeight uint) {
 
 	// get the mime type
 	mimeType, err := file.MimeType()
@@ -110,16 +116,22 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File) {
 		return
 	}
 
-	// specifiy the image dimensions
-	maxWidth := 100
-	maxHeight := 100
-
 	// determine the file name
 	fileExtension := imageconversion.GetFileExtensionFromMimeType(mimeType)
 	filename := fmt.Sprintf("%s-%v-%v.%s", file.Id(), maxWidth, maxHeight, fileExtension)
 
-	// open the target file
+	thumb := newThumb(file.Route(), filename, maxWidth, maxHeight)
+
+	// check the index
+	if conversion.isInIndex(file.Route(), thumb) {
+		conversion.logger.Debug("Thumb %q already available in the index", thumb.String())
+		return
+	}
+
+	// determine the file path
 	filePath := filepath.Join(conversion.thumbnailFolder, filename)
+
+	// open the target file
 	target, err := fsutil.OpenFile(filePath)
 	if err != nil {
 		conversion.logger.Warn("Unable to detect mime type for file. Error: %s", err.Error())
@@ -136,4 +148,28 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File) {
 		conversion.logger.Warn("Unable to create thumbnail for file %q. Error: %s", file, err.Error())
 		return
 	}
+
+	// add to index
+	conversion.addToIndex(file.Route(), thumb)
+	conversion.logger.Debug("Adding Thumb %q to index", thumb.String())
+}
+
+func (conversion *ConversionService) isInIndex(route route.Route, thumb Thumb) bool {
+	thumbs, entryExists := conversion.index[route.Value()]
+	if !entryExists {
+		return false
+	}
+
+	_, thumbExists := thumbs[thumb.Dimensions]
+	return thumbExists
+}
+
+func (conversion *ConversionService) addToIndex(route route.Route, thumb Thumb) {
+	thumbs, entryExists := conversion.index[route.Value()]
+	if !entryExists {
+		thumbs = make(Thumbs)
+	}
+
+	thumbs[thumb.Dimensions] = thumb
+	conversion.index[route.Value()] = thumbs
 }

@@ -18,10 +18,9 @@ import (
 func MimeTypeIsSupported(mimeType string) bool {
 
 	switch mimeType {
-	case "image/png":
-	case "image/jpeg":
-	case "image/gif":
+	case "image/png", "image/jpeg", "image/gif":
 		return true
+
 	default:
 		return false
 	}

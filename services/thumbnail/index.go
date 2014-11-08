@@ -7,6 +7,7 @@ package thumbnail
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"io"
 	"os"
@@ -59,14 +60,36 @@ func (JSONSerializer) DeserializeIndex(reader io.Reader) (Index, error) {
 	return index, err
 }
 
-type Route string
+func newThumb(route route.Route, path string, maxWidth, maxHeight uint) Thumb {
 
-type Thumb struct {
-	MaxWidth  uint   `json:"maxWidth"`
-	MaxHeight uint   `json:"maxHeight"`
-	Path      string `json:"path"`
+	return Thumb{
+		Path: path,
+		Dimensions: ThumbDimension{
+			MaxHeight: maxHeight,
+			MaxWidth:  maxWidth,
+		},
+	}
+
 }
 
-type Thumbs []Thumb
+type Thumb struct {
+	Dimensions ThumbDimension `json:"dimensions"`
+	Path       string         `json:"path"`
+}
 
-type Index map[Route]Thumbs
+func (t Thumb) String() string {
+	return fmt.Sprintf("%s (%s)", t.Path, t.Dimensions.String())
+}
+
+type ThumbDimension struct {
+	MaxWidth  uint `json:"maxWidth"`
+	MaxHeight uint `json:"maxHeight"`
+}
+
+func (t ThumbDimension) String() string {
+	return fmt.Sprintf("%v x %v", t.MaxWidth, t.MaxHeight)
+}
+
+type Thumbs map[ThumbDimension]Thumb
+
+type Index map[string]Thumbs
