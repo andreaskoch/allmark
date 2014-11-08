@@ -14,7 +14,26 @@ import (
 	"io"
 )
 
+func MimeTypeIsSupported(mimeType string) bool {
+
+	switch mimeType {
+	case "image/png":
+	case "image/jpeg":
+	case "image/gif":
+		return true
+	default:
+		return false
+	}
+
+	panic("Unreachable")
+}
+
 func Thumb(source io.Reader, mimeType string, maxWidth, maxHeight uint, target io.Writer) error {
+
+	// check the mime type
+	if !MimeTypeIsSupported(mimeType) {
+		return fmt.Errorf("The mime-type %q is currently not supported.", mimeType)
+	}
 
 	// read the source image
 	img, err := decode(source, mimeType)
@@ -30,6 +49,11 @@ func Thumb(source io.Reader, mimeType string, maxWidth, maxHeight uint, target i
 }
 
 func Resize(source io.Reader, mimeType string, width, height uint, target io.Writer) error {
+
+	// check the mime type
+	if !MimeTypeIsSupported(mimeType) {
+		return fmt.Errorf("The mime-type %q is currently not supported.", mimeType)
+	}
 
 	// read the source image
 	img, err := decode(source, mimeType)

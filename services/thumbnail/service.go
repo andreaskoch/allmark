@@ -105,9 +105,9 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File) {
 		return
 	}
 
-	// check type
-	if !strings.HasPrefix(mimeType, "image/") {
-		conversion.logger.Warn("%q is not an image", file)
+	// check the mime type
+	if !imageconversion.MimeTypeIsSupported(mimeType) {
+		conversion.logger.Debug("The mime-type %q is currently not supported.", mimeType)
 		return
 	}
 
