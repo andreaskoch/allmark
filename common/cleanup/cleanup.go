@@ -6,70 +6,68 @@ package cleanup
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/shutdown"
 	"os"
+	"strings"
 	"time"
 )
 
-var instantCleanup chan string
-var removeNow map[string]bool
-
-var shutdownCleanup chan string
-var removeLater map[string]bool
+var removeNow = make(map[string]bool)
+var removeLater = make(map[string]bool)
+var isRunning = true
 
 func init() {
-	instantCleanup = make(chan string, 1)
-	removeNow = make(map[string]bool)
 
-	shutdownCleanup = make(chan string, 1)
-	removeLater = make(map[string]bool)
+	shutdown.Register(func() error {
 
-	go func() {
-		for {
-			select {
+		// stop all running processes
+		isRunning = false
 
-			case filename := <-instantCleanup:
-				{
-					removeNow[filename] = true
-				}
+		// trigger the cleanup
+		return cleanup()
 
-			case filename := <-shutdownCleanup:
-				{
-					removeLater[filename] = true
-				}
-
-			}
-		}
-	}()
+	})
 
 	instantRemovalProcess()
 }
 
 func Now(filename string) {
-	go func() {
-		instantCleanup <- filename
-	}()
+	removeNow[filename] = true
 }
 
 func OnShutdown(filename string) {
-	go func() {
-		shutdownCleanup <- filename
-	}()
+	removeLater[filename] = true
 }
 
-func Cleanup() {
+// Try to remove all files which have been queed for deletion.
+func cleanup() error {
 
-	// try to remove all files from the list
+	// todo: debug message
+	fmt.Printf("Things to remove %v\n", removeLater)
+
+	errors := make([]string, 0)
 	for entry, _ := range removeLater {
+
+		// todo: debug message
+		fmt.Printf("Removing %q\n", entry)
 		if err := os.RemoveAll(entry); err != nil && os.IsNotExist(err) == false {
-			fmt.Printf("Failed to remove %q \n", entry)
+
+			// todo: find a better way to aggregate errors
+			errors = append(errors, fmt.Sprintf("Failed to remove %q \n", entry))
 		}
+
 	}
 
+	if len(errors) == 0 {
+		return nil
+	}
+
+	return fmt.Errorf("Cleanup errors: %s", strings.Join(errors, "\n"))
 }
 
 func instantRemovalProcess() {
 	go func() {
-		for {
+		for isRunning {
 
 			// try to remove all files from the list
 			for _, filename := range getFilesFromMap(removeNow) {
@@ -86,8 +84,9 @@ func instantRemovalProcess() {
 				OnShutdown(filename)
 			}
 
-			// wait a few seconds before the next run
-			time.Sleep(time.Second * 2)
+			if isRunning {
+				time.Sleep(time.Second * 2) // wait a few seconds before the next run
+			}
 		}
 	}()
 }

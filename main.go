@@ -6,10 +6,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark2/common/cleanup"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger/console"
 	"github.com/andreaskoch/allmark2/common/logger/loglevel"
+	"github.com/andreaskoch/allmark2/common/shutdown"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess/filesystem"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml"
@@ -41,8 +41,8 @@ func main() {
 			{
 				fmt.Println("Stopping")
 
-				// cleanup temporary files
-				cleanup.Cleanup()
+				// Execute shutdown handlers
+				shutdown.Shutdown()
 
 				os.Exit(0)
 			}
