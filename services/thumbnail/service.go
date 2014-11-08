@@ -13,7 +13,6 @@ import (
 	"github.com/andreaskoch/allmark2/services/imageconversion"
 	"io"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -116,7 +115,7 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File) {
 	maxHeight := 100
 
 	// determine the file name
-	fileExtension := getFileExtensionFromMimeType(mimeType)
+	fileExtension := imageconversion.GetFileExtensionFromMimeType(mimeType)
 	filename := fmt.Sprintf("%s-%v-%v.%s", file.Id(), maxWidth, maxHeight, fileExtension)
 
 	// open the target file
@@ -137,24 +136,4 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File) {
 		conversion.logger.Warn("Unable to create thumbnail for file %q. Error: %s", file, err.Error())
 		return
 	}
-}
-
-func getFileExtensionFromMimeType(mimeType string) string {
-	switch mimeType {
-
-	case "image/png":
-		return "png"
-
-	case "image/jpeg":
-		return "jpg"
-
-	case "image/gif":
-		return "gif"
-
-	default:
-		return strings.ToLower(strings.Replace(mimeType, "image/", "", 1))
-
-	}
-
-	panic("Unreachable")
 }

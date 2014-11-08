@@ -12,6 +12,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"strings"
 )
 
 func MimeTypeIsSupported(mimeType string) bool {
@@ -23,6 +24,26 @@ func MimeTypeIsSupported(mimeType string) bool {
 		return true
 	default:
 		return false
+	}
+
+	panic("Unreachable")
+}
+
+func GetFileExtensionFromMimeType(mimeType string) string {
+	switch mimeType {
+
+	case "image/png":
+		return "png"
+
+	case "image/jpeg":
+		return "jpg"
+
+	case "image/gif":
+		return "gif"
+
+	default:
+		return strings.ToLower(strings.Replace(mimeType, "image/", "", 1))
+
 	}
 
 	panic("Unreachable")
