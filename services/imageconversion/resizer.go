@@ -48,26 +48,6 @@ func GetFileExtensionFromMimeType(mimeType string) string {
 	panic("Unreachable")
 }
 
-func Thumb(source io.Reader, mimeType string, maxWidth, maxHeight uint, target io.Writer) error {
-
-	// check the mime type
-	if !MimeTypeIsSupported(mimeType) {
-		return fmt.Errorf("The mime-type %q is currently not supported.", mimeType)
-	}
-
-	// read the source image
-	img, err := decode(source, mimeType)
-	if err != nil {
-		return err
-	}
-
-	// resize the source image
-	thumb := resize.Thumbnail(maxWidth, maxHeight, img, resize.Lanczos3)
-
-	// write the thumbnail to the target
-	return encode(mimeType, thumb, target)
-}
-
 func Resize(source io.Reader, mimeType string, width, height uint, target io.Writer) error {
 
 	// check the mime type

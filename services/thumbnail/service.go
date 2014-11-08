@@ -137,9 +137,11 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File, maxW
 		return
 	}
 
+	defer target.Close()
+
 	// convert the image
 	conversionError := file.Data(func(content io.ReadSeeker) error {
-		return imageconversion.Thumb(content, mimeType, maxWidth, maxHeight, target)
+		return imageconversion.Resize(content, mimeType, maxWidth, maxHeight, target)
 	})
 
 	// handle errors
