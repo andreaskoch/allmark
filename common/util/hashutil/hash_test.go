@@ -29,7 +29,7 @@ func Test_GetHash_CorrectSHA1IsReturned(t *testing.T) {
 	// arrange
 	inputString := "La di da"
 	input := bytes.NewReader([]byte(inputString))
-	expectedResult := "14c6c3e"
+	expectedResult := "14c6c3e83d49e7ef9baf6baeda1561fd94332862"
 
 	// act
 	result, _ := GetHash(input)
