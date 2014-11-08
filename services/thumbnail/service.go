@@ -9,6 +9,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/common/shutdown"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/services/imageconversion"
@@ -20,7 +21,7 @@ import (
 func NewConversionService(logger logger.Logger, config config.Config, repository dataaccess.Repository) *ConversionService {
 
 	// assemble the index file path
-	indexFilePath := filepath.Join(config.MetaDataFolder(), "thumbnails")
+	indexFilePath := filepath.Join(config.MetaDataFolder(), "thumbnail.index")
 	index, err := loadIndex(indexFilePath)
 	if err != nil {
 		logger.Debug("No thumbnail index loaded (%s). Creating a new one.", err.Error())
@@ -40,6 +41,8 @@ func NewConversionService(logger logger.Logger, config config.Config, repository
 		config:     config,
 		repository: repository,
 
+		isRunning: true,
+
 		// thumbnail index
 		indexFilePath: indexFilePath,
 		index:         index,
@@ -50,6 +53,19 @@ func NewConversionService(logger logger.Logger, config config.Config, repository
 	// start the conversion
 	go conversionService.startConversion()
 
+	// stop the conversion on shutdown
+	shutdown.Register(func() error {
+		logger.Info("Stopping the conversion process")
+		conversionService.isRunning = false
+		return nil
+	})
+
+	// save the index on shutdown
+	shutdown.Register(func() error {
+		logger.Info("Saving the index")
+		return saveIndex(index, indexFilePath)
+	})
+
 	return conversionService
 }
 
@@ -57,6 +73,8 @@ type ConversionService struct {
 	logger     logger.Logger
 	config     config.Config
 	repository dataaccess.Repository
+
+	isRunning bool
 
 	indexFilePath string
 	index         Index
@@ -73,7 +91,7 @@ func (conversion *ConversionService) startConversion() {
 
 	// refresh control
 	go func() {
-		for {
+		for conversion.isRunning {
 			select {
 			case <-updateChannel:
 				conversion.logger.Debug("Refreshing thumbnails")
@@ -161,7 +179,7 @@ func (conversion *ConversionService) isInIndex(route route.Route, thumb Thumb) b
 		return false
 	}
 
-	_, thumbExists := thumbs[thumb.Dimensions]
+	_, thumbExists := thumbs[thumb.Dimensions.String()]
 	return thumbExists
 }
 
@@ -171,6 +189,6 @@ func (conversion *ConversionService) addToIndex(route route.Route, thumb Thumb) 
 		thumbs = make(Thumbs)
 	}
 
-	thumbs[thumb.Dimensions] = thumb
+	thumbs[thumb.Dimensions.String()] = thumb
 	conversion.index[route.Value()] = thumbs
 }
