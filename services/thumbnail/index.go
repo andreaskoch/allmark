@@ -29,16 +29,16 @@ func NewIndex(logger logger.Logger, indexFilePath string) *Index {
 		return saveIndex(index, indexFilePath)
 	})
 
-	return &index
+	return index
 }
 
-func emptyIndex() Index {
-	return Index{
+func emptyIndex() *Index {
+	return &Index{
 		make(map[string]Thumbs),
 	}
 }
 
-func loadIndex(indexFilePath string) (Index, error) {
+func loadIndex(indexFilePath string) (*Index, error) {
 
 	if !fsutil.FileExists(indexFilePath) {
 		return emptyIndex(), fmt.Errorf("The index file %q does not exist.", indexFilePath)
@@ -62,7 +62,7 @@ func loadIndex(indexFilePath string) (Index, error) {
 	return index, nil
 }
 
-func saveIndex(index Index, indexFilePath string) error {
+func saveIndex(index *Index, indexFilePath string) error {
 	file, fileError := fsutil.OpenFile(indexFilePath)
 	if fileError != nil {
 		return fmt.Errorf("Cannot save index to file %q. Error: %s", indexFilePath, fileError.Error())
@@ -81,7 +81,7 @@ func newIndexSerializer() *indexSerializer {
 	return &indexSerializer{}
 }
 
-func (indexSerializer) SerializeIndex(writer io.Writer, index Index) error {
+func (indexSerializer) SerializeIndex(writer io.Writer, index *Index) error {
 	bytes, err := json.MarshalIndent(index, "", "\t")
 	if err != nil {
 		return err
@@ -91,11 +91,11 @@ func (indexSerializer) SerializeIndex(writer io.Writer, index Index) error {
 	return nil
 }
 
-func (indexSerializer) DeserializeIndex(reader io.Reader) (Index, error) {
+func (indexSerializer) DeserializeIndex(reader io.Reader) (*Index, error) {
 	decoder := json.NewDecoder(reader)
 	var index Index
 	err := decoder.Decode(index)
-	return index, err
+	return &index, err
 }
 
 func newThumb(route route.Route, path string, maxWidth, maxHeight uint) Thumb {
@@ -133,14 +133,14 @@ func (t ThumbDimension) String() string {
 type Thumbs map[string]Thumb
 
 type Index struct {
-	thumbs map[string]Thumbs `json:"thumbs"`
+	Thumbs map[string]Thumbs `json:"thumbs"`
 }
 
 func (i *Index) GetThumbs(key string) (thumbs Thumbs, exists bool) {
-	thumbs, exists = i.thumbs[key]
+	thumbs, exists = i.Thumbs[key]
 	return thumbs, exists
 }
 
 func (i *Index) SetThumbs(key string, thumbs Thumbs) {
-	i.thumbs[key] = thumbs
+	i.Thumbs[key] = thumbs
 }
