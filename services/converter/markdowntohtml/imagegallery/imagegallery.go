@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/pattern"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/util"
+	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"regexp"
 	"strings"
 )
@@ -20,18 +21,20 @@ var (
 	markdownPattern = regexp.MustCompile(`imagegallery: \[([^\]]*)\]\(([^)]+)\)`)
 )
 
-func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File) *FilePreviewExtension {
+func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, thumbnailIndex *thumbnail.Index) *FilePreviewExtension {
 	return &FilePreviewExtension{
-		pathProvider: pathProvider,
-		base:         baseRoute,
-		files:        files,
+		pathProvider:   pathProvider,
+		base:           baseRoute,
+		files:          files,
+		thumbnailIndex: thumbnailIndex,
 	}
 }
 
 type FilePreviewExtension struct {
-	pathProvider paths.Pather
-	base         route.Route
-	files        []*model.File
+	pathProvider   paths.Pather
+	base           route.Route
+	files          []*model.File
+	thumbnailIndex *thumbnail.Index
 }
 
 func (converter *FilePreviewExtension) Convert(markdown string) (convertedContent string, converterError error) {
@@ -118,11 +121,43 @@ func (converter *FilePreviewExtension) getImageLinksByPath(galleryTitle, path st
 			continue
 		}
 
-		imagePath := converter.pathProvider.Path(file.Route().Value())
-		imageTitle := fmt.Sprintf("%s - %s (Image %v of %v)", galleryTitle, file.Route().LastComponentName(), index+1, numberOfFiles)
+		// get paths
+		fullSizeImagePath := converter.getImagePath(file.Route())
+		thumnailPath := converter.getThumbnailPath(file.Route())
 
-		imagelinks[index] = fmt.Sprintf(`<a href="%s" title="%s"><img src="%s" /></a>`, imagePath, imageTitle, imagePath)
+		// image title
+		imageTitle := file.Route().LastComponentName() // file name
+
+		imagelinks[index] = fmt.Sprintf(`<a href="%s" title="%s"><img src="%s" /></a>`, fullSizeImagePath, imageTitle, thumnailPath)
 	}
 
 	return imagelinks
+}
+
+func (converter *FilePreviewExtension) getThumbnailPath(fileRoute route.Route) string {
+
+	// assemble to the full image route
+	fullRoute, err := route.Combine(converter.base, fileRoute)
+	if err != nil {
+		panic(fmt.Sprintf("Cannot combine routes %q and %q.", converter.base, fileRoute))
+	}
+
+	// check if there are thumbs for the supplied file route
+	thumbs, exists := converter.thumbnailIndex.GetThumbs(fullRoute.Value())
+	if !exists {
+		return converter.getImagePath(fileRoute) // return the full-size image path
+	}
+
+	// lookup thumb by size
+	thumb, exists := thumbs.GetThumbBySize(400, 0)
+	if !exists {
+		return converter.getImagePath(fileRoute) // return the full-size image path
+
+	}
+
+	return converter.getImagePath(thumb.ThumbRoute())
+}
+
+func (converter *FilePreviewExtension) getImagePath(fileRoute route.Route) string {
+	return converter.pathProvider.Path(fileRoute.Value())
 }

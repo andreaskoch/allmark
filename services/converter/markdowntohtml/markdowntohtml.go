@@ -20,6 +20,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/pdf"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/reference"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/video"
+	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"regexp"
 	"strings"
 )
@@ -33,13 +34,15 @@ var (
 )
 
 type Converter struct {
-	logger logger.Logger
+	logger         logger.Logger
+	thumbnailIndex *thumbnail.Index
 }
 
-func New(logger logger.Logger) (*Converter, error) {
+func New(logger logger.Logger, thumbnailIndex *thumbnail.Index) *Converter {
 	return &Converter{
-		logger: logger,
-	}, nil
+		logger:         logger,
+		thumbnailIndex: thumbnailIndex,
+	}
 }
 
 // Convert the supplied item with all paths relative to the supplied base route
@@ -86,7 +89,7 @@ func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item
 	}
 
 	// markdown extension: imagegallery
-	imagegalleryConverter := imagegallery.New(pathProvider, itemRoute, item.Files())
+	imagegalleryConverter := imagegallery.New(pathProvider, itemRoute, item.Files(), converter.thumbnailIndex)
 	content, imagegalleryConversionError := imagegalleryConverter.Convert(content)
 	if imagegalleryConversionError != nil {
 		converter.logger.Warn("Error while converting image gallery extensions. Error: %s", imagegalleryConversionError)

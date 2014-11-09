@@ -104,8 +104,8 @@ func newThumb(route route.Route, path string, maxWidth, maxHeight uint) Thumb {
 		Route: route.Value(),
 		Path:  path,
 		Dimensions: ThumbDimension{
-			MaxHeight: maxHeight,
 			MaxWidth:  maxWidth,
+			MaxHeight: maxHeight,
 		},
 	}
 
@@ -121,16 +121,36 @@ func (t Thumb) String() string {
 	return fmt.Sprintf("%s (%s)", t.Path, t.Dimensions.String())
 }
 
+func (t Thumb) ThumbRoute() route.Route {
+	thumbRoute, err := route.NewFromRequest(fmt.Sprintf("%s-%s", t.Route, t.Dimensions.String()))
+	if err != nil {
+		panic(err)
+	}
+
+	return thumbRoute
+}
+
 type ThumbDimension struct {
 	MaxWidth  uint `json:"maxWidth"`
 	MaxHeight uint `json:"maxHeight"`
 }
 
 func (t ThumbDimension) String() string {
-	return fmt.Sprintf("%v x %v", t.MaxWidth, t.MaxHeight)
+	return fmt.Sprintf("maxWidth:%v-maxHeight:%v", t.MaxWidth, t.MaxHeight)
 }
 
 type Thumbs map[string]Thumb
+
+func (thumbs Thumbs) GetThumbBySize(maxWidth, maxHeight uint) (Thumb, bool) {
+
+	dimension := ThumbDimension{
+		MaxWidth:  maxWidth,
+		MaxHeight: maxHeight,
+	}
+
+	thumb, exists := thumbs[dimension.String()]
+	return thumb, exists
+}
 
 type Index struct {
 	Thumbs map[string]Thumbs `json:"thumbs"`
