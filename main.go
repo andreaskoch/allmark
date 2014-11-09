@@ -131,22 +131,31 @@ func serve(repositoryPath string) bool {
 	// data access
 	repository, err := filesystem.NewRepository(logger, repositoryPath, config.Indexing.IntervalInSeconds)
 	if err != nil {
-		logger.Error("Unable to create a repository. Error: %s", err)
+		logger.Fatal("Unable to create a repository. Error: %s", err)
 	}
 
+	// thumbnail index
+	thumbnailIndexFilePath := filepath.Join(config.MetaDataFolder(), "thumbnail.index")
+	thumbnailIndex := thumbnail.NewIndex(logger, thumbnailIndexFilePath)
+
 	// thumbnail conversion service
-	thumbnail.NewConversionService(logger, config, repository)
+	thumbnailFolder := filepath.Join(config.MetaDataFolder(), "thumbnails")
+	if !fsutil.CreateDirectory(thumbnailFolder) {
+		logger.Fatal("Could not create the thumbnail folder %q", thumbnailFolder)
+	}
+
+	thumbnail.NewConversionService(logger, repository, thumbnailFolder, thumbnailIndex)
 
 	// parser
 	itemParser, err := parser.New(logger)
 	if err != nil {
-		logger.Error("Unable to instantiate a parser. Error: %s", err)
+		logger.Fatal("Unable to instantiate a parser. Error: %s", err)
 	}
 
 	// converter
 	converter, err := markdowntohtml.New(logger)
 	if err != nil {
-		logger.Error("Unable to instantiate a converter. Error: %s", err)
+		logger.Fatal("Unable to instantiate a converter. Error: %s", err)
 	}
 
 	// server

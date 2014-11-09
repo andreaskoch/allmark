@@ -7,22 +7,47 @@ package thumbnail
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/common/shutdown"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"io"
 	"os"
 )
 
+func NewIndex(logger logger.Logger, indexFilePath string) *Index {
+
+	// assemble the index file path
+	index, err := loadIndex(indexFilePath)
+	if err != nil {
+		logger.Debug("No thumbnail index loaded (%s). Creating a new one.", err.Error())
+	}
+
+	// save the index on shutdown
+	shutdown.Register(func() error {
+		logger.Info("Saving the index")
+		return saveIndex(index, indexFilePath)
+	})
+
+	return &index
+}
+
+func emptyIndex() Index {
+	return Index{
+		make(map[string]Thumbs),
+	}
+}
+
 func loadIndex(indexFilePath string) (Index, error) {
 
 	if !fsutil.FileExists(indexFilePath) {
-		return Index{}, fmt.Errorf("The index file %q does not exist.", indexFilePath)
+		return emptyIndex(), fmt.Errorf("The index file %q does not exist.", indexFilePath)
 	}
 
 	// check if file can be accessed
 	file, err := os.Open(indexFilePath)
 	if err != nil {
-		return Index{}, fmt.Errorf("Cannot read index file %q. Error: %s", indexFilePath, err)
+		return emptyIndex(), fmt.Errorf("Cannot read index file %q. Error: %s", indexFilePath, err)
 	}
 
 	defer file.Close()
@@ -31,7 +56,7 @@ func loadIndex(indexFilePath string) (Index, error) {
 	serializer := newIndexSerializer()
 	index, err := serializer.DeserializeIndex(file)
 	if err != nil {
-		return Index{}, fmt.Errorf("Could not deserialize the index file %q. Error: %s", indexFilePath, err)
+		return emptyIndex(), fmt.Errorf("Could not deserialize the index file %q. Error: %s", indexFilePath, err)
 	}
 
 	return index, nil
@@ -107,4 +132,15 @@ func (t ThumbDimension) String() string {
 
 type Thumbs map[string]Thumb
 
-type Index map[string]Thumbs
+type Index struct {
+	thumbs map[string]Thumbs `json:"thumbs"`
+}
+
+func (i *Index) GetThumbs(key string) (thumbs Thumbs, exists bool) {
+	thumbs, exists = i.thumbs[key]
+	return thumbs, exists
+}
+
+func (i *Index) SetThumbs(key string, thumbs Thumbs) {
+	i.thumbs[key] = thumbs
+}

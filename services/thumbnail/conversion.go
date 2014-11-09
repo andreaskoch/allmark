@@ -6,7 +6,6 @@ package thumbnail
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/shutdown"
@@ -18,35 +17,16 @@ import (
 	"time"
 )
 
-func NewConversionService(logger logger.Logger, config config.Config, repository dataaccess.Repository) *ConversionService {
-
-	// assemble the index file path
-	indexFilePath := filepath.Join(config.MetaDataFolder(), "thumbnail.index")
-	index, err := loadIndex(indexFilePath)
-	if err != nil {
-		logger.Debug("No thumbnail index loaded (%s). Creating a new one.", err.Error())
-	}
-
-	// prepare the target folder
-	targetFolder := filepath.Join(config.MetaDataFolder(), "thumbnails")
-	logger.Debug("Creating a thumbnail folder at %q.", targetFolder)
-	if !fsutil.CreateDirectory(targetFolder) {
-		logger.Warn("Could not create the thumbnail folder %q", targetFolder)
-		return nil
-	}
+func NewConversionService(logger logger.Logger, repository dataaccess.Repository, targetFolder string, thumbnailIndex *Index) *ConversionService {
 
 	// create a new conversion service
 	conversionService := &ConversionService{
 		logger:     logger,
-		config:     config,
 		repository: repository,
 
 		isRunning: true,
 
-		// thumbnail index
-		indexFilePath: indexFilePath,
-		index:         index,
-
+		index:           thumbnailIndex,
 		thumbnailFolder: targetFolder,
 	}
 
@@ -60,25 +40,16 @@ func NewConversionService(logger logger.Logger, config config.Config, repository
 		return nil
 	})
 
-	// save the index on shutdown
-	shutdown.Register(func() error {
-		logger.Info("Saving the index")
-		return saveIndex(index, indexFilePath)
-	})
-
 	return conversionService
 }
 
 type ConversionService struct {
 	logger     logger.Logger
-	config     config.Config
 	repository dataaccess.Repository
 
 	isRunning bool
 
-	indexFilePath string
-	index         Index
-
+	index           *Index
 	thumbnailFolder string
 }
 
@@ -183,7 +154,7 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File, maxW
 func (conversion *ConversionService) isInIndex(thumb Thumb) bool {
 
 	// check if there are thumb for the route
-	thumbs, entryExists := conversion.index[thumb.Route]
+	thumbs, entryExists := conversion.index.GetThumbs(thumb.Route)
 	if !entryExists {
 		return false
 	}
@@ -199,11 +170,11 @@ func (conversion *ConversionService) isInIndex(thumb Thumb) bool {
 }
 
 func (conversion *ConversionService) addToIndex(thumb Thumb) {
-	thumbs, entryExists := conversion.index[thumb.Route]
+	thumbs, entryExists := conversion.index.GetThumbs(thumb.Route)
 	if !entryExists {
 		thumbs = make(Thumbs)
 	}
 
 	thumbs[thumb.Dimensions.String()] = thumb
-	conversion.index[thumb.Route] = thumbs
+	conversion.index.SetThumbs(thumb.Route, thumbs)
 }
