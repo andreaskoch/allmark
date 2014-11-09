@@ -98,15 +98,12 @@ func (indexSerializer) DeserializeIndex(reader io.Reader) (*Index, error) {
 	return &index, err
 }
 
-func newThumb(route route.Route, path string, maxWidth, maxHeight uint) Thumb {
+func newThumb(route route.Route, path string, dimensions ThumbDimension) Thumb {
 
 	return Thumb{
-		Route: route.Value(),
-		Path:  path,
-		Dimensions: ThumbDimension{
-			MaxWidth:  maxWidth,
-			MaxHeight: maxHeight,
-		},
+		Route:      route.Value(),
+		Path:       path,
+		Dimensions: dimensions,
 	}
 
 }
@@ -141,14 +138,8 @@ func (t ThumbDimension) String() string {
 
 type Thumbs map[string]Thumb
 
-func (thumbs Thumbs) GetThumbBySize(maxWidth, maxHeight uint) (Thumb, bool) {
-
-	dimension := ThumbDimension{
-		MaxWidth:  maxWidth,
-		MaxHeight: maxHeight,
-	}
-
-	thumb, exists := thumbs[dimension.String()]
+func (thumbs Thumbs) GetThumbBySize(dimensions ThumbDimension) (Thumb, bool) {
+	thumb, exists := thumbs[dimensions.String()]
 	return thumb, exists
 }
 

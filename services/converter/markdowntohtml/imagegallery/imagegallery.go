@@ -149,7 +149,7 @@ func (converter *FilePreviewExtension) getThumbnailPath(fileRoute route.Route) s
 	}
 
 	// lookup thumb by size
-	thumb, exists := thumbs.GetThumbBySize(400, 0)
+	thumb, exists := thumbs.GetThumbBySize(thumbnail.SizeMedium)
 	if !exists {
 		return converter.getImagePath(fileRoute) // return the full-size image path
 
