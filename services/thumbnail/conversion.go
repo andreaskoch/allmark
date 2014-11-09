@@ -24,7 +24,8 @@ func NewConversionService(logger logger.Logger, repository dataaccess.Repository
 		logger:     logger,
 		repository: repository,
 
-		isRunning: true,
+		isRunning:       true,
+		conversionQueue: make(chan bool, 10),
 
 		index:           thumbnailIndex,
 		thumbnailFolder: targetFolder,
@@ -47,15 +48,14 @@ type ConversionService struct {
 	logger     logger.Logger
 	repository dataaccess.Repository
 
-	isRunning bool
+	isRunning       bool
+	conversionQueue chan bool
 
 	index           *Index
 	thumbnailFolder string
 }
 
 func (conversion *ConversionService) startConversion() {
-
-	conversion.createThumbnails()
 
 	updateChannel := make(chan bool, 1)
 	conversion.repository.AfterReindex(updateChannel)
@@ -65,11 +65,41 @@ func (conversion *ConversionService) startConversion() {
 		for conversion.isRunning {
 			select {
 			case <-updateChannel:
-				conversion.logger.Debug("Refreshing thumbnails")
-				conversion.createThumbnails()
+				conversion.conversionQueue <- true
 			}
 		}
 	}()
+
+	// thumbnail conversion
+	go func() {
+
+		for conversion.isRunning {
+
+			select {
+			case <-conversion.conversionQueue:
+
+				for _, item := range conversion.repository.Items() {
+
+					for _, file := range item.Files() {
+
+						// create the thumbnail
+						conversion.createThumbnail(file, 200, 0)
+						conversion.createThumbnail(file, 400, 0)
+						conversion.createThumbnail(file, 800, 0)
+
+						// wait before processing the next image
+						time.Sleep(500 * time.Millisecond)
+					}
+				}
+
+			}
+
+		}
+
+	}()
+
+	// trigger the first conversion process
+	conversion.conversionQueue <- true
 
 }
 
@@ -84,7 +114,7 @@ func (conversion *ConversionService) createThumbnails() {
 			conversion.createThumbnail(file, 800, 0)
 
 			// wait before processing the next image
-			time.Sleep(5 * time.Second)
+			time.Sleep(500 * time.Millisecond)
 		}
 	}
 }
@@ -127,9 +157,9 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File, maxW
 	filePath := filepath.Join(conversion.thumbnailFolder, filename)
 
 	// open the target file
-	target, err := fsutil.OpenFile(filePath)
-	if err != nil {
-		conversion.logger.Warn("Unable to detect mime type for file. Error: %s", err.Error())
+	target, fileError := fsutil.OpenFile(filePath)
+	if fileError != nil {
+		conversion.logger.Warn("Unable to detect mime type for file. Error: %s", fileError.Error())
 		return
 	}
 
@@ -142,7 +172,7 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File, maxW
 
 	// handle errors
 	if conversionError != nil {
-		conversion.logger.Warn("Unable to create thumbnail for file %q. Error: %s", file, err.Error())
+		conversion.logger.Warn("Unable to create thumbnail for file %q. Error: %s", file, conversionError.Error())
 		return
 	}
 
