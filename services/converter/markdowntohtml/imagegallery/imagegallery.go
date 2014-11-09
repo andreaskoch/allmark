@@ -65,7 +65,7 @@ func (converter *FilePreviewExtension) Convert(markdown string) (convertedConten
 
 func (converter *FilePreviewExtension) getGalleryCode(galleryTitle, path string) string {
 
-	imageLinks := converter.getImageLinksByPath(galleryTitle, path)
+	imageLinks := converter.getImageLinksByPath(path)
 	if galleryTitle != "" {
 		return fmt.Sprintf(`<section class="imagegallery">
 					<header>%s</header>
@@ -86,7 +86,7 @@ func (converter *FilePreviewExtension) getGalleryCode(galleryTitle, path string)
 				</section>`, strings.Join(imageLinks, "\n</li>\n<li>\n"))
 }
 
-func (converter *FilePreviewExtension) getImageLinksByPath(galleryTitle, path string) []string {
+func (converter *FilePreviewExtension) getImageLinksByPath(path string) []string {
 
 	galleryRoute, err := route.NewFromRequest(path)
 	if err != nil {
@@ -99,11 +99,6 @@ func (converter *FilePreviewExtension) getImageLinksByPath(galleryTitle, path st
 	if err != nil {
 		// todo: log error
 		return []string{}
-	}
-
-	// default gallery title
-	if galleryTitle == "" {
-		galleryTitle = "Gallery"
 	}
 
 	numberOfFiles := len(converter.files)
