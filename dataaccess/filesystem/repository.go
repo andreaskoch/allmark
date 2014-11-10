@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+type UpdateCallback func(route.Route)
+
 type event struct {
 	Item  *dataaccess.Item
 	Error error
@@ -43,7 +45,7 @@ type Repository struct {
 	// Updates
 	reindexNotificationChannels []chan bool
 	routesWithSubscribers       map[string]route.Route
-	onUpdateCallback            func(route.Route)
+	onUpdateCallbacks           []UpdateCallback
 }
 
 func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeconds int) (*Repository, error) {
@@ -83,7 +85,7 @@ func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeco
 
 		// Updates
 		routesWithSubscribers:       make(map[string]route.Route),
-		onUpdateCallback:            func(r route.Route) {},
+		onUpdateCallbacks:           make([]UpdateCallback, 0),
 		reindexNotificationChannels: make([]chan bool, 0),
 	}
 
@@ -184,7 +186,7 @@ func (repository *Repository) AfterReindex(notificationChannel chan bool) {
 }
 
 func (repository *Repository) OnUpdate(callback func(route.Route)) {
-	repository.onUpdateCallback = callback
+	repository.onUpdateCallbacks = append(repository.onUpdateCallbacks, callback)
 }
 
 func (repository *Repository) StartWatching(r route.Route) {
@@ -222,7 +224,10 @@ func (repository *Repository) notifySubscribers() {
 
 		repository.logger.Info("Item %q has changed.", route)
 
-		go repository.onUpdateCallback(route)
+		for _, onUpdateCallback := range repository.onUpdateCallbacks {
+			go onUpdateCallback(route)
+		}
+
 	}
 }
 

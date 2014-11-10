@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
-	"github.com/andreaskoch/allmark2/common/shutdown"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/services/imageconversion"
@@ -41,22 +40,12 @@ func NewConversionService(logger logger.Logger, repository dataaccess.Repository
 		logger:     logger,
 		repository: repository,
 
-		isRunning:       true,
-		conversionQueue: make(chan bool, 10),
-
 		index:           thumbnailIndex,
 		thumbnailFolder: targetFolder,
 	}
 
 	// start the conversion
-	go conversionService.startConversion()
-
-	// stop the conversion on shutdown
-	shutdown.Register(func() error {
-		logger.Info("Stopping the conversion process")
-		conversionService.isRunning = false
-		return nil
-	})
+	conversionService.startConversion()
 
 	return conversionService
 }
@@ -65,59 +54,47 @@ type ConversionService struct {
 	logger     logger.Logger
 	repository dataaccess.Repository
 
-	isRunning       bool
-	conversionQueue chan bool
-
 	index           *Index
 	thumbnailFolder string
 }
 
 func (conversion *ConversionService) startConversion() {
 
-	updateChannel := make(chan bool, 1)
-	conversion.repository.AfterReindex(updateChannel)
-
-	// refresh control
-	go func() {
-		for conversion.isRunning {
-			select {
-			case <-updateChannel:
-				conversion.conversionQueue <- true
-			}
+	// distinctive update
+	conversion.repository.OnUpdate(func(route route.Route) {
+		item := conversion.repository.Item(route)
+		if item == nil {
+			return
 		}
-	}()
 
-	// thumbnail conversion
+		for _, file := range item.Files() {
+
+			// create the thumbnail
+			conversion.createThumbnail(file, SizeSmall)
+			conversion.createThumbnail(file, SizeMedium)
+			conversion.createThumbnail(file, SizeLarge)
+		}
+	})
+
+	// full run
 	go func() {
 
-		for conversion.isRunning {
+		for _, item := range conversion.repository.Items() {
 
-			select {
-			case <-conversion.conversionQueue:
+			for _, file := range item.Files() {
 
-				for _, item := range conversion.repository.Items() {
-
-					for _, file := range item.Files() {
-
-						// create the thumbnail
-						conversion.createThumbnail(file, SizeSmall)
-						conversion.createThumbnail(file, SizeMedium)
-						conversion.createThumbnail(file, SizeLarge)
-
-						// wait before processing the next image
-						time.Sleep(500 * time.Millisecond)
-					}
-				}
+				// create the thumbnail
+				conversion.createThumbnail(file, SizeSmall)
+				conversion.createThumbnail(file, SizeMedium)
+				conversion.createThumbnail(file, SizeLarge)
 
 			}
 
+			// wait before processing the next image
+			time.Sleep(500 * time.Millisecond)
 		}
 
 	}()
-
-	// trigger the first conversion process
-	conversion.conversionQueue <- true
-
 }
 
 func (conversion *ConversionService) createThumbnail(file *dataaccess.File, dimensions ThumbDimension) {
