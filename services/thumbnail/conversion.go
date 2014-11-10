@@ -58,45 +58,49 @@ type ConversionService struct {
 	thumbnailFolder string
 }
 
+// Start the conversion process.
 func (conversion *ConversionService) startConversion() {
 
 	// distinctive update
 	conversion.repository.OnUpdate(func(route route.Route) {
 		item := conversion.repository.Item(route)
-		if item == nil {
-			return
-		}
-
-		for _, file := range item.Files() {
-
-			// create the thumbnail
-			conversion.createThumbnail(file, SizeSmall)
-			conversion.createThumbnail(file, SizeMedium)
-			conversion.createThumbnail(file, SizeLarge)
-		}
+		conversion.createThumbnailsForItem(item)
 	})
 
 	// full run
-	go func() {
-
-		for _, item := range conversion.repository.Items() {
-
-			for _, file := range item.Files() {
-
-				// create the thumbnail
-				conversion.createThumbnail(file, SizeSmall)
-				conversion.createThumbnail(file, SizeMedium)
-				conversion.createThumbnail(file, SizeLarge)
-
-			}
-
-			// wait before processing the next image
-			time.Sleep(500 * time.Millisecond)
-		}
-
-	}()
+	go conversion.fullConversion()
 }
 
+// Process all items in the repository.
+func (conversion *ConversionService) fullConversion() {
+	for _, item := range conversion.repository.Items() {
+
+		conversion.createThumbnailsForItem(item)
+
+		// wait before processing the next image
+		time.Sleep(500 * time.Millisecond)
+	}
+}
+
+// Create thumbnail for all image files found in the supplied item.
+func (conversion *ConversionService) createThumbnailsForItem(item *dataaccess.Item) {
+
+	if item == nil {
+		return
+	}
+
+	for _, file := range item.Files() {
+
+		// create the thumbnail
+		conversion.createThumbnail(file, SizeSmall)
+		conversion.createThumbnail(file, SizeMedium)
+		conversion.createThumbnail(file, SizeLarge)
+
+	}
+
+}
+
+// Creates a thumbnail for the supplied file with the specified dimensions.
 func (conversion *ConversionService) createThumbnail(file *dataaccess.File, dimensions ThumbDimension) {
 
 	// get the mime type
