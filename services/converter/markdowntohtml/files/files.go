@@ -6,10 +6,10 @@ package files
 
 import (
 	"github.com/andreaskoch/allmark2/common/paths"
+	"github.com/andreaskoch/allmark2/common/pattern"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/converter/filetreerenderer"
-	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/pattern"
 	"regexp"
 	"strings"
 )

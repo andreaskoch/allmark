@@ -156,7 +156,7 @@ func serve(repositoryPath string) bool {
 	converter := markdowntohtml.New(logger, thumbnailIndex)
 
 	// server
-	server, err := server.New(logger, config, repository, itemParser, converter)
+	server, err := server.New(logger, config, repository, itemParser, converter, thumbnailIndex)
 	if err != nil {
 		logger.Error("Unable to instantiate a server. Error: %s", err.Error())
 		return false

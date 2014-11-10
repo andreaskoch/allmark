@@ -7,8 +7,8 @@ package reference
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/paths"
+	"github.com/andreaskoch/allmark2/common/pattern"
 	"github.com/andreaskoch/allmark2/model"
-	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/pattern"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/util"
 	"regexp"
 	"strings"

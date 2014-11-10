@@ -8,12 +8,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/pattern"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/common/shutdown"
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"io"
 	"os"
+	"regexp"
+	"strconv"
+	"strings"
 )
+
+var dimensionPattern = regexp.MustCompile(`-maxWidth:(\d+)-maxHeight:(\d+)$`)
 
 func NewIndex(logger logger.Logger, indexFilePath string) *Index {
 
@@ -154,4 +160,38 @@ func (i *Index) GetThumbs(key string) (thumbs Thumbs, exists bool) {
 
 func (i *Index) SetThumbs(key string, thumbs Thumbs) {
 	i.Thumbs[key] = thumbs
+}
+
+func GetThumbnailDimensionsFromRoute(routeWithDimensions route.Route) (baseRoute route.Route, dimensions ThumbDimension) {
+	isMatch, matches := pattern.IsMatch(routeWithDimensions.Value(), dimensionPattern)
+	if !isMatch || len(matches) < 3 {
+		return routeWithDimensions, ThumbDimension{}
+	}
+
+	// width
+	widthString := matches[1]
+	width, widthError := strconv.ParseUint(widthString, 10, 0)
+	if widthError != nil {
+		return routeWithDimensions, ThumbDimension{}
+	}
+
+	// height
+	heightString := matches[2]
+	height, heightError := strconv.ParseUint(heightString, 10, 0)
+	if heightError != nil {
+		return routeWithDimensions, ThumbDimension{}
+	}
+
+	// base route
+	fullMatch := matches[0]
+	cleanedRoute, err := route.NewFromRequest(strings.Replace(routeWithDimensions.Value(), fullMatch, "", 1))
+	if err != nil {
+		return routeWithDimensions, ThumbDimension{}
+	}
+
+	return cleanedRoute, ThumbDimension{
+		MaxWidth:  uint(width),
+		MaxHeight: uint(height),
+	}
+
 }

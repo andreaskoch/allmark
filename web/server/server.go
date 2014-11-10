@@ -14,6 +14,7 @@ import (
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/services/converter"
 	"github.com/andreaskoch/allmark2/services/parser"
+	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
 	"github.com/andreaskoch/allmark2/web/server/handler"
 	"github.com/andreaskoch/allmark2/web/server/header"
@@ -54,7 +55,7 @@ var (
 	ThemeFolderRoute = "/theme"
 )
 
-func New(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter) (*Server, error) {
+func New(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, thumbnailIndex *thumbnail.Index) (*Server, error) {
 
 	// paths
 	patherFactory := webpaths.NewFactory(logger, repository)
@@ -66,7 +67,7 @@ func New(logger logger.Logger, config config.Config, repository dataaccess.Repos
 	orchestratorFactory := orchestrator.NewFactory(logger, config, repository, parser, converter, webPathProvider)
 
 	// handlers
-	handlerFactory := handler.NewFactory(logger, config, *orchestratorFactory)
+	handlerFactory := handler.NewFactory(logger, config, *orchestratorFactory, thumbnailIndex)
 
 	return &Server{
 		logger: logger,
