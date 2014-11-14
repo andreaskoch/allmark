@@ -5,7 +5,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
@@ -95,7 +94,10 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 
 				// get the thumb for the supplied dimensions
 				if matchingThumb, matchingThumbExists := thumbs.GetThumbBySize(dimensions); matchingThumbExists {
-					fmt.Fprintf(w, "%s", matchingThumb.String())
+
+					thumbnailFilePath := handler.thumbnailIndex.GetThumbnailFilepath(matchingThumb)
+					http.ServeFile(w, r, thumbnailFilePath)
+
 					return
 				}
 			}

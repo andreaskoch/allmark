@@ -32,7 +32,7 @@ var (
 	}
 )
 
-func NewConversionService(logger logger.Logger, repository dataaccess.Repository, targetFolder string, thumbnailIndex *Index) *ConversionService {
+func NewConversionService(logger logger.Logger, repository dataaccess.Repository, thumbnailIndex *Index) *ConversionService {
 
 	// create a new conversion service
 	conversionService := &ConversionService{
@@ -40,7 +40,7 @@ func NewConversionService(logger logger.Logger, repository dataaccess.Repository
 		repository: repository,
 
 		index:           thumbnailIndex,
-		thumbnailFolder: targetFolder,
+		thumbnailFolder: thumbnailIndex.GetThumbnailFolder(),
 	}
 
 	// start the conversion

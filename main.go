@@ -136,15 +136,15 @@ func serve(repositoryPath string) bool {
 
 	// thumbnail index
 	thumbnailIndexFilePath := filepath.Join(config.MetaDataFolder(), "thumbnail.index")
-	thumbnailIndex := thumbnail.NewIndex(logger, thumbnailIndexFilePath)
-
-	// thumbnail conversion service
 	thumbnailFolder := filepath.Join(config.MetaDataFolder(), "thumbnails")
 	if !fsutil.CreateDirectory(thumbnailFolder) {
 		logger.Fatal("Could not create the thumbnail folder %q", thumbnailFolder)
 	}
 
-	thumbnail.NewConversionService(logger, repository, thumbnailFolder, thumbnailIndex)
+	thumbnailIndex := thumbnail.NewIndex(logger, thumbnailIndexFilePath, thumbnailFolder)
+
+	// thumbnail conversion service
+	thumbnail.NewConversionService(logger, repository, thumbnailIndex)
 
 	// parser
 	itemParser, err := parser.New(logger)

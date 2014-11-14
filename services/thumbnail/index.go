@@ -14,6 +14,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/util/fsutil"
 	"io"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -21,7 +22,7 @@ import (
 
 var dimensionPattern = regexp.MustCompile(`-maxWidth:(\d+)-maxHeight:(\d+)$`)
 
-func NewIndex(logger logger.Logger, indexFilePath string) *Index {
+func NewIndex(logger logger.Logger, indexFilePath, thumbnailFolder string) *Index {
 
 	// assemble the index file path
 	index, err := loadIndex(indexFilePath)
@@ -40,7 +41,7 @@ func NewIndex(logger logger.Logger, indexFilePath string) *Index {
 
 func emptyIndex() *Index {
 	return &Index{
-		make(map[string]Thumbs),
+		Thumbs: make(map[string]Thumbs),
 	}
 }
 
@@ -116,7 +117,6 @@ func newThumb(route route.Route, baseFolder, path string, dimensions ThumbDimens
 
 type Thumb struct {
 	Route      string         `json:"route"`
-	BaseFolder string         `json:"baseFolder"`
 	Path       string         `json:"path"`
 	Dimensions ThumbDimension `json:"dimensions"`
 }
@@ -151,7 +151,8 @@ func (thumbs Thumbs) GetThumbBySize(dimensions ThumbDimension) (Thumb, bool) {
 }
 
 type Index struct {
-	Thumbs map[string]Thumbs `json:"thumbs"`
+	Thumbs          map[string]Thumbs `json:"thumbs"`
+	thumbnailFolder string            `json:-`
 }
 
 func (i *Index) GetThumbs(key string) (thumbs Thumbs, exists bool) {
@@ -161,6 +162,14 @@ func (i *Index) GetThumbs(key string) (thumbs Thumbs, exists bool) {
 
 func (i *Index) SetThumbs(key string, thumbs Thumbs) {
 	i.Thumbs[key] = thumbs
+}
+
+func (i *Index) GetThumbnailFolder() string {
+	return i.thumbnailFolder
+}
+
+func (i *Index) GetThumbnailFilepath(thumb Thumb) string {
+	return filepath.Join(i.thumbnailFolder, thumb.Path)
 }
 
 func GetThumbnailDimensionsFromRoute(routeWithDimensions route.Route) (baseRoute route.Route, dimensions ThumbDimension) {
