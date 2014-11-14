@@ -178,7 +178,8 @@ func (conversion *ConversionService) isInIndex(thumb Thumb) bool {
 	// check if there is a thumb with that dimensions
 	if _, thumbExists := thumbs[thumb.Dimensions.String()]; thumbExists {
 		// check if the file exists
-		return fsutil.FileExists(filepath.Join(conversion.thumbnailFolder, thumb.Path))
+		thumbnailFilePath := conversion.index.GetThumbnailFilepath(thumb)
+		return fsutil.FileExists(thumbnailFilePath)
 
 	}
 
