@@ -13,7 +13,6 @@ import (
 	"github.com/andreaskoch/allmark2/services/imageconversion"
 	"io"
 	"path/filepath"
-	"time"
 )
 
 var (
@@ -77,8 +76,6 @@ func (conversion *ConversionService) fullConversion() {
 
 		conversion.createThumbnailsForItem(item)
 
-		// wait before processing the next image
-		time.Sleep(500 * time.Millisecond)
 	}
 }
 
@@ -91,12 +88,19 @@ func (conversion *ConversionService) createThumbnailsForItem(item *dataaccess.It
 
 	for _, file := range item.Files() {
 
-		// create the thumbnail
-		conversion.createThumbnail(file, SizeSmall)
-		conversion.createThumbnail(file, SizeMedium)
-		conversion.createThumbnail(file, SizeLarge)
+		// create the thumbnails
+		conversion.createThumbnailsForFile(file)
 
 	}
+
+}
+
+// Create thumbnail for all image files found in the supplied item.
+func (conversion *ConversionService) createThumbnailsForFile(file *dataaccess.File) {
+
+	// conversion.createThumbnail(file, SizeSmall)
+	conversion.createThumbnail(file, SizeMedium)
+	// conversion.createThumbnail(file, SizeLarge)
 
 }
 
