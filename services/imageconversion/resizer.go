@@ -62,7 +62,7 @@ func Resize(source io.Reader, mimeType string, width, height uint, target io.Wri
 	}
 
 	// resize the source image
-	thumb := resize.Resize(width, height, img, resize.Lanczos3)
+	thumb := resize.Thumbnail(width, height, img, resize.Lanczos3)
 
 	// write the thumbnail to the target
 	return encode(mimeType, thumb, target)

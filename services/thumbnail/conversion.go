@@ -18,17 +18,17 @@ import (
 var (
 	SizeSmall = ThumbDimension{
 		MaxWidth:  200,
-		MaxHeight: 0,
+		MaxHeight: 300,
 	}
 
 	SizeMedium = ThumbDimension{
 		MaxWidth:  400,
-		MaxHeight: 0,
+		MaxHeight: 600,
 	}
 
 	SizeLarge = ThumbDimension{
 		MaxWidth:  800,
-		MaxHeight: 0,
+		MaxHeight: 1200,
 	}
 )
 
@@ -98,9 +98,9 @@ func (conversion *ConversionService) createThumbnailsForItem(item *dataaccess.It
 // Create thumbnail for all image files found in the supplied item.
 func (conversion *ConversionService) createThumbnailsForFile(file *dataaccess.File) {
 
-	// conversion.createThumbnail(file, SizeSmall)
+	conversion.createThumbnail(file, SizeSmall)
 	conversion.createThumbnail(file, SizeMedium)
-	// conversion.createThumbnail(file, SizeLarge)
+	conversion.createThumbnail(file, SizeLarge)
 
 }
 
