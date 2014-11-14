@@ -99,9 +99,9 @@ func (indexSerializer) SerializeIndex(writer io.Writer, index *Index) error {
 
 func (indexSerializer) DeserializeIndex(reader io.Reader) (*Index, error) {
 	decoder := json.NewDecoder(reader)
-	var index Index
-	err := decoder.Decode(index)
-	return &index, err
+	var index *Index
+	err := decoder.Decode(&index)
+	return index, err
 }
 
 func newThumb(route route.Route, baseFolder, path string, dimensions ThumbDimension) Thumb {
