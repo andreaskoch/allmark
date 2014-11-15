@@ -24,11 +24,14 @@ var dimensionPattern = regexp.MustCompile(`-maxWidth:(\d+)-maxHeight:(\d+)$`)
 
 func NewIndex(logger logger.Logger, indexFilePath, thumbnailFolder string) *Index {
 
-	// assemble the index file path
+	// load the index
 	index, err := loadIndex(indexFilePath)
 	if err != nil {
 		logger.Debug("No thumbnail index loaded (%s). Creating a new one.", err.Error())
 	}
+
+	// set the thumbnail folder
+	index.thumbnailFolder = thumbnailFolder
 
 	// save the index on shutdown
 	shutdown.Register(func() error {
