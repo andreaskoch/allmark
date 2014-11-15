@@ -17,22 +17,24 @@ import (
 
 var (
 	SizeSmall = ThumbDimension{
-		MaxWidth:  200,
-		MaxHeight: 300,
+		MaxWidth:  320,
+		MaxHeight: 240,
 	}
 
 	SizeMedium = ThumbDimension{
-		MaxWidth:  400,
-		MaxHeight: 600,
+		MaxWidth:  640,
+		MaxHeight: 480,
 	}
 
 	SizeLarge = ThumbDimension{
-		MaxWidth:  800,
-		MaxHeight: 1200,
+		MaxWidth:  1024,
+		MaxHeight: 768,
 	}
 )
 
 func NewConversionService(logger logger.Logger, repository dataaccess.Repository, thumbnailIndex *Index) *ConversionService {
+
+	panic(thumbnailIndex.GetThumbnailFolder())
 
 	// create a new conversion service
 	conversionService := &ConversionService{
