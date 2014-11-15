@@ -34,8 +34,6 @@ var (
 
 func NewConversionService(logger logger.Logger, repository dataaccess.Repository, thumbnailIndex *Index) *ConversionService {
 
-	panic(thumbnailIndex.GetThumbnailFolder())
-
 	// create a new conversion service
 	conversionService := &ConversionService{
 		logger:     logger,
