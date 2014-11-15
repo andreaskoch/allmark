@@ -122,54 +122,62 @@ func (converter *FilePreviewExtension) getImageLinksByPath(path string) []string
 		// get paths
 		fullSizeImagePath := converter.getImagePath(file.Route())
 
-		// get thumbnail paths
-		small, smallExists := converter.getThumbnailPath(file.Route(), thumbnail.SizeSmall)
-		medium, mediumExists := converter.getThumbnailPath(file.Route(), thumbnail.SizeMedium)
-		large, largeExists := converter.getThumbnailPath(file.Route(), thumbnail.SizeLarge)
+		// get the image code
+		imageCode := converter.getImageCode(imageTitle, fullSizeImagePath, file.Route())
 
-		// assemble the image code
-		image := "<img"
-
-		// assemble the src sets
-		if smallExists || mediumExists || largeExists {
-
-			image += " srcset=\""
-
-			srcSets := make([]string, 0)
-			if smallExists {
-				srcSets = append(srcSets, small+fmt.Sprintf(" %vw", thumbnail.SizeSmall.MaxWidth))
-			}
-
-			if mediumExists {
-				srcSets = append(srcSets, medium+fmt.Sprintf(" %vw", thumbnail.SizeMedium.MaxWidth))
-			}
-
-			if largeExists {
-				srcSets = append(srcSets, large+fmt.Sprintf(" %vw", thumbnail.SizeLarge.MaxWidth))
-			}
-
-			image += strings.Join(srcSets, ", ")
-		}
-
-		// default image
-		if smallExists || mediumExists || largeExists {
-
-			// use the small image as the default
-			image += " src=\"" + small + "\""
-
-		} else {
-
-			// use the full image as the defaults
-			image += " src=\"" + fullSizeImagePath + "\""
-
-		}
-
-		image += fmt.Sprintf(` alt="%s" />`, imageTitle)
-
-		imagelinks[index] = fmt.Sprintf(`<a href="%s" title="%s">%s</a>`, fullSizeImagePath, imageTitle, image)
+		imagelinks[index] = fmt.Sprintf(`<a href="%s" title="%s">%s</a>`, fullSizeImagePath, imageTitle, imageCode)
 	}
 
 	return imagelinks
+}
+
+func (converter *FilePreviewExtension) getImageCode(imageTitle, fullSizeImagePath string, fileRoute route.Route) string {
+
+	// get thumbnail paths
+	small, smallExists := converter.getThumbnailPath(fileRoute, thumbnail.SizeSmall)
+	medium, mediumExists := converter.getThumbnailPath(fileRoute, thumbnail.SizeMedium)
+	large, largeExists := converter.getThumbnailPath(fileRoute, thumbnail.SizeLarge)
+
+	// assemble the image code
+	image := "<img"
+
+	// assemble the src sets
+	if smallExists || mediumExists || largeExists {
+
+		image += " srcset=\""
+
+		srcSets := make([]string, 0)
+		if smallExists {
+			srcSets = append(srcSets, small+fmt.Sprintf(" %vw", thumbnail.SizeSmall.MaxWidth))
+		}
+
+		if mediumExists {
+			srcSets = append(srcSets, medium+fmt.Sprintf(" %vw", thumbnail.SizeMedium.MaxWidth))
+		}
+
+		if largeExists {
+			srcSets = append(srcSets, large+fmt.Sprintf(" %vw", thumbnail.SizeLarge.MaxWidth))
+		}
+
+		image += strings.Join(srcSets, ", ")
+	}
+
+	// default image
+	if smallExists || mediumExists || largeExists {
+
+		// use the small image as the default
+		image += " src=\"" + small + "\""
+
+	} else {
+
+		// use the full image as the defaults
+		image += " src=\"" + fullSizeImagePath + "\""
+
+	}
+
+	image += fmt.Sprintf(` alt="%s" />`, imageTitle)
+
+	return image
 }
 
 func (converter *FilePreviewExtension) getThumbnailPath(fileRoute route.Route, dimensions thumbnail.ThumbDimension) (thumbnailPath string, thumbnailAvailable bool) {
