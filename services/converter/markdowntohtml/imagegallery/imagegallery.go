@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/pattern"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
+	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/common"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/util"
 	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"regexp"
@@ -35,6 +36,7 @@ type FilePreviewExtension struct {
 	base           route.Route
 	files          []*model.File
 	thumbnailIndex *thumbnail.Index
+	imageProvider  *common.ImageProvider
 }
 
 func (converter *FilePreviewExtension) Convert(markdown string) (convertedContent string, converterError error) {
@@ -119,91 +121,11 @@ func (converter *FilePreviewExtension) getImageLinksByPath(path string) []string
 		// image title
 		imageTitle := file.Route().LastComponentName() // use the file name for the title
 
-		// get paths
-		fullSizeImagePath := converter.getImagePath(file.Route())
+		// calculate the image code
+		imageCode := converter.imageProvider.GetImageCodeWithLink(imageTitle, file.Route())
 
-		// get the image code
-		imageCode := converter.getImageCode(imageTitle, fullSizeImagePath, file.Route())
-
-		imagelinks[index] = fmt.Sprintf(`<a href="%s" title="%s">%s</a>`, fullSizeImagePath, imageTitle, imageCode)
+		imagelinks[index] = imageCode
 	}
 
 	return imagelinks
-}
-
-func (converter *FilePreviewExtension) getImageCode(imageTitle, fullSizeImagePath string, fileRoute route.Route) string {
-
-	// get thumbnail paths
-	small, smallExists := converter.getThumbnailPath(fileRoute, thumbnail.SizeSmall)
-	medium, mediumExists := converter.getThumbnailPath(fileRoute, thumbnail.SizeMedium)
-	large, largeExists := converter.getThumbnailPath(fileRoute, thumbnail.SizeLarge)
-
-	// assemble the image code
-	image := "<img"
-
-	// assemble the src sets
-	if smallExists || mediumExists || largeExists {
-
-		image += " srcset=\""
-
-		srcSets := make([]string, 0)
-		if smallExists {
-			srcSets = append(srcSets, small+fmt.Sprintf(" %vw", thumbnail.SizeSmall.MaxWidth))
-		}
-
-		if mediumExists {
-			srcSets = append(srcSets, medium+fmt.Sprintf(" %vw", thumbnail.SizeMedium.MaxWidth))
-		}
-
-		if largeExists {
-			srcSets = append(srcSets, large+fmt.Sprintf(" %vw", thumbnail.SizeLarge.MaxWidth))
-		}
-
-		image += strings.Join(srcSets, ", ")
-	}
-
-	// default image
-	if smallExists || mediumExists || largeExists {
-
-		// use the small image as the default
-		image += " src=\"" + small + "\""
-
-	} else {
-
-		// use the full image as the defaults
-		image += " src=\"" + fullSizeImagePath + "\""
-
-	}
-
-	image += fmt.Sprintf(` alt="%s" />`, imageTitle)
-
-	return image
-}
-
-func (converter *FilePreviewExtension) getThumbnailPath(fileRoute route.Route, dimensions thumbnail.ThumbDimension) (thumbnailPath string, thumbnailAvailable bool) {
-
-	// assemble to the full image route
-	fullRoute, err := route.Combine(converter.base, fileRoute)
-	if err != nil {
-		panic(fmt.Sprintf("Cannot combine routes %q and %q.", converter.base, fileRoute))
-	}
-
-	// check if there are thumbs for the supplied file route
-	thumbs, exists := converter.thumbnailIndex.GetThumbs(fullRoute.Value())
-	if !exists {
-		return "", false // return the full-size image path
-	}
-
-	// lookup thumb by size
-	thumb, exists := thumbs.GetThumbBySize(dimensions)
-	if !exists {
-		return "", false // return the full-size image path
-
-	}
-
-	return converter.getImagePath(thumb.ThumbRoute()), true
-}
-
-func (converter *FilePreviewExtension) getImagePath(fileRoute route.Route) string {
-	return converter.pathProvider.Path(fileRoute.Value())
 }
