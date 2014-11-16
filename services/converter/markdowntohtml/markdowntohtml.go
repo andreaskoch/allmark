@@ -12,9 +12,11 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/converter/filetreerenderer"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/audio"
+	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/common"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/csvtable"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/filepreview"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/files"
+	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/image"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/imagegallery"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/markdown"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/pdf"
@@ -52,6 +54,14 @@ func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item
 
 	itemRoute := item.Route()
 	content := item.Content
+	imageProvider := common.NewImageProvider(pathProvider, itemRoute, converter.thumbnailIndex)
+
+	// markdown extension: image/thumbnails
+	imageConverter := image.New(pathProvider, itemRoute, item.Files(), imageProvider)
+	content, imageConversionError := imageConverter.Convert(content)
+	if imageConversionError != nil {
+		converter.logger.Warn("Error while converting images/thumbnails. Error: %s", imageConversionError)
+	}
 
 	// markdown extension: audio
 	audioConverter := audio.New(pathProvider, item.Files())

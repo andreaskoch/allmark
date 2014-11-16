@@ -8,12 +8,11 @@ import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
-	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"strings"
 )
 
-func NewImageProvider(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, thumbnailIndex *thumbnail.Index) *ImageProvider {
+func NewImageProvider(pathProvider paths.Pather, baseRoute route.Route, thumbnailIndex *thumbnail.Index) *ImageProvider {
 	return &ImageProvider{
 		pathProvider:   pathProvider,
 		base:           baseRoute,

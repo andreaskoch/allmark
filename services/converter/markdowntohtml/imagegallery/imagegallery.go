@@ -24,19 +24,18 @@ var (
 
 func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, thumbnailIndex *thumbnail.Index) *FilePreviewExtension {
 	return &FilePreviewExtension{
-		pathProvider:   pathProvider,
-		base:           baseRoute,
-		files:          files,
-		thumbnailIndex: thumbnailIndex,
+		pathProvider:  pathProvider,
+		base:          baseRoute,
+		files:         files,
+		imageProvider: common.NewImageProvider(pathProvider, baseRoute, thumbnailIndex),
 	}
 }
 
 type FilePreviewExtension struct {
-	pathProvider   paths.Pather
-	base           route.Route
-	files          []*model.File
-	thumbnailIndex *thumbnail.Index
-	imageProvider  *common.ImageProvider
+	pathProvider  paths.Pather
+	base          route.Route
+	files         []*model.File
+	imageProvider *common.ImageProvider
 }
 
 func (converter *FilePreviewExtension) Convert(markdown string) (convertedContent string, converterError error) {
