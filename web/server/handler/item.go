@@ -95,6 +95,10 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 				// get the thumb for the supplied dimensions
 				if matchingThumb, matchingThumbExists := thumbs.GetThumbBySize(dimensions); matchingThumbExists {
 
+					// set headers
+					header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
+
+					/// serve the file
 					thumbnailFilePath := handler.thumbnailIndex.GetThumbnailFilepath(matchingThumb)
 					http.ServeFile(w, r, thumbnailFilePath)
 
