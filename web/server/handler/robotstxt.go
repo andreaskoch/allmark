@@ -24,7 +24,11 @@ func (handler *RobotsTxt) Func() func(w http.ResponseWriter, r *http.Request) {
 		header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
 
 		fmt.Fprintf(w, `User-agent: *
-allow: /
+Disallow: /thumbnails
+Disallow: /*.rtf$
+Disallow: /*.json$
+Disallow: /*.print$
+Disallow: /*.ws$
 
 Sitemap: http://%s/sitemap.xml`, getHostnameFromRequest(r))
 	}
