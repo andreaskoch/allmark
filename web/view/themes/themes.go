@@ -57,6 +57,8 @@ func init() {
 
 			// lazy-loading
 			newFileFromText("jquery.lazyload.js", themefiles.JqueryLazyLoadJs),
+			newFileFromText("jquery.lazyload.srcset.js", themefiles.JqueryLazyLoadSrcsetJs),
+			newFileFromText("jquery.lazyload.video.js", themefiles.JqueryLazyLoadVideoJs),
 
 			// global
 			newFileFromText("site.js", themefiles.SiteJs),
