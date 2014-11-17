@@ -136,7 +136,7 @@ func serve(repositoryPath string) bool {
 
 	// thumbnail index
 	thumbnailIndexFilePath := filepath.Join(config.MetaDataFolder(), "thumbnail.index")
-	thumbnailFolder := filepath.Join(config.MetaDataFolder(), "thumbnails")
+	thumbnailFolder := config.ThumbnailsFolder()
 	if !fsutil.CreateDirectory(thumbnailFolder) {
 		logger.Fatal("Could not create the thumbnail folder %q", thumbnailFolder)
 	}
@@ -156,7 +156,7 @@ func serve(repositoryPath string) bool {
 	converter := markdowntohtml.New(logger, thumbnailIndex)
 
 	// server
-	server, err := server.New(logger, config, repository, itemParser, converter, thumbnailIndex)
+	server, err := server.New(logger, config, repository, itemParser, converter)
 	if err != nil {
 		logger.Error("Unable to instantiate a server. Error: %s", err.Error())
 		return false

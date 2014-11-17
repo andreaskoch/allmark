@@ -7,12 +7,11 @@ package handler
 import (
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
-	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
 	"github.com/andreaskoch/allmark2/web/view/templates"
 )
 
-func NewFactory(logger logger.Logger, config config.Config, orchestratorFactory orchestrator.Factory, thumbnailIndex *thumbnail.Index) *Factory {
+func NewFactory(logger logger.Logger, config config.Config, orchestratorFactory orchestrator.Factory) *Factory {
 
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
 
@@ -22,7 +21,6 @@ func NewFactory(logger logger.Logger, config config.Config, orchestratorFactory 
 
 		templateProvider:    templateProvider,
 		orchestratorFactory: orchestratorFactory,
-		thumbnailIndex:      thumbnailIndex,
 	}
 }
 
@@ -32,7 +30,6 @@ type Factory struct {
 
 	templateProvider    templates.Provider
 	orchestratorFactory orchestrator.Factory
-	thumbnailIndex      *thumbnail.Index
 }
 
 func (factory *Factory) NewErrorHandler() Handler {
@@ -152,8 +149,6 @@ func (factory *Factory) NewItemHandler() Handler {
 		viewModelOrchestrator: factory.orchestratorFactory.NewViewModelOrchestrator(),
 		fileOrchestrator:      factory.orchestratorFactory.NewFileOrchestrator(),
 		templateProvider:      factory.templateProvider,
-
-		thumbnailIndex: factory.thumbnailIndex,
 
 		error404Handler: factory.NewErrorHandler(),
 	}

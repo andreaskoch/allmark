@@ -14,7 +14,6 @@ import (
 	"github.com/andreaskoch/allmark2/dataaccess"
 	"github.com/andreaskoch/allmark2/services/converter"
 	"github.com/andreaskoch/allmark2/services/parser"
-	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
 	"github.com/andreaskoch/allmark2/web/server/handler"
 	"github.com/andreaskoch/allmark2/web/server/header"
@@ -52,10 +51,11 @@ var (
 	TypeAheadTitlesHandlerRoute = "/titles.json"
 
 	// Static Routes
-	ThemeFolderRoute = "/theme"
+	ThemeFolderRoute     = "/theme"
+	ThumbnailFolderRoute = "/thumbnails"
 )
 
-func New(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, thumbnailIndex *thumbnail.Index) (*Server, error) {
+func New(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter) (*Server, error) {
 
 	// paths
 	patherFactory := webpaths.NewFactory(logger, repository)
@@ -67,7 +67,7 @@ func New(logger logger.Logger, config config.Config, repository dataaccess.Repos
 	orchestratorFactory := orchestrator.NewFactory(logger, config, repository, parser, converter, webPathProvider)
 
 	// handlers
-	handlerFactory := handler.NewFactory(logger, config, *orchestratorFactory, thumbnailIndex)
+	handlerFactory := handler.NewFactory(logger, config, *orchestratorFactory)
 
 	return &Server{
 		logger: logger,
@@ -100,10 +100,6 @@ func (server *Server) Start() chan error {
 		// register requst routers
 		requestRouter := mux.NewRouter()
 
-		// websocket update handler
-		// updateHub := update.NewHub(server.logger, server.updateHub)
-		// go updateHub.Run()
-
 		updateHandler := server.handlerFactory.NewUpdateHandler()
 		requestRouter.Handle(UpdateHandlerRoute, websocket.Handler(updateHandler.Func()))
 
@@ -119,11 +115,18 @@ func (server *Server) Start() chan error {
 		requestRouter.HandleFunc(TypeAheadSearchHandlerRoute, server.handlerFactory.NewTypeAheadSearchHandler().Func())
 		requestRouter.HandleFunc(TypeAheadTitlesHandlerRoute, server.handlerFactory.NewTypeAheadTitlesHandler().Func())
 
-		// serve static files
+		// theme
 		if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
 			themeFolderHandler := http.FileServer(http.Dir(themeFolder))
 			s := http.StripPrefix(ThemeFolderRoute, addStaticFileHeaders(themeFolder, header.STATICCONTENT_CACHEDURATION_SECONDS, themeFolderHandler))
 			requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)
+		}
+
+		// thumbnails
+		if thumbnailsFolder := server.config.ThumbnailsFolder(); fsutil.DirectoryExists(thumbnailsFolder) {
+			thumbnailsFolderHandler := http.FileServer(http.Dir(thumbnailsFolder))
+			s := http.StripPrefix(ThumbnailFolderRoute, addStaticFileHeaders(thumbnailsFolder, header.STATICCONTENT_CACHEDURATION_SECONDS, thumbnailsFolderHandler))
+			requestRouter.PathPrefix(ThumbnailFolderRoute).Handler(s)
 		}
 
 		// rich text

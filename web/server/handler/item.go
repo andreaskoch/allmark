@@ -6,7 +6,6 @@ package handler
 
 import (
 	"github.com/andreaskoch/allmark2/common/logger"
-	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
 	"github.com/andreaskoch/allmark2/web/server/header"
 	"github.com/andreaskoch/allmark2/web/view/templates"
@@ -21,8 +20,6 @@ type Item struct {
 	fileOrchestrator      orchestrator.FileOrchestrator
 	viewModelOrchestrator orchestrator.ViewModelOrchestrator
 	templateProvider      templates.Provider
-
-	thumbnailIndex *thumbnail.Index
 
 	error404Handler Handler
 }
@@ -82,29 +79,6 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 			})
 
 			return
-		}
-
-		// stage 3: thumbnails
-		if baseRoute, dimensions := thumbnail.GetThumbnailDimensionsFromRoute(requestRoute); baseRoute.Value() != requestRoute.Value() {
-
-			handler.logger.Debug("Requesting a thumbnail for route %q (Dimensions: %s)", baseRoute.Value(), dimensions)
-
-			// get the thumbs for the base route
-			if thumbs, thumbsExist := handler.thumbnailIndex.GetThumbs(baseRoute.Value()); thumbsExist {
-
-				// get the thumb for the supplied dimensions
-				if matchingThumb, matchingThumbExists := thumbs.GetThumbBySize(dimensions); matchingThumbExists {
-
-					// set headers
-					header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
-
-					/// serve the file
-					thumbnailFilePath := handler.thumbnailIndex.GetThumbnailFilepath(matchingThumb)
-					http.ServeFile(w, r, thumbnailFilePath)
-
-					return
-				}
-			}
 		}
 
 		handler.logger.Warn("No item or file found for route %q", requestRoute)

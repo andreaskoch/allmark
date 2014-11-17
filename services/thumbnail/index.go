@@ -129,7 +129,7 @@ func (t Thumb) String() string {
 }
 
 func (t Thumb) ThumbRoute() route.Route {
-	thumbRoute, err := route.NewFromRequest(fmt.Sprintf("%s-%s", t.Route, t.Dimensions.String()))
+	thumbRoute, err := route.NewFromRequest(fmt.Sprintf("%s/%s", "thumbnails", t.Path))
 	if err != nil {
 		panic(err)
 	}

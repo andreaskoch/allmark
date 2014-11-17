@@ -20,6 +20,8 @@ const (
 	ConfigurationFileName = "config"
 	ThemeFolderName       = "theme"
 	TemplatesFolderName   = "templates"
+	ThumbnailIndexFile    = "thumbnail.index"
+	ThumbnailsFolderName  = "thumbnails"
 
 	// Global Defaults
 	DefaultHostName                 = "localhost"
@@ -72,11 +74,17 @@ func New(baseFolder string) *Config {
 	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
 	templatesFolder := filepath.Join(metaDataFolder, TemplatesFolderName)
 
+	thumbnailIndexFile := filepath.Join(metaDataFolder, ThumbnailIndexFile)
+	thumbnailsFolder := filepath.Join(metaDataFolder, ThumbnailsFolderName)
+
 	return &Config{
 		baseFolder:      baseFolder,
 		metaDataFolder:  metaDataFolder,
 		themeFolderBase: metaDataFolder,
 		templatesFolder: templatesFolder,
+
+		thumbnailIndexFile: thumbnailIndexFile,
+		thumbnailsFolder:   thumbnailsFolder,
 	}
 }
 
@@ -141,6 +149,9 @@ type Config struct {
 	metaDataFolder  string
 	themeFolderBase string
 	templatesFolder string
+
+	thumbnailIndexFile string
+	thumbnailsFolder   string
 }
 
 func (config *Config) BaseFolder() string {
@@ -153,6 +164,14 @@ func (config *Config) MetaDataFolder() string {
 
 func (config *Config) TemplatesFolder() string {
 	return config.templatesFolder
+}
+
+func (config *Config) ThumbnailIndexFile() string {
+	return config.thumbnailIndexFile
+}
+
+func (config *Config) ThumbnailsFolder() string {
+	return config.thumbnailsFolder
 }
 
 func (config *Config) Filepath() string {
