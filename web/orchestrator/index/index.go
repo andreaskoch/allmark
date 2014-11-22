@@ -162,6 +162,35 @@ func (index *Index) GetDirectChilds(route route.Route) []*model.Item {
 	return childs
 }
 
+func (index *Index) GetLeafes(route route.Route) []*model.Item {
+
+	item := index.itemTree.GetItem(route)
+	if item == nil {
+
+		// item not found
+		return []*model.Item{}
+	}
+
+	// leaf found
+	childs := index.GetDirectChilds(route)
+	if len(childs) == 0 {
+		return []*model.Item{item}
+	}
+
+	// recurse
+	leafes := make([]*model.Item, 0)
+	for _, child := range childs {
+		childLeafes := index.GetLeafes(child.Route())
+		if len(childLeafes) == 0 {
+			continue
+		}
+
+		leafes = append(leafes, childLeafes...)
+	}
+
+	return leafes
+}
+
 func (index *Index) add(item *model.Item) {
 
 	// abort if item is invalid
