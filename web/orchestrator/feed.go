@@ -28,7 +28,7 @@ func (orchestrator *FeedOrchestrator) GetRootEntry(hostname string) viewmodel.Fe
 	return orchestrator.createFeedEntryModel(pathProvider, rootItem)
 }
 
-func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, page int) []viewmodel.FeedEntry {
+func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, page int) (entries []viewmodel.FeedEntry, found bool) {
 
 	// validate page number
 	if page < 1 {
@@ -46,14 +46,16 @@ func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, 
 
 	feedEntries := make([]viewmodel.FeedEntry, 0)
 
-	latestItems := orchestrator.getLatestItems(rootItem.Route())
-	latestItems = pagedItems(latestItems, itemsPerPage, page)
+	latestItems, found := pagedItems(orchestrator.getLatestItems(rootItem.Route()), itemsPerPage, page)
+	if !found {
+		return feedEntries, false
+	}
 
 	for _, item := range latestItems {
 		feedEntries = append(feedEntries, orchestrator.createFeedEntryModel(pathProvider, item))
 	}
 
-	return feedEntries
+	return feedEntries, true
 }
 
 func (orchestrator *FeedOrchestrator) createFeedEntryModel(pathProvider paths.Pather, item *model.Item) viewmodel.FeedEntry {

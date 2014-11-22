@@ -93,6 +93,11 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 
 	cacheType := "latest"
 
+	// first time direct access
+	if orchestrator.latestByRoute == nil {
+		return getLatestUncached(itemRoute, pageSize, page)
+	}
+
 	// load from cache
 	if orchestrator.latestByRoute != nil {
 
@@ -103,7 +108,7 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 
 		// return the result
 		if models, exists := orchestrator.latestByRoute[itemRoute.Value()]; exists {
-			return pagedViewmodels(models, pageSize, page), true
+			return pagedViewmodels(models, pageSize, page)
 		}
 
 		return []*viewmodel.Model{}, false
@@ -119,20 +124,8 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 			// get the latest items
 			latestItems := orchestrator.getLatestItems(childRoute)
 
-			// create viewmodels
-			models := make([]*viewmodel.Model, 0, len(latestItems))
-			for _, item := range latestItems {
-
-				viewModel := orchestrator.getViewModel(item)
-
-				// prepare lazy loading
-				viewModel.Content = converter.LazyLoad(viewModel.Content)
-
-				models = append(models, &viewModel)
-			}
-
 			// store the results
-			latestModelsByRoute[childRoute.Value()] = models
+			latestModelsByRoute[childRoute.Value()] = orchestrator.getLastesViewModelsFromItemList(latestItems)
 
 		}
 
@@ -143,10 +136,39 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 
 	// return a result
 	if models, exists := orchestrator.latestByRoute[itemRoute.Value()]; exists {
-		return pagedViewmodels(models, pageSize, page), true
+		return pagedViewmodels(models, pageSize, page)
 	}
 
 	return []*viewmodel.Model{}, false
+}
+
+func (orchestrator *ViewModelOrchestrator) getLatestUncached(itemRoute route.Route, pageSize, page int) (latest []*viewmodel.Model, found bool) {
+
+	// get the latest items
+	latestItems, found := pagedItems(orchestrator.getLatestItems(itemRoute), pageSize, page)
+	if !found {
+		return []*viewmodel.Model{}, false
+	}
+
+	return orchestrator.getLastesViewModelsFromItemList(latestItems), true
+}
+
+// Converts a list of model.Item elements into a view models for the latest-items controller
+func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items []*model.Item) []*viewmodel.Model {
+
+	// create viewmodels
+	models := make([]*viewmodel.Model, 0, len(items))
+	for _, item := range items {
+
+		viewModel := orchestrator.getViewModel(item)
+
+		// prepare lazy loading
+		viewModel.Content = converter.LazyLoad(viewModel.Content)
+
+		models = append(models, &viewModel)
+	}
+
+	return models
 }
 
 func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmodel.Model {

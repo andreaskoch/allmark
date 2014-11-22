@@ -90,12 +90,12 @@ func sortItemsByDate(model1, model2 *model.Item) bool {
 
 }
 
-func pagedViewmodels(viewmodels []*viewmodel.Model, pageSize, page int) []*viewmodel.Model {
+func pagedViewmodels(viewmodels []*viewmodel.Model, pageSize, page int) (latest []*viewmodel.Model, found bool) {
 
 	// determine the start index
 	startIndex := pageSize * (page - 1)
 	if startIndex >= len(viewmodels) {
-		return []*viewmodel.Model{}
+		return []*viewmodel.Model{}, false
 	}
 
 	// determine the end index
@@ -104,15 +104,15 @@ func pagedViewmodels(viewmodels []*viewmodel.Model, pageSize, page int) []*viewm
 		endIndex = len(viewmodels)
 	}
 
-	return viewmodels[startIndex:endIndex]
+	return viewmodels[startIndex:endIndex], true
 }
 
-func pagedItems(models []*model.Item, pageSize, page int) []*model.Item {
+func pagedItems(models []*model.Item, pageSize, page int) (items []*model.Item, found bool) {
 
 	// determine the start index
 	startIndex := pageSize * (page - 1)
-	if startIndex >= len(models) {
-		return []*model.Item{}
+	if startIndex >= len(models) || page < 0 {
+		return []*model.Item{}, false
 	}
 
 	// determine the end index
@@ -121,5 +121,5 @@ func pagedItems(models []*model.Item, pageSize, page int) []*model.Item {
 		endIndex = len(models)
 	}
 
-	return models[startIndex:endIndex]
+	return models[startIndex:endIndex], true
 }

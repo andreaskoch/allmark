@@ -63,10 +63,10 @@ func (handler *Rss) Func() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// render the sitemap content
-		entries := handler.feedOrchestrator.GetEntries(hostname, itemsPerPage, page)
+		entries, found := handler.feedOrchestrator.GetEntries(hostname, itemsPerPage, page)
 
 		// display error 404 non-existing page has been requested
-		if page > 1 && len(entries) == 0 {
+		if !found {
 			error404Handler := handler.error404Handler.Func()
 			error404Handler(w, r)
 			return
