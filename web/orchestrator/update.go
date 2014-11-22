@@ -12,7 +12,7 @@ import (
 type UpdateOrchestrator struct {
 	*Orchestrator
 
-	viewModelOrchestrator ViewModelOrchestrator
+	viewModelOrchestrator *ViewModelOrchestrator
 }
 
 func (orchestrator *UpdateOrchestrator) StartWatching(route route.Route) {

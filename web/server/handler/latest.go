@@ -20,8 +20,9 @@ import (
 type Latest struct {
 	logger logger.Logger
 
-	viewModelOrchestrator orchestrator.ViewModelOrchestrator
-	fallbackHandler       Handler
+	viewModelOrchestrator *orchestrator.ViewModelOrchestrator
+
+	fallbackHandler Handler
 }
 
 func (handler *Latest) Func() func(w http.ResponseWriter, r *http.Request) {

@@ -18,7 +18,7 @@ type Item struct {
 	logger logger.Logger
 
 	fileOrchestrator      orchestrator.FileOrchestrator
-	viewModelOrchestrator orchestrator.ViewModelOrchestrator
+	viewModelOrchestrator *orchestrator.ViewModelOrchestrator
 	templateProvider      templates.Provider
 
 	error404Handler Handler

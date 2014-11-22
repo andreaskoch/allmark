@@ -42,7 +42,8 @@ func NewFactory(logger logger.Logger, config config.Config, repository dataacces
 type Factory struct {
 	logger logger.Logger
 
-	baseOrchestrator *Orchestrator
+	baseOrchestrator      *Orchestrator
+	viewModelOrchestrator *ViewModelOrchestrator
 }
 
 func (factory *Factory) NewConversionModelOrchestrator() ConversionModelOrchestrator {
@@ -95,9 +96,14 @@ func (factory *Factory) NewTagsOrchestrator() TagsOrchestrator {
 	}
 }
 
-func (factory *Factory) NewViewModelOrchestrator() ViewModelOrchestrator {
+func (factory *Factory) NewViewModelOrchestrator() *ViewModelOrchestrator {
 
-	orchestrator := ViewModelOrchestrator{
+	// cache lookup
+	if factory.viewModelOrchestrator != nil {
+		return factory.viewModelOrchestrator
+	}
+
+	orchestrator := &ViewModelOrchestrator{
 		Orchestrator: factory.baseOrchestrator,
 
 		navigationOrchestrator: factory.NewNavigationOrchestrator(),
@@ -106,7 +112,13 @@ func (factory *Factory) NewViewModelOrchestrator() ViewModelOrchestrator {
 		locationOrchestrator:   factory.NewLocationOrchestrator(),
 	}
 
-	return orchestrator
+	// warm up the caches
+	orchestrator.blockingCacheWarmup()
+
+	// store
+	factory.viewModelOrchestrator = orchestrator
+
+	return factory.viewModelOrchestrator
 }
 
 func (factory *Factory) NewXmlSitemapOrchestrator() XmlSitemapOrchestrator {

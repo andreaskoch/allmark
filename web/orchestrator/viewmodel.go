@@ -23,6 +23,10 @@ type ViewModelOrchestrator struct {
 	latestByRoute map[string][]*viewmodel.Model
 }
 
+func (orchestrator *ViewModelOrchestrator) blockingCacheWarmup() {
+	orchestrator.getLatestItems(route.New())
+}
+
 func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
 
 	// get the requested item
@@ -93,11 +97,6 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 
 	cacheType := "latest"
 
-	// first time direct access
-	if orchestrator.latestByRoute == nil {
-		return getLatestUncached(itemRoute, pageSize, page)
-	}
-
 	// load from cache
 	if orchestrator.latestByRoute != nil {
 
@@ -140,17 +139,6 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 	}
 
 	return []*viewmodel.Model{}, false
-}
-
-func (orchestrator *ViewModelOrchestrator) getLatestUncached(itemRoute route.Route, pageSize, page int) (latest []*viewmodel.Model, found bool) {
-
-	// get the latest items
-	latestItems, found := pagedItems(orchestrator.getLatestItems(itemRoute), pageSize, page)
-	if !found {
-		return []*viewmodel.Model{}, false
-	}
-
-	return orchestrator.getLastesViewModelsFromItemList(latestItems), true
 }
 
 // Converts a list of model.Item elements into a view models for the latest-items controller

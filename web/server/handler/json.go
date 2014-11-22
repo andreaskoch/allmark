@@ -20,8 +20,9 @@ import (
 type Json struct {
 	logger logger.Logger
 
-	viewModelOrchestrator orchestrator.ViewModelOrchestrator
-	fallbackHandler       Handler
+	viewModelOrchestrator *orchestrator.ViewModelOrchestrator
+
+	fallbackHandler Handler
 }
 
 func (handler *Json) Func() func(w http.ResponseWriter, r *http.Request) {
