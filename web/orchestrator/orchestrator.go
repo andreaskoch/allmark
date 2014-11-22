@@ -251,40 +251,50 @@ func (orchestrator *Orchestrator) getLatestRoutes(parentRoute route.Route) (rout
 
 func (orchestrator *Orchestrator) getAllLeafes(parentRoute route.Route) []route.Route {
 
-	// initialize the leafes map on first use
-	if orchestrator.leafesByRoute == nil {
-		orchestrator.leafesByRoute = make(map[string][]route.Route)
-	}
+	// load from cache
+	cacheType := "allleafes"
+	if orchestrator.leafesByRoute != nil {
 
-	// cache lookup
-	key := parentRoute.Value()
-	if leafes, isset := orchestrator.leafesByRoute[key]; isset {
-		return leafes
-	}
-
-	childRoutes := make([]route.Route, 0)
-
-	childItems := orchestrator.getChilds(parentRoute)
-	if hasNoMoreChilds := len(childItems) == 0; hasNoMoreChilds {
-		return []route.Route{parentRoute}
-	}
-
-	// recurse
-	for _, childItem := range childItems {
-
-		// skip locations
-		if childItem.Type == model.TypeLocation {
-			continue
+		// re-prime the cache if it is stale
+		if orchestrator.isCacheStale(cacheType) {
+			go orchestrator.primeCache(cacheType)
 		}
 
-		childRoutes = append(childRoutes, orchestrator.getAllLeafes(childItem.Route())...)
+		return orchestrator.leafesByRoute[parentRoute.Value()]
+
 	}
 
-	// store the value
-	orchestrator.leafesByRoute[key] = childRoutes
+	orchestrator.setCache(cacheType, func() {
 
-	return childRoutes
+		// initialize the leafes map on first use
+		leafesByRoute := make(map[string][]route.Route)
 
+		// iterate over all routes
+		for _, repositoryRoute := range orchestrator.repository.Routes() {
+
+			key := repositoryRoute.Value()
+
+			childRoutes := make([]route.Route, 0)
+			if existingChildRoutes, exists := leafesByRoute[key]; exists {
+				childRoutes = existingChildRoutes
+			}
+
+			// check if there are childs
+			if hasChilds := len(orchestrator.getChilds(repositoryRoute)) > 0; hasChilds {
+				continue
+			}
+
+			// store the new or updated list
+			leafesByRoute[key] = append(childRoutes, repositoryRoute)
+
+		}
+
+		// store the end result
+		orchestrator.leafesByRoute = leafesByRoute
+
+	})
+
+	return orchestrator.leafesByRoute[parentRoute.Value()]
 }
 
 func (orchestrator *Orchestrator) index() *index.Index {
