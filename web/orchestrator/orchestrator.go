@@ -61,7 +61,6 @@ type Orchestrator struct {
 	repositoryIndex *index.Index
 	items           []*model.Item
 	itemsByAlias    map[string]*model.Item
-	leafesByRoute   map[string][]route.Route
 }
 
 // Reset all Caches
@@ -200,101 +199,33 @@ func (orchestrator *Orchestrator) getItem(route route.Route) *model.Item {
 	return nil
 }
 
-func (orchestrator *Orchestrator) getLatestRoutesByPage(parentRoute route.Route, pageSize, page int) (routes []route.Route, found bool) {
+func (orchestrator *Orchestrator) getLatestItemsByPage(parentRoute route.Route, pageSize, page int) (latest []*model.Item, found bool) {
 
-	latestRoutes, found := orchestrator.getLatestRoutes(parentRoute)
-	if !found {
-		return []route.Route{}, false
-	}
+	latestItems := orchestrator.getLatestItems(parentRoute)
 
 	// determine the start index
 	startIndex := pageSize * (page - 1)
-	if startIndex >= len(latestRoutes) {
-		return []route.Route{}, false
+	if startIndex >= len(latestItems) {
+		return []*model.Item{}, false
 	}
 
 	// determine the end index
 	endIndex := startIndex + pageSize
-	if endIndex > len(latestRoutes) {
-		endIndex = len(latestRoutes)
+	if endIndex > len(latestItems) {
+		endIndex = len(latestItems)
 	}
 
-	return latestRoutes[startIndex:endIndex], true
+	return latestItems[startIndex:endIndex], true
 }
 
-func (orchestrator *Orchestrator) getLatestRoutes(parentRoute route.Route) (routes []route.Route, found bool) {
+func (orchestrator *Orchestrator) getLatestItems(parentRoute route.Route) []*model.Item {
 
-	leafes := orchestrator.getAllLeafes(parentRoute)
-
-	// collect the creation dates for all leafes
-	routesAndDates := make([]routeAndDate, 0, len(leafes))
-	for _, leaf := range leafes {
-		creationDate, found := orchestrator.getCreationDate(leaf)
-		if !found {
-			// todo: log info
-			continue
-		}
-
-		routesAndDates = append(routesAndDates, routeAndDate{leaf, creationDate})
-	}
+	leafes := orchestrator.index().GetLeafes(parentRoute)
 
 	// sort the leafes by date
-	SortItemRoutesAndDatesBy(sortRoutesAndDatesDescending).Sort(routesAndDates)
+	model.SortItemsBy(sortItemsByDate).Sort(leafes)
 
-	routes = make([]route.Route, 0)
-	for _, routeAndDate := range routesAndDates {
-		routes = append(routes, routeAndDate.route)
-	}
-
-	return routes, true
-}
-
-func (orchestrator *Orchestrator) getAllLeafes(parentRoute route.Route) []route.Route {
-
-	// load from cache
-	cacheType := "allleafes"
-	if orchestrator.leafesByRoute != nil {
-
-		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(cacheType) {
-			go orchestrator.primeCache(cacheType)
-		}
-
-		return orchestrator.leafesByRoute[parentRoute.Value()]
-
-	}
-
-	orchestrator.setCache(cacheType, func() {
-
-		// initialize the leafes map on first use
-		leafesByRoute := make(map[string][]route.Route)
-
-		// iterate over all routes
-		for _, repositoryRoute := range orchestrator.repository.Routes() {
-
-			key := repositoryRoute.Value()
-
-			childRoutes := make([]route.Route, 0)
-			if existingChildRoutes, exists := leafesByRoute[key]; exists {
-				childRoutes = existingChildRoutes
-			}
-
-			// check if there are childs
-			if hasChilds := len(orchestrator.getChilds(repositoryRoute)) > 0; hasChilds {
-				continue
-			}
-
-			// store the new or updated list
-			leafesByRoute[key] = append(childRoutes, repositoryRoute)
-
-		}
-
-		// store the end result
-		orchestrator.leafesByRoute = leafesByRoute
-
-	})
-
-	return orchestrator.leafesByRoute[parentRoute.Value()]
+	return leafes
 }
 
 func (orchestrator *Orchestrator) index() *index.Index {
@@ -446,15 +377,15 @@ func (orchestrator *Orchestrator) getParent(route route.Route) *model.Item {
 
 func (orchestrator *Orchestrator) getPrevious(currentRoute route.Route) *model.Item {
 
-	latestRoutes, found := orchestrator.getLatestRoutes(route.New())
-	if !found {
+	latestItems := orchestrator.getLatestItems(route.New())
+	if len(latestItems) == 0 {
 		return nil
 	}
 
 	// determine the position of the supplied route
 	matchingIndex := -1
-	for index, route := range latestRoutes {
-		if route.Value() == currentRoute.Value() {
+	for index, item := range latestItems {
+		if item.Route().Value() == currentRoute.Value() {
 			matchingIndex = index
 			break
 		}
@@ -467,27 +398,24 @@ func (orchestrator *Orchestrator) getPrevious(currentRoute route.Route) *model.I
 
 	// abort if there is no next item
 	nextIndex := matchingIndex + 1
-	if nextIndex >= len(latestRoutes) {
+	if nextIndex >= len(latestItems) {
 		return nil
 	}
 
-	// determine the next route
-	nextRoute := latestRoutes[nextIndex]
-
-	return orchestrator.getItem(nextRoute)
+	return latestItems[nextIndex]
 }
 
 func (orchestrator *Orchestrator) getNext(currentRoute route.Route) *model.Item {
 
-	latestRoutes, found := orchestrator.getLatestRoutes(route.New())
-	if !found {
+	latestItems := orchestrator.getLatestItems(route.New())
+	if len(latestItems) == 0 {
 		return nil
 	}
 
 	// determine the position of the supplied route
 	matchingIndex := -1
-	for index, route := range latestRoutes {
-		if route.Value() == currentRoute.Value() {
+	for index, item := range latestItems {
+		if item.Route().Value() == currentRoute.Value() {
 			matchingIndex = index
 			break
 		}
@@ -504,10 +432,7 @@ func (orchestrator *Orchestrator) getNext(currentRoute route.Route) *model.Item 
 		return nil
 	}
 
-	// determine the previous route
-	previousRoute := latestRoutes[previousIndex]
-
-	return orchestrator.getItem(previousRoute)
+	return latestItems[previousIndex]
 }
 
 func (orchestrator *Orchestrator) getChilds(route route.Route) []*model.Item {

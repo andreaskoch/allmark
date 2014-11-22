@@ -77,21 +77,17 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 
 func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (models []*viewmodel.Model, found bool) {
 
-	// get the latest routes
-	latestRoutes, found := orchestrator.getLatestRoutesByPage(itemRoute, pageSize, page)
+	// get the latest items
+	latestItems, found := orchestrator.getLatestItemsByPage(itemRoute, pageSize, page)
 	if !found {
 		return models, false
 	}
 
 	// create viewmodels
-	models = make([]*viewmodel.Model, 0, len(latestRoutes))
-	for _, route := range latestRoutes {
+	models = make([]*viewmodel.Model, 0, len(latestItems))
+	for _, item := range latestItems {
 
-		viewModel, found := orchestrator.GetViewModel(route)
-		if !found {
-			orchestrator.logger.Warn("Viewmode %q was not found.", route)
-			continue
-		}
+		viewModel := orchestrator.getViewModel(item)
 
 		// prepare lazy loading
 		viewModel.Content = converter.LazyLoad(viewModel.Content)
