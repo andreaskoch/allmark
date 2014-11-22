@@ -46,10 +46,8 @@ func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, 
 
 	feedEntries := make([]viewmodel.FeedEntry, 0)
 
-	latestItems, found := orchestrator.getLatestItemsByPage(rootItem.Route(), itemsPerPage, page)
-	if !found {
-		return feedEntries
-	}
+	latestItems := orchestrator.getLatestItems(rootItem.Route())
+	latestItems = pagedItems(latestItems, itemsPerPage, page)
 
 	for _, item := range latestItems {
 		feedEntries = append(feedEntries, orchestrator.createFeedEntryModel(pathProvider, item))

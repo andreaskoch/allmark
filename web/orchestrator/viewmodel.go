@@ -19,6 +19,8 @@ type ViewModelOrchestrator struct {
 	tagOrchestrator        TagsOrchestrator
 	fileOrchestrator       FileOrchestrator
 	locationOrchestrator   LocationOrchestrator
+
+	latestByRoute map[string][]*viewmodel.Model
 }
 
 func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
@@ -75,29 +77,6 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	return viewModel, true
 }
 
-func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (models []*viewmodel.Model, found bool) {
-
-	// get the latest items
-	latestItems, found := orchestrator.getLatestItemsByPage(itemRoute, pageSize, page)
-	if !found {
-		return models, false
-	}
-
-	// create viewmodels
-	models = make([]*viewmodel.Model, 0, len(latestItems))
-	for _, item := range latestItems {
-
-		viewModel := orchestrator.getViewModel(item)
-
-		// prepare lazy loading
-		viewModel.Content = converter.LazyLoad(viewModel.Content)
-
-		models = append(models, &viewModel)
-	}
-
-	return models, true
-}
-
 func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
 
 	// get the requested item
@@ -108,6 +87,66 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 
 	return orchestrator.getViewModel(item), true
 
+}
+
+func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (latest []*viewmodel.Model, found bool) {
+
+	cacheType := "latest"
+
+	// load from cache
+	if orchestrator.latestByRoute != nil {
+
+		// re-prime the cache if it is stale
+		if orchestrator.isCacheStale(cacheType) {
+			go orchestrator.primeCache(cacheType)
+		}
+
+		// return the result
+		if models, exists := orchestrator.latestByRoute[itemRoute.Value()]; exists {
+			return pagedViewmodels(models, pageSize, page), true
+		}
+
+		return []*viewmodel.Model{}, false
+
+	}
+
+	orchestrator.setCache(cacheType, func() {
+
+		latestModelsByRoute := make(map[string][]*viewmodel.Model)
+
+		for _, childRoute := range orchestrator.repository.Routes() {
+
+			// get the latest items
+			latestItems := orchestrator.getLatestItems(childRoute)
+
+			// create viewmodels
+			models := make([]*viewmodel.Model, 0, len(latestItems))
+			for _, item := range latestItems {
+
+				viewModel := orchestrator.getViewModel(item)
+
+				// prepare lazy loading
+				viewModel.Content = converter.LazyLoad(viewModel.Content)
+
+				models = append(models, &viewModel)
+			}
+
+			// store the results
+			latestModelsByRoute[childRoute.Value()] = models
+
+		}
+
+		// save the result
+		orchestrator.latestByRoute = latestModelsByRoute
+
+	})
+
+	// return a result
+	if models, exists := orchestrator.latestByRoute[itemRoute.Value()]; exists {
+		return pagedViewmodels(models, pageSize, page), true
+	}
+
+	return []*viewmodel.Model{}, false
 }
 
 func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmodel.Model {

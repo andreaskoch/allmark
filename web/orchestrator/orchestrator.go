@@ -199,25 +199,6 @@ func (orchestrator *Orchestrator) getItem(route route.Route) *model.Item {
 	return nil
 }
 
-func (orchestrator *Orchestrator) getLatestItemsByPage(parentRoute route.Route, pageSize, page int) (latest []*model.Item, found bool) {
-
-	latestItems := orchestrator.getLatestItems(parentRoute)
-
-	// determine the start index
-	startIndex := pageSize * (page - 1)
-	if startIndex >= len(latestItems) {
-		return []*model.Item{}, false
-	}
-
-	// determine the end index
-	endIndex := startIndex + pageSize
-	if endIndex > len(latestItems) {
-		endIndex = len(latestItems)
-	}
-
-	return latestItems[startIndex:endIndex], true
-}
-
 func (orchestrator *Orchestrator) getLatestItems(parentRoute route.Route) []*model.Item {
 
 	leafes := orchestrator.index().GetLeafes(parentRoute)

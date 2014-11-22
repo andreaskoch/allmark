@@ -89,3 +89,37 @@ func sortItemsByDate(model1, model2 *model.Item) bool {
 	return model1.MetaData.CreationDate.After(model2.MetaData.CreationDate)
 
 }
+
+func pagedViewmodels(viewmodels []*viewmodel.Model, pageSize, page int) []*viewmodel.Model {
+
+	// determine the start index
+	startIndex := pageSize * (page - 1)
+	if startIndex >= len(viewmodels) {
+		return []*viewmodel.Model{}
+	}
+
+	// determine the end index
+	endIndex := startIndex + pageSize
+	if endIndex > len(viewmodels) {
+		endIndex = len(viewmodels)
+	}
+
+	return viewmodels[startIndex:endIndex]
+}
+
+func pagedItems(models []*model.Item, pageSize, page int) []*model.Item {
+
+	// determine the start index
+	startIndex := pageSize * (page - 1)
+	if startIndex >= len(models) {
+		return []*model.Item{}
+	}
+
+	// determine the end index
+	endIndex := startIndex + pageSize
+	if endIndex > len(models) {
+		endIndex = len(models)
+	}
+
+	return models[startIndex:endIndex]
+}
