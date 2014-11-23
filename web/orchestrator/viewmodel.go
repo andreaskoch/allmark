@@ -16,7 +16,7 @@ type ViewModelOrchestrator struct {
 	*Orchestrator
 
 	navigationOrchestrator *NavigationOrchestrator
-	tagOrchestrator        TagsOrchestrator
+	tagOrchestrator        *TagsOrchestrator
 	fileOrchestrator       *FileOrchestrator
 	locationOrchestrator   LocationOrchestrator
 

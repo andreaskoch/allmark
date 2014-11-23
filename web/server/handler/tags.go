@@ -20,9 +20,10 @@ import (
 type Tags struct {
 	logger logger.Logger
 
-	templateProvider       templates.Provider
 	navigationOrchestrator *orchestrator.NavigationOrchestrator
-	tagsOrchestrator       orchestrator.TagsOrchestrator
+	tagsOrchestrator       *orchestrator.TagsOrchestrator
+
+	templateProvider templates.Provider
 }
 
 func (self *Tags) Func() func(w http.ResponseWriter, r *http.Request) {

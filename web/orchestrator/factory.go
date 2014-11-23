@@ -52,6 +52,7 @@ type Factory struct {
 	openSearchDescriptionOrchestrator *OpenSearchDescriptionOrchestrator
 	searchOrchestrator                *SearchOrchestrator
 	sitemapOrchestrator               *SitemapOrchestrator
+	tagsOrchestrator                  *TagsOrchestrator
 }
 
 func (factory *Factory) NewConversionModelOrchestrator() *ConversionModelOrchestrator {
@@ -144,11 +145,17 @@ func (factory *Factory) NewSitemapOrchestrator() *SitemapOrchestrator {
 	return factory.sitemapOrchestrator
 }
 
-func (factory *Factory) NewTagsOrchestrator() TagsOrchestrator {
+func (factory *Factory) NewTagsOrchestrator() *TagsOrchestrator {
 
-	return TagsOrchestrator{
+	if factory.tagsOrchestrator != nil {
+		return factory.tagsOrchestrator
+	}
+
+	factory.tagsOrchestrator = &TagsOrchestrator{
 		Orchestrator: factory.baseOrchestrator,
 	}
+
+	return factory.tagsOrchestrator
 }
 
 func (factory *Factory) NewViewModelOrchestrator() *ViewModelOrchestrator {
