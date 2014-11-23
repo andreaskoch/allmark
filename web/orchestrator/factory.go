@@ -51,6 +51,7 @@ type Factory struct {
 	navigationOrchestrator            *NavigationOrchestrator
 	openSearchDescriptionOrchestrator *OpenSearchDescriptionOrchestrator
 	searchOrchestrator                *SearchOrchestrator
+	sitemapOrchestrator               *SitemapOrchestrator
 }
 
 func (factory *Factory) NewConversionModelOrchestrator() *ConversionModelOrchestrator {
@@ -130,10 +131,17 @@ func (factory *Factory) NewSearchOrchestrator() *SearchOrchestrator {
 	return factory.searchOrchestrator
 }
 
-func (factory *Factory) NewSitemapOrchestrator() SitemapOrchestrator {
-	return SitemapOrchestrator{
+func (factory *Factory) NewSitemapOrchestrator() *SitemapOrchestrator {
+
+	if factory.sitemapOrchestrator != nil {
+		return factory.sitemapOrchestrator
+	}
+
+	factory.sitemapOrchestrator = &SitemapOrchestrator{
 		Orchestrator: factory.baseOrchestrator,
 	}
+
+	return factory.sitemapOrchestrator
 }
 
 func (factory *Factory) NewTagsOrchestrator() TagsOrchestrator {

@@ -21,9 +21,10 @@ import (
 type Sitemap struct {
 	logger logger.Logger
 
-	templateProvider       templates.Provider
 	navigationOrchestrator *orchestrator.NavigationOrchestrator
-	sitemapOrchestrator    orchestrator.SitemapOrchestrator
+	sitemapOrchestrator    *orchestrator.SitemapOrchestrator
+
+	templateProvider templates.Provider
 }
 
 func (self *Sitemap) Func() func(w http.ResponseWriter, r *http.Request) {
