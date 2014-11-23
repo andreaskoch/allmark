@@ -19,8 +19,9 @@ import (
 type OpenSearchDescription struct {
 	logger logger.Logger
 
-	openSearchDescriptionOrchestrator orchestrator.OpenSearchDescriptionOrchestrator
-	templateProvider                  templates.Provider
+	openSearchDescriptionOrchestrator *orchestrator.OpenSearchDescriptionOrchestrator
+
+	templateProvider templates.Provider
 }
 
 func (handler *OpenSearchDescription) Func() func(w http.ResponseWriter, r *http.Request) {
