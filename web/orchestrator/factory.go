@@ -57,6 +57,7 @@ type Factory struct {
 	typeAheadOrchestrator             *TypeAheadOrchestrator
 	titlesOrchestrator                *TitlesOrchestrator
 	updateOrchestrator                *UpdateOrchestrator
+	locationOrchestrator              *LocationOrchestrator
 }
 
 func (factory *Factory) NewConversionModelOrchestrator() *ConversionModelOrchestrator {
@@ -239,8 +240,14 @@ func (factory *Factory) NewUpdateOrchestrator() *UpdateOrchestrator {
 	return factory.updateOrchestrator
 }
 
-func (factory *Factory) NewLocationOrchestrator() LocationOrchestrator {
-	return LocationOrchestrator{
+func (factory *Factory) NewLocationOrchestrator() *LocationOrchestrator {
+	if factory.locationOrchestrator != nil {
+		return factory.locationOrchestrator
+	}
+
+	factory.locationOrchestrator = &LocationOrchestrator{
 		Orchestrator: factory.baseOrchestrator,
 	}
+
+	return factory.locationOrchestrator
 }

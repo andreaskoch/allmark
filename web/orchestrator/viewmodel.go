@@ -18,7 +18,7 @@ type ViewModelOrchestrator struct {
 	navigationOrchestrator *NavigationOrchestrator
 	tagOrchestrator        *TagsOrchestrator
 	fileOrchestrator       *FileOrchestrator
-	locationOrchestrator   LocationOrchestrator
+	locationOrchestrator   *LocationOrchestrator
 
 	latestByRoute map[string][]*viewmodel.Model
 }
