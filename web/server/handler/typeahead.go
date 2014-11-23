@@ -17,7 +17,7 @@ import (
 type TypeAhead struct {
 	logger logger.Logger
 
-	typeAheadOrchestrator orchestrator.TypeAheadOrchestrator
+	typeAheadOrchestrator *orchestrator.TypeAheadOrchestrator
 }
 
 func (handler *TypeAhead) Func() func(w http.ResponseWriter, r *http.Request) {
