@@ -15,7 +15,7 @@ import (
 type ViewModelOrchestrator struct {
 	*Orchestrator
 
-	navigationOrchestrator NavigationOrchestrator
+	navigationOrchestrator *NavigationOrchestrator
 	tagOrchestrator        TagsOrchestrator
 	fileOrchestrator       *FileOrchestrator
 	locationOrchestrator   LocationOrchestrator

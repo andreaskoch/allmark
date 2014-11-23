@@ -22,7 +22,7 @@ type Sitemap struct {
 	logger logger.Logger
 
 	templateProvider       templates.Provider
-	navigationOrchestrator orchestrator.NavigationOrchestrator
+	navigationOrchestrator *orchestrator.NavigationOrchestrator
 	sitemapOrchestrator    orchestrator.SitemapOrchestrator
 }
 

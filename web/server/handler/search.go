@@ -22,7 +22,7 @@ import (
 type Search struct {
 	logger logger.Logger
 
-	navigationOrchestrator orchestrator.NavigationOrchestrator
+	navigationOrchestrator *orchestrator.NavigationOrchestrator
 	searchOrchestrator     orchestrator.SearchOrchestrator
 	templateProvider       templates.Provider
 

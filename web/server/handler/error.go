@@ -19,7 +19,7 @@ type Error struct {
 	logger logger.Logger
 
 	templateProvider       templates.Provider
-	navigationOrchestrator orchestrator.NavigationOrchestrator
+	navigationOrchestrator *orchestrator.NavigationOrchestrator
 }
 
 func (handler Error) Func() func(w http.ResponseWriter, r *http.Request) {
