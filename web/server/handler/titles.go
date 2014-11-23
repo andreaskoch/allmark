@@ -17,7 +17,7 @@ import (
 type Titles struct {
 	logger logger.Logger
 
-	titlesOrchestrator orchestrator.TitlesOrchestrator
+	titlesOrchestrator *orchestrator.TitlesOrchestrator
 }
 
 func (handler *Titles) Func() func(w http.ResponseWriter, r *http.Request) {
