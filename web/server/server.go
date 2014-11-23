@@ -93,23 +93,38 @@ func (server *Server) IsRunning() bool {
 
 func (server *Server) Start() chan error {
 
+	// instantiate handlers
+	updateHandler := server.handlerFactory.NewUpdateHandler()
+	robotsTxtHandler := server.handlerFactory.NewRobotsTxtHandler()
+	xmlSitemapHandler := server.handlerFactory.NewXmlSitemapHandler()
+	tagsHandler := server.handlerFactory.NewTagsHandler()
+	sitemapHandler := server.handlerFactory.NewSitemapHandler()
+	rssHandler := server.handlerFactory.NewRssHandler()
+	printHandler := server.handlerFactory.NewPrintHandler()
+	searchHandler := server.handlerFactory.NewSearchHandler()
+	opensearchDescriptionHandler := server.handlerFactory.NewOpenSearchDescriptionHandler()
+	typeAheadHandler := server.handlerFactory.NewTypeAheadSearchHandler()
+	titlesHandler := server.handlerFactory.NewTypeAheadTitlesHandler()
+	rtfHandler := server.handlerFactory.NewRtfHandler()
+	jsonHandler := server.handlerFactory.NewJsonHandler()
+	latestHanlder := server.handlerFactory.NewLatestHandler()
+	itemHandler := server.handlerFactory.NewItemHandler()
+
 	// register requst routers
 	requestRouter := mux.NewRouter()
-
-	updateHandler := server.handlerFactory.NewUpdateHandler()
 	requestRouter.Handle(UpdateHandlerRoute, websocket.Handler(updateHandler.Func()))
 
 	// serve auxiliary dynamic files
-	requestRouter.HandleFunc(RobotsTxtHandlerRoute, server.handlerFactory.NewRobotsTxtHandler().Func())
-	requestRouter.HandleFunc(XmlSitemapHandlerRoute, server.handlerFactory.NewXmlSitemapHandler().Func())
-	requestRouter.HandleFunc(TagmapHandlerRoute, server.handlerFactory.NewTagsHandler().Func())
-	requestRouter.HandleFunc(SitemapHandlerRoute, server.handlerFactory.NewSitemapHandler().Func())
-	requestRouter.HandleFunc(RssHandlerRoute, server.handlerFactory.NewRssHandler().Func())
-	requestRouter.HandleFunc(PrintHandlerRoute, server.handlerFactory.NewPrintHandler().Func())
-	requestRouter.HandleFunc(SearchHandlerRoute, server.handlerFactory.NewSearchHandler().Func())
-	requestRouter.HandleFunc(OpenSearchDescriptionHandlerRoute, server.handlerFactory.NewOpenSearchDescriptionHandler().Func())
-	requestRouter.HandleFunc(TypeAheadSearchHandlerRoute, server.handlerFactory.NewTypeAheadSearchHandler().Func())
-	requestRouter.HandleFunc(TypeAheadTitlesHandlerRoute, server.handlerFactory.NewTypeAheadTitlesHandler().Func())
+	requestRouter.HandleFunc(RobotsTxtHandlerRoute, robotsTxtHandler.Func())
+	requestRouter.HandleFunc(XmlSitemapHandlerRoute, xmlSitemapHandler.Func())
+	requestRouter.HandleFunc(TagmapHandlerRoute, tagsHandler.Func())
+	requestRouter.HandleFunc(SitemapHandlerRoute, sitemapHandler.Func())
+	requestRouter.HandleFunc(RssHandlerRoute, rssHandler.Func())
+	requestRouter.HandleFunc(PrintHandlerRoute, printHandler.Func())
+	requestRouter.HandleFunc(SearchHandlerRoute, searchHandler.Func())
+	requestRouter.HandleFunc(OpenSearchDescriptionHandlerRoute, opensearchDescriptionHandler.Func())
+	requestRouter.HandleFunc(TypeAheadSearchHandlerRoute, typeAheadHandler.Func())
+	requestRouter.HandleFunc(TypeAheadTitlesHandlerRoute, titlesHandler.Func())
 
 	// theme
 	if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
@@ -125,13 +140,11 @@ func (server *Server) Start() chan error {
 		requestRouter.PathPrefix(ThumbnailFolderRoute).Handler(s)
 	}
 
-	// rich text
-	requestRouter.HandleFunc(RtfHandlerRoute, server.handlerFactory.NewRtfHandler().Func())
-
 	// serve items
-	requestRouter.HandleFunc(JsonHandlerRoute, server.handlerFactory.NewJsonHandler().Func())
-	requestRouter.HandleFunc(LatestHandlerRoute, server.handlerFactory.NewLatestHandler().Func())
-	requestRouter.HandleFunc(ItemHandlerRoute, server.handlerFactory.NewItemHandler().Func())
+	requestRouter.HandleFunc(RtfHandlerRoute, rtfHandler.Func())
+	requestRouter.HandleFunc(JsonHandlerRoute, jsonHandler.Func())
+	requestRouter.HandleFunc(LatestHandlerRoute, latestHanlder.Func())
+	requestRouter.HandleFunc(ItemHandlerRoute, itemHandler.Func())
 
 	result := make(chan error)
 
