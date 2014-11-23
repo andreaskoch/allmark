@@ -42,15 +42,23 @@ func NewFactory(logger logger.Logger, config config.Config, repository dataacces
 type Factory struct {
 	logger logger.Logger
 
-	baseOrchestrator      *Orchestrator
-	viewModelOrchestrator *ViewModelOrchestrator
+	baseOrchestrator            *Orchestrator
+	viewModelOrchestrator       *ViewModelOrchestrator
+	conversionModelOrchestrator *ConversionModelOrchestrator
 }
 
-func (factory *Factory) NewConversionModelOrchestrator() ConversionModelOrchestrator {
-	return ConversionModelOrchestrator{
+func (factory *Factory) NewConversionModelOrchestrator() *ConversionModelOrchestrator {
+
+	if factory.conversionModelOrchestrator != nil {
+		return factory.conversionModelOrchestrator
+	}
+
+	factory.conversionModelOrchestrator = &ConversionModelOrchestrator{
 		Orchestrator:     factory.baseOrchestrator,
 		fileOrchestrator: factory.NewFileOrchestrator(),
 	}
+
+	return factory.conversionModelOrchestrator
 }
 
 func (factory *Factory) NewFeedOrchestrator() FeedOrchestrator {

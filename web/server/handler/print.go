@@ -20,7 +20,7 @@ import (
 type Print struct {
 	logger logger.Logger
 
-	converterModelOrchestrator orchestrator.ConversionModelOrchestrator
+	converterModelOrchestrator *orchestrator.ConversionModelOrchestrator
 	templateProvider           templates.Provider
 
 	error404Handler Handler

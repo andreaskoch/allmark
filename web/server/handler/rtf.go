@@ -28,7 +28,7 @@ type Rtf struct {
 	logger logger.Logger
 	config config.Config
 
-	converterModelOrchestrator orchestrator.ConversionModelOrchestrator
+	converterModelOrchestrator *orchestrator.ConversionModelOrchestrator
 	templateProvider           templates.Provider
 
 	error404Handler Handler
