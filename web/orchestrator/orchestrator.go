@@ -73,8 +73,6 @@ func (orchestrator *Orchestrator) blockingCacheWarmup() {
 	orchestrator.getAllItems()
 	orchestrator.search("", 5)
 	orchestrator.getItemByAlias("")
-
-	orchestrator.primeCaches()
 }
 
 // Reset all Caches
