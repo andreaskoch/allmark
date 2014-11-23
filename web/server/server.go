@@ -92,50 +92,51 @@ func (server *Server) IsRunning() bool {
 }
 
 func (server *Server) Start() chan error {
+
+	// register requst routers
+	requestRouter := mux.NewRouter()
+
+	updateHandler := server.handlerFactory.NewUpdateHandler()
+	requestRouter.Handle(UpdateHandlerRoute, websocket.Handler(updateHandler.Func()))
+
+	// serve auxiliary dynamic files
+	requestRouter.HandleFunc(RobotsTxtHandlerRoute, server.handlerFactory.NewRobotsTxtHandler().Func())
+	requestRouter.HandleFunc(XmlSitemapHandlerRoute, server.handlerFactory.NewXmlSitemapHandler().Func())
+	requestRouter.HandleFunc(TagmapHandlerRoute, server.handlerFactory.NewTagsHandler().Func())
+	requestRouter.HandleFunc(SitemapHandlerRoute, server.handlerFactory.NewSitemapHandler().Func())
+	requestRouter.HandleFunc(RssHandlerRoute, server.handlerFactory.NewRssHandler().Func())
+	requestRouter.HandleFunc(PrintHandlerRoute, server.handlerFactory.NewPrintHandler().Func())
+	requestRouter.HandleFunc(SearchHandlerRoute, server.handlerFactory.NewSearchHandler().Func())
+	requestRouter.HandleFunc(OpenSearchDescriptionHandlerRoute, server.handlerFactory.NewOpenSearchDescriptionHandler().Func())
+	requestRouter.HandleFunc(TypeAheadSearchHandlerRoute, server.handlerFactory.NewTypeAheadSearchHandler().Func())
+	requestRouter.HandleFunc(TypeAheadTitlesHandlerRoute, server.handlerFactory.NewTypeAheadTitlesHandler().Func())
+
+	// theme
+	if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
+		themeFolderHandler := http.FileServer(http.Dir(themeFolder))
+		s := http.StripPrefix(ThemeFolderRoute, addStaticFileHeaders(themeFolder, header.STATICCONTENT_CACHEDURATION_SECONDS, themeFolderHandler))
+		requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)
+	}
+
+	// thumbnails
+	if thumbnailsFolder := server.config.ThumbnailsFolder(); fsutil.DirectoryExists(thumbnailsFolder) {
+		thumbnailsFolderHandler := http.FileServer(http.Dir(thumbnailsFolder))
+		s := http.StripPrefix(ThumbnailFolderRoute, addStaticFileHeaders(thumbnailsFolder, header.STATICCONTENT_CACHEDURATION_SECONDS, thumbnailsFolderHandler))
+		requestRouter.PathPrefix(ThumbnailFolderRoute).Handler(s)
+	}
+
+	// rich text
+	requestRouter.HandleFunc(RtfHandlerRoute, server.handlerFactory.NewRtfHandler().Func())
+
+	// serve items
+	requestRouter.HandleFunc(JsonHandlerRoute, server.handlerFactory.NewJsonHandler().Func())
+	requestRouter.HandleFunc(LatestHandlerRoute, server.handlerFactory.NewLatestHandler().Func())
+	requestRouter.HandleFunc(ItemHandlerRoute, server.handlerFactory.NewItemHandler().Func())
+
 	result := make(chan error)
 
 	go func() {
 		server.isRunning = true
-
-		// register requst routers
-		requestRouter := mux.NewRouter()
-
-		updateHandler := server.handlerFactory.NewUpdateHandler()
-		requestRouter.Handle(UpdateHandlerRoute, websocket.Handler(updateHandler.Func()))
-
-		// serve auxiliary dynamic files
-		requestRouter.HandleFunc(RobotsTxtHandlerRoute, server.handlerFactory.NewRobotsTxtHandler().Func())
-		requestRouter.HandleFunc(XmlSitemapHandlerRoute, server.handlerFactory.NewXmlSitemapHandler().Func())
-		requestRouter.HandleFunc(TagmapHandlerRoute, server.handlerFactory.NewTagsHandler().Func())
-		requestRouter.HandleFunc(SitemapHandlerRoute, server.handlerFactory.NewSitemapHandler().Func())
-		requestRouter.HandleFunc(RssHandlerRoute, server.handlerFactory.NewRssHandler().Func())
-		requestRouter.HandleFunc(PrintHandlerRoute, server.handlerFactory.NewPrintHandler().Func())
-		requestRouter.HandleFunc(SearchHandlerRoute, server.handlerFactory.NewSearchHandler().Func())
-		requestRouter.HandleFunc(OpenSearchDescriptionHandlerRoute, server.handlerFactory.NewOpenSearchDescriptionHandler().Func())
-		requestRouter.HandleFunc(TypeAheadSearchHandlerRoute, server.handlerFactory.NewTypeAheadSearchHandler().Func())
-		requestRouter.HandleFunc(TypeAheadTitlesHandlerRoute, server.handlerFactory.NewTypeAheadTitlesHandler().Func())
-
-		// theme
-		if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
-			themeFolderHandler := http.FileServer(http.Dir(themeFolder))
-			s := http.StripPrefix(ThemeFolderRoute, addStaticFileHeaders(themeFolder, header.STATICCONTENT_CACHEDURATION_SECONDS, themeFolderHandler))
-			requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)
-		}
-
-		// thumbnails
-		if thumbnailsFolder := server.config.ThumbnailsFolder(); fsutil.DirectoryExists(thumbnailsFolder) {
-			thumbnailsFolderHandler := http.FileServer(http.Dir(thumbnailsFolder))
-			s := http.StripPrefix(ThumbnailFolderRoute, addStaticFileHeaders(thumbnailsFolder, header.STATICCONTENT_CACHEDURATION_SECONDS, thumbnailsFolderHandler))
-			requestRouter.PathPrefix(ThumbnailFolderRoute).Handler(s)
-		}
-
-		// rich text
-		requestRouter.HandleFunc(RtfHandlerRoute, server.handlerFactory.NewRtfHandler().Func())
-
-		// serve items
-		requestRouter.HandleFunc(JsonHandlerRoute, server.handlerFactory.NewJsonHandler().Func())
-		requestRouter.HandleFunc(LatestHandlerRoute, server.handlerFactory.NewLatestHandler().Func())
-		requestRouter.HandleFunc(ItemHandlerRoute, server.handlerFactory.NewItemHandler().Func())
 
 		// start http server: http
 		httpBinding := server.getHttpBinding()
