@@ -20,8 +20,9 @@ import (
 type XmlSitemap struct {
 	logger logger.Logger
 
-	xmlSitemapOrchestrator orchestrator.XmlSitemapOrchestrator
-	templateProvider       templates.Provider
+	xmlSitemapOrchestrator *orchestrator.XmlSitemapOrchestrator
+
+	templateProvider templates.Provider
 }
 
 func (handler *XmlSitemap) Func() func(w http.ResponseWriter, r *http.Request) {
