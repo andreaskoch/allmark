@@ -56,6 +56,7 @@ type Factory struct {
 	xmlSitemapOrchestrator            *XmlSitemapOrchestrator
 	typeAheadOrchestrator             *TypeAheadOrchestrator
 	titlesOrchestrator                *TitlesOrchestrator
+	updateOrchestrator                *UpdateOrchestrator
 }
 
 func (factory *Factory) NewConversionModelOrchestrator() *ConversionModelOrchestrator {
@@ -225,11 +226,17 @@ func (factory *Factory) NewTitlesOrchestrator() *TitlesOrchestrator {
 	return factory.titlesOrchestrator
 }
 
-func (factory *Factory) NewUpdateOrchestrator() UpdateOrchestrator {
-	return UpdateOrchestrator{
+func (factory *Factory) NewUpdateOrchestrator() *UpdateOrchestrator {
+	if factory.updateOrchestrator != nil {
+		return factory.updateOrchestrator
+	}
+
+	factory.updateOrchestrator = &UpdateOrchestrator{
 		Orchestrator:          factory.baseOrchestrator,
 		viewModelOrchestrator: factory.NewViewModelOrchestrator(),
 	}
+
+	return factory.updateOrchestrator
 }
 
 func (factory *Factory) NewLocationOrchestrator() LocationOrchestrator {

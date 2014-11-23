@@ -10,7 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 )
 
-func NewHub(logger logger.Logger, updateOrchestrator orchestrator.UpdateOrchestrator) *Hub {
+func NewHub(logger logger.Logger, updateOrchestrator *orchestrator.UpdateOrchestrator) *Hub {
 	hub := &Hub{
 		logger: logger,
 
@@ -31,7 +31,7 @@ func NewHub(logger logger.Logger, updateOrchestrator orchestrator.UpdateOrchestr
 type Hub struct {
 	logger logger.Logger
 
-	updateOrchestrator orchestrator.UpdateOrchestrator
+	updateOrchestrator *orchestrator.UpdateOrchestrator
 
 	// Registered connections.
 	connections map[*connection]bool

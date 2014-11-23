@@ -17,7 +17,7 @@ import (
 type Update struct {
 	logger logger.Logger
 
-	updateOrchestrator orchestrator.UpdateOrchestrator
+	updateOrchestrator *orchestrator.UpdateOrchestrator
 }
 
 func (handler *Update) Func() func(ws *websocket.Conn) {
