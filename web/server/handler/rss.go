@@ -24,7 +24,8 @@ type Rss struct {
 
 	templateProvider templates.Provider
 	error404Handler  Handler
-	feedOrchestrator orchestrator.FeedOrchestrator
+
+	feedOrchestrator *orchestrator.FeedOrchestrator
 }
 
 func (handler *Rss) Func() func(w http.ResponseWriter, r *http.Request) {
