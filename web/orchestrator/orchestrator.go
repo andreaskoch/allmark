@@ -29,7 +29,7 @@ const (
 )
 
 func newBaseOrchestrator(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
-	return &Orchestrator{
+	orchestrator := &Orchestrator{
 		logger: logger,
 
 		config:     config,
@@ -39,6 +39,11 @@ func newBaseOrchestrator(logger logger.Logger, config config.Config, repository 
 
 		webPathProvider: webPathProvider,
 	}
+
+	// warm up caches
+	orchestrator.blockingCacheWarmup()
+
+	return orchestrator
 }
 
 type Orchestrator struct {
@@ -61,6 +66,15 @@ type Orchestrator struct {
 	repositoryIndex *index.Index
 	items           []*model.Item
 	itemsByAlias    map[string]*model.Item
+}
+
+func (orchestrator *Orchestrator) blockingCacheWarmup() {
+	orchestrator.index()
+	orchestrator.getAllItems()
+	orchestrator.search("", 5)
+	orchestrator.getItemByAlias("")
+
+	orchestrator.primeCaches()
 }
 
 // Reset all Caches

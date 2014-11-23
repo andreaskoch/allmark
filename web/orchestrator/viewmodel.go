@@ -24,7 +24,7 @@ type ViewModelOrchestrator struct {
 }
 
 func (orchestrator *ViewModelOrchestrator) blockingCacheWarmup() {
-	orchestrator.getLatestItems(route.New())
+	orchestrator.GetLatest(route.New(), 5, 1)
 }
 
 func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
