@@ -13,7 +13,7 @@ import (
 type ConversionModelOrchestrator struct {
 	*Orchestrator
 
-	fileOrchestrator FileOrchestrator
+	fileOrchestrator *FileOrchestrator
 }
 
 func (orchestrator *ConversionModelOrchestrator) GetConversionModel(hostname string, route route.Route) (model viewmodel.ConversionModel, found bool) {

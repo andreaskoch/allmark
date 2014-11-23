@@ -47,6 +47,7 @@ type Factory struct {
 	viewModelOrchestrator       *ViewModelOrchestrator
 	conversionModelOrchestrator *ConversionModelOrchestrator
 	feedOrchestrator            *FeedOrchestrator
+	fileOrchestrator            *FileOrchestrator
 }
 
 func (factory *Factory) NewConversionModelOrchestrator() *ConversionModelOrchestrator {
@@ -75,10 +76,17 @@ func (factory *Factory) NewFeedOrchestrator() *FeedOrchestrator {
 	return factory.feedOrchestrator
 }
 
-func (factory *Factory) NewFileOrchestrator() FileOrchestrator {
-	return FileOrchestrator{
+func (factory *Factory) NewFileOrchestrator() *FileOrchestrator {
+
+	if factory.fileOrchestrator != nil {
+		return factory.fileOrchestrator
+	}
+
+	factory.fileOrchestrator = &FileOrchestrator{
 		Orchestrator: factory.baseOrchestrator,
 	}
+
+	return factory.fileOrchestrator
 }
 
 func (factory *Factory) NewNavigationOrchestrator() NavigationOrchestrator {

@@ -17,7 +17,7 @@ import (
 type Item struct {
 	logger logger.Logger
 
-	fileOrchestrator      orchestrator.FileOrchestrator
+	fileOrchestrator      *orchestrator.FileOrchestrator
 	viewModelOrchestrator *orchestrator.ViewModelOrchestrator
 	templateProvider      templates.Provider
 
