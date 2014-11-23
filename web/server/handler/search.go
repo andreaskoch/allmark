@@ -23,8 +23,9 @@ type Search struct {
 	logger logger.Logger
 
 	navigationOrchestrator *orchestrator.NavigationOrchestrator
-	searchOrchestrator     orchestrator.SearchOrchestrator
-	templateProvider       templates.Provider
+	searchOrchestrator     *orchestrator.SearchOrchestrator
+
+	templateProvider templates.Provider
 
 	error404Handler Handler
 }
