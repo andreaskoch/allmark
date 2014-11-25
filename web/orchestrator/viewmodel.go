@@ -20,10 +20,12 @@ type ViewModelOrchestrator struct {
 	fileOrchestrator       *FileOrchestrator
 	locationOrchestrator   *LocationOrchestrator
 
-	latestByRoute map[string][]*viewmodel.Model
+	latestByRoute     map[string][]*viewmodel.Model
+	viewmodelsByRoute map[string]*viewmodel.Model
 }
 
 func (orchestrator *ViewModelOrchestrator) blockingCacheWarmup() {
+	orchestrator.getViewModel(orchestrator.rootItem())
 	orchestrator.GetLatest(route.New(), 5, 1)
 }
 
@@ -36,7 +38,7 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	}
 
 	// get the base view model
-	viewModel = orchestrator.getViewModel(item)
+	viewModel = *orchestrator.getViewModel(item)
 
 	// navigation
 	viewModel.ToplevelNavigation = orchestrator.navigationOrchestrator.GetToplevelNavigation()
@@ -51,7 +53,7 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 
 	// Locations
 	viewModel.Locations = orchestrator.locationOrchestrator.GetLocations(item.MetaData.Locations, func(i *model.Item) viewmodel.Model {
-		return orchestrator.getViewModel(i)
+		return *orchestrator.getViewModel(i)
 	})
 
 	// Geo Coordinates
@@ -89,8 +91,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 		return viewModel, false
 	}
 
-	return orchestrator.getViewModel(item), true
-
+	return *orchestrator.getViewModel(item), true
 }
 
 func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (latest []*viewmodel.Model, found bool) {
@@ -153,41 +154,71 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 		// prepare lazy loading
 		viewModel.Content = converter.LazyLoad(viewModel.Content)
 
-		models = append(models, &viewModel)
+		models = append(models, viewModel)
 	}
 
 	return models
 }
 
-func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) viewmodel.Model {
-
-	itemRoute := item.Route()
+func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) *viewmodel.Model {
 
 	// get the root item
 	root := orchestrator.rootItem()
 	if root == nil {
-		panic(fmt.Sprintf("Cannot get viewmodel for route %q because no root item was found.", itemRoute))
+		panic(fmt.Sprintf("Cannot get viewmodel for route %q because no root item was found.", item))
 	}
 
-	// convert content
-	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, orchestrator.relativePather(itemRoute), item)
-	if err != nil {
-		orchestrator.logger.Warn("Cannot convert content for item %q. Error: %s.", item.String(), err.Error())
-		convertedContent = "<!-- Conversion Error -->"
+	itemRoute := item.Route()
+	cacheType := "viewmodels"
+
+	// load from cache
+	if orchestrator.viewmodelsByRoute != nil {
+
+		// re-prime the cache if it is stale
+		if orchestrator.isCacheStale(cacheType) {
+			go orchestrator.primeCache(cacheType)
+		}
+
+		// return the result
+		return orchestrator.viewmodelsByRoute[itemRoute.Value()]
 	}
 
-	// create a view model
-	viewModel := viewmodel.Model{
-		Base:    getBaseModel(root, item, orchestrator.itemPather()),
-		Content: convertedContent,
+	orchestrator.setCache(cacheType, func() {
 
-		// files
-		Files: orchestrator.fileOrchestrator.GetFiles(itemRoute),
+		viewmodelsByRoute := make(map[string]*viewmodel.Model)
 
-		IsRepositoryItem: true,
-	}
+		for _, child := range orchestrator.index().GetAllItems() {
 
-	return viewModel
+			childRoute := child.Route()
+
+			// convert content
+			convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, orchestrator.relativePather(childRoute), child)
+			if err != nil {
+				orchestrator.logger.Warn("Cannot convert content for item %q. Error: %s.", child.String(), err.Error())
+				convertedContent = "<!-- Conversion Error -->"
+			}
+
+			// create a view model
+			viewModel := &viewmodel.Model{
+				Base:    getBaseModel(root, child, orchestrator.itemPather()),
+				Content: convertedContent,
+
+				// files
+				Files: orchestrator.fileOrchestrator.GetFiles(childRoute),
+
+				IsRepositoryItem: true,
+			}
+
+			// store the view model
+			viewmodelsByRoute[childRoute.Value()] = viewModel
+
+		}
+
+		orchestrator.viewmodelsByRoute = viewmodelsByRoute
+
+	})
+
+	return orchestrator.viewmodelsByRoute[itemRoute.Value()]
 }
 
 func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route) []*viewmodel.Base {
