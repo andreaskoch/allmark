@@ -150,6 +150,10 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 	for _, item := range items {
 
 		viewModel := orchestrator.getViewModel(item)
+		if viewModel == nil {
+			// todo: log warning
+			continue
+		}
 
 		// prepare lazy loading
 		viewModel.Content = converter.LazyLoad(viewModel.Content)
