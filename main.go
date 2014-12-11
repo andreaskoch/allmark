@@ -17,7 +17,7 @@ import (
 	"github.com/andreaskoch/allmark2/services/parser"
 	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"github.com/andreaskoch/allmark2/web/server"
-	"github.com/davecheney/profile"
+	// "github.com/davecheney/profile"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -32,7 +32,7 @@ const (
 
 func main() {
 
-	defer profile.Start(profile.CPUProfile).Stop()
+	// defer profile.Start(profile.CPUProfile).Stop()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
