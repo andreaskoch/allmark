@@ -27,5 +27,5 @@ func GetHash(reader io.Reader) (string, error) {
 
 func FromBytes(bytes []byte) string {
 	crc := crc32.ChecksumIEEE(bytes)
-	return fmt.Sprintf(`W/"%d-%08X"`, len(bytes), crc)
+	return fmt.Sprintf(`%d-%08X`, len(bytes), crc)
 }

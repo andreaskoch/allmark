@@ -29,13 +29,13 @@ func Test_GetHash_CorrectSHA1IsReturned(t *testing.T) {
 	// arrange
 	inputString := "La di da"
 	input := bytes.NewReader([]byte(inputString))
-	expectedResult := "14c6c3e83d49e7ef9baf6baeda1561fd94332862"
+	expectedResult := "8-18889A25"
 
 	// act
 	result, _ := GetHash(input)
 
 	// assert
 	if result != expectedResult {
-		t.Errorf("The GetHash function should return the correct SHA1 hash for the string %q. (Expected: %s, Actual: %s)", inputString, expectedResult, result)
+		t.Errorf("The GetHash function should return the correct hash for the string %q. (Expected: %q, Actual: %q)", inputString, expectedResult, result)
 	}
 }
