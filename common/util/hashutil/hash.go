@@ -5,13 +5,13 @@
 package hashutil
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
+	"fmt"
+	"hash/crc32"
 	"io"
 	"io/ioutil"
 )
 
-func FromString(text string) (string, error) {
+func FromString(text string) string {
 	return FromBytes([]byte(text))
 }
 
@@ -22,13 +22,10 @@ func GetHash(reader io.Reader) (string, error) {
 		return "", err
 	}
 
-	return FromBytes(bytes)
+	return FromBytes(bytes), nil
 }
 
-func FromBytes(bytes []byte) (string, error) {
-	sha1Hash := sha1.New()
-	sha1Hash.Write(bytes)
-	hashBytes := sha1Hash.Sum(nil)
-
-	return string(hex.EncodeToString(hashBytes)), nil
+func FromBytes(bytes []byte) string {
+	crc := crc32.ChecksumIEEE(bytes)
+	return fmt.Sprintf(`W/"%d-%08X"`, len(bytes), crc)
 }

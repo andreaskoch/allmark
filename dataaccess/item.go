@@ -75,10 +75,7 @@ func (item *Item) String() string {
 }
 
 func (item *Item) Id() string {
-	hash, err := hashutil.FromString(item.route.Value())
-	if err != nil {
-		panic(fmt.Sprintf("Unable to determine the id hash for %q.", item.String()))
-	}
+	hash := hashutil.FromString(item.route.Value())
 
 	return hash
 }

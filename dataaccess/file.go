@@ -32,11 +32,7 @@ func (file *File) String() string {
 }
 
 func (file *File) Id() string {
-	hash, err := hashutil.FromString(file.fileRoute.Value())
-	if err != nil {
-		panic(fmt.Sprintf("Unable to determine the id hash for %q.", file.String()))
-	}
-
+	hash := hashutil.FromString(file.fileRoute.Value())
 	return hash
 }
 
