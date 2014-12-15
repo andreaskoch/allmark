@@ -243,7 +243,7 @@ func (repository *Repository) reindex(intervalInSeconds int) {
 		sleepInterval := time.Second * time.Duration(intervalInSeconds)
 		for {
 
-			repository.logger.Info("Number of go routines: %s", runtime.NumGoroutine())
+			repository.logger.Info("Number of go routines: %d", runtime.NumGoroutine())
 			repository.logger.Info("Reindexing")
 			repository.init()
 
