@@ -58,7 +58,7 @@ func CreateDirectory(path string) bool {
 
 func OpenFile(filepath string) (*os.File, error) {
 	if !FileExists(filepath) {
-		CreateFile(filepath)
+		return nil, fmt.Errorf("The file %q does not exist.", filepath)
 	}
 
 	return os.OpenFile(filepath, os.O_RDWR, 0644)
