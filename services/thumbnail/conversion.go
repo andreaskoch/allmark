@@ -131,7 +131,7 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File, dime
 		return
 	}
 
-	thumb := newThumb(fullFileRoute, conversion.thumbnailFolder, filename, dimensions)
+	thumb := newThumb(fullFileRoute, filename, dimensions)
 
 	// check the index
 	if conversion.isInIndex(thumb) {

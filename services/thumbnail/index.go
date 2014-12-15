@@ -108,7 +108,7 @@ func (indexSerializer) DeserializeIndex(reader io.Reader) (*Index, error) {
 	return index, err
 }
 
-func newThumb(route route.Route, baseFolder, path string, dimensions ThumbDimension) Thumb {
+func newThumb(route route.Route, path string, dimensions ThumbDimension) Thumb {
 
 	return Thumb{
 		Route:      route.Value(),
