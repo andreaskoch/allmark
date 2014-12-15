@@ -10,6 +10,7 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 	converter "github.com/andreaskoch/allmark2/services/converter/markdowntohtml"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
+	"time"
 )
 
 type ViewModelOrchestrator struct {
@@ -30,6 +31,8 @@ func (orchestrator *ViewModelOrchestrator) blockingCacheWarmup() {
 }
 
 func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
+
+	startTime := time.Now()
 
 	// get the requested item
 	item := orchestrator.getItem(itemRoute)
@@ -80,6 +83,10 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 
 	}
 
+	endTime := time.Now()
+	duration := endTime.Sub(startTime)
+	orchestrator.logger.Statistics("Getting the view model %s took %f seconds.", viewModel.Route, duration.Seconds())
+
 	return viewModel, true
 }
 
@@ -117,6 +124,8 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 
 	orchestrator.setCache(cacheType, func() {
 
+		startTime := time.Now()
+
 		latestModelsByRoute := make(map[string][]*viewmodel.Model)
 
 		for _, childRoute := range orchestrator.repository.Routes() {
@@ -128,6 +137,10 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 			latestModelsByRoute[childRoute.Value()] = orchestrator.getLastesViewModelsFromItemList(latestItems)
 
 		}
+
+		endTime := time.Now()
+		duration := endTime.Sub(startTime)
+		orchestrator.logger.Statistics("Priming the latest cache took %f seconds.", duration.Seconds())
 
 		// save the result
 		orchestrator.latestByRoute = latestModelsByRoute
@@ -189,6 +202,8 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) *viewm
 
 	orchestrator.setCache(cacheType, func() {
 
+		startTime := time.Now()
+
 		viewmodelsByRoute := make(map[string]*viewmodel.Model)
 
 		for _, child := range orchestrator.index().GetAllItems() {
@@ -217,6 +232,10 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) *viewm
 			viewmodelsByRoute[childRoute.Value()] = viewModel
 
 		}
+
+		endTime := time.Now()
+		duration := endTime.Sub(startTime)
+		orchestrator.logger.Statistics("Priming the viewModel cache took %f seconds.", duration.Seconds())
 
 		orchestrator.viewmodelsByRoute = viewmodelsByRoute
 

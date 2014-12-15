@@ -48,7 +48,7 @@ func newBaseOrchestrator(logger logger.Logger, config config.Config, repository 
 
 	stopTime := time.Now()
 	duration := stopTime.Sub(startTime)
-	logger.Statistics("Warming the base orchestrator cache took %f seconds.", duration.Seconds())
+	logger.Statistics("Priming the base orchestrator cache took %f seconds.", duration.Seconds())
 
 	return orchestrator
 }
