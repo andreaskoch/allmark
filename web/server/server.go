@@ -129,14 +129,14 @@ func (server *Server) Start() chan error {
 	// theme
 	if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
 		themeFolderHandler := http.FileServer(http.Dir(themeFolder))
-		s := http.StripPrefix(ThemeFolderRoute, addStaticFileHeaders(themeFolder, header.STATICCONTENT_CACHEDURATION_SECONDS, themeFolderHandler))
+		s := http.StripPrefix(ThemeFolderRoute, addStaticFileHeaders(themeFolder, "/"+config.ThemeFolderName, header.STATICCONTENT_CACHEDURATION_SECONDS, themeFolderHandler))
 		requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)
 	}
 
 	// thumbnails
 	if thumbnailsFolder := server.config.ThumbnailsFolder(); fsutil.DirectoryExists(thumbnailsFolder) {
 		thumbnailsFolderHandler := http.FileServer(http.Dir(thumbnailsFolder))
-		s := http.StripPrefix(ThumbnailFolderRoute, addStaticFileHeaders(thumbnailsFolder, header.STATICCONTENT_CACHEDURATION_SECONDS, thumbnailsFolderHandler))
+		s := http.StripPrefix(ThumbnailFolderRoute, addStaticFileHeaders(thumbnailsFolder, "/"+config.ThumbnailsFolderName, header.STATICCONTENT_CACHEDURATION_SECONDS, thumbnailsFolderHandler))
 		requestRouter.PathPrefix(ThumbnailFolderRoute).Handler(s)
 	}
 
@@ -214,12 +214,22 @@ func (server *Server) getPort() int {
 	return port
 }
 
-func addStaticFileHeaders(baseFolder string, seconds int, h http.Handler) http.Handler {
+func addStaticFileHeaders(baseFolder, requestPrefixToStripFromRequestUri string, seconds int, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// determine the hash
 		etag := ""
-		filePath := filepath.Join(baseFolder, r.RequestURI)
+
+		// prepare the request uri
+		requestUri := r.RequestURI
+		if requestPrefixToStripFromRequestUri != "" {
+			requestUri = stripPathFromRequest(r, requestPrefixToStripFromRequestUri)
+		}
+
+		// assemble the filepath on disc
+		filePath := filepath.Join(baseFolder, requestUri)
+
+		// read the the hash
 		if file, err := fsutil.OpenFile(filePath); err == nil {
 			defer file.Close()
 			if fileHash, hashErr := hashutil.GetHash(file); hashErr == nil {
@@ -233,4 +243,8 @@ func addStaticFileHeaders(baseFolder string, seconds int, h http.Handler) http.H
 		header.Cache(w, r, seconds)
 		h.ServeHTTP(w, r)
 	})
+}
+
+func stripPathFromRequest(r *http.Request, path string) string {
+	return strings.TrimPrefix(r.RequestURI, path)
 }
