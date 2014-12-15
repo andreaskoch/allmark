@@ -29,6 +29,9 @@ const (
 )
 
 func newBaseOrchestrator(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
+
+	startTime := time.Now()
+
 	orchestrator := &Orchestrator{
 		logger: logger,
 
@@ -42,6 +45,10 @@ func newBaseOrchestrator(logger logger.Logger, config config.Config, repository 
 
 	// warm up caches
 	orchestrator.blockingCacheWarmup()
+
+	stopTime := time.Now()
+	duration := stopTime.Sub(startTime)
+	logger.Statistics("Warming the base orchestrator cache took %f seconds.", duration.Seconds())
 
 	return orchestrator
 }
