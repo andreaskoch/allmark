@@ -13,11 +13,12 @@ import (
 )
 
 const (
-	LogLevelDebug = "Debug"
-	LogLevelInfo  = "Info"
-	LogLevelWarn  = "Warn"
-	LogLevelError = "Error"
-	LogLevelFatal = "Fatal"
+	LogLevelDebug      = "Debug"
+	LogLevelInfo       = "Info"
+	LogLevelStatistics = "Statistics"
+	LogLevelWarn       = "Warn"
+	LogLevelError      = "Error"
+	LogLevelFatal      = "Fatal"
 )
 
 func Default() *ConsoleLogger {
@@ -58,6 +59,14 @@ func (logger *ConsoleLogger) Info(format string, v ...interface{}) {
 	}
 
 	logger.print(LogLevelInfo, fmt.Sprintf(format, v...))
+}
+
+func (logger *ConsoleLogger) Statistics(format string, v ...interface{}) {
+	if logger.level > loglevel.Statistics {
+		return
+	}
+
+	logger.print(LogLevelStatistics, fmt.Sprintf(format, v...))
 }
 
 func (logger *ConsoleLogger) Warn(format string, v ...interface{}) {

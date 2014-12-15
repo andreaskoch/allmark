@@ -172,7 +172,7 @@ func serve(repositoryPath string) bool {
 	// log the time it took to prepare everything for serving
 	serveStop := time.Now()
 	serveDuration := serveStop.Sub(serveStart)
-	logger.Info("Preparing %v items took %f seconds. Starting the server now.", len(repository.Items()), serveDuration.Seconds())
+	logger.Statistics("Preparing %v items took %f seconds. Starting the server now.", len(repository.Items()), serveDuration.Seconds())
 
 	if result := <-server.Start(); result != nil {
 		logger.Error("%s", result)

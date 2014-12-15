@@ -14,6 +14,7 @@ const (
 	Off LogLevel = iota
 	Debug
 	Info
+	Statistics
 	Warn
 	Error
 	Fatal
@@ -27,6 +28,9 @@ func (logLevel LogLevel) String() string {
 
 	case Info:
 		return "Info"
+
+	case Statistics:
+		return "Statistics"
 
 	case Warn:
 		return "Warn"
@@ -57,6 +61,9 @@ func FromString(levelString string) LogLevel {
 
 	case "info":
 		return Info
+
+	case "statistics":
+		return Statistics
 
 	case "warn":
 		return Warn
