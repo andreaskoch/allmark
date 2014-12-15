@@ -85,7 +85,7 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 
 	endTime := time.Now()
 	duration := endTime.Sub(startTime)
-	orchestrator.logger.Statistics("Getting the view model %s took %f seconds.", viewModel.Route, duration.Seconds())
+	orchestrator.logger.Statistics("Getting the full view model %s took %f seconds.", viewModel.Route, duration.Seconds())
 
 	return viewModel, true
 }
@@ -246,6 +246,8 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) *viewm
 
 func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route) []*viewmodel.Base {
 
+	startTime := time.Now()
+
 	rootItem := orchestrator.rootItem()
 	if rootItem == nil {
 		orchestrator.logger.Fatal("No root item found")
@@ -263,6 +265,10 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route)
 
 	// sort the models
 	viewmodel.SortBaseModelBy(sortBaseModelsByDate).Sort(childModels)
+
+	endTime := time.Now()
+	duration := endTime.Sub(startTime)
+	orchestrator.logger.Statistics("Getting child models for route %s took %f seconds.", itemRoute, duration.Seconds())
 
 	return childModels
 }
