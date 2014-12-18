@@ -142,6 +142,13 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File, dime
 	// determine the file path
 	filePath := filepath.Join(conversion.thumbnailFolder, filename)
 
+	// create the target file
+	created, createError := fsutil.CreateFile(filePath)
+	if !created {
+		conversion.logger.Warn("Could not create thumbnail file %q. Error: %s", filePath, createError.Error())
+		return
+	}
+
 	// open the target file
 	target, fileError := fsutil.OpenFile(filePath)
 	if fileError != nil {

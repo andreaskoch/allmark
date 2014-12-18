@@ -73,6 +73,12 @@ func loadIndex(indexFilePath string) (*Index, error) {
 }
 
 func saveIndex(index *Index, indexFilePath string) error {
+	if !fsutil.FileExists(indexFilePath) {
+		if success, fileError := fsutil.CreateFile(indexFilePath); !success {
+			return fileError
+		}
+	}
+
 	file, fileError := fsutil.OpenFile(indexFilePath)
 	if fileError != nil {
 		return fmt.Errorf("Cannot save index to file %q. Error: %s", indexFilePath, fileError.Error())
