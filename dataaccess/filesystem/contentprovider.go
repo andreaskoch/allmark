@@ -62,6 +62,50 @@ func newFileContentProvider(path string, route route.Route) *content.ContentProv
 		lastModifiedProvider)
 }
 
+func newFileContentProviderWithoutChecksum(path string, route route.Route) *content.ContentProvider {
+
+	// mimeType
+	mimeType := func() (string, error) {
+		return getMimeType(path)
+	}
+
+	// content provider
+	dataProvider := func(callback func(content io.ReadSeeker) error) error {
+
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+
+		defer file.Close()
+
+		return callback(file)
+	}
+
+	// hash provider
+	hashProvider := func() (string, error) {
+
+		// get the mod time
+		modTime, modTimeErr := fsutil.GetModificationTime(path)
+		if modTimeErr != nil {
+			return "", modTimeErr
+		}
+
+		hashSource := fmt.Sprintf("%s - %s", route.Value(), modTime)
+		return getStringHash(hashSource)
+	}
+
+	// last modified provider
+	lastModifiedProvider := func() (time.Time, error) {
+		return fsutil.GetModificationTime(path)
+	}
+
+	return content.NewContentProvider(mimeType,
+		dataProvider,
+		hashProvider,
+		lastModifiedProvider)
+}
+
 func newTextContentProvider(text string, route route.Route) *content.ContentProvider {
 
 	// mimeType
