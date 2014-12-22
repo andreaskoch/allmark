@@ -133,15 +133,11 @@ func (server *Server) Start() chan error {
 		requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)
 	}
 
-	// thumbnails
-	if server.config.Conversion.Thumbnails.Enabled {
-
-		if thumbnailsFolder := server.config.Conversion.Thumbnails.Folder; fsutil.DirectoryExists(thumbnailsFolder) {
-			thumbnailsFolderHandler := http.FileServer(http.Dir(thumbnailsFolder))
-			s := http.StripPrefix(ThumbnailFolderRoute, addStaticFileHeaders(thumbnailsFolder, "/"+config.ThumbnailsFolderName, header.STATICCONTENT_CACHEDURATION_SECONDS, thumbnailsFolderHandler))
-			requestRouter.PathPrefix(ThumbnailFolderRoute).Handler(s)
-		}
-
+	// serve thumbnails
+	if thumbnailsFolder := server.config.Conversion.Thumbnails.Folder; fsutil.DirectoryExists(thumbnailsFolder) {
+		thumbnailsFolderHandler := http.FileServer(http.Dir(thumbnailsFolder))
+		s := http.StripPrefix(ThumbnailFolderRoute, addStaticFileHeaders(thumbnailsFolder, "/"+config.ThumbnailsFolderName, header.STATICCONTENT_CACHEDURATION_SECONDS, thumbnailsFolderHandler))
+		requestRouter.PathPrefix(ThumbnailFolderRoute).Handler(s)
 	}
 
 	// serve items
