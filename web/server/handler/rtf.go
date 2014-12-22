@@ -60,6 +60,32 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 		// make sure the request body is closed
 		defer r.Body.Close()
 
+		// check if rtf conversion is enabled
+		if !handler.config.Conversion.Rtf.Enabled {
+
+			handler.logger.Warn("Cannot convert item %q to RTF. RTF conversion is disabled in the config.", requestRoute)
+
+			// display a 404 error page
+			error404Handler := handler.error404Handler.Func()
+			error404Handler(w, r)
+			return
+
+		}
+
+		// check if the a rtf conversion tool has been supplied
+		converterToolIsConfigured := len(handler.config.Conversion.Rtf.Tool) > 0
+		if !converterToolIsConfigured {
+
+			handler.logger.Warn("Cannot convert item %q to RTF. There is no rtf conversion tool configured.", requestRoute)
+
+			// display a 404 error page
+			error404Handler := handler.error404Handler.Func()
+			error404Handler(w, r)
+			return
+
+		}
+
+		// get the conversion model
 		hostname := getHostnameFromRequest(r)
 		model, found := handler.converterModelOrchestrator.GetConversionModel(hostname, requestRoute)
 		if !found {
@@ -83,19 +109,6 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 		defer htmlFile.Close()
 		htmlFile.WriteString(html)
 
-		// check if the a converter tool has been supplied
-		converterToolIsConfigured := len(handler.config.Conversion.Tool) > 0
-		if !converterToolIsConfigured {
-
-			handler.logger.Warn("Cannot convert item %q to RTF. No converter tool configured.", model)
-
-			// display a 404 error page
-			error404Handler := handler.error404Handler.Func()
-			error404Handler(w, r)
-			return
-
-		}
-
 		// get a target file path
 		targetFile := fsutil.GetTempFileName("rtf-target") + ".rtf"
 
@@ -107,7 +120,7 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf(`%s`, targetFile),
 		}
 
-		cmd := exec.Command(handler.config.Conversion.Tool, args...)
+		cmd := exec.Command(handler.config.Conversion.Rtf.Tool, args...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 

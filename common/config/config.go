@@ -98,7 +98,7 @@ func Default(baseFolder string) *Config {
 	config.Server.Http.Hostname = DefaultHostName
 	config.Server.Http.Port = DefaultPort
 	config.Web.DefaultLanguage = DefaultLanguage
-	config.Conversion.Tool = DefaultConversionToolPath
+	config.Conversion.Rtf.Tool = DefaultConversionToolPath
 	config.LogLevel = DefaultLogLevel.String()
 	config.Indexing.IntervalInSeconds = DefaultReindexIntervalInSeconds
 
@@ -124,7 +124,12 @@ type Indexing struct {
 }
 
 type Conversion struct {
-	Tool string
+	Rtf RtfConversion
+}
+
+type RtfConversion struct {
+	Enabled bool
+	Tool    string
 }
 
 type Analytics struct {

@@ -27,7 +27,6 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 
 		PrintUrl: GetTypedItemUrl(item.Route(), "print"),
 		JsonUrl:  GetTypedItemUrl(item.Route(), "json"),
-		RtfUrl:   GetTypedItemUrl(item.Route(), "rtf"),
 
 		PageTitle:   getPageTitle(root, item),
 		Title:       item.Title,
