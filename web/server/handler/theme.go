@@ -45,7 +45,7 @@ func (handler *Theme) Func() func(w http.ResponseWriter, r *http.Request) {
 		mimeType := getMimeType(path, data)
 
 		// set headers
-		header.ContentType(w, r, mimeType)
+		header.ContentType(w, r, fmt.Sprintf("%s; charset=utf-8", mimeType))
 		header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
 		fmt.Fprintf(w, `%s`, data)
 	}

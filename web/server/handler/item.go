@@ -46,7 +46,7 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 			handler.logger.Info("Returning item %q", requestRoute)
 
 			// set headers
-			header.ContentType(w, r, "text/html")
+			header.ContentType(w, r, "text/html; charset=utf-8")
 			header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 			header.ETag(w, r, model.Hash)
 

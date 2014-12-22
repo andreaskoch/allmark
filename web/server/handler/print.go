@@ -31,7 +31,7 @@ func (handler *Print) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "text/html")
+		header.ContentType(w, r, "text/html; charset=utf-8")
 		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 
 		// get the path from the request variables

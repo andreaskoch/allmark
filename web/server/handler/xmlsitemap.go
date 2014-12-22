@@ -30,7 +30,7 @@ func (handler *XmlSitemap) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "text/xml")
+		header.ContentType(w, r, "text/xml; charset=utf-8")
 		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 
 		// get the sitemap template

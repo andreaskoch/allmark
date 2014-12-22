@@ -11,7 +11,6 @@ import (
 var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <html lang="{{.LanguageTag}}">
 <head>
-	<meta charset="utf-8">
 	<base href="{{ .BaseUrl }}">
 
 	<title>{{.PageTitle}}</title>
