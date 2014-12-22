@@ -24,7 +24,7 @@ func (orchestrator *UpdateOrchestrator) StopWatching(route route.Route) {
 }
 
 func (orchestrator *UpdateOrchestrator) OnUpdate(callback func(route.Route)) {
-	orchestrator.logger.Info("Assigning a new update-callback to the repository.")
+	orchestrator.logger.Debug("Assigning a new update-callback to the repository.")
 	orchestrator.repository.OnUpdate(callback)
 }
 
