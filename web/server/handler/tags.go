@@ -33,6 +33,7 @@ func (self *Tags) Func() func(w http.ResponseWriter, r *http.Request) {
 		// set headers
 		header.ContentType(w, r, "text/html; charset=utf-8")
 		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
+		header.VaryAcceptEncoding(w, r)
 
 		tagmapTemplate, err := self.templateProvider.GetFullTemplate(templates.TagmapTemplateName)
 		if err != nil {

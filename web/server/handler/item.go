@@ -48,6 +48,7 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 			// set headers
 			header.ContentType(w, r, "text/html; charset=utf-8")
 			header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
+			header.VaryAcceptEncoding(w, r)
 			header.ETag(w, r, model.Hash)
 
 			handler.render(w, model)
@@ -62,6 +63,7 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 			// set  headers
 			header.ContentType(w, r, file.MimeType)
 			header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
+			header.VaryAcceptEncoding(w, r)
 			header.ETag(w, r, file.Hash)
 
 			// get the content provider

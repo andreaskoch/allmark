@@ -41,6 +41,7 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 		// set headers
 		header.ContentType(w, r, "application/rtf; charset=utf-8")
 		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
+		header.VaryAcceptEncoding(w, r)
 
 		// get the path from the request variables
 		vars := mux.Vars(r)

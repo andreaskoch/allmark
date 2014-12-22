@@ -29,8 +29,9 @@ func (handler *OpenSearchDescription) Func() func(w http.ResponseWriter, r *http
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "text/xml")
+		header.ContentType(w, r, "text/xml; charset=utf-8")
 		header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
+		header.VaryAcceptEncoding(w, r)
 
 		// get the template
 		openSearchDescriptionTemplate, err := handler.templateProvider.GetSubTemplate(templates.OpenSearchDescriptionTemplateName)

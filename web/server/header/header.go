@@ -27,3 +27,7 @@ func ETag(w http.ResponseWriter, r *http.Request, hash string) {
 func ContentType(w http.ResponseWriter, r *http.Request, contentType string) {
 	w.Header().Set("Content-Type", contentType)
 }
+
+func VaryAcceptEncoding(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Vary", "Accept-Encoding")
+}

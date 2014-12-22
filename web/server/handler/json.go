@@ -29,8 +29,9 @@ func (handler *Json) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "application/json")
+		header.ContentType(w, r, "application/json; charset=utf-8")
 		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
+		header.VaryAcceptEncoding(w, r)
 
 		// get the path from the request variables
 		vars := mux.Vars(r)

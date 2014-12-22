@@ -27,6 +27,7 @@ func (handler *TypeAhead) Func() func(w http.ResponseWriter, r *http.Request) {
 		// set headers
 		header.ContentType(w, r, "application/json; charset=utf-8")
 		header.NoCache(w, r)
+		header.VaryAcceptEncoding(w, r)
 
 		// get the suggestions
 		query, _ := getQueryParameterFromUrl(*r.URL)

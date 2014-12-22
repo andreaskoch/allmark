@@ -253,6 +253,8 @@ func addStaticFileHeaders(baseFolder, requestPrefixToStripFromRequestUri string,
 		}
 
 		header.Cache(w, r, seconds)
+		header.VaryAcceptEncoding(w, r)
+
 		h.ServeHTTP(w, r)
 	})
 }

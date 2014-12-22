@@ -7,6 +7,7 @@ package handler
 import (
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/logger"
+	"github.com/andreaskoch/allmark2/common/util/hashutil"
 	"github.com/andreaskoch/allmark2/web/server/header"
 	"github.com/andreaskoch/allmark2/web/view/themes"
 	"github.com/gorilla/mux"
@@ -44,9 +45,17 @@ func (handler *Theme) Func() func(w http.ResponseWriter, r *http.Request) {
 		data := themeFile.Data()
 		mimeType := getMimeType(path, data)
 
+		// etag
+		etag := hashutil.FromBytes(data)
+
 		// set headers
 		header.ContentType(w, r, fmt.Sprintf("%s; charset=utf-8", mimeType))
 		header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
+		header.VaryAcceptEncoding(w, r)
+		if etag != "" {
+			header.ETag(w, r, etag)
+		}
+
 		fmt.Fprintf(w, `%s`, data)
 	}
 }
