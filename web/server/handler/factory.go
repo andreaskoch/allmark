@@ -158,6 +158,7 @@ func (factory *Factory) NewItemHandler() Handler {
 func (factory *Factory) NewPrintHandler() Handler {
 
 	return &Print{
+
 		logger: factory.logger,
 
 		converterModelOrchestrator: factory.orchestratorFactory.NewConversionModelOrchestrator(),
@@ -210,6 +211,16 @@ func (factory *Factory) NewUpdateHandler() *Update {
 		logger: factory.logger,
 
 		updateOrchestrator: factory.orchestratorFactory.NewUpdateOrchestrator(),
+	}
+
+}
+
+func (factory *Factory) NewThemeHandler() Handler {
+
+	return &Theme{
+		logger: factory.logger,
+
+		error404Handler: factory.NewErrorHandler(),
 	}
 
 }

@@ -30,6 +30,10 @@ var (
 	BasePath      = "/"
 	TagPathPrefix = fmt.Sprintf("%stags.html#", BasePath)
 
+	// Static Routes
+	StaticThemeFolderRoute     = "/theme"
+	StaticThumbnailFolderRoute = "/thumbnails"
+
 	// Dynamic Routes
 	PrintHandlerRoute  = `/{path:.+\.print$|print$}`
 	JsonHandlerRoute   = `/{path:.+\.json$|json$}`
@@ -37,7 +41,8 @@ var (
 	RtfHandlerRoute    = `/{path:.+\.rtf$|rtf$}`
 	UpdateHandlerRoute = `/{path:.+\.ws$|ws$}`
 
-	ItemHandlerRoute = "/{path:.*$}"
+	ItemHandlerRoute  = "/{path:.*$}"
+	ThemeHandlerRoute = fmt.Sprintf("%s/{path:.*$}", StaticThemeFolderRoute)
 
 	TagmapHandlerRoute                = "/tags.html"
 	SitemapHandlerRoute               = "/sitemap.html"
@@ -49,10 +54,6 @@ var (
 
 	TypeAheadSearchHandlerRoute = "/search.json"
 	TypeAheadTitlesHandlerRoute = "/titles.json"
-
-	// Static Routes
-	ThemeFolderRoute     = "/theme"
-	ThumbnailFolderRoute = "/thumbnails"
 )
 
 func New(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter) (*Server, error) {
@@ -128,16 +129,27 @@ func (server *Server) Start() chan error {
 
 	// theme
 	if themeFolder := server.config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
+
+		// serve static
 		themeFolderHandler := http.FileServer(http.Dir(themeFolder))
-		s := http.StripPrefix(ThemeFolderRoute, addStaticFileHeaders(themeFolder, "/"+config.ThemeFolderName, header.STATICCONTENT_CACHEDURATION_SECONDS, themeFolderHandler))
-		requestRouter.PathPrefix(ThemeFolderRoute).Handler(s)
+		s := http.StripPrefix(StaticThemeFolderRoute, addStaticFileHeaders(themeFolder, "/"+config.ThemeFolderName, header.STATICCONTENT_CACHEDURATION_SECONDS, themeFolderHandler))
+		requestRouter.PathPrefix(StaticThemeFolderRoute).Handler(s)
+
+	} else {
+
+		// serve dynamic
+		server.logger.Info("Serving default theme-files from memory. If you want to serve the theme from disc please use the 'init' command on your repository or home folder.")
+		themeHandler := server.handlerFactory.NewThemeHandler()
+		requestRouter.HandleFunc(ThemeHandlerRoute, themeHandler.Func())
+
 	}
 
 	// serve thumbnails
 	if thumbnailsFolder := server.config.Conversion.Thumbnails.Folder; fsutil.DirectoryExists(thumbnailsFolder) {
 		thumbnailsFolderHandler := http.FileServer(http.Dir(thumbnailsFolder))
-		s := http.StripPrefix(ThumbnailFolderRoute, addStaticFileHeaders(thumbnailsFolder, "/"+config.ThumbnailsFolderName, header.STATICCONTENT_CACHEDURATION_SECONDS, thumbnailsFolderHandler))
-		requestRouter.PathPrefix(ThumbnailFolderRoute).Handler(s)
+		s := http.StripPrefix(StaticThumbnailFolderRoute, addStaticFileHeaders(thumbnailsFolder, "/"+config.ThumbnailsFolderName, header.STATICCONTENT_CACHEDURATION_SECONDS, thumbnailsFolderHandler))
+		requestRouter.PathPrefix(StaticThumbnailFolderRoute).Handler(s)
+
 	}
 
 	// serve items

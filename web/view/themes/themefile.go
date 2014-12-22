@@ -12,14 +12,14 @@ import (
 	"path/filepath"
 )
 
-func newFileFromText(filename, text string) *ThemeFile {
+func newFileFromText(uri, text string) *ThemeFile {
 	return &ThemeFile{
-		path: filename,
+		path: uri,
 		data: []byte(text),
 	}
 }
 
-func newFileFromBase64(filename, base64Text string) *ThemeFile {
+func newFileFromBase64(uri, base64Text string) *ThemeFile {
 
 	data, err := base64.StdEncoding.DecodeString(base64Text)
 	if err != nil {
@@ -27,7 +27,7 @@ func newFileFromBase64(filename, base64Text string) *ThemeFile {
 	}
 
 	return &ThemeFile{
-		path: filename,
+		path: uri,
 		data: data,
 	}
 }
@@ -35,6 +35,16 @@ func newFileFromBase64(filename, base64Text string) *ThemeFile {
 type ThemeFile struct {
 	path string
 	data []byte
+}
+
+// Get the path of the theme file (e.g. "favicon.ico").
+func (file *ThemeFile) Path() string {
+	return file.path
+}
+
+// Get the data of the theme file.
+func (file *ThemeFile) Data() []byte {
+	return file.data
 }
 
 func (themeFile *ThemeFile) StoreOnDisc(baseFolder string) (success bool, err error) {
