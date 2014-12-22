@@ -42,7 +42,7 @@ func NewIndex(logger logger.Logger, indexFilePath, thumbnailFolder string) *Inde
 	return index
 }
 
-func emptyIndex() *Index {
+func EmptyIndex() *Index {
 	return &Index{
 		Thumbs: make(map[string]Thumbs),
 	}
@@ -51,13 +51,13 @@ func emptyIndex() *Index {
 func loadIndex(indexFilePath string) (*Index, error) {
 
 	if !fsutil.FileExists(indexFilePath) {
-		return emptyIndex(), fmt.Errorf("The index file %q does not exist.", indexFilePath)
+		return EmptyIndex(), fmt.Errorf("The index file %q does not exist.", indexFilePath)
 	}
 
 	// check if file can be accessed
 	file, err := os.Open(indexFilePath)
 	if err != nil {
-		return emptyIndex(), fmt.Errorf("Cannot read index file %q. Error: %s", indexFilePath, err)
+		return EmptyIndex(), fmt.Errorf("Cannot read index file %q. Error: %s", indexFilePath, err)
 	}
 
 	defer file.Close()
@@ -66,7 +66,7 @@ func loadIndex(indexFilePath string) (*Index, error) {
 	serializer := newIndexSerializer()
 	index, err := serializer.DeserializeIndex(file)
 	if err != nil {
-		return emptyIndex(), fmt.Errorf("Could not deserialize the index file %q. Error: %s", indexFilePath, err)
+		return EmptyIndex(), fmt.Errorf("Could not deserialize the index file %q. Error: %s", indexFilePath, err)
 	}
 
 	return index, nil
