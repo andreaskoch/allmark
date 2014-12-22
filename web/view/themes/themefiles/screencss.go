@@ -498,6 +498,7 @@ article>.tags>.tags>.tag>a {
 
 article>.preview {
     float: left;
+    width: 100%;
 }
 
 article>.preview hr {
