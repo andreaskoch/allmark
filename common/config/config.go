@@ -28,7 +28,7 @@ const (
 	DefaultPort                     = 8080
 	DefaultLanguage                 = "en"
 	DefaultLogLevel                 = loglevel.Info
-	DefaultReindexIntervalInSeconds = 60
+	DefaultReindexIntervalInSeconds = 0
 )
 
 var homeDirectory func() string
