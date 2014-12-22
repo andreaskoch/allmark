@@ -8,11 +8,10 @@ import (
 	"encoding/json"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
+	"github.com/andreaskoch/allmark2/common/util/hashutil"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
 	"github.com/andreaskoch/allmark2/web/server/header"
-	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 	"github.com/gorilla/mux"
-	"io"
 	"net/http"
 	"strings"
 )
@@ -53,7 +52,23 @@ func (handler *Latest) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		// stage 1: check if there is a item for the request
 		if latestModels, found := handler.viewModelOrchestrator.GetLatest(requestRoute, 3, 1); found {
-			writeViewModelsAsJson(w, latestModels)
+
+			// convert the viewmodel to json
+			jsonBytes, err := json.MarshalIndent(latestModels, "", "\t")
+			if err != nil {
+
+				handler.logger.Error("Unable to convert viewmodel to json. Error: %s", err)
+				return
+			}
+
+			// etag cache validator
+			etag := hashutil.FromBytes(jsonBytes)
+			if etag != "" {
+				header.ETag(w, r, etag)
+			}
+
+			w.Write(jsonBytes)
+
 			return
 		}
 
@@ -61,14 +76,4 @@ func (handler *Latest) Func() func(w http.ResponseWriter, r *http.Request) {
 		fallbackHandler := handler.fallbackHandler.Func()
 		fallbackHandler(w, r)
 	}
-}
-
-func writeViewModelsAsJson(writer io.Writer, viewModels []*viewmodel.Model) error {
-	bytes, err := json.MarshalIndent(viewModels, "", "\t")
-	if err != nil {
-		return err
-	}
-
-	writer.Write(bytes)
-	return nil
 }
