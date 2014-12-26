@@ -15,11 +15,9 @@ const documentTemplate = `
 {{.Description}}
 </section>
 
-{{if .Author}}
-<secton itemprop="author">
-by {{ .Author }}
+<section class="publisher">
+created {{if .Author}}by <span class="author" itemprop="author">{{ .Author }}</span>{{end}}{{ if .CreationDate }} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>{{ end }}
 </section>
-{{end}}
 
 <section class="content" itemprop="articleBody">
 {{.Content}}
