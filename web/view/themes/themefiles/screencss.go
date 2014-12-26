@@ -429,6 +429,11 @@ body>nav.breadcrumb>a {
 
 article>.description {
     font-size: 1.2em;
+    margin: 0;
+}
+
+article>.publisher {
+    font-size: 0.8em;
     margin: 0 0 1.5em 0;
 }
 
