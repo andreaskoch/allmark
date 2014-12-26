@@ -420,28 +420,10 @@ body>nav.toplevel>ul>li>a:hover {
 
 body>nav.breadcrumb {
     clear: both;
+}
+
+body>nav.breadcrumb>a {
     font-size: 0.8em;
-}
-
-body>nav.breadcrumb>ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-body>nav.breadcrumb>ul>li {
-    display: inline;
-}
-
-body>nav.breadcrumb>ul>li:after {
-    content: "»";
-}
-
-body>nav.breadcrumb>ul>li:last-child:after {
-    content: "";
-}
-
-body>nav.breadcrumb>ul>li>a {
     font-family: "Helvetia", "Verdana", "Sans-Serif";
 }
 

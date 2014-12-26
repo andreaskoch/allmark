@@ -58,6 +58,15 @@ func (orchestrator *NavigationOrchestrator) GetBreadcrumbNavigation(route route.
 		Path:  orchestrator.itemPather().Path(item.Route().Value()),
 	})
 
+	// mark the entries
+	for index, entry := range navigation.Entries {
+		if index < (len(navigation.Entries) - 1) {
+			entry.IsLast = false
+		} else {
+			entry.IsLast = true
+		}
+	}
+
 	return navigation
 }
 

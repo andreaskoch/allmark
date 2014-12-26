@@ -52,13 +52,9 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 {{ if .BreadcrumbNavigation}}
 <nav class="breadcrumb" itemprop="breadcrumb">
-	<ul>
 	{{range .BreadcrumbNavigation.Entries}}
-	<li>
-		<a href="{{.Path}}">{{.Title}}</a>
-	</li>
+		<a href="{{.Path}}">{{.Title}}</a>{{if not .IsLast}} » {{end}}
 	{{end}}
-	</ul>
 </nav>
 {{end}}
 
