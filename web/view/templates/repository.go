@@ -6,16 +6,16 @@ package templates
 
 const repositoryTemplate = `
 <header>
-<h1 class="title">
+<h1 class="title" itemprop="name">
 {{.Title}}
 </h1>
 </header>
 
-<section class="description">
+<section class="description" itemprop="description">
 {{.Description}}
 </section>
 
-<section class="content">
+<section class="content" itemprop="articleBody">
 {{.Content}}
 </section>
 

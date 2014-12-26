@@ -6,16 +6,22 @@ package templates
 
 const documentTemplate = `
 <header>
-<h1 class="title">
+<h1 class="title" itemprop="name">
 {{.Title}}
 </h1>
 </header>
 
-<section class="description">
+<section class="description" itemprop="description">
 {{.Description}}
 </section>
 
-<section class="content">
+{{if .Author}}
+<secton itemprop="author">
+by {{ .Author }}
+</section>
+{{end}}
+
+<section class="content" itemprop="articleBody">
 {{.Content}}
 </section>
 

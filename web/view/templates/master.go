@@ -9,7 +9,7 @@ import (
 )
 
 var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
-<html lang="{{.LanguageTag}}">
+<html lang="{{.LanguageTag}}" itemscope itemtype="http://schema.org/WebPage">
 <head>
 	<base href="{{ .BaseUrl }}">
 
@@ -17,21 +17,6 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<meta name="description" content="{{.Description}}">
 
 	<link rel="search" type="application/opensearchdescription+xml" title="{{.RepositoryName}}" href="/opensearch.xml" />
-	<link rel="schema.DC" href="http://purl.org/dc/terms/">
-
-	{{if .CreationDate}}
-	<meta name="DC.date" content="{{.CreationDate}}">
-	{{end}}
-
-	{{if .GeoLocation }}
-	{{if .GeoLocation.Coordinates}}
-	<meta name="geo.position" content="{{.GeoLocation.Coordinates}}">
-	{{end}}
-
-	{{if .GeoLocation.PlaceName}}
-	<meta name="geo.placename" content="{{.GeoLocation.PlaceName}}">
-	{{end}}
-	{{end}}
 
 	<link rel="canonical" href="{{.BaseUrl}}">
 	<link rel="alternate" hreflang="{{.LanguageTag}}" href="{{.BaseUrl}}">
@@ -66,7 +51,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 </nav>
 
 {{ if .BreadcrumbNavigation}}
-<nav class="breadcrumb">
+<nav class="breadcrumb" itemprop="breadcrumb">
 	<ul>
 	{{range .BreadcrumbNavigation.Entries}}
 	<li>
@@ -77,7 +62,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 </nav>
 {{end}}
 
-<article class="{{.Type}} level-{{.Level}}">
+<article class="{{.Type}} level-{{.Level}}" itemprop="mainContentOfPage" itemscope itemtype=http://schema.org/BlogPosting>
 %s
 </article>
 

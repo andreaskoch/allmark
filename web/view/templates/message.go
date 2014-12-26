@@ -9,7 +9,7 @@ const messageTemplate = `
 {{.Description}}
 </section>
 
-<section class="content">
+<section class="content" itemprop="articleBody">
 {{.Content}}
 </section>
 

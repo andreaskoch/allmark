@@ -114,6 +114,14 @@ type Http struct {
 
 type Web struct {
 	DefaultLanguage string
+	DefaultAuthor   string
+	Publisher       Publisher
+}
+
+type Publisher struct {
+	Name             string
+	ProfileUrl       string
+	GooglePlusPageId string
 }
 
 type Server struct {
