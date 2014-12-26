@@ -15,6 +15,10 @@ const presentationTemplate = `
 {{.Description}}
 </section>
 
+<section class="publisher">
+created {{if .Author}}by <span class="author" itemprop="author">{{ .Author }}</span>{{end}}{{ if .CreationDate }} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>{{ end }}
+</section>
+
 <nav>
 	<div class="nav-element pager deck-status">
 		<span class="deck-status-current"></span> /	<span class="deck-status-total"></span>
