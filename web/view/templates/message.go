@@ -33,7 +33,7 @@ const messageTemplate = `
 	<ul class="tags">
 	{{range .Tags}}
 	<li class="tag">
-		<a href="{{.Route}}">{{.Name}}</a>
+		<a href="{{.Route}}" rel="tag">{{.Name}}</a>
 	</li>
 	{{end}}
 	</ul>
