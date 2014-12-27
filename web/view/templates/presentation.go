@@ -16,7 +16,7 @@ const presentationTemplate = `
 </section>
 
 <section class="publisher">
-created {{if .Author}}by <span class="author" itemprop="author">{{ .Author }}</span>{{end}}{{ if .CreationDate }} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>{{ end }}
+created {{if .Author}}by <span class="author" itemprop="author" rel="author">{{ .Author }}</span>{{end}}{{ if .CreationDate }} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>{{ end }}
 </section>
 
 <nav>
