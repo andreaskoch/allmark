@@ -99,7 +99,22 @@ func Default(baseFolder string) *Config {
 	config.Server.ThemeFolderName = ThemeFolderName
 	config.Server.Http.Hostname = DefaultHostName
 	config.Server.Http.Port = DefaultPort
+
 	config.Web.DefaultLanguage = DefaultLanguage
+
+	// Publisher Information
+	config.Web.Publisher = Publisher{
+		Name: "Unknown",
+	}
+
+	// Authors
+	config.Web.Authors = map[string]AuthorInfo{
+		"Unknown": AuthorInfo{
+			Name: "Unknown",
+			Url:  "",
+		},
+	}
+
 	config.Conversion.Rtf.Tool = DefaultConversionToolPath
 	config.LogLevel = DefaultLogLevel.String()
 	config.Indexing.IntervalInSeconds = DefaultReindexIntervalInSeconds
@@ -116,12 +131,18 @@ type Web struct {
 	DefaultLanguage string
 	DefaultAuthor   string
 	Publisher       Publisher
+	Authors         map[string]AuthorInfo
 }
 
 type Publisher struct {
 	Name             string
 	ProfileUrl       string
 	GooglePlusPageId string
+}
+
+type AuthorInfo struct {
+	Name string
+	Url  string
 }
 
 type Server struct {
