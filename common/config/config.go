@@ -134,9 +134,9 @@ type UserInformation struct {
 	Email string
 	Url   string
 
-	GooglePlusId  string
-	TwitterHandle string
-	FacebookId    string
+	GooglePlusHandle string
+	TwitterHandle    string
+	FacebookHandle   string
 }
 
 type Server struct {

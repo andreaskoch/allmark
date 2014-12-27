@@ -13,6 +13,9 @@ type Model struct {
 
 	Content string `json:"content"`
 
+	Publisher Publisher `json:"publisher"`
+	Author    Author    `json:"author"`
+
 	Childs []*Base `json:"childs"`
 
 	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`

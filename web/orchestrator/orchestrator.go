@@ -484,6 +484,45 @@ func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 	return orchestrator.itemsByAlias[alias]
 }
 
+// Get the publisher information view model.
+func (orchestrator *Orchestrator) getPublisherInformation() viewmodel.Publisher {
+	return viewmodel.Publisher{
+		Name:  orchestrator.config.Web.Publisher.Name,
+		Email: orchestrator.config.Web.Publisher.Email,
+		Url:   orchestrator.config.Web.Publisher.Url,
+
+		GooglePlusHandle: orchestrator.config.Web.Publisher.GooglePlusHandle,
+		TwitterHandle:    orchestrator.config.Web.Publisher.TwitterHandle,
+		FacebookHandle:   orchestrator.config.Web.Publisher.FacebookHandle,
+	}
+}
+
+// Get the publisher information view model.
+func (orchestrator *Orchestrator) getAuthorInformation(authorName string) viewmodel.Author {
+
+	if authorName == "" {
+		return viewmodel.Author{}
+	}
+
+	author, exists := orchestrator.config.Web.Authors[authorName]
+	if !exists {
+		return viewmodel.Author{
+			Name: authorName,
+		}
+	}
+
+	return viewmodel.Author{
+		Name:  author.Name,
+		Email: author.Email,
+		Url:   author.Url,
+
+		GooglePlusHandle: author.GooglePlusHandle,
+		TwitterHandle:    author.TwitterHandle,
+		FacebookHandle:   author.FacebookHandle,
+	}
+}
+
+// Get the analytics view model.
 func (orchestrator *Orchestrator) getAnalyticsSettings() viewmodel.Analytics {
 	return viewmodel.Analytics{
 		Enabled: orchestrator.config.Analytics.Enabled,

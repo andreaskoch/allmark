@@ -222,6 +222,12 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) *viewm
 				Base:    getBaseModel(root, child, orchestrator.itemPather()),
 				Content: convertedContent,
 
+				// Publisher
+				Publisher: orchestrator.getPublisherInformation(),
+
+				// Author
+				Author: orchestrator.getAuthorInformation(child.MetaData.Author),
+
 				// files
 				Files: orchestrator.fileOrchestrator.GetFiles(childRoute),
 
