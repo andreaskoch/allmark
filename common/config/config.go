@@ -103,16 +103,11 @@ func Default(baseFolder string) *Config {
 	config.Web.DefaultLanguage = DefaultLanguage
 
 	// Publisher Information
-	config.Web.Publisher = Publisher{
-		Name: "Unknown",
-	}
+	config.Web.Publisher = UserInformation{}
 
 	// Authors
-	config.Web.Authors = map[string]AuthorInfo{
-		"Unknown": AuthorInfo{
-			Name: "Unknown",
-			Url:  "",
-		},
+	config.Web.Authors = map[string]UserInformation{
+		"Unknown": UserInformation{},
 	}
 
 	config.Conversion.Rtf.Tool = DefaultConversionToolPath
@@ -130,19 +125,18 @@ type Http struct {
 type Web struct {
 	DefaultLanguage string
 	DefaultAuthor   string
-	Publisher       Publisher
-	Authors         map[string]AuthorInfo
+	Publisher       UserInformation
+	Authors         map[string]UserInformation
 }
 
-type Publisher struct {
-	Name             string
-	ProfileUrl       string
-	GooglePlusPageId string
-}
+type UserInformation struct {
+	Name  string
+	Email string
+	Url   string
 
-type AuthorInfo struct {
-	Name string
-	Url  string
+	GooglePlusId  string
+	TwitterHandle string
+	FacebookId    string
 }
 
 type Server struct {
