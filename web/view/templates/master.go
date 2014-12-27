@@ -18,6 +18,10 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 	<link rel="search" type="application/opensearchdescription+xml" title="{{.RepositoryName}}" href="/opensearch.xml" />
 
+	{{if .Publisher.Name }}
+	<meta name="publisher" content="{{.Publisher.Name}}">
+	{{end}}
+
 	{{if .GeoLocation }}
 	{{if .GeoLocation.Coordinates}}
 	<meta name="geo.position" content="{{.GeoLocation.Coordinates}}">
