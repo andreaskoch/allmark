@@ -32,7 +32,7 @@ func (orchestrator *ConversionModelOrchestrator) GetConversionModel(hostname str
 	}
 
 	// create the path provider
-	addressPrefix := fmt.Sprintf("http://%s/", hostname)
+	addressPrefix := fmt.Sprintf("/%s/%s/", hostname, item.Route().Value())
 	pathProvider := orchestrator.absolutePather(addressPrefix)
 
 	// convert content
