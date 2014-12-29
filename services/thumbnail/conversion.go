@@ -74,7 +74,7 @@ func (conversion *ConversionService) startConversion() {
 func (conversion *ConversionService) fullConversion() {
 	for _, item := range conversion.repository.Items() {
 
-		conversion.createThumbnailsForItem(item)
+		go conversion.createThumbnailsForItem(item)
 
 	}
 }
