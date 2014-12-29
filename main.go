@@ -145,8 +145,9 @@ func serve(repositoryPath string) bool {
 	thumbnailIndex := thumbnail.EmptyIndex()
 	if config.Conversion.Thumbnails.Enabled {
 
-		thumbnailIndexFilePath := filepath.Join(config.MetaDataFolder(), "thumbnail.index")
-		thumbnailFolder := config.Conversion.Thumbnails.Folder
+		thumbnailIndexFilePath := filepath.Join(config.MetaDataFolder(), config.Conversion.Thumbnails.IndexFile)
+		thumbnailFolder := filepath.Join(config.MetaDataFolder(), config.Conversion.Thumbnails.Folder)
+
 		if !fsutil.CreateDirectory(thumbnailFolder) {
 			logger.Fatal("Could not create the thumbnail folder %q", thumbnailFolder)
 		}

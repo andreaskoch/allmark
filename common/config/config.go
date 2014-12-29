@@ -54,6 +54,8 @@ func Get(baseFolder string) *Config {
 	// local
 	if config, err := New(baseFolder).Load(); err == nil {
 		return config
+	} else {
+		panic(err)
 	}
 
 	// global
@@ -62,6 +64,8 @@ func Get(baseFolder string) *Config {
 		homeDirectory := homeDirectory()
 		if config, err := New(homeDirectory).Load(); err == nil {
 			return config
+		} else {
+			panic(err)
 		}
 
 	}
@@ -83,8 +87,8 @@ func New(baseFolder string) *Config {
 		Conversion: Conversion{
 			Thumbnails: ThumbnailConversion{
 				Enabled:   false,
-				IndexFile: filepath.Join(metaDataFolder, ThumbnailIndexFile),
-				Folder:    filepath.Join(metaDataFolder, ThumbnailsFolderName),
+				IndexFile: ThumbnailIndexFile,
+				Folder:    ThumbnailsFolderName,
 			},
 		},
 	}
@@ -110,7 +114,13 @@ func Default(baseFolder string) *Config {
 		"Unknown": UserInformation{},
 	}
 
+	// Thumbnail conversion
+	config.Conversion.Thumbnails.IndexFile = ThumbnailIndexFile
+	config.Conversion.Thumbnails.Folder = ThumbnailsFolderName
+
+	// RTF conversion
 	config.Conversion.Rtf.Tool = DefaultConversionToolPath
+
 	config.LogLevel = DefaultLogLevel.String()
 	config.Indexing.IntervalInSeconds = DefaultReindexIntervalInSeconds
 
