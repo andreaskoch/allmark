@@ -145,11 +145,10 @@ func (server *Server) Start() chan error {
 	}
 
 	// serve thumbnails
-	if thumbnailsFolder := server.config.Conversion.Thumbnails.Folder; fsutil.DirectoryExists(thumbnailsFolder) {
+	if thumbnailsFolder := server.config.ThumbnailFolder(); fsutil.DirectoryExists(thumbnailsFolder) {
 		thumbnailsFolderHandler := http.FileServer(http.Dir(thumbnailsFolder))
 		s := http.StripPrefix(StaticThumbnailFolderRoute, addStaticFileHeaders(thumbnailsFolder, "/"+config.ThumbnailsFolderName, header.STATICCONTENT_CACHEDURATION_SECONDS, thumbnailsFolderHandler))
 		requestRouter.PathPrefix(StaticThumbnailFolderRoute).Handler(s)
-
 	}
 
 	// serve items

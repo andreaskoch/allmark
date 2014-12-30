@@ -15,13 +15,13 @@ import (
 )
 
 const (
-	MetaDataFolderName    = ".allmark"
-	FilesDirectoryName    = "files"
-	ConfigurationFileName = "config"
-	ThemeFolderName       = "theme"
-	TemplatesFolderName   = "templates"
-	ThumbnailIndexFile    = "thumbnail.index"
-	ThumbnailsFolderName  = "thumbnails"
+	MetaDataFolderName     = ".allmark"
+	FilesDirectoryName     = "files"
+	ConfigurationFileName  = "config"
+	ThemeFolderName        = "theme"
+	TemplatesFolderName    = "templates"
+	ThumbnailIndexFileName = "thumbnail.index"
+	ThumbnailsFolderName   = "thumbnails"
 
 	// Global Defaults
 	DefaultHostName                 = "localhost"
@@ -86,9 +86,9 @@ func New(baseFolder string) *Config {
 
 		Conversion: Conversion{
 			Thumbnails: ThumbnailConversion{
-				Enabled:   false,
-				IndexFile: ThumbnailIndexFile,
-				Folder:    ThumbnailsFolderName,
+				Enabled:       false,
+				IndexFileName: ThumbnailIndexFileName,
+				FolderName:    ThumbnailsFolderName,
 			},
 		},
 	}
@@ -115,8 +115,8 @@ func Default(baseFolder string) *Config {
 	}
 
 	// Thumbnail conversion
-	config.Conversion.Thumbnails.IndexFile = ThumbnailIndexFile
-	config.Conversion.Thumbnails.Folder = ThumbnailsFolderName
+	config.Conversion.Thumbnails.IndexFileName = ThumbnailIndexFileName
+	config.Conversion.Thumbnails.FolderName = ThumbnailsFolderName
 
 	// RTF conversion
 	config.Conversion.Rtf.Tool = DefaultConversionToolPath
@@ -169,9 +169,9 @@ type RtfConversion struct {
 }
 
 type ThumbnailConversion struct {
-	Enabled   bool
-	IndexFile string
-	Folder    string
+	Enabled       bool
+	IndexFileName string
+	FolderName    string
 }
 
 type Analytics struct {
@@ -221,6 +221,24 @@ func (config *Config) ThemeFolder() string {
 	}
 
 	return filepath.Join(config.themeFolderBase, themeFolderName)
+}
+
+func (config *Config) ThumbnailIndexFilePath() string {
+	filename := ThumbnailIndexFileName
+	if config.Conversion.Thumbnails.IndexFileName != "" {
+		filename = config.Conversion.Thumbnails.IndexFileName
+	}
+
+	return filepath.Join(config.MetaDataFolder(), filename)
+}
+
+func (config *Config) ThumbnailFolder() string {
+	folderName := ThumbnailsFolderName
+	if config.Conversion.Thumbnails.FolderName != "" {
+		folderName = config.Conversion.Thumbnails.FolderName
+	}
+
+	return filepath.Join(config.MetaDataFolder(), folderName)
 }
 
 func (config *Config) Load() (*Config, error) {
