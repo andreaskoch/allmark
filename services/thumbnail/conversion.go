@@ -124,14 +124,7 @@ func (conversion *ConversionService) createThumbnail(file *dataaccess.File, dime
 	fileExtension := imageconversion.GetFileExtensionFromMimeType(mimeType)
 	filename := fmt.Sprintf("%s-%v-%v.%s", file.Id(), dimensions.MaxWidth, dimensions.MaxHeight, fileExtension)
 
-	// assemble the full file route
-	fullFileRoute, err := route.Combine(file.Parent(), file.Route())
-	if err != nil {
-		conversion.logger.Warn("Unable to combine routes %q and %q.", file.Parent(), file.Route())
-		return
-	}
-
-	thumb := newThumb(fullFileRoute, filename, dimensions)
+	thumb := newThumb(file.Route(), filename, dimensions)
 
 	// check the index
 	if conversion.isInIndex(thumb) {
