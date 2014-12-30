@@ -164,13 +164,13 @@ type Index struct {
 	thumbnailFolder string            `json:-`
 }
 
-func (i *Index) GetThumbs(key string) (thumbs Thumbs, exists bool) {
-	thumbs, exists = i.Thumbs[key]
+func (i *Index) GetThumbs(thumbnailRoute string) (thumbs Thumbs, exists bool) {
+	thumbs, exists = i.Thumbs[thumbnailRoute]
 	return thumbs, exists
 }
 
-func (i *Index) SetThumbs(key string, thumbs Thumbs) {
-	i.Thumbs[key] = thumbs
+func (i *Index) SetThumbs(thumbnailRoute string, thumbs Thumbs) {
+	i.Thumbs[thumbnailRoute] = thumbs
 }
 
 func (i *Index) GetThumbnailFolder() string {
