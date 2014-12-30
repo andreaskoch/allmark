@@ -12,7 +12,6 @@ import (
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/common"
 	"github.com/andreaskoch/allmark2/services/converter/markdowntohtml/util"
-	"github.com/andreaskoch/allmark2/services/thumbnail"
 	"regexp"
 	"strings"
 )
@@ -22,12 +21,12 @@ var (
 	markdownPattern = regexp.MustCompile(`imagegallery: \[([^\]]*)\]\(([^)]+)\)`)
 )
 
-func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, thumbnailIndex *thumbnail.Index) *FilePreviewExtension {
+func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, imageProvider *common.ImageProvider) *FilePreviewExtension {
 	return &FilePreviewExtension{
 		pathProvider:  pathProvider,
 		base:          baseRoute,
 		files:         files,
-		imageProvider: common.NewImageProvider(pathProvider, baseRoute, thumbnailIndex),
+		imageProvider: imageProvider,
 	}
 }
 

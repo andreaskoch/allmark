@@ -12,17 +12,15 @@ import (
 	"strings"
 )
 
-func NewImageProvider(pathProvider paths.Pather, baseRoute route.Route, thumbnailIndex *thumbnail.Index) *ImageProvider {
+func NewImageProvider(pathProvider paths.Pather, thumbnailIndex *thumbnail.Index) *ImageProvider {
 	return &ImageProvider{
 		pathProvider:   pathProvider,
-		base:           baseRoute,
 		thumbnailIndex: thumbnailIndex,
 	}
 }
 
 type ImageProvider struct {
 	pathProvider   paths.Pather
-	base           route.Route
 	thumbnailIndex *thumbnail.Index
 }
 
@@ -85,14 +83,8 @@ func (provider *ImageProvider) GetImageCode(imageTitle string, fileRoute route.R
 
 func (provider *ImageProvider) getThumbnailPath(fileRoute route.Route, dimensions thumbnail.ThumbDimension) (thumbnailPath string, thumbnailAvailable bool) {
 
-	// assemble to the full image route
-	fullRoute, err := route.Combine(provider.base, fileRoute)
-	if err != nil {
-		panic(fmt.Sprintf("Cannot combine routes %q and %q.", provider.base, fileRoute))
-	}
-
 	// check if there are thumbs for the supplied file route
-	thumbs, exists := provider.thumbnailIndex.GetThumbs(fullRoute.Value())
+	thumbs, exists := provider.thumbnailIndex.GetThumbs(fileRoute.Value())
 	if !exists {
 		return "", false // return the full-size image path
 	}

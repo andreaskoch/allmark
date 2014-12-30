@@ -53,7 +53,7 @@ func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item
 
 	itemRoute := item.Route()
 	content := item.Content
-	imageProvider := common.NewImageProvider(pathProvider, itemRoute, converter.thumbnailIndex)
+	imageProvider := common.NewImageProvider(pathProvider, converter.thumbnailIndex)
 
 	// markdown extension: image/thumbnails
 	imageConverter := image.New(pathProvider, itemRoute, item.Files(), imageProvider)
@@ -98,7 +98,7 @@ func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item
 	}
 
 	// markdown extension: imagegallery
-	imagegalleryConverter := imagegallery.New(pathProvider, itemRoute, item.Files(), converter.thumbnailIndex)
+	imagegalleryConverter := imagegallery.New(pathProvider, itemRoute, item.Files(), imageProvider)
 	content, imagegalleryConversionError := imagegalleryConverter.Convert(content)
 	if imagegalleryConversionError != nil {
 		converter.logger.Warn("Error while converting image gallery extensions. Error: %s", imagegalleryConversionError)
