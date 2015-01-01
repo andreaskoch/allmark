@@ -168,8 +168,6 @@ func isVideoFileLink(link string) (isVideoFile bool, mimeType string) {
 func renderVideoFileLink(title, link, mimetype string) string {
 	return fmt.Sprintf(`<section class="video video-file">
 		<header><a href="%s" target="_blank" title="%s">%s</a></header>
-		<video width="560" height="315" controls>
-			<source src="%s" type="%s">
-		</video>
+		<video width="560" height="315" controls src="%s" type="%s"></video>
 	</section>`, link, title, title, link, mimetype)
 }
