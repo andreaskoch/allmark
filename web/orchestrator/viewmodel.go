@@ -164,14 +164,18 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 
 		viewModel := orchestrator.getViewModel(item)
 		if viewModel == nil {
-			// todo: log warning
+			orchestrator.logger.Error("No view model found for item %q.", item)
 			continue
 		}
 
 		// prepare lazy loading
-		viewModel.Content = converter.LazyLoad(viewModel.Content)
+		contentWithLazyLoadingEnabled := converter.LazyLoad(viewModel.Content)
 
-		models = append(models, viewModel)
+		// create a copy (make sure we don't modify the content of the original view model)
+		viewmodelCopy := *viewModel
+		viewmodelCopy.Content = contentWithLazyLoadingEnabled
+
+		models = append(models, &viewmodelCopy)
 	}
 
 	return models
