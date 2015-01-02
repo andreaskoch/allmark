@@ -498,10 +498,14 @@ article>.preview>ul {
     list-style-type: none;
 }
 
-article>.preview>ul>li:nth-child(even) {
-    padding: 2.5em 0 0;
-    margin: 2.5em 0 0;
-    border-top: 1px dashed black;
+article>.preview>ul>li {
+    padding: 0 0 2.5em 0;
+    margin: 0 0 2.5em 0;
+}
+
+article>.preview>ul>li:last-child {
+    padding: 0;
+    margin: 0;
 }
 
 aside.sidebar>.navigation {
