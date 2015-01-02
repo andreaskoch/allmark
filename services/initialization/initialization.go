@@ -12,7 +12,7 @@ import (
 )
 
 func Initialize(baseFolder string) (success bool, err error) {
-	config := config.Default(baseFolder)
+	config := config.Get(baseFolder)
 
 	// create config
 	if _, err := config.Save(); err != nil {
