@@ -15,6 +15,12 @@ const repositoryTemplate = `
 {{.Description}}
 </section>
 
+{{if .Author.Name}}
+<section class="publisher">
+by <span class="author" itemprop="author" rel="author">{{ .Author.Name }}</span>
+</section>
+{{end}}
+
 <section class="content" itemprop="articleBody">
 {{.Content}}
 </section>
