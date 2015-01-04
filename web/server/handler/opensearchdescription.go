@@ -34,13 +34,13 @@ func (handler *OpenSearchDescription) Func() func(w http.ResponseWriter, r *http
 		header.VaryAcceptEncoding(w, r)
 
 		// get the template
-		openSearchDescriptionTemplate, err := handler.templateProvider.GetSubTemplate(templates.OpenSearchDescriptionTemplateName)
+		hostname := getHostnameFromRequest(r)
+		openSearchDescriptionTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.OpenSearchDescriptionTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
-		hostname := getHostnameFromRequest(r)
 		descriptionModel := handler.openSearchDescriptionOrchestrator.GetDescriptionModel(hostname)
 		openSearchDescription := getRenderedTemplateText(openSearchDescriptionTemplate, descriptionModel)
 

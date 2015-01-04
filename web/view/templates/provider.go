@@ -90,12 +90,42 @@ func NewProvider(templateFolder string) Provider {
 	return provider
 }
 
-func (provider *Provider) GetFullTemplate(templateName string) (*template.Template, error) {
-	return provider.getParsedTemplate(templateName, true)
+func (provider *Provider) GetFullTemplate(hostname, templateName string) (*template.Template, error) {
+
+	t, err := provider.getParsedTemplate(templateName, true)
+	if err != nil {
+		panic(err)
+		return nil, err
+	}
+
+	// override template functions
+	t.Funcs(provider.getTemplateFunctions(hostname))
+
+	return t, nil
 }
 
-func (provider *Provider) GetSubTemplate(templateName string) (*template.Template, error) {
-	return provider.getParsedTemplate(templateName, false)
+func (provider *Provider) GetSubTemplate(hostname, templateName string) (*template.Template, error) {
+	t, err := provider.getParsedTemplate(templateName, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// override template functions
+	t.Funcs(provider.getTemplateFunctions(hostname))
+
+	return t, nil
+}
+
+func (provider *Provider) getTemplateFunctions(hostname string) map[string]interface{} {
+
+	// Get the current hostname
+	getHostname := func() string {
+		return hostname
+	}
+
+	return map[string]interface{}{
+		"hostname": getHostname,
+	}
 }
 
 func (provider *Provider) StoreTemplatesOnDisc() (success bool, err error) {
@@ -142,7 +172,7 @@ func (provider *Provider) getParsedTemplate(templateName string, includeMaster b
 	}
 
 	// parse the template
-	template, err := template.New(templateName).Parse(templateText)
+	template, err := template.New(templateName).Funcs(provider.getTemplateFunctions("")).Parse(templateText)
 	if err != nil {
 		return nil, err
 	}

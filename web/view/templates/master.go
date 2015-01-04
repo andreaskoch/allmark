@@ -32,6 +32,8 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	{{end}}
 	{{end}}
 
+	Hostname: {{hostname}}
+
 	<meta property="og:site_name" content="{{ .RepositoryName }}" />
 	<meta property="og:type" content="article" />
 	<meta property="og:title" content="{{.PageTitle}}" />

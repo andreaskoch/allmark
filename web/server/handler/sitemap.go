@@ -36,15 +36,17 @@ func (self *Sitemap) Func() func(w http.ResponseWriter, r *http.Request) {
 		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 		header.VaryAcceptEncoding(w, r)
 
+		hostname := getHostnameFromRequest(r)
+
 		// get the sitemap content template
-		sitemapContentTemplate, err := self.templateProvider.GetSubTemplate(templates.SitemapContentTemplateName)
+		sitemapContentTemplate, err := self.templateProvider.GetSubTemplate(hostname, templates.SitemapContentTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Content template not found. Error: %s", err)
 			return
 		}
 
 		// get the sitemap template
-		sitemapTemplate, err := self.templateProvider.GetFullTemplate(templates.SitemapTemplateName)
+		sitemapTemplate, err := self.templateProvider.GetFullTemplate(hostname, templates.SitemapTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return

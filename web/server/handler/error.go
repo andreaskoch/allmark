@@ -32,7 +32,8 @@ func (handler Error) Func() func(w http.ResponseWriter, r *http.Request) {
 		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 
 		// get the error template
-		errorTemplate, err := handler.templateProvider.GetFullTemplate(templates.ErrorTemplateName)
+		hostname := getHostnameFromRequest(r)
+		errorTemplate, err := handler.templateProvider.GetFullTemplate(hostname, templates.ErrorTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return

@@ -39,6 +39,8 @@ func (handler *Search) Func() func(w http.ResponseWriter, r *http.Request) {
 		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 		header.VaryAcceptEncoding(w, r)
 
+		hostname := getHostnameFromRequest(r)
+
 		// get the query parameter
 		query, _ := getQueryParameterFromUrl(*r.URL)
 
@@ -49,7 +51,7 @@ func (handler *Search) Func() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// get the search template
-		searchTemplate, err := handler.templateProvider.GetFullTemplate(templates.SearchTemplateName)
+		searchTemplate, err := handler.templateProvider.GetFullTemplate(hostname, templates.SearchTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
@@ -63,7 +65,7 @@ func (handler *Search) Func() func(w http.ResponseWriter, r *http.Request) {
 		viewModel.BreadcrumbNavigation = handler.navigationOrchestrator.GetBreadcrumbNavigation(route.New())
 
 		// get the search result content template
-		searchResultContentTemplate, err := handler.templateProvider.GetSubTemplate(templates.SearchContentTemplateName)
+		searchResultContentTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.SearchContentTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return

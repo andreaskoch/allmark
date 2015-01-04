@@ -65,14 +65,14 @@ func (handler *Print) Func() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// render the view model
-		handler.render(w, viewModel)
+		handler.render(w, hostname, viewModel)
 	}
 }
 
-func (handler *Print) render(writer io.Writer, viewModel viewmodel.ConversionModel) {
+func (handler *Print) render(writer io.Writer, hostname string, viewModel viewmodel.ConversionModel) {
 
 	// get a template
-	template, err := handler.templateProvider.GetSubTemplate(templates.ConversionTemplateName)
+	template, err := handler.templateProvider.GetSubTemplate(hostname, templates.ConversionTemplateName)
 	if err != nil {
 		handler.logger.Error("No template for item of type %q.", viewModel.Type)
 		return

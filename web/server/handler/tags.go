@@ -35,13 +35,15 @@ func (self *Tags) Func() func(w http.ResponseWriter, r *http.Request) {
 		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 		header.VaryAcceptEncoding(w, r)
 
-		tagmapTemplate, err := self.templateProvider.GetFullTemplate(templates.TagmapTemplateName)
+		hostname := getHostnameFromRequest(r)
+
+		tagmapTemplate, err := self.templateProvider.GetFullTemplate(hostname, templates.TagmapTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
-		tagmapContentTemplate, err := self.templateProvider.GetSubTemplate(templates.TagmapContentTemplateName)
+		tagmapContentTemplate, err := self.templateProvider.GetSubTemplate(hostname, templates.TagmapContentTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Content template not found. Error: %s", err)
 			return

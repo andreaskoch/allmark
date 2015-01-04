@@ -34,8 +34,10 @@ func (handler *XmlSitemap) Func() func(w http.ResponseWriter, r *http.Request) {
 		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
 		header.VaryAcceptEncoding(w, r)
 
+		hostname := getHostnameFromRequest(r)
+
 		// get the sitemap template
-		xmlSitemapTemplate, err := handler.templateProvider.GetSubTemplate(templates.XmlSitemapTemplateName)
+		xmlSitemapTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.XmlSitemapTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
@@ -44,14 +46,13 @@ func (handler *XmlSitemap) Func() func(w http.ResponseWriter, r *http.Request) {
 		sitemapWrapper := renderSitemapWrapper(xmlSitemapTemplate)
 
 		// get the sitemap content template
-		xmlSitemapContentTemplate, err := handler.templateProvider.GetSubTemplate(templates.XmlSitemapContentTemplateName)
+		xmlSitemapContentTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.XmlSitemapContentTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Content template not found. Error: %s", err)
 			return
 		}
 
 		// render the sitemap content
-		hostname := getHostnameFromRequest(r)
 		entries := handler.xmlSitemapOrchestrator.GetSitemapEntires(hostname)
 
 		sitemapContent := renderSitemapEntries(xmlSitemapContentTemplate, entries)

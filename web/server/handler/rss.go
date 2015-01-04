@@ -32,6 +32,9 @@ func (handler *Rss) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		// get the current hostname
+		hostname := getHostnameFromRequest(r)
+
 		// set headers
 		header.ContentType(w, r, "text/xml; charset=utf-8")
 		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
@@ -44,21 +47,18 @@ func (handler *Rss) Func() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// get the sitemap template
-		feedTemplate, err := handler.templateProvider.GetSubTemplate(templates.RssFeedTemplateName)
+		feedTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.RssFeedTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
-
-		// get the current hostname
-		hostname := getHostnameFromRequest(r)
 
 		// root entry / channel item
 		rootEntry := handler.feedOrchestrator.GetRootEntry(hostname)
 		feedWrapper := renderFeedWrapper(feedTemplate, rootEntry)
 
 		// get the sitemap content template
-		feedContentTemplate, err := handler.templateProvider.GetSubTemplate(templates.RssFeedContentTemplateName)
+		feedContentTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.RssFeedContentTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Content template not found. Error: %s", err)
 			return

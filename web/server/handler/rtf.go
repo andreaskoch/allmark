@@ -97,7 +97,7 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		html := handler.convertToHtml(model)
+		html := handler.convertToHtml(hostname, model)
 
 		// write the html to a temp file
 		htmlFilePath := fsutil.GetTempFileName("html-source") + ".html"
@@ -147,10 +147,10 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (handler *Rtf) convertToHtml(viewModel viewmodel.ConversionModel) string {
+func (handler *Rtf) convertToHtml(hostname string, viewModel viewmodel.ConversionModel) string {
 
 	// get a template
-	template, err := handler.templateProvider.GetSubTemplate(templates.ConversionTemplateName)
+	template, err := handler.templateProvider.GetSubTemplate(hostname, templates.ConversionTemplateName)
 	if err != nil {
 		handler.logger.Error("No template for item of type %q.", viewModel.Type)
 		return ""
