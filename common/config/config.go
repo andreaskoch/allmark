@@ -54,8 +54,6 @@ func Get(baseFolder string) *Config {
 	// local
 	if config, err := New(baseFolder).Load(); err == nil {
 		return config
-	} else {
-		panic(err)
 	}
 
 	// global
@@ -64,8 +62,6 @@ func Get(baseFolder string) *Config {
 		homeDirectory := homeDirectory()
 		if config, err := New(homeDirectory).Load(); err == nil {
 			return config
-		} else {
-			panic(err)
 		}
 
 	}
