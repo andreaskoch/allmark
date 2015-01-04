@@ -6,7 +6,6 @@ package orchestrator
 
 import (
 	"fmt"
-	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
 )
@@ -22,10 +21,7 @@ func (orchestrator *FeedOrchestrator) GetRootEntry(hostname string) viewmodel.Fe
 		orchestrator.logger.Fatal("No root item found.")
 	}
 
-	addressPrefix := fmt.Sprintf("http://%s/", hostname)
-	pathProvider := orchestrator.absolutePather(addressPrefix)
-
-	return orchestrator.createFeedEntryModel(pathProvider, rootItem)
+	return orchestrator.createFeedEntryModel(hostname, rootItem)
 }
 
 func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, page int) (entries []viewmodel.FeedEntry, found bool) {
@@ -40,10 +36,6 @@ func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, 
 		orchestrator.logger.Fatal("No root item found")
 	}
 
-	// create the path provider
-	addressPrefix := fmt.Sprintf("http://%s/", hostname)
-	pathProvider := orchestrator.absolutePather(addressPrefix)
-
 	feedEntries := make([]viewmodel.FeedEntry, 0)
 
 	latestItems, found := pagedItems(orchestrator.getLatestItems(rootItem.Route()), itemsPerPage, page)
@@ -52,13 +44,16 @@ func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, 
 	}
 
 	for _, item := range latestItems {
-		feedEntries = append(feedEntries, orchestrator.createFeedEntryModel(pathProvider, item))
+		feedEntries = append(feedEntries, orchestrator.createFeedEntryModel(hostname, item))
 	}
 
 	return feedEntries, true
 }
 
-func (orchestrator *FeedOrchestrator) createFeedEntryModel(pathProvider paths.Pather, item *model.Item) viewmodel.FeedEntry {
+func (orchestrator *FeedOrchestrator) createFeedEntryModel(hostname string, item *model.Item) viewmodel.FeedEntry {
+
+	addressPrefix := fmt.Sprintf("http://%s/%s/", hostname, item.Route().Value())
+	pathProvider := orchestrator.absolutePather(addressPrefix)
 
 	// item location
 	location := pathProvider.Path(item.Route().Value())
