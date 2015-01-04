@@ -11,9 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/web/view/templates"
 )
 
-func NewFactory(logger logger.Logger, config config.Config, orchestratorFactory orchestrator.Factory) *Factory {
-
-	templateProvider := templates.NewProvider(config.TemplatesFolder())
+func NewFactory(logger logger.Logger, config config.Config, templateProvider templates.Provider, orchestratorFactory orchestrator.Factory) *Factory {
 
 	return &Factory{
 		logger: logger,

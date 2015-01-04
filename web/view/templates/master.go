@@ -32,13 +32,11 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	{{end}}
 	{{end}}
 
-	Hostname: {{hostname}}
-
 	<meta property="og:site_name" content="{{ .RepositoryName }}" />
 	<meta property="og:type" content="article" />
 	<meta property="og:title" content="{{.PageTitle}}" />
 	<meta property="og:description" content="{{.Description}}" />
-	<meta property="og:url" content="{{.BaseUrl}}" />
+	<meta property="og:url" content="{{ .BaseUrl | absolute }}" />
 	{{if .Images}}{{range .Images}}
 	<meta property="og:image" content="{{ .Route }}" />{{end}}{{end}}
 	{{if .LanguageTag}}<meta property="og:locale" content="{{.LanguageTag}}" />{{end}}
@@ -48,7 +46,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	{{if .Tags}}{{range .Tags}}
 	<meta property="og:article:tag" content="{{ .Name }}" />{{end}}{{end}}
 
-	<link rel="canonical" href="{{.BaseUrl}}">
+	<link rel="canonical" href="{{ .BaseUrl | absolute }}">
 	<link rel="alternate" hreflang="{{.LanguageTag}}" href="{{.BaseUrl}}">
 	<link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.rss">
 	<link rel="shortcut icon" href="/theme/favicon.ico">

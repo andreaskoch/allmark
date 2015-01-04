@@ -17,6 +17,7 @@ import (
 	"github.com/andreaskoch/allmark2/web/orchestrator"
 	"github.com/andreaskoch/allmark2/web/server/handler"
 	"github.com/andreaskoch/allmark2/web/server/header"
+	"github.com/andreaskoch/allmark2/web/view/templates"
 	"github.com/andreaskoch/allmark2/web/webpaths"
 	"github.com/gorilla/mux"
 	"github.com/skratchdot/open-golang/open"
@@ -64,11 +65,10 @@ func New(logger logger.Logger, config config.Config, repository dataaccess.Repos
 	tagPathProvider := patherFactory.Absolute(TagPathPrefix)
 	webPathProvider := webpaths.NewWebPathProvider(patherFactory, itemPathProvider, tagPathProvider)
 
-	// orchestrator
-	orchestratorFactory := orchestrator.NewFactory(logger, config, repository, parser, converter, webPathProvider)
-
 	// handlers
-	handlerFactory := handler.NewFactory(logger, config, *orchestratorFactory)
+	templateProvider := templates.NewProvider(config.TemplatesFolder())
+	orchestratorFactory := orchestrator.NewFactory(logger, config, repository, parser, converter, webPathProvider)
+	handlerFactory := handler.NewFactory(logger, config, templateProvider, *orchestratorFactory)
 
 	return &Server{
 		logger: logger,

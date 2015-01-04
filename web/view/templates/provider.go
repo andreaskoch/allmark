@@ -123,8 +123,23 @@ func (provider *Provider) getTemplateFunctions(hostname string) map[string]inter
 		return hostname
 	}
 
+	// get the absolute url for a given (relative) uri
+	getAbsoluteUrl := func(uri string) string {
+
+		// sanatize
+		uri = strings.TrimSpace(uri)
+
+		// add prefix
+		if !strings.HasPrefix(uri, "/") {
+			uri = "/" + uri
+		}
+
+		return "//" + getHostname() + uri
+	}
+
 	return map[string]interface{}{
 		"hostname": getHostname,
+		"absolute": getAbsoluteUrl,
 	}
 }
 
