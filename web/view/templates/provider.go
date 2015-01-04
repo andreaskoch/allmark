@@ -134,7 +134,7 @@ func (provider *Provider) getTemplateFunctions(hostname string) map[string]inter
 			uri = "/" + uri
 		}
 
-		return "//" + getHostname() + uri
+		return "http://" + getHostname() + uri
 	}
 
 	return map[string]interface{}{
