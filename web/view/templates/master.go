@@ -38,7 +38,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<meta property="og:description" content="{{.Description}}" />
 	<meta property="og:url" content="{{ .BaseUrl | absolute }}" />
 	{{if .Images}}{{range .Images}}
-	<meta property="og:image" content="{{ .Route }}" />{{end}}{{end}}
+	<meta property="og:image" content="{{ .Route | absolute }}" />{{end}}{{end}}
 	{{if .LanguageTag}}<meta property="og:locale" content="{{.LanguageTag}}" />{{end}}
 	{{if .CreationDate}}<meta property="og:article:published_time" content="{{.CreationDate}}" />{{end}}
 	{{if .LastModifiedDate}}<meta property="og:article:modified_time" content="{{.LastModifiedDate}}" />{{end}}
