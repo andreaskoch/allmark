@@ -102,9 +102,9 @@ func (converter *FilePreviewExtension) getImageLinksByPath(path string) []string
 	}
 
 	numberOfFiles := len(converter.files)
-	imagelinks := make([]string, numberOfFiles, numberOfFiles)
+	imagelinks := make([]string, 0, numberOfFiles)
 
-	for index, file := range converter.files {
+	for _, file := range converter.files {
 
 		// skip files which are not a child of the supplied path
 		if !file.Route().IsChildOf(fullGalleryRoute) {
@@ -121,8 +121,7 @@ func (converter *FilePreviewExtension) getImageLinksByPath(path string) []string
 
 		// calculate the image code
 		imageCode := converter.imageProvider.GetImageCodeWithLink(imageTitle, file.Route())
-
-		imagelinks[index] = imageCode
+		imagelinks = append(imagelinks, imageCode)
 	}
 
 	return imagelinks
