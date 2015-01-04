@@ -37,18 +37,14 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<meta property="og:title" content="{{.PageTitle}}" />
 	<meta property="og:description" content="{{.Description}}" />
 	<meta property="og:url" content="{{.BaseUrl}}" />
-	<meta property="og:image" content="" />
-
+	{{if .Images}}{{range .Images}}
+	<meta property="og:image" content="{{ .Route }}" />{{end}}{{end}}
 	{{if .LanguageTag}}<meta property="og:locale" content="{{.LanguageTag}}" />{{end}}
 	{{if .CreationDate}}<meta property="og:article:published_time" content="{{.CreationDate}}" />{{end}}
 	{{if .LastModifiedDate}}<meta property="og:article:modified_time" content="{{.LastModifiedDate}}" />{{end}}
 	{{if .Author.Name}}<meta property="og:article:author" content="{{ .Author.Name }}" />{{end}}
-
-	{{if .Tags}}
-	{{range .Tags}}
-	<meta property="og:article:tag" content="{{ .Name }}" />
-	{{end}}
-	{{end}}
+	{{if .Tags}}{{range .Tags}}
+	<meta property="og:article:tag" content="{{ .Name }}" />{{end}}{{end}}
 
 	<link rel="canonical" href="{{.BaseUrl}}">
 	<link rel="alternate" hreflang="{{.LanguageTag}}" href="{{.BaseUrl}}">

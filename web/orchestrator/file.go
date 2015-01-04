@@ -11,6 +11,7 @@ import (
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
 	"github.com/andreaskoch/allmark2/web/view/viewmodel"
+	"strings"
 )
 
 type FileOrchestrator struct {
@@ -43,8 +44,8 @@ func (orchestrator *FileOrchestrator) GetFile(fileRoute route.Route) (fileModel 
 	return convertedModel, true
 }
 
-func (orchestrator *FileOrchestrator) GetFiles(itemRoute route.Route) (files []viewmodel.File) {
-	files = make([]viewmodel.File, 0)
+func (orchestrator *FileOrchestrator) GetFiles(itemRoute route.Route) []viewmodel.File {
+	files := make([]viewmodel.File, 0)
 
 	// get the item
 	item := orchestrator.getItem(itemRoute)
@@ -64,6 +65,24 @@ func (orchestrator *FileOrchestrator) GetFiles(itemRoute route.Route) (files []v
 	}
 
 	return files
+}
+
+func (orchestrator *FileOrchestrator) GetImages(itemRoute route.Route) []viewmodel.Image {
+	files := orchestrator.GetFiles(itemRoute)
+	images := make([]viewmodel.Image, 0)
+
+	for _, file := range files {
+
+		// skip all files that are not images
+		if !strings.HasPrefix(file.MimeType, "image/") {
+			continue
+		}
+
+		images = append(images, viewmodel.Image{file})
+
+	}
+
+	return images
 }
 
 func toViewModel(pathProvider paths.Pather, file *model.File) (fileModel viewmodel.File, err error) {

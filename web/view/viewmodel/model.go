@@ -25,7 +25,8 @@ type Model struct {
 	Tags     []*Tag    `json:"tags"`
 	TagCloud *TagCloud `json:"tagCloud"`
 
-	Files []File `json:"files"`
+	Files  []File  `json:"files"`
+	Images []Image `json:"images"`
 
 	Locations   []*Model    `json:"locations"`
 	GeoLocation GeoLocation `json:"geoLocation"`

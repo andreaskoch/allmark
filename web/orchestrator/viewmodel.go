@@ -223,18 +223,12 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) *viewm
 
 			// create a view model
 			viewModel := &viewmodel.Model{
-				Base:    getBaseModel(root, child, orchestrator.itemPather()),
-				Content: convertedContent,
-
-				// Publisher
-				Publisher: orchestrator.getPublisherInformation(),
-
-				// Author
-				Author: orchestrator.getAuthorInformation(child.MetaData.Author),
-
-				// files
-				Files: orchestrator.fileOrchestrator.GetFiles(childRoute),
-
+				Base:             getBaseModel(root, child, orchestrator.itemPather()),
+				Content:          convertedContent,
+				Publisher:        orchestrator.getPublisherInformation(),
+				Author:           orchestrator.getAuthorInformation(child.MetaData.Author),
+				Files:            orchestrator.fileOrchestrator.GetFiles(childRoute),
+				Images:           orchestrator.fileOrchestrator.GetImages(childRoute),
 				IsRepositoryItem: true,
 			}
 
