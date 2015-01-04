@@ -26,7 +26,7 @@ const (
 	// Global Defaults
 	DefaultHostName                 = "localhost"
 	DefaultPort                     = 8080
-	DefaultLanguage                 = "en"
+	DefaultLanguage                 = "en-US"
 	DefaultLogLevel                 = loglevel.Info
 	DefaultReindexIntervalInSeconds = 0
 )
