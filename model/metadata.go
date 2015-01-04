@@ -20,8 +20,5 @@ type MetaData struct {
 }
 
 func NewMetaData() *MetaData {
-
-	return &MetaData{
-		Language: "en",
-	}
+	return &MetaData{}
 }

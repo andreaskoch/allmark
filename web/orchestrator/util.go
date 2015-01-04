@@ -6,6 +6,7 @@ package orchestrator
 
 import (
 	"fmt"
+	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/paths"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/model"
@@ -32,7 +33,7 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 		Title:       item.Title,
 		Description: item.Description,
 
-		LanguageTag:      item.MetaData.Language,
+		LanguageTag:      getLanguageCode(item.MetaData.Language),
 		CreationDate:     item.MetaData.CreationDate.Format("2006-01-02"),
 		LastModifiedDate: item.MetaData.LastModifiedDate.Format("2006-01-02"),
 	}
@@ -45,6 +46,14 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 
 	return baseModel
 
+}
+
+func getLanguageCode(languageHint string) string {
+	if languageHint == "" {
+		return config.DefaultLanguage
+	}
+
+	return languageHint
 }
 
 func getPageTitle(rootItem, item *model.Item) string {

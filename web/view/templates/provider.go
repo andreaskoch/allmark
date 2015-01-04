@@ -137,9 +137,15 @@ func (provider *Provider) getTemplateFunctions(hostname string) map[string]inter
 		return "http://" + getHostname() + uri
 	}
 
+	// Replace all occurances of `textToReplace` in `text` with `replacement`.
+	replace := func(text, textToReplace, replacement string) string {
+		return strings.Replace(text, textToReplace, replacement, -1)
+	}
+
 	return map[string]interface{}{
 		"hostname": getHostname,
 		"absolute": getAbsoluteUrl,
+		"replace":  replace,
 	}
 }
 

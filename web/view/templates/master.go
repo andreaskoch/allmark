@@ -9,7 +9,7 @@ import (
 )
 
 var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
-<html lang="{{.LanguageTag}}" itemscope itemtype="http://schema.org/WebPage" prefix="og: http://ogp.me/ns#">
+<html lang="{{.LanguageTag}}" itemscope itemtype="http://schema.org/WebPage" prefix="og: http://ogp.me/ns#" prefix="article: http://ogp.me/ns/article#">
 <head>
 	<base href="{{ .BaseUrl }}">
 
@@ -37,12 +37,11 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	<meta property="og:title" content="{{.PageTitle}}" />
 	<meta property="og:description" content="{{.Description}}" />
 	<meta property="og:url" content="{{ .Route | absolute }}" />
-	{{if .LanguageTag}}<meta property="og:locale" content="{{.LanguageTag}}" />{{end}}
+	{{if .LanguageTag}}<meta property="og:locale" content="{{ replace .LanguageTag "-" "_" }}" />{{end}}
 	{{if .Images}}{{range .Images}}
 	<meta property="og:image" content="{{ .Route | absolute }}" />{{end}}{{end}}
 	{{if .CreationDate}}<meta property="article:published_time" content="{{.CreationDate}}" />{{end}}
 	{{if .LastModifiedDate}}<meta property="article:modified_time" content="{{.LastModifiedDate}}" />{{end}}
-	{{if .Author.Name}}<meta property="article:author" content="{{ .Author.Name }}" />{{end}}
 	{{if .Tags}}{{range .Tags}}
 	<meta property="article:tag" content="{{ .Name }}" />{{end}}{{end}}
 
