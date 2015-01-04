@@ -16,7 +16,7 @@ const documentTemplate = `
 </section>
 
 <section class="publisher">
-created {{if .Author.Name}}by <span class="author" itemprop="author" rel="author">{{ .Author.Name }}</span>{{end}}{{ if .CreationDate }} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>{{ end }}
+created {{if .Author.Name}}by <span class="author" itemprop="author" rel="author"><a href="{{ .Author.Url }}" title="{{ .Author.Name }}" target="_blank">{{ .Author.Name }}</a></span>{{end}}{{ if .CreationDate }} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>{{ end }}
 </section>
 
 <section class="content" itemprop="articleBody">
