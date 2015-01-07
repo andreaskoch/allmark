@@ -22,7 +22,7 @@ var (
 
 	// command line flags
 	verboseFlagIsSet = flag.Bool("v", false, "Verbose mode")
-	allFlagIsSet     = flag.Bool("all", false, "Force rebuild of everything (go install -a)")
+	installFlagIsSet = flag.Bool("install", false, "Force rebuild of everything (go install -a)")
 	fmtFlagIsSet     = flag.Bool("fmt", false, "Cleanup the source files")
 
 	// working directory
@@ -43,7 +43,7 @@ func main() {
 		return
 	}
 
-	if *allFlagIsSet {
+	if *installFlagIsSet {
 		install()
 		return
 	}
