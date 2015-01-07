@@ -5,7 +5,6 @@
 package server
 
 import (
-	"code.google.com/p/go.net/websocket"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/config"
 	"github.com/andreaskoch/allmark2/common/logger"
@@ -21,6 +20,7 @@ import (
 	"github.com/andreaskoch/allmark2/web/webpaths"
 	"github.com/gorilla/mux"
 	"github.com/skratchdot/open-golang/open"
+	"golang.org/x/net/websocket"
 	"math"
 	"net/http"
 	"path/filepath"

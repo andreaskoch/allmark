@@ -5,9 +5,9 @@
 package update
 
 import (
-	"code.google.com/p/go.net/websocket"
 	"fmt"
 	"github.com/andreaskoch/allmark2/common/route"
+	"golang.org/x/net/websocket"
 )
 
 func NewConnection(hub *Hub, ws *websocket.Conn, route route.Route) *connection {

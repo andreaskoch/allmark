@@ -5,12 +5,12 @@
 package handler
 
 import (
-	"code.google.com/p/go.net/websocket"
 	"github.com/andreaskoch/allmark2/common/logger"
 	"github.com/andreaskoch/allmark2/common/route"
 	"github.com/andreaskoch/allmark2/web/orchestrator"
 	"github.com/andreaskoch/allmark2/web/server/handler/update"
 	"github.com/gorilla/mux"
+	"golang.org/x/net/websocket"
 	"strings"
 )
 
