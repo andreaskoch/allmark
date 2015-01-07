@@ -1,0 +1,8 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\Directory\shell\allmark serve]
+"Icon"="C:\\andyk\\dev\\gocode\\src\\github.com\\andreaskoch\\allmark\\files\\design\\logo\\ICO\\allmark.ico"
+
+[HKEY_CLASSES_ROOT\Directory\shell\allmark serve\command]
+@="C:\\andyk\\dev\\gocode\\bin\\allmark.exe serve \"%1\""
+
