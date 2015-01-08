@@ -30,9 +30,10 @@ const GOBIN = "GOBIN"
 var (
 
 	// command line flags
-	verboseFlagIsSet = flag.Bool("v", false, "Verbose mode")
-	installFlagIsSet = flag.Bool("install", false, "Force rebuild of everything (go install -a)")
-	fmtFlagIsSet     = flag.Bool("fmt", false, "Format the source files")
+	verboseFlagIsSet      = flag.Bool("v", false, "Verbose mode")
+	installFlagIsSet      = flag.Bool("install", false, "Force rebuild of everything (go install -a)")
+	fmtFlagIsSet          = flag.Bool("fmt", false, "Format the source files")
+	dependenciesFlagIsSet = flag.Bool("dependencies", false, "List all third-party dependencies")
 
 	// working directory
 	root = getWorkingDirectory()
@@ -57,6 +58,11 @@ func main() {
 
 	if *installFlagIsSet {
 		install()
+		return
+	}
+
+	if *dependenciesFlagIsSet {
+		listDependencies()
 		return
 	}
 
@@ -88,6 +94,15 @@ func format() {
 	}
 }
 
+// List all third-party packages that allmark depends on.
+func listDependencies() {
+	thirdPartyPackages := getThirdPartyPackages()
+
+	for _, dependency := range thirdPartyPackages {
+		fmt.Println(dependency)
+	}
+}
+
 // Get all internal packages used in this project.
 func getInternalPackages() []string {
 
@@ -97,6 +112,17 @@ func getInternalPackages() []string {
 
 	internalPackages := getAllNonStandardLibraryPackages(isInternalPackage)
 	return internalPackages
+}
+
+// Get all third party packages used in this project.
+func getThirdPartyPackages() []string {
+
+	isThirdPartyPackage := func(packageName string) bool {
+		return !strings.HasPrefix(packageName, ProjectNamespace)
+	}
+
+	thirdPartyPackages := getAllNonStandardLibraryPackages(isThirdPartyPackage)
+	return thirdPartyPackages
 }
 
 // Get a sorted and unique list of all non-standard library packages used in this project that meet the supplied expression.
