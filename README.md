@@ -8,9 +8,26 @@ allmark is a lightweight markdown web server for Linux, Mac OS and Windows writt
 
 ## Dependencies
 
-- [Blackfriday: a markdown processor for Go](https://github.com/russross/blackfriday)
-- [bradleypeabody/fulltext: a Pure-Go full text indexer and search library](https://github.com/bradleypeabody/fulltext)
-- [Gorilla web toolkit: mux for request routing](http://www.gorillatoolkit.org/pkg/mux)
+allmark relies on many great third-party libraries. These are some of them:
+
+- [github.com/bradleypeabody/fulltext](src/github.com/bradleypeabody/fulltext)
+- [github.com/gorilla/context](src/github.com/gorilla/context)
+- [github.com/gorilla/mux](src/github.com/gorilla/mux)
+- [github.com/jbarham/go-cdb](src/github.com/jbarham/go-cdb)
+- [github.com/nfnt/resize](src/github.com/nfnt/resize)
+- [github.com/russross/blackfriday](src/github.com/russross/blackfriday)
+- [github.com/shurcooL/go/github_flavored_markdown/sanitized_anchor_name](src/github.com/shurcooL/go/github_flavored_markdown/sanitized_anchor_name)
+- [github.com/skratchdot/open-golang/open](src/github.com/skratchdot/open-golang/open)
+- [golang.org/x/net/websocket](src/golang.org/x/net/websocket)
+
+These are not under allmark copyright/license. See the respective projects for their copyright & licensing details.
+These are mirrored into allmark for hermetic build reasons and versioning.
+
+To get a full list of all used third-party libraries you execute the make tool with the `-dependencies` flag:
+
+```bash
+go run make.go -dependencies
+```
 
 ## Roadmap / To Dos
 
