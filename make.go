@@ -32,7 +32,7 @@ var (
 	// command line flags
 	verboseFlagIsSet = flag.Bool("v", false, "Verbose mode")
 	installFlagIsSet = flag.Bool("install", false, "Force rebuild of everything (go install -a)")
-	fmtFlagIsSet     = flag.Bool("fmt", false, "Cleanup the source files")
+	fmtFlagIsSet     = flag.Bool("fmt", false, "Format the source files")
 
 	// working directory
 	root = getWorkingDirectory()
@@ -51,7 +51,7 @@ func main() {
 	flag.Parse()
 
 	if *fmtFlagIsSet {
-		cleanup()
+		format()
 		return
 	}
 
@@ -71,7 +71,7 @@ func install() {
 
 }
 
-func cleanup() {
+func format() {
 	packages := getPackages()
 
 	for index, packageName := range packages {
