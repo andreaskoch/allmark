@@ -63,6 +63,7 @@ func main() {
 	flag.PrintDefaults()
 }
 
+// Install all parts of allmark using go install.
 func install() {
 
 	for _, buildPackagage := range buildPackages {
@@ -71,19 +72,35 @@ func install() {
 
 }
 
+// Format all packages of allmark using go fmt.
 func format() {
-	packages := getPackages()
+	packages := getInternalPackages()
 
 	for index, packageName := range packages {
 
-		fmt.Printf("Processing package %v of %v: %s\n", index+1, len(packages), packageName)
-		fmt.Println(runGoCommand(root, "fmt", packageName))
+		fmt.Printf("Formatting package %02d of %v: %s\n", index+1, len(packages), packageName)
+		output := runGoCommand(root, "fmt", packageName)
+		if output != "" {
+			fmt.Println(output)
+		}
 
 		index++
 	}
 }
 
-func getPackages() []string {
+// Get all internal packages used in this project.
+func getInternalPackages() []string {
+
+	isInternalPackage := func(packageName string) bool {
+		return strings.HasPrefix(packageName, ProjectNamespace)
+	}
+
+	internalPackages := getAllNonStandardLibraryPackages(isInternalPackage)
+	return internalPackages
+}
+
+// Get a sorted and unique list of all non-standard library packages used in this project that meet the supplied expression.
+func getAllNonStandardLibraryPackages(inclusionExpression func(packageName string) bool) []string {
 
 	// get all dependent packages (will include duplicates and standard library packages)
 	allDependentPackages := make([]string, 0)
@@ -111,6 +128,11 @@ func getPackages() []string {
 
 		// skip standard library packages
 		if isStandardLibraryPackage(dep) {
+			continue
+		}
+
+		// skip all packages that don't meet the expression
+		if !inclusionExpression(dep) {
 			continue
 		}
 
