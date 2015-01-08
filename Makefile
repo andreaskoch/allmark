@@ -4,5 +4,9 @@
 install:
 	go run make.go -install
 
+test:
+
+	go run make.go -test
+
 fmt:
 	go run make.go -fmt

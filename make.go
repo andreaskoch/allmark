@@ -31,8 +31,9 @@ var (
 
 	// command line flags
 	verboseFlagIsSet      = flag.Bool("v", false, "Verbose mode")
-	installFlagIsSet      = flag.Bool("install", false, "Force rebuild of everything (go install -a)")
 	fmtFlagIsSet          = flag.Bool("fmt", false, "Format the source files")
+	testFlagIsSet         = flag.Bool("test", false, "Execute all tests (go test")
+	installFlagIsSet      = flag.Bool("install", false, "Force rebuild of everything (go install -a)")
 	dependenciesFlagIsSet = flag.Bool("dependencies", false, "List all third-party dependencies")
 
 	// working directory
@@ -53,6 +54,11 @@ func main() {
 
 	if *fmtFlagIsSet {
 		format()
+		return
+	}
+
+	if *testFlagIsSet {
+		executeTests()
 		return
 	}
 
@@ -78,6 +84,21 @@ func install() {
 
 }
 
+// Execute all test in the current project.
+func executeTests() {
+	packages := getPackagesWithTests()
+
+	for index, packageName := range packages {
+
+		fmt.Printf("Testing package %02d of %v: %s\n", index+1, len(packages), packageName)
+		output := runGoCommand(root, "test", packageName)
+		if output != "" {
+			fmt.Println(output)
+		}
+
+	}
+}
+
 // Format all packages of allmark using go fmt.
 func format() {
 	packages := getInternalPackages()
@@ -90,7 +111,6 @@ func format() {
 			fmt.Println(output)
 		}
 
-		index++
 	}
 }
 
@@ -101,6 +121,21 @@ func listDependencies() {
 	for _, dependency := range thirdPartyPackages {
 		fmt.Println(dependency)
 	}
+}
+
+// Get all packages which tests in them.
+func getPackagesWithTests() []string {
+	isInternalPackageWithTests := func(packageName string) bool {
+		isInternalPackage := strings.HasPrefix(packageName, ProjectNamespace)
+		if !isInternalPackage {
+			return false
+		}
+
+		return packageHasTests(packageName)
+	}
+
+	internalPackagesWithTests := getAllNonStandardLibraryPackages(isInternalPackageWithTests)
+	return internalPackagesWithTests
 }
 
 // Get all internal packages used in this project.
@@ -173,6 +208,24 @@ func getAllNonStandardLibraryPackages(inclusionExpression func(packageName strin
 // Check if the supplied package name is a standard library package.
 func isStandardLibraryPackage(packageName string) bool {
 	return nonStandardPackagePattern.MatchString(packageName) == false
+}
+
+// Check whether the package with the supplied name has tests or not.
+func packageHasTests(packageName string) bool {
+	packagePath := getPackagePathByName(packageName)
+	testFilePattern := filepath.Join(packagePath, "*_test.go")
+	matches, err := filepath.Glob(testFilePattern)
+	if err != nil {
+		panic(err)
+	}
+
+	packageContainsTestFiles := len(matches) > 0
+	return packageContainsTestFiles
+}
+
+// Get the path of package from its name.
+func getPackagePathByName(packageName string) string {
+	return filepath.Join(root, "src", packageName)
 }
 
 // getWorkingDirectory returns the current working directory path or fails.
