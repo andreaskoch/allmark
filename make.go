@@ -7,8 +7,10 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -79,7 +81,7 @@ func main() {
 func install() {
 
 	for _, buildPackagage := range buildPackages {
-		fmt.Println(runGoCommand(root, "install", buildPackagage))
+		runGoCommand(os.Stdout, os.Stderr, root, "install", buildPackagage)
 	}
 
 }
@@ -91,11 +93,7 @@ func executeTests() {
 	for index, packageName := range packages {
 
 		fmt.Printf("Testing package %02d of %v: %s\n", index+1, len(packages), packageName)
-		output := runGoCommand(root, "test", packageName)
-		if output != "" {
-			fmt.Println(output)
-		}
-
+		runGoCommand(os.Stdout, os.Stderr, root, "test", packageName)
 	}
 }
 
@@ -106,10 +104,7 @@ func format() {
 	for index, packageName := range packages {
 
 		fmt.Printf("Formatting package %02d of %v: %s\n", index+1, len(packages), packageName)
-		output := runGoCommand(root, "fmt", packageName)
-		if output != "" {
-			fmt.Println(output)
-		}
+		runGoCommand(os.Stdout, os.Stderr, root, "fmt", packageName)
 
 	}
 }
@@ -166,8 +161,11 @@ func getAllNonStandardLibraryPackages(inclusionExpression func(packageName strin
 	// get all dependent packages (will include duplicates and standard library packages)
 	allDependentPackages := make([]string, 0)
 	for _, buildPackage := range buildPackages {
-		output := runGoCommand(root, "list", "-f", `'{{ join .Deps ","}}'`, buildPackage)
-		allDependentPackages = append(allDependentPackages, strings.Split(output, ",")...)
+		output := new(bytes.Buffer)
+		errors := new(bytes.Buffer)
+		runGoCommand(output, errors, root, "list", "-f", `'{{ join .Deps ","}}'`, buildPackage)
+
+		allDependentPackages = append(allDependentPackages, strings.Split(output.String(), ",")...)
 	}
 
 	// sort the list
@@ -240,7 +238,7 @@ func getWorkingDirectory() string {
 
 // Execute go in the specified go path with the supplied command arguments.
 // Stdout will be returned as the output.
-func runGoCommand(goPath string, args ...string) (output string) {
+func runGoCommand(stdout, stderr io.Writer, goPath string, args ...string) {
 
 	commandName := "go"
 	cmdName := fmt.Sprintf("%s %s", commandName, strings.Join(args, " "))
@@ -252,19 +250,17 @@ func runGoCommand(goPath string, args ...string) (output string) {
 	cmd.Env = setEnv(cmd.Env, GOBIN, filepath.Join(goPath, "bin"))
 
 	// execute the command
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 
 	if *verboseFlagIsSet {
 		log.Printf("Running %s", cmdName)
 	}
 
-	outputBytes, err := cmd.Output()
+	err := cmd.Run()
 	if err != nil {
 		log.Fatalf("Error running %s: %v", cmdName, err)
 	}
-
-	return string(outputBytes)
 }
 
 // cleanGoEnv returns a copy of the current environment with GOPATH and GOBIN removed.
