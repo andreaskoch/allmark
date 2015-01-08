@@ -1,6 +1,6 @@
 // +build ignore
 
-// Copyright 2013 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -18,6 +18,15 @@ import (
 	"strings"
 )
 
+// The main project namespace
+const ProjectNamespace = "allmark.io"
+
+// GOPATH environment variable name
+const GOPATH = "GOPATH"
+
+// GOBIN environment variable name
+const GOBIN = "GOBIN"
+
 var (
 
 	// command line flags
@@ -29,8 +38,11 @@ var (
 	root = getWorkingDirectory()
 
 	// packages to build
-	buildPackages = []string{"allmark.io/cmd/allmark"}
+	buildPackages = []string{
+		fmt.Sprintf("%s/cmd/allmark", ProjectNamespace),
+	}
 
+	// a regular expression matching all non-standard go library packages (e.g. github.com/..., allmark.io/... )
 	nonStandardPackagePattern = regexp.MustCompile(`^\w+[\.-].+/`)
 )
 
@@ -52,14 +64,17 @@ func main() {
 }
 
 func install() {
-	fmt.Println(runGoCommand(root, "install", "allmark.io/cmd/allmark"))
+
+	for _, buildPackagage := range buildPackages {
+		fmt.Println(runGoCommand(root, "install", buildPackagage))
+	}
+
 }
 
 func cleanup() {
 	packages := getPackages()
 
-	for index := range packages {
-		packageName := packages[index]
+	for index, packageName := range packages {
 
 		fmt.Printf("Processing package %v of %v: %s\n", index+1, len(packages), packageName)
 		fmt.Println(runGoCommand(root, "fmt", packageName))
@@ -122,6 +137,8 @@ func getWorkingDirectory() string {
 	return root
 }
 
+// Execute go in the specified go path with the supplied command arguments.
+// Stdout will be returned as the output.
 func runGoCommand(goPath string, args ...string) (output string) {
 
 	commandName := "go"
@@ -130,8 +147,8 @@ func runGoCommand(goPath string, args ...string) (output string) {
 	// set the go path
 	cmd := exec.Command(commandName, args...)
 	cmd.Env = cleanGoEnv()
-	cmd.Env = setEnv(cmd.Env, "GOPATH", goPath)
-	cmd.Env = setEnv(cmd.Env, "GOBIN", filepath.Join(goPath, "bin"))
+	cmd.Env = setEnv(cmd.Env, GOPATH, goPath)
+	cmd.Env = setEnv(cmd.Env, GOBIN, filepath.Join(goPath, "bin"))
 
 	// execute the command
 	// cmd.Stdout = os.Stdout
@@ -152,7 +169,7 @@ func runGoCommand(goPath string, args ...string) (output string) {
 // cleanGoEnv returns a copy of the current environment with GOPATH and GOBIN removed.
 func cleanGoEnv() (clean []string) {
 	for _, env := range os.Environ() {
-		if strings.HasPrefix(env, "GOPATH=") || strings.HasPrefix(env, "GOBIN=") {
+		if strings.HasPrefix(env, GOPATH+"=") || strings.HasPrefix(env, GOBIN+"=") {
 			continue
 		}
 
