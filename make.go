@@ -37,6 +37,7 @@ var (
 	testFlagIsSet         = flag.Bool("test", false, "Execute all tests (go test")
 	installFlagIsSet      = flag.Bool("install", false, "Force rebuild of everything (go install -a)")
 	dependenciesFlagIsSet = flag.Bool("dependencies", false, "List all third-party dependencies")
+	versionFlagIsSet      = flag.Bool("version", false, "Get the current version number of the repository")
 
 	// working directory
 	root = getWorkingDirectory()
@@ -48,6 +49,9 @@ var (
 
 	// a regular expression matching all non-standard go library packages (e.g. github.com/..., allmark.io/... )
 	nonStandardPackagePattern = regexp.MustCompile(`^\w+[\.-].+/`)
+
+	// The git version pattern.
+	gitVersionPattern = regexp.MustCompile(`\b\d\d\d\d-\d\d-\d\d-[0-9a-f]{7,7}\b`)
 )
 
 func main() {
@@ -71,6 +75,11 @@ func main() {
 
 	if *dependenciesFlagIsSet {
 		listDependencies()
+		return
+	}
+
+	if *versionFlagIsSet {
+		printProjectVersionNumber()
 		return
 	}
 
@@ -116,6 +125,11 @@ func listDependencies() {
 	for _, dependency := range thirdPartyPackages {
 		fmt.Println(dependency)
 	}
+}
+
+// Print the current version number of the project.
+func printProjectVersionNumber() {
+	fmt.Println(gitVersion())
 }
 
 // Get all packages which tests in them.
@@ -214,7 +228,7 @@ func packageHasTests(packageName string) bool {
 	testFilePattern := filepath.Join(packagePath, "*_test.go")
 	matches, err := filepath.Glob(testFilePattern)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Unable to find test files in %q. Error: %s", testFilePattern, err.Error())
 	}
 
 	packageContainsTestFiles := len(matches) > 0
@@ -245,6 +259,8 @@ func runGoCommand(stdout, stderr io.Writer, goPath string, args ...string) {
 
 	// set the go path
 	cmd := exec.Command(commandName, args...)
+	cmd.Dir = goPath
+
 	cmd.Env = cleanGoEnv()
 	cmd.Env = setEnv(cmd.Env, GOPATH, goPath)
 	cmd.Env = setEnv(cmd.Env, GOBIN, filepath.Join(goPath, "bin"))
@@ -292,4 +308,32 @@ func setEnv(env []string, key, value string) []string {
 // Create an environment variable of the form key=value.
 func envPair(key, value string) string {
 	return fmt.Sprintf("%s=%s", key, value)
+}
+
+// gitVersion returns the git version of the git repo at root as a
+// string of the form "yyyy-mm-dd-xxxxxxx", with an optional trailing
+// '+' if there are any local uncomitted modifications to the tree.
+func gitVersion() string {
+	cmd := exec.Command("git", "rev-list", "--max-count=1", "--pretty=format:'%ad-%h'", "--date=short", "HEAD")
+	cmd.Dir = root
+
+	commandOutput, err := cmd.Output()
+	if err != nil {
+		log.Fatalf("Error running git rev-list in %s: %v", root, err)
+	}
+
+	versionNumber := strings.TrimSpace(string(commandOutput))
+	if m := gitVersionPattern.FindStringSubmatch(versionNumber); m != nil {
+		versionNumber = m[0]
+	} else {
+		log.Fatalf("Failed to find git version in string %q", versionNumber)
+	}
+
+	cmd = exec.Command("git", "diff", "--exit-code")
+	cmd.Dir = root
+	if err := cmd.Run(); err != nil {
+		versionNumber += "+"
+	}
+
+	return versionNumber
 }
