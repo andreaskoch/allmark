@@ -6,7 +6,7 @@ How to integrate allmark into Ubuntu
 
 Add allmark to your application list and your desktop
 
-- [allmark.desktop](files/Shortcut/allmark.desktop)
+- [allmark.desktop](files/Shortcut/allmark.desktop.txt)
 
 ---
 

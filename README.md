@@ -20,6 +20,8 @@ allmark relies on many great third-party libraries. These are some of them:
 - [github.com/skratchdot/open-golang/open](src/github.com/skratchdot/open-golang/open)
 - [golang.org/x/net/websocket](src/golang.org/x/net/websocket)
 
+and [github.com/laher/goxc](src/github.com/laher/goxc) for cross-compilation.
+
 These are not under allmark copyright/license. See the respective projects for their copyright & licensing details.
 These are mirrored into allmark for hermetic build reasons and versioning.
 
