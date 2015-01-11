@@ -5,6 +5,7 @@
 package main
 
 import (
+	"allmark.io/modules/common/buildinfo"
 	"allmark.io/modules/common/config"
 	"allmark.io/modules/common/logger/console"
 	"allmark.io/modules/common/logger/loglevel"
@@ -27,8 +28,9 @@ import (
 )
 
 const (
-	CommandNameInit  = "init"
-	CommandNameServe = "serve"
+	CommandNameInit    = "init"
+	CommandNameServe   = "serve"
+	CommandNameVersion = "version"
 )
 
 func main() {
@@ -62,6 +64,10 @@ func main() {
 
 		case CommandNameServe:
 			serve(repositoryPath)
+			return true
+
+		case CommandNameVersion:
+			printVersionInformation()
 			return true
 
 		default:
@@ -117,7 +123,7 @@ func parseCommandLineArguments(args []string, commandHandler func(commandName, r
 func printUsageInformation(args []string) {
 	executeableName := args[0]
 
-	fmt.Fprintf(os.Stderr, "%s - %s\n", executeableName, "A markdown web server and renderer")
+	fmt.Fprintf(os.Stderr, "%s - %s (Version: %s)\n", executeableName, "A markdown web server and renderer", buildinfo.Version())
 	fmt.Fprintf(os.Stderr, "\nUsage:\n%s %s %s\n", executeableName, "<command>", "<repository path>")
 	fmt.Fprintf(os.Stderr, "\nAvailable commands:\n")
 	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameInit, "Initialize the configuration")
@@ -199,4 +205,8 @@ func initialize(repositoryPath string) bool {
 	}
 
 	return true
+}
+
+func printVersionInformation() {
+	fmt.Println(buildinfo.Version())
 }
