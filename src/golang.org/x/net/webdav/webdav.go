@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package webdav etc etc TODO.
-package webdav
+package webdav // import "golang.org/x/net/webdav"
 
 // TODO: ETag, properties.
 
@@ -26,7 +26,7 @@ type Handler struct {
 	// PropSystem is an optional property management system. If non-nil, TODO.
 	PropSystem PropSystem
 	// Logger is an optional error logger. If non-nil, it will be called
-	// whenever handling a http.Request results in an error.
+	// for all HTTP requests.
 	Logger func(*http.Request, error)
 }
 
@@ -37,8 +37,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else if h.LockSystem == nil {
 		status, err = http.StatusInternalServerError, errNoLockSystem
 	} else {
-		// TODO: COPY, MOVE, PROPFIND, PROPPATCH methods. Also, OPTIONS??
+		// TODO: COPY, MOVE, PROPFIND, PROPPATCH methods.
+		// MOVE needs to enforce its Depth constraint. See the parseDepth comment.
 		switch r.Method {
+		case "OPTIONS":
+			status, err = h.handleOptions(w, r)
 		case "GET", "HEAD", "POST":
 			status, err = h.handleGetHeadPost(w, r)
 		case "DELETE":
@@ -60,13 +63,21 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(StatusText(status)))
 		}
 	}
-	if h.Logger != nil && err != nil {
+	if h.Logger != nil {
 		h.Logger(r, err)
 	}
 }
 
-func (h *Handler) confirmLocks(r *http.Request) (closer io.Closer, status int, err error) {
-	ih, ok := parseIfHeader(r.Header.Get("If"))
+type nopReleaser struct{}
+
+func (nopReleaser) Release() {}
+
+func (h *Handler) confirmLocks(r *http.Request) (releaser Releaser, status int, err error) {
+	hdr := r.Header.Get("If")
+	if hdr == "" {
+		return nopReleaser{}, 0, nil
+	}
+	ih, ok := parseIfHeader(hdr)
 	if !ok {
 		return nil, http.StatusBadRequest, errInvalidIfHeader
 	}
@@ -76,16 +87,34 @@ func (h *Handler) confirmLocks(r *http.Request) (closer io.Closer, status int, e
 		if path == "" {
 			path = r.URL.Path
 		}
-		closer, err = h.LockSystem.Confirm(path, l.conditions...)
+		releaser, err = h.LockSystem.Confirm(time.Now(), path, l.conditions...)
 		if err == ErrConfirmationFailed {
 			continue
 		}
 		if err != nil {
 			return nil, http.StatusInternalServerError, err
 		}
-		return closer, 0, nil
+		return releaser, 0, nil
 	}
-	return nil, http.StatusPreconditionFailed, errLocked
+	return nil, http.StatusPreconditionFailed, ErrLocked
+}
+
+func (h *Handler) handleOptions(w http.ResponseWriter, r *http.Request) (status int, err error) {
+	allow := "OPTIONS, LOCK, PUT, MKCOL"
+	if fi, err := h.FileSystem.Stat(r.URL.Path); err == nil {
+		if fi.IsDir() {
+			allow = "OPTIONS, LOCK, GET, HEAD, POST, DELETE, TRACE, PROPPATCH, COPY, MOVE, UNLOCK, PUT, PROPFIND"
+		} else {
+			allow = "OPTIONS, LOCK, GET, HEAD, POST, DELETE, TRACE, PROPPATCH, COPY, MOVE, UNLOCK"
+		}
+	}
+
+	// http://www.webdav.org/specs/rfc4918.html#dav.compliance.classes
+	w.Header().Set("DAV", "1, 2")
+	// http://msdn.microsoft.com/en-au/library/cc250217.aspx
+	w.Header().Set("MS-Author-Via", "DAV")
+	w.Header().Set("Allow", allow)
+	return 0, nil
 }
 
 func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request) (status int, err error) {
@@ -104,13 +133,16 @@ func (h *Handler) handleGetHeadPost(w http.ResponseWriter, r *http.Request) (sta
 }
 
 func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request) (status int, err error) {
-	closer, status, err := h.confirmLocks(r)
+	releaser, status, err := h.confirmLocks(r)
 	if err != nil {
 		return status, err
 	}
-	defer closer.Close()
+	defer releaser.Release()
 
 	if err := h.FileSystem.RemoveAll(r.URL.Path); err != nil {
+		if os.IsNotExist(err) {
+			return http.StatusNotFound, err
+		}
 		// TODO: MultiStatus.
 		return http.StatusMethodNotAllowed, err
 	}
@@ -118,11 +150,11 @@ func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request) (status i
 }
 
 func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request) (status int, err error) {
-	closer, status, err := h.confirmLocks(r)
+	releaser, status, err := h.confirmLocks(r)
 	if err != nil {
 		return status, err
 	}
-	defer closer.Close()
+	defer releaser.Release()
 
 	f, err := h.FileSystem.OpenFile(r.URL.Path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
@@ -136,12 +168,15 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request) (status int,
 }
 
 func (h *Handler) handleMkcol(w http.ResponseWriter, r *http.Request) (status int, err error) {
-	closer, status, err := h.confirmLocks(r)
+	releaser, status, err := h.confirmLocks(r)
 	if err != nil {
 		return status, err
 	}
-	defer closer.Close()
+	defer releaser.Release()
 
+	if r.ContentLength > 0 {
+		return http.StatusUnsupportedMediaType, nil
+	}
 	if err := h.FileSystem.Mkdir(r.URL.Path, 0777); err != nil {
 		if os.IsNotExist(err) {
 			return http.StatusConflict, err
@@ -161,7 +196,7 @@ func (h *Handler) handleLock(w http.ResponseWriter, r *http.Request) (retStatus 
 		return status, err
 	}
 
-	token, ld := "", LockDetails{}
+	token, ld, now := "", LockDetails{}, time.Now()
 	if li == (lockInfo{}) {
 		// An empty lockInfo means to refresh the lock.
 		ih, ok := parseIfHeader(r.Header.Get("If"))
@@ -174,38 +209,44 @@ func (h *Handler) handleLock(w http.ResponseWriter, r *http.Request) (retStatus 
 		if token == "" {
 			return http.StatusBadRequest, errInvalidLockToken
 		}
-		var closer io.Closer
-		ld, closer, err = h.LockSystem.Refresh(token, time.Now(), duration)
+		ld, err = h.LockSystem.Refresh(now, token, duration)
 		if err != nil {
 			if err == ErrNoSuchLock {
 				return http.StatusPreconditionFailed, err
 			}
 			return http.StatusInternalServerError, err
 		}
-		defer closer.Close()
 
 	} else {
-		depth, err := parseDepth(r.Header.Get("Depth"))
-		if err != nil {
-			return http.StatusBadRequest, err
+		// Section 9.10.3 says that "If no Depth header is submitted on a LOCK request,
+		// then the request MUST act as if a "Depth:infinity" had been submitted."
+		depth := infiniteDepth
+		if hdr := r.Header.Get("Depth"); hdr != "" {
+			depth = parseDepth(hdr)
+			if depth != 0 && depth != infiniteDepth {
+				// Section 9.10.3 says that "Values other than 0 or infinity must not be
+				// used with the Depth header on a LOCK method".
+				return http.StatusBadRequest, errInvalidDepth
+			}
 		}
 		ld = LockDetails{
-			Depth:    depth,
-			Duration: duration,
-			OwnerXML: li.Owner.InnerXML,
-			Path:     r.URL.Path,
+			Root:      r.URL.Path,
+			Duration:  duration,
+			OwnerXML:  li.Owner.InnerXML,
+			ZeroDepth: depth == 0,
 		}
-		var closer io.Closer
-		token, closer, err = h.LockSystem.Create(r.URL.Path, time.Now(), ld)
+		token, err = h.LockSystem.Create(now, ld)
 		if err != nil {
+			if err == ErrLocked {
+				return StatusLocked, err
+			}
 			return http.StatusInternalServerError, err
 		}
 		defer func() {
 			if retErr != nil {
-				h.LockSystem.Unlock(token)
+				h.LockSystem.Unlock(now, token)
 			}
 		}()
-		defer closer.Close()
 
 		// Create the resource if it didn't previously exist.
 		if _, err := h.FileSystem.Stat(r.URL.Path); err != nil {
@@ -236,11 +277,13 @@ func (h *Handler) handleUnlock(w http.ResponseWriter, r *http.Request) (status i
 	}
 	t = t[1 : len(t)-1]
 
-	switch err = h.LockSystem.Unlock(t); err {
+	switch err = h.LockSystem.Unlock(time.Now(), t); err {
 	case nil:
 		return http.StatusNoContent, err
 	case ErrForbidden:
 		return http.StatusForbidden, err
+	case ErrLocked:
+		return StatusLocked, err
 	case ErrNoSuchLock:
 		return http.StatusConflict, err
 	default:
@@ -248,9 +291,29 @@ func (h *Handler) handleUnlock(w http.ResponseWriter, r *http.Request) (status i
 	}
 }
 
-func parseDepth(s string) (int, error) {
-	// TODO: implement.
-	return -1, nil
+const (
+	infiniteDepth = -1
+	invalidDepth  = -2
+)
+
+// parseDepth maps the strings "0", "1" and "infinity" to 0, 1 and
+// infiniteDepth. Parsing any other string returns invalidDepth.
+//
+// Different WebDAV methods have further constraints on valid depths:
+//	- PROPFIND has no further restrictions, as per section 9.1.
+//	- MOVE accepts only "infinity", as per section 9.2.2.
+//	- LOCK accepts only "0" or "infinity", as per section 9.10.3.
+// These constraints are enforced by the handleXxx methods.
+func parseDepth(s string) int {
+	switch s {
+	case "0":
+		return 0
+	case "1":
+		return 1
+	case "infinity":
+		return infiniteDepth
+	}
+	return invalidDepth
 }
 
 func parseTimeout(s string) (time.Duration, error) {
@@ -284,10 +347,10 @@ func StatusText(code int) string {
 }
 
 var (
+	errInvalidDepth        = errors.New("webdav: invalid depth")
 	errInvalidIfHeader     = errors.New("webdav: invalid If header")
 	errInvalidLockInfo     = errors.New("webdav: invalid lock info")
 	errInvalidLockToken    = errors.New("webdav: invalid lock token")
-	errLocked              = errors.New("webdav: locked")
 	errNoFileSystem        = errors.New("webdav: no file system")
 	errNoLockSystem        = errors.New("webdav: no lock system")
 	errUnsupportedLockInfo = errors.New("webdav: unsupported lock info")

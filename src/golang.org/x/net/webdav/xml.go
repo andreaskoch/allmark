@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -65,8 +64,8 @@ func (c *countingReader) Read(p []byte) (int, error) {
 
 func writeLockInfo(w io.Writer, token string, ld LockDetails) (int, error) {
 	depth := "infinity"
-	if d := ld.Depth; d >= 0 {
-		depth = strconv.Itoa(d)
+	if ld.ZeroDepth {
+		depth = "0"
 	}
 	timeout := ld.Duration / time.Second
 	return fmt.Fprintf(w, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"+
@@ -79,7 +78,7 @@ func writeLockInfo(w io.Writer, token string, ld LockDetails) (int, error) {
 		"	<D:locktoken><D:href>%s</D:href></D:locktoken>\n"+
 		"	<D:lockroot><D:href>%s</D:href></D:lockroot>\n"+
 		"</D:activelock></D:lockdiscovery></D:prop>",
-		depth, ld.OwnerXML, timeout, escape(token), escape(ld.Path),
+		depth, ld.OwnerXML, timeout, escape(token), escape(ld.Root),
 	)
 }
 
