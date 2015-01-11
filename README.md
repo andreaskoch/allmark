@@ -2,6 +2,8 @@
 
 allmark is a lightweight markdown web server for Linux, BSD, Solaris Mac OS and Windows written in go.
 
+![allmark logo (128x128px)](files/design/logo/PNG8/allmark-logo-128x128.png)
+
 ## Build Status
 
 [![Build Status](https://travis-ci.org/andreaskoch/allmark.png)](https://travis-ci.org/andreaskoch/allmark)
@@ -23,10 +25,16 @@ allmark relies on many great third-party libraries. These are some of them:
 These are not under allmark copyright/license. See the respective projects for their copyright & licensing details.
 These are mirrored into allmark for hermetic build reasons and versioning.
 
-To get a full list of all used third-party libraries you execute the make tool with the `-dependencies` flag:
+To get a full list of all used third-party libraries you execute the make tool with the `-list-dependencies` flag:
 
 ```bash
-go run make.go -dependencies
+go run make.go -list-dependencies
+```
+
+To get the latest versions of all third-party libraries you can use the `-update-dependencies` flag:
+
+```bash
+go run make.go -update-dependencies
 ```
 
 ## Cross-Compilation
@@ -90,14 +98,19 @@ bin/
 
 If you don't have docker or don't want to install it you can use [goxc](https://github.com/laher/goxc) to cross-compile allmark.
 
+## Known Bugs
+
+### Windows
+
+- Serving folders that are fileystem junctions/links is no longer possible with go 1.4 (it did work with go 1.3)
+
 ## Roadmap / To Dos
 
+Here are some of the ideas and todos I would like to add:
+
+### Architecture
 - Expose the markdown source
-- Redesign with Twitter Bootstrap
-    - Lazy Loading for Images
-    - Smaller Footprint -> require js?
-- Infinite Scrolling
-    - [jQuery Hash Change](http://benalman.com/code/projects/jquery-hashchange/examples/hashchange/)
+- HTTPs support
 - Run on Raspberry Pi / WDLXTV ("Host your blog from your home")
     - store images and thumbnails on amazon s3
     - can be run with very little bandwidth
@@ -110,27 +123,31 @@ If you don't have docker or don't want to install it you can use [goxc](https://
 - allmark swarm
     - Repository sharding
     - load-balancing
+- Static website generation
+
+### Features
 - User Management / Access Restrictions
     - User management pages
 - Editing
     - sublime snippets
     - sublime theme
     - Examples
-- Update content on change
-    - auto update for local files
-    - javascript path fixer for local files
 - Posting comments
-- Rendering / Markdown extensions
-    - 360° panoramas
-    - image galleries (implemented but needs improvement)
-    - file lists (implemented but needs improvement)
-    - cross references
-    - geo locations
-- Different file formats
-    - json
-- Web Server
-    - Cache Header Management
-    - GZIP Compression
-- Search
-    - Amazon Cloud Search?
-    - Lucene?
+
+### Live Reload
+- Make live-reload more intelligent
+
+### Theme
+- Redesign default theme with Twitter Bootstrap
+    - Lazy Loading for Images
+    - Smaller Footprint -> require js?
+- Create a theme "loader"
+- Infinite Scrolling for latest items
+    - [jQuery Hash Change](http://benalman.com/code/projects/jquery-hashchange/examples/hashchange/)
+
+### Rendering / Markdown extensions
+- 360° panoramas
+- image galleries (implemented but needs improvement)
+- file lists (implemented but needs improvement)
+- cross references
+- geo locations
