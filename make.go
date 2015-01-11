@@ -215,12 +215,37 @@ func listDependencies() {
 
 // Update all third-party packages that allmark depends on.
 func updateDependencies() {
-	thirdPartyPackages := getThirdPartyPackages()
 
+	// Remove all existing third party packages
+	for _, namespace := range getTopNamespacesOfExternalDependencies() {
+
+		packagePath := getPackagePathByName(namespace)
+		if err := os.RemoveAll(packagePath); err != nil {
+			panic(err)
+		}
+
+	}
+
+	// Download the packages
+	thirdPartyPackages := getThirdPartyPackages()
 	for index, dependency := range thirdPartyPackages {
 
 		fmt.Printf("Updating package %02d of %v: %s\n", index+1, len(thirdPartyPackages), dependency)
 		runCommand(os.Stdout, os.Stderr, goPath, "go", "get", dependency)
+
+	}
+
+	// Remove any source control folders
+	for _, namespace := range getTopNamespacesOfExternalDependencies() {
+
+		externalPackagePath := getPackagePathByName(namespace)
+		versionControlFolders := getSourceControlFolderPaths(externalPackagePath)
+
+		for _, gitFolder := range versionControlFolders {
+			if err := os.RemoveAll(gitFolder); err != nil && !os.IsExist(err) {
+				panic(err)
+			}
+		}
 
 	}
 }
@@ -228,6 +253,30 @@ func updateDependencies() {
 // Print the current version number of the project.
 func printProjectVersionNumber() {
 	fmt.Println(gitVersion())
+}
+
+// Get all top-namespaces of the used third-party packages (e.g. "golang.org", "github.com")
+func getTopNamespacesOfExternalDependencies() []string {
+	topNamespaces := make([]string, 0)
+	lookupMap := make(map[string]int)
+	thirdPartyPackages := getThirdPartyPackages()
+	for _, depenency := range thirdPartyPackages {
+
+		components := strings.Split(depenency, "/")
+		if len(components) == 0 {
+			continue
+		}
+
+		topComponent := components[0]
+		if _, exists := lookupMap[topComponent]; exists {
+			continue
+		}
+
+		topNamespaces = append(topNamespaces, topComponent)
+		lookupMap[topComponent] = 1
+	}
+
+	return topNamespaces
 }
 
 // Get all packages which tests in them.
@@ -465,4 +514,24 @@ func getCrossCompilationCommand(packageName, os, arch string) (command string, a
 // Get the build version flag for the go linker (e.g. -X allmark.io/cmd/allmark 2015-01-11-284c030+).
 func getBuildVersionFlag() string {
 	return fmt.Sprintf(`--ldflags=-X %s.GitInfo %s`, "allmark.io/modules/common/buildinfo", version)
+}
+
+// Get the paths of all source control folders in the specified base path.
+func getSourceControlFolderPaths(basePath string) []string {
+	paths := make([]string, 0)
+
+	filepath.Walk(basePath, func(path string, info os.FileInfo, err error) error {
+		if info == nil || !info.IsDir() {
+			return nil
+		}
+
+		if info.Name() == ".git" || info.Name() == ".hg" {
+			paths = append(paths, path)
+		}
+
+		return nil
+
+	})
+
+	return paths
 }
