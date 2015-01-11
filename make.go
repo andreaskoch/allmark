@@ -32,13 +32,14 @@ const GOBIN = "GOBIN"
 var (
 
 	// command line flags
-	verboseFlagIsSet      = flag.Bool("v", false, "Verbose mode")
-	fmtFlagIsSet          = flag.Bool("fmt", false, "Format the source files")
-	testFlagIsSet         = flag.Bool("test", false, "Execute all tests (go test")
-	installFlagIsSet      = flag.Bool("install", false, "Force rebuild of everything (go install -a)")
-	crossCompileFlagIsSet = flag.Bool("crosscompile", false, "Cross-compile everything using docker (Won't work if you don't have docker installed)")
-	dependenciesFlagIsSet = flag.Bool("dependencies", false, "List all third-party dependencies")
-	versionFlagIsSet      = flag.Bool("version", false, "Get the current version number of the repository")
+	verboseFlagIsSet            = flag.Bool("v", false, "Verbose mode")
+	fmtFlagIsSet                = flag.Bool("fmt", false, "Format the source files")
+	testFlagIsSet               = flag.Bool("test", false, "Execute all tests (go test")
+	installFlagIsSet            = flag.Bool("install", false, "Force rebuild of everything (go install -a)")
+	crossCompileFlagIsSet       = flag.Bool("crosscompile", false, "Cross-compile everything using docker (Won't work if you don't have docker installed)")
+	listDependenciesFlagIsSet   = flag.Bool("list-dependencies", false, "List all third-party dependencies")
+	updateDependenciesFlagIsSet = flag.Bool("update-dependencies", false, "Update all third-party dependencies")
+	versionFlagIsSet            = flag.Bool("version", false, "Get the current version number of the repository")
 
 	// working directory
 	root = getWorkingDirectory()
@@ -114,8 +115,13 @@ func main() {
 		return
 	}
 
-	if *dependenciesFlagIsSet {
+	if *listDependenciesFlagIsSet {
 		listDependencies()
+		return
+	}
+
+	if *updateDependenciesFlagIsSet {
+		updateDependencies()
 		return
 	}
 
@@ -188,6 +194,18 @@ func listDependencies() {
 	}
 }
 
+// Update all third-party packages that allmark depends on.
+func updateDependencies() {
+	thirdPartyPackages := getThirdPartyPackages()
+
+	for index, dependency := range thirdPartyPackages {
+
+		fmt.Printf("Updating package %02d of %v: %s\n", index+1, len(thirdPartyPackages), dependency)
+		runCommand(os.Stdout, os.Stderr, root, "go", "get", dependency)
+
+	}
+}
+
 // Print the current version number of the project.
 func printProjectVersionNumber() {
 	fmt.Println(gitVersion())
@@ -238,7 +256,7 @@ func getAllNonStandardLibraryPackages(inclusionExpression func(packageName strin
 	for _, buildPackage := range buildPackages {
 		output := new(bytes.Buffer)
 		errors := new(bytes.Buffer)
-		runCommand(output, errors, root, "go", "list", "- f", `'{{ join .Deps ","}}'`, buildPackage)
+		runCommand(output, errors, root, "go", "list", "-f", `'{{ join .Deps ","}}'`, buildPackage)
 
 		allDependentPackages = append(allDependentPackages, strings.Split(output.String(), ",")...)
 	}
