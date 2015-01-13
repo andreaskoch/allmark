@@ -9,7 +9,7 @@ ADD src /go/src
 
 RUN go run make.go -install
 
-ADD documentation /data
+ADD . /data
 VOLUME ["/data"]
 
 EXPOSE 8080
