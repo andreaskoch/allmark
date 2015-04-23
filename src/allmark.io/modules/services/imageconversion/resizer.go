@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/nfnt/resize"
 	"image"
-	"image/gif"
 	"image/jpeg"
 	"image/png"
 	"io"
@@ -18,7 +17,7 @@ import (
 func MimeTypeIsSupported(mimeType string) bool {
 
 	switch mimeType {
-	case "image/png", "image/jpeg", "image/gif":
+	case "image/png", "image/jpeg":
 		return true
 
 	default:
@@ -36,9 +35,6 @@ func GetFileExtensionFromMimeType(mimeType string) string {
 
 	case "image/jpeg":
 		return "jpg"
-
-	case "image/gif":
-		return "gif"
 
 	default:
 		return strings.ToLower(strings.Replace(mimeType, "image/", "", 1))
@@ -78,9 +74,6 @@ func encode(mimeType string, thumb image.Image, target io.Writer) error {
 	case "image/jpeg":
 		return jpeg.Encode(target, thumb, nil)
 
-	case "image/gif":
-		return gif.Encode(target, thumb, nil)
-
 	default:
 		return fmt.Errorf("Unsupported mime type %s", mimeType)
 
@@ -98,9 +91,6 @@ func decode(source io.Reader, mimeType string) (image.Image, error) {
 
 	case "image/jpeg":
 		return jpeg.Decode(source)
-
-	case "image/gif":
-		return gif.Decode(source)
 
 	default:
 		return nil, fmt.Errorf("Unsupported mime type %s", mimeType)
