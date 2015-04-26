@@ -42,6 +42,7 @@ const (
 	EXTENSION_HEADER_IDS                             // specify header IDs  with {#id}
 	EXTENSION_TITLEBLOCK                             // Titleblock ala pandoc
 	EXTENSION_AUTO_HEADER_IDS                        // Create the header ID from the text
+	EXTENSION_BACKSLASH_LINE_BREAK                   // translate trailing backslashes into line breaks
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML |
@@ -56,7 +57,8 @@ const (
 		EXTENSION_AUTOLINK |
 		EXTENSION_STRIKETHROUGH |
 		EXTENSION_SPACE_HEADERS |
-		EXTENSION_HEADER_IDS
+		EXTENSION_HEADER_IDS |
+		EXTENSION_BACKSLASH_LINE_BREAK
 )
 
 // These are the possible flag values for the link renderer.
@@ -327,10 +329,7 @@ func firstPass(p *parser, input []byte) []byte {
 			if p.flags&EXTENSION_FENCED_CODE != 0 {
 				// when last line was none blank and a fenced code block comes after
 				if beg >= lastFencedCodeBlockEnd {
-					// tmp var so we don't modify beyond bounds of `input`
-					var tmp = make([]byte, len(input[beg:]), len(input[beg:])+1)
-					copy(tmp, input[beg:])
-					if i := p.fencedCode(&out, append(tmp, '\n'), false); i > 0 {
+					if i := p.fencedCode(&out, input[beg:], false); i > 0 {
 						if !lastLineWasBlank {
 							out.WriteByte('\n') // need to inject additional linebreak
 						}

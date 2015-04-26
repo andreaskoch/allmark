@@ -72,6 +72,7 @@ func doTestsInlineParam(t *testing.T, tests []string, extensions, htmlFlags int,
 		input := tests[i]
 		candidate = input
 		expected := tests[i+1]
+
 		actual := runMarkdownInline(candidate, extensions, htmlFlags, params)
 		if actual != expected {
 			t.Errorf("\nInput   [%#v]\nExpected[%#v]\nActual  [%#v]",
@@ -331,10 +332,34 @@ func TestLineBreak(t *testing.T) {
 		"this line \ndoes not\n",
 		"<p>this line\ndoes not</p>\n",
 
+		"this line\\\ndoes not\n",
+		"<p>this line\\\ndoes not</p>\n",
+
+		"this line\\ \ndoes not\n",
+		"<p>this line\\\ndoes not</p>\n",
+
 		"this has an   \nextra space\n",
 		"<p>this has an<br />\nextra space</p>\n",
 	}
 	doTestsInline(t, tests)
+
+	tests = []string{
+		"this line  \nhas a break\n",
+		"<p>this line<br />\nhas a break</p>\n",
+
+		"this line \ndoes not\n",
+		"<p>this line\ndoes not</p>\n",
+
+		"this line\\\nhas a break\n",
+		"<p>this line<br />\nhas a break</p>\n",
+
+		"this line\\ \ndoes not\n",
+		"<p>this line\\\ndoes not</p>\n",
+
+		"this has an   \nextra space\n",
+		"<p>this has an<br />\nextra space</p>\n",
+	}
+	doTestsInlineParam(t, tests, EXTENSION_BACKSLASH_LINE_BREAK, 0, HtmlRendererParameters{})
 }
 
 func TestInlineLink(t *testing.T) {
@@ -440,20 +465,61 @@ func TestInlineLink(t *testing.T) {
 
 		"[[t]](/t)\n",
 		"<p><a href=\"/t\">[t]</a></p>\n",
+
+		"[link](</>)\n",
+		"<p><a href=\"/\">link</a></p>\n",
+
+		"[link](<./>)\n",
+		"<p><a href=\"./\">link</a></p>\n",
+
+		"[link](<../>)\n",
+		"<p><a href=\"../\">link</a></p>\n",
 	}
 	doLinkTestsInline(t, tests)
 
 }
 
-func TestNofollowLink(t *testing.T) {
-	var tests = []string{
+func TestRelAttrLink(t *testing.T) {
+	var nofollowTests = []string{
 		"[foo](http://bar.com/foo/)\n",
 		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow\">foo</a></p>\n",
 
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
+
+		"[foo](/)\n",
+		"<p><a href=\"/\">foo</a></p>\n",
+
+		"[foo](./)\n",
+		"<p><a href=\"./\">foo</a></p>\n",
+
+		"[foo](../)\n",
+		"<p><a href=\"../\">foo</a></p>\n",
+
+		"[foo](../bar)\n",
+		"<p><a href=\"../bar\">foo</a></p>\n",
 	}
-	doTestsInlineParam(t, tests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS,
+	doTestsInlineParam(t, nofollowTests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS,
+		HtmlRendererParameters{})
+
+	var noreferrerTests = []string{
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"noreferrer\">foo</a></p>\n",
+
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, noreferrerTests, 0, HTML_SAFELINK|HTML_NOREFERRER_LINKS,
+		HtmlRendererParameters{})
+
+	var nofollownoreferrerTests = []string{
+		"[foo](http://bar.com/foo/)\n",
+		"<p><a href=\"http://bar.com/foo/\" rel=\"nofollow noreferrer\">foo</a></p>\n",
+
+		"[foo](/bar/)\n",
+		"<p><a href=\"/bar/\">foo</a></p>\n",
+	}
+	doTestsInlineParam(t, nofollownoreferrerTests, 0, HTML_SAFELINK|HTML_NOFOLLOW_LINKS|HTML_NOREFERRER_LINKS,
 		HtmlRendererParameters{})
 }
 
@@ -462,6 +528,21 @@ func TestHrefTargetBlank(t *testing.T) {
 		// internal link
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
+
+		"[foo](/)\n",
+		"<p><a href=\"/\">foo</a></p>\n",
+
+		"[foo](./)\n",
+		"<p><a href=\"./\">foo</a></p>\n",
+
+		"[foo](./bar)\n",
+		"<p><a href=\"./bar\">foo</a></p>\n",
+
+		"[foo](../)\n",
+		"<p><a href=\"../\">foo</a></p>\n",
+
+		"[foo](../bar)\n",
+		"<p><a href=\"../bar\">foo</a></p>\n",
 
 		"[foo](http://example.com)\n",
 		"<p><a href=\"http://example.com\" target=\"_blank\">foo</a></p>\n",
@@ -473,6 +554,15 @@ func TestSafeInlineLink(t *testing.T) {
 	var tests = []string{
 		"[foo](/bar/)\n",
 		"<p><a href=\"/bar/\">foo</a></p>\n",
+
+		"[foo](/)\n",
+		"<p><a href=\"/\">foo</a></p>\n",
+
+		"[foo](./)\n",
+		"<p><a href=\"./\">foo</a></p>\n",
+
+		"[foo](../)\n",
+		"<p><a href=\"../\">foo</a></p>\n",
 
 		"[foo](http://bar/)\n",
 		"<p><a href=\"http://bar/\">foo</a></p>\n",
@@ -521,6 +611,9 @@ func TestReferenceLink(t *testing.T) {
 
 		"[ref]\n   [ref]: /url/ \"title\"\n",
 		"<p><a href=\"/url/\" title=\"title\">ref</a></p>\n",
+
+		"[ref]\n   [ref]: ../url/ \"title\"\n",
+		"<p><a href=\"../url/\" title=\"title\">ref</a></p>\n",
 	}
 	doLinkTestsInline(t, tests)
 }
@@ -785,6 +878,12 @@ what happens here
 
 	"empty footnote[^]\n\n[^]: fn text",
 	"<p>empty footnote<sup class=\"footnote-ref\" id=\"fnref:\"><a rel=\"footnote\" href=\"#fn:\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:\">fn text\n</li>\n</ol>\n</div>\n",
+
+	"Some text.[^note1]\n\n[^note1]: fn1",
+	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a rel=\"footnote\" href=\"#fn:note1\">1</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:note1\">fn1\n</li>\n</ol>\n</div>\n",
+
+	"Some text.[^note1][^note2]\n\n[^note1]: fn1\n[^note2]: fn2\n",
+	"<p>Some text.<sup class=\"footnote-ref\" id=\"fnref:note1\"><a rel=\"footnote\" href=\"#fn:note1\">1</a></sup><sup class=\"footnote-ref\" id=\"fnref:note2\"><a rel=\"footnote\" href=\"#fn:note2\">2</a></sup></p>\n<div class=\"footnotes\">\n\n<hr />\n\n<ol>\n<li id=\"fn:note1\">fn1\n</li>\n<li id=\"fn:note2\">fn2\n</li>\n</ol>\n</div>\n",
 }
 
 func TestFootnotes(t *testing.T) {
@@ -838,4 +937,22 @@ func TestSmartAngledDoubleQuotes(t *testing.T) {
 		"<p>two pair of &laquo;some&raquo; quoted &laquo;text&raquo;.</p>\n"}
 
 	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_ANGLED_QUOTES, HtmlRendererParameters{})
+}
+
+func TestSmartFractions(t *testing.T) {
+	var tests = []string{
+		"1/2, 1/4 and 3/4; 1/4th and 3/4ths\n",
+		"<p>&frac12;, &frac14; and &frac34;; &frac14;th and &frac34;ths</p>\n",
+		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
+		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
+
+	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS, HtmlRendererParameters{})
+
+	tests = []string{
+		"1/2, 2/3, 81/100 and 1000000/1048576.\n",
+		"<p><sup>1</sup>&frasl;<sub>2</sub>, <sup>2</sup>&frasl;<sub>3</sub>, <sup>81</sup>&frasl;<sub>100</sub> and <sup>1000000</sup>&frasl;<sub>1048576</sub>.</p>\n",
+		"1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.\n",
+		"<p>1/2/2015, 1/4/2015, 3/4/2015; 2015/1/2, 2015/1/4, 2015/3/4.</p>\n"}
+
+	doTestsInlineParam(t, tests, 0, HTML_USE_SMARTYPANTS|HTML_SMARTYPANTS_FRACTIONS, HtmlRendererParameters{})
 }

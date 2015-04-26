@@ -167,12 +167,17 @@ func lineBreak(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	out.Truncate(eol)
 
 	precededByTwoSpaces := offset >= 2 && data[offset-2] == ' ' && data[offset-1] == ' '
+	precededByBackslash := offset >= 1 && data[offset-1] == '\\' // see http://spec.commonmark.org/0.18/#example-527
+	precededByBackslash = precededByBackslash && p.flags&EXTENSION_BACKSLASH_LINE_BREAK != 0
 
 	// should there be a hard line break here?
-	if p.flags&EXTENSION_HARD_LINE_BREAK == 0 && !precededByTwoSpaces {
+	if p.flags&EXTENSION_HARD_LINE_BREAK == 0 && !precededByTwoSpaces && !precededByBackslash {
 		return 0
 	}
 
+	if precededByBackslash && eol > 0 {
+		out.Truncate(eol - 1)
+	}
 	p.r.LineBreak(out)
 	return 1
 }
@@ -348,7 +353,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 		i++
 
 	// reference style link
-	case i < len(data) && data[i] == '[':
+	case i < len(data)-1 && data[i] == '[' && data[i+1] != '^':
 		var id []byte
 
 		// look for the id
@@ -757,9 +762,20 @@ func isEndOfLink(char byte) bool {
 	return isspace(char) || char == '<'
 }
 
-var validUris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://"), []byte("/")}
+var validUris = [][]byte{[]byte("http://"), []byte("https://"), []byte("ftp://"), []byte("mailto://")}
+var validPaths = [][]byte{[]byte("/"), []byte("./"), []byte("../")}
 
 func isSafeLink(link []byte) bool {
+	for _, path := range validPaths {
+		if len(link) >= len(path) && bytes.Equal(link[:len(path)], path) {
+			if len(link) == len(path) {
+				return true
+			} else if isalnum(link[len(path)]) {
+				return true
+			}
+		}
+	}
+
 	for _, prefix := range validUris {
 		// TODO: handle unicode here
 		// case-insensitive prefix test
