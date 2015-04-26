@@ -301,7 +301,7 @@ func Test_IsMultiLineTagDefinition_True(t *testing.T) {
 
 	// assert
 	if result != expected {
-		t.Errorf("The text %q is a multi-line tag definition, but the result was %s (expected: %s).", input, result, expected)
+		t.Errorf("The text %q is a multi-line tag definition, but the result was %v (expected: %v).", input, result, expected)
 	}
 }
 
@@ -319,5 +319,33 @@ func Test_IsMultiLineTagDefinition_AllTagsAreReturned(t *testing.T) {
 	// assert
 	if len(matches) != expected {
 		t.Errorf("The text %q should return %d matches but returned %d. Result: %#v", input, expected, len(matches), matches)
+	}
+}
+
+func Test_IsDescription_TextContainsNoMarkdown_ResultIsTrue(t *testing.T) {
+	// arrange
+	input := "Yada Yada Some Text that does not contain markdown."
+	expected := true
+
+	// act
+	result, _ := IsDescription(input)
+
+	// assert
+	if result != expected {
+		t.Errorf("The text %q is not a description because it contains markdown but the IsDescription function returned %v (expected: %v).", input, result, expected)
+	}
+}
+
+func Test_IsDescription_TextContainsMarkdown_ResultIsFalse(t *testing.T) {
+	// arrange
+	input := "Yada Yada Some Text that looks like a description but suddenly contains an ![image](files/image.png). And then some more text."
+	expected := false
+
+	// act
+	result, _ := IsDescription(input)
+
+	// assert
+	if result != expected {
+		t.Errorf("The text %q is not a description because it contains markdown but the IsDescription function returned %v (expected: %v).", input, result, expected)
 	}
 }

@@ -19,7 +19,10 @@ var (
 	titlePattern = regexp.MustCompile(`^#\s*([\pL\pN\p{Latin}]+.+)`)
 
 	// Lines which start with text
-	descriptionPattern = regexp.MustCompile(`^[\pL\pN\p{Latin}]+.+`)
+	lineStartsWithTextPattern = regexp.MustCompile(`^[\pL\pN\p{Latin}]+.+`)
+
+	// Text does contain typlical markdown elements
+	textContainsMarkdownElementsPattern = regexp.MustCompile(`(\!\[)|(\]\()|([\*]{1,2}.+[\*]{1,2})`)
 
 	// Lines which nothing but dashes
 	horizontalRulePattern = regexp.MustCompile(`^-{3,}\s*$`)
@@ -105,7 +108,10 @@ func IsTitle(line string) (bool, string) {
 }
 
 func IsDescription(line string) (bool, string) {
-	if descriptionPattern.MatchString(line) {
+	lineStartsWithText := lineStartsWithTextPattern.MatchString(line)
+	textContainsMarkdown := textContainsMarkdownElementsPattern.MatchString(line)
+
+	if lineStartsWithText && textContainsMarkdown == false {
 		return true, line // description was found
 	}
 
