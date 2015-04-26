@@ -5,10 +5,11 @@
 package templates
 
 import (
-	"allmark.io/modules/model"
 	"fmt"
 	"strings"
 	"text/template"
+
+	"allmark.io/modules/model"
 )
 
 const (
@@ -74,7 +75,6 @@ func NewProvider(templateFolder string) Provider {
 
 	templates[model.TypeDocument.String()] = NewTemplate(templateFolder, model.TypeDocument.String(), documentTemplate)
 	templates[model.TypeLocation.String()] = NewTemplate(templateFolder, model.TypeLocation.String(), locationTemplate)
-	templates[model.TypeMessage.String()] = NewTemplate(templateFolder, model.TypeMessage.String(), messageTemplate)
 	templates[model.TypeRepository.String()] = NewTemplate(templateFolder, model.TypeRepository.String(), repositoryTemplate)
 	templates[model.TypePresentation.String()] = NewTemplate(templateFolder, model.TypePresentation.String(), presentationTemplate)
 

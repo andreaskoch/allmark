@@ -5,18 +5,18 @@
 package parser
 
 import (
+	"bufio"
+	"bytes"
+	"fmt"
+	"io"
+
 	"allmark.io/modules/common/logger"
 	"allmark.io/modules/dataaccess"
 	"allmark.io/modules/model"
 	"allmark.io/modules/services/parser/cleanup"
 	"allmark.io/modules/services/parser/document"
-	"allmark.io/modules/services/parser/message"
 	"allmark.io/modules/services/parser/presentation"
 	"allmark.io/modules/services/parser/typedetection"
-	"bufio"
-	"bytes"
-	"fmt"
-	"io"
 )
 
 type Parser struct {
@@ -72,13 +72,6 @@ func (parser *Parser) ParseItem(item *dataaccess.Item) (*model.Item, error) {
 	case model.TypePresentation:
 		{
 			if err := presentation.Parse(itemModel, lastModifiedDate, lines); err != nil {
-				return nil, fmt.Errorf("Unable to parse item %q (Type: %s, Error: %s)", item, itemModel.Type, err.Error())
-			}
-		}
-
-	case model.TypeMessage:
-		{
-			if err := message.Parse(itemModel, lastModifiedDate, lines); err != nil {
 				return nil, fmt.Errorf("Unable to parse item %q (Type: %s, Error: %s)", item, itemModel.Type, err.Error())
 			}
 		}

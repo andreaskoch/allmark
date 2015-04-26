@@ -5,10 +5,11 @@
 package typedetection
 
 import (
+	"strings"
+
 	"allmark.io/modules/model"
 	"allmark.io/modules/services/parser/metadata"
 	"allmark.io/modules/services/parser/pattern"
-	"strings"
 )
 
 func DetectType(lines []string) model.ItemType {
@@ -37,8 +38,6 @@ func DetectType(lines []string) model.ItemType {
 	switch typeName {
 	case "document":
 		return model.TypeDocument
-	case "message":
-		return model.TypeMessage
 	case "location":
 		return model.TypeLocation
 	case "presentation":

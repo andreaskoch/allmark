@@ -5,11 +5,12 @@
 package model
 
 import (
-	"allmark.io/modules/common/route"
-	"allmark.io/modules/dataaccess"
 	"fmt"
 	"sort"
 	"strings"
+
+	"allmark.io/modules/common/route"
+	"allmark.io/modules/dataaccess"
 )
 
 type ItemType int
@@ -21,9 +22,6 @@ func (itemType ItemType) String() string {
 
 	case TypePresentation:
 		return "presentation"
-
-	case TypeMessage:
-		return "message"
 
 	case TypeLocation:
 		return "location"
@@ -42,7 +40,6 @@ func (itemType ItemType) String() string {
 const (
 	TypeDocument ItemType = iota
 	TypePresentation
-	TypeMessage
 	TypeLocation
 	TypeRepository
 	TypeUnknown
