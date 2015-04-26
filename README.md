@@ -8,6 +8,12 @@ allmark is a lightweight markdown web server for Linux, BSD, Solaris Mac OS and 
 
 [![Build Status](https://travis-ci.org/andreaskoch/allmark.png)](https://travis-ci.org/andreaskoch/allmark)
 
+## Demo / Showcase
+
+If you want to see **allmark in action** you can visit my blog [AndyK Docs](https://andykdocs.de/) at [https://andykdocs.de](https://andykdocs.de):
+
+![Animation: Demo of allmark hosting andykdocs.de ](files/demo/allmark-demo-andykdocs.gif)
+
 ## Dependencies
 
 allmark relies on many great third-party libraries. These are some of them:
@@ -29,11 +35,7 @@ To get a full list of all used third-party libraries you execute the make tool w
 
 ```bash
 go run make.go -list-dependencies
-```
-
-To get the latest versions of all third-party libraries you can use the `-update-dependencies` flag:
-
-```bash
+```pod.nasa.gov/apod/image/1104/
 go run make.go -update-dependencies
 ```
 
@@ -50,44 +52,30 @@ This command will launch a [docker container with go 1.4](https://registry.hub.d
 ```
 bin/
 ├── allmark
-├── darwin_386
-│   └── allmark
+..
 ├── darwin_amd64
 │   └── allmark
-├── dragonfly_386
-│   └── allmark
+..
 ├── dragonfly_amd64
 │   └── allmark
-├── freebsd_386
-│   └── allmark
+..
 ├── freebsd_amd64
 │   └── allmark
 ├── freebsd_arm
 │   └── allmark
-├── linux_386
-│   └── allmark
+..
 ├── linux_arm
 │   └── allmark
-├── nacl_386
-│   └── allmark
-├── nacl_amd64p32
-│   └── allmark
+..
 ├── nacl_arm
 │   └── allmark
-├── netbsd_386
-│   └── allmark
+..
 ├── netbsd_amd64
 │   └── allmark
-├── netbsd_arm
-│   └── allmark
-├── openbsd_386
-│   └── allmark
+..
 ├── openbsd_amd64
 │   └── allmark
-├── solaris_amd64
-│   └── allmark
-├── windows_386
-│   └── allmark.exe
+..
 ├── windows_amd64
 │   └── allmark.exe
 ├── ...
@@ -100,15 +88,20 @@ If you don't have docker or don't want to install it you can use [goxc](https://
 
 ## Known Bugs
 
+### Default Theme
+
+- Responsive Design: The default theme always selects the smallest thumbnail size which makes the previewed images look crappy on large screens.
+
 ### Windows
 
-- Serving folders that are fileystem junctions/links is no longer possible with go 1.4 (it did work with go 1.3)
+- Fileystem links: Serving folders that are fileystem junctions/links is no longer possible with go 1.4 (it did work with go 1.3)
 
 ## Roadmap / To Dos
 
-Here are some of the ideas and todos I would like to add:
+Here are some of the ideas and todos I would like to add in the future. Contributions are welcome!
 
 ### Architecture
+
 - Expose the markdown source
 - HTTPs support
 - Run on Raspberry Pi / WDLXTV ("Host your blog from your home")
@@ -126,6 +119,7 @@ Here are some of the ideas and todos I would like to add:
 - Static website generation
 
 ### Features
+
 - User Management / Access Restrictions
     - User management pages
 - Editing
@@ -133,19 +127,16 @@ Here are some of the ideas and todos I would like to add:
     - sublime theme
     - Examples
 - Posting comments
+- Make live-reload more intelligent and more efficient
 
-### Live Reload
-- Make live-reload more intelligent
+### Theming
 
-### Theme
 - Redesign default theme with Twitter Bootstrap
-    - Lazy Loading for Images
-    - Smaller Footprint -> require js?
 - Create a theme "loader"
 - Infinite Scrolling for latest items
-    - [jQuery Hash Change](http://benalman.com/code/projects/jquery-hashchange/examples/hashchange/)
 
 ### Rendering / Markdown extensions
+
 - 360° panoramas
 - image galleries (implemented but needs improvement)
 - file lists (implemented but needs improvement)
