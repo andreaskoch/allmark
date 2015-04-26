@@ -74,7 +74,6 @@ func NewProvider(templateFolder string) Provider {
 	templates[SearchContentTemplateName] = NewTemplate(templateFolder, SearchContentTemplateName, searchContentTemplate)
 
 	templates[model.TypeDocument.String()] = NewTemplate(templateFolder, model.TypeDocument.String(), documentTemplate)
-	templates[model.TypeLocation.String()] = NewTemplate(templateFolder, model.TypeLocation.String(), locationTemplate)
 	templates[model.TypeRepository.String()] = NewTemplate(templateFolder, model.TypeRepository.String(), repositoryTemplate)
 	templates[model.TypePresentation.String()] = NewTemplate(templateFolder, model.TypePresentation.String(), presentationTemplate)
 

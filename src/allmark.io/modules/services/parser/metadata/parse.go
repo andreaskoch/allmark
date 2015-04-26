@@ -5,11 +5,12 @@
 package metadata
 
 import (
+	"strings"
+	"time"
+
 	"allmark.io/modules/common/util/dateutil"
 	"allmark.io/modules/model"
 	"allmark.io/modules/services/parser/pattern"
-	"strings"
-	"time"
 )
 
 func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseError error) {

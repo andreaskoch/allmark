@@ -5,8 +5,9 @@
 package typedetection
 
 import (
-	"allmark.io/modules/model"
 	"testing"
+
+	"allmark.io/modules/model"
 )
 
 func Test_DetectType_Document(t *testing.T) {
@@ -35,96 +36,6 @@ func Test_DetectType_Presentation(t *testing.T) {
 		"type: presentation",
 	}
 	expectedType := model.Presentation
-
-	// act
-	result := DetectType(inputLines)
-
-	// assert
-	if result != expectedType {
-		t.Errorf("The result type should be %s but was %s", expectedType, result)
-	}
-}
-
-func Test_DetectType_MessageLowercase(t *testing.T) {
-	// arrange
-	inputLines := []string{
-		"",
-		"---",
-		"type: message",
-	}
-	expectedType := model.Message
-
-	// act
-	result := DetectType(inputLines)
-
-	// assert
-	if result != expectedType {
-		t.Errorf("The result type should be %s but was %s", expectedType, result)
-	}
-}
-
-func Test_DetectType_MessageUppercase(t *testing.T) {
-	// arrange
-	inputLines := []string{
-		"",
-		"---",
-		"type: MESSAGE",
-	}
-	expectedType := model.Message
-
-	// act
-	result := DetectType(inputLines)
-
-	// assert
-	if result != expectedType {
-		t.Errorf("The result type should be %s but was %s", expectedType, result)
-	}
-}
-
-func Test_DetectType_MessageMixedCase(t *testing.T) {
-	// arrange
-	inputLines := []string{
-		"",
-		"---",
-		"type: Message",
-	}
-	expectedType := model.Message
-
-	// act
-	result := DetectType(inputLines)
-
-	// assert
-	if result != expectedType {
-		t.Errorf("The result type should be %s but was %s", expectedType, result)
-	}
-}
-
-func Test_DetectType_MessageWhitespace(t *testing.T) {
-	// arrange
-	inputLines := []string{
-		"",
-		"---",
-		"type:    message  ",
-	}
-	expectedType := model.Message
-
-	// act
-	result := DetectType(inputLines)
-
-	// assert
-	if result != expectedType {
-		t.Errorf("The result type should be %s but was %s", expectedType, result)
-	}
-}
-
-func Test_DetectType_Location(t *testing.T) {
-	// arrange
-	inputLines := []string{
-		"",
-		"---",
-		"type: location",
-	}
-	expectedType := model.Location
 
 	// act
 	result := DetectType(inputLines)

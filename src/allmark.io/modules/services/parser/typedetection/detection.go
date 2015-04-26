@@ -38,8 +38,6 @@ func DetectType(lines []string) model.ItemType {
 	switch typeName {
 	case "document":
 		return model.TypeDocument
-	case "location":
-		return model.TypeLocation
 	case "presentation":
 		return model.TypePresentation
 	case "repository":

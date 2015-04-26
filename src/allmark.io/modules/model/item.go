@@ -23,9 +23,6 @@ func (itemType ItemType) String() string {
 	case TypePresentation:
 		return "presentation"
 
-	case TypeLocation:
-		return "location"
-
 	case TypeRepository:
 		return "repository"
 
@@ -40,7 +37,6 @@ func (itemType ItemType) String() string {
 const (
 	TypeDocument ItemType = iota
 	TypePresentation
-	TypeLocation
 	TypeRepository
 	TypeUnknown
 )

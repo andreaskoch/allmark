@@ -5,12 +5,13 @@
 package orchestrator
 
 import (
+	"fmt"
+	"time"
+
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
 	converter "allmark.io/modules/services/converter/markdowntohtml"
 	"allmark.io/modules/web/view/viewmodel"
-	"fmt"
-	"time"
 )
 
 type ViewModelOrchestrator struct {
@@ -19,7 +20,6 @@ type ViewModelOrchestrator struct {
 	navigationOrchestrator *NavigationOrchestrator
 	tagOrchestrator        *TagsOrchestrator
 	fileOrchestrator       *FileOrchestrator
-	locationOrchestrator   *LocationOrchestrator
 
 	latestByRoute     map[string][]*viewmodel.Model
 	viewmodelsByRoute map[string]*viewmodel.Model
@@ -53,11 +53,6 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 
 	// tags
 	viewModel.Tags = orchestrator.tagOrchestrator.getItemTags(itemRoute)
-
-	// Locations
-	viewModel.Locations = orchestrator.locationOrchestrator.GetLocations(item.MetaData.Locations, func(i *model.Item) viewmodel.Model {
-		return *orchestrator.getViewModel(i)
-	})
 
 	// Geo Coordinates
 	viewModel.GeoLocation = getGeoLocation(item)

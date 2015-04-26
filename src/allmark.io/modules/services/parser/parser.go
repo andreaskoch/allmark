@@ -62,7 +62,7 @@ func (parser *Parser) ParseItem(item *dataaccess.Item) (*model.Item, error) {
 	// detect the item type
 	switch itemModel.Type = typedetection.DetectType(lines); itemModel.Type {
 
-	case model.TypeDocument, model.TypeLocation, model.TypeRepository:
+	case model.TypeDocument, model.TypeRepository:
 		{
 			if _, err := document.Parse(itemModel, lastModifiedDate, lines); err != nil {
 				return nil, fmt.Errorf("Unable to parse item %q (Type: %s, Error: %s)", item, itemModel.Type, err.Error())
