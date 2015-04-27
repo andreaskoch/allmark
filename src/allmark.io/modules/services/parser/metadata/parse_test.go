@@ -5,10 +5,12 @@
 package metadata
 
 import (
-	"allmark.io/modules/common/route"
-	"allmark.io/modules/model"
 	"fmt"
 	"testing"
+
+	"allmark.io/modules/common/route"
+	"allmark.io/modules/dataaccess"
+	"allmark.io/modules/model"
 )
 
 func Test_getFallbackAlias_RouteWithFile_ReturnsItemFolder(t *testing.T) {
@@ -17,7 +19,7 @@ func Test_getFallbackAlias_RouteWithFile_ReturnsItemFolder(t *testing.T) {
 	inputPath := fmt.Sprintf("/repository/document/%s/document.md", expected)
 	route, _ := route.NewFromFilePath("/repository", inputPath)
 
-	item, _ := model.NewItem(route, []*model.File{})
+	item := model.NewItem(route, []*model.File{}, dataaccess.TypePhysical)
 
 	// act
 	result := getFallbackAlias(item)

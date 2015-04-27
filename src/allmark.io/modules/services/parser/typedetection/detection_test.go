@@ -17,7 +17,7 @@ func Test_DetectType_Document(t *testing.T) {
 		"---",
 		"type: document",
 	}
-	expectedType := model.Document
+	expectedType := model.TypeDocument
 
 	// act
 	result := DetectType(inputLines)
@@ -35,7 +35,7 @@ func Test_DetectType_Presentation(t *testing.T) {
 		"---",
 		"type: presentation",
 	}
-	expectedType := model.Presentation
+	expectedType := model.TypePresentation
 
 	// act
 	result := DetectType(inputLines)
@@ -53,7 +53,7 @@ func Test_DetectType_Repository(t *testing.T) {
 		"---",
 		"type: repository",
 	}
-	expectedType := model.Repository
+	expectedType := model.TypeRepository
 
 	// act
 	result := DetectType(inputLines)
@@ -71,7 +71,7 @@ func Test_DetectType_UnknownTypeFallsBackToDocument(t *testing.T) {
 		"---",
 		"type: yada yada",
 	}
-	expectedType := model.Document
+	expectedType := model.TypeDocument
 
 	// act
 	result := DetectType(inputLines)
