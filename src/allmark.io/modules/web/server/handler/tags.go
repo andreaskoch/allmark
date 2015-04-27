@@ -5,16 +5,17 @@
 package handler
 
 import (
+	"bytes"
+	"fmt"
+	"net/http"
+	"text/template"
+
 	"allmark.io/modules/common/logger"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/web/orchestrator"
 	"allmark.io/modules/web/server/header"
 	"allmark.io/modules/web/view/templates"
 	"allmark.io/modules/web/view/viewmodel"
-	"bytes"
-	"fmt"
-	"net/http"
-	"text/template"
 )
 
 type Tags struct {
@@ -26,7 +27,7 @@ type Tags struct {
 	templateProvider templates.Provider
 }
 
-func (self *Tags) Func() func(w http.ResponseWriter, r *http.Request) {
+func (handler *Tags) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -37,20 +38,21 @@ func (self *Tags) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		hostname := getHostnameFromRequest(r)
 
-		tagmapTemplate, err := self.templateProvider.GetFullTemplate(hostname, templates.TagmapTemplateName)
+		tagmapTemplate, err := handler.templateProvider.GetFullTemplate(hostname, templates.TagmapTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
-		tagmapContentTemplate, err := self.templateProvider.GetSubTemplate(hostname, templates.TagmapContentTemplateName)
+		// Page conent
+		tagmapContentTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.TagmapContentTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Content template not found. Error: %s", err)
 			return
 		}
 
 		tagMapItems := ""
-		tags := self.tagsOrchestrator.GetTags()
+		tags := handler.tagsOrchestrator.GetTags()
 
 		if len(tags) > 0 {
 			for _, tag := range tags {
@@ -60,15 +62,22 @@ func (self *Tags) Func() func(w http.ResponseWriter, r *http.Request) {
 			tagMapItems = "-- There are currently not tagged items --"
 		}
 
+		// Page parameters
+		pageType := "tagmap"
+		headline := "Tags"
+		pageTitle := handler.tagsOrchestrator.GetPageTitle(headline)
+
+		// Page model
 		tagmapViewModel := viewmodel.Model{
 			Content: tagMapItems,
 		}
 
-		tagmapViewModel.Type = "tagmap"
-		tagmapViewModel.Title = "Tags"
-		tagmapViewModel.ToplevelNavigation = self.navigationOrchestrator.GetToplevelNavigation()
-		tagmapViewModel.BreadcrumbNavigation = self.navigationOrchestrator.GetBreadcrumbNavigation(route.New())
-		tagmapViewModel.TagCloud = self.tagsOrchestrator.GetTagCloud()
+		tagmapViewModel.Type = pageType
+		tagmapViewModel.Title = headline
+		tagmapViewModel.PageTitle = pageTitle
+		tagmapViewModel.ToplevelNavigation = handler.navigationOrchestrator.GetToplevelNavigation()
+		tagmapViewModel.BreadcrumbNavigation = handler.navigationOrchestrator.GetBreadcrumbNavigation(route.New())
+		tagmapViewModel.TagCloud = handler.tagsOrchestrator.GetTagCloud()
 
 		renderTemplate(tagmapViewModel, tagmapTemplate, w)
 	}

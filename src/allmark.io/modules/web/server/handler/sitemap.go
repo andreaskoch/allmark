@@ -5,17 +5,18 @@
 package handler
 
 import (
+	"bytes"
+	"fmt"
+	"net/http"
+	"strings"
+	"text/template"
+
 	"allmark.io/modules/common/logger"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/web/orchestrator"
 	"allmark.io/modules/web/server/header"
 	"allmark.io/modules/web/view/templates"
 	"allmark.io/modules/web/view/viewmodel"
-	"bytes"
-	"fmt"
-	"net/http"
-	"strings"
-	"text/template"
 )
 
 type Sitemap struct {
@@ -27,7 +28,7 @@ type Sitemap struct {
 	templateProvider templates.Provider
 }
 
-func (self *Sitemap) Func() func(w http.ResponseWriter, r *http.Request) {
+func (handler *Sitemap) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -39,32 +40,39 @@ func (self *Sitemap) Func() func(w http.ResponseWriter, r *http.Request) {
 		hostname := getHostnameFromRequest(r)
 
 		// get the sitemap content template
-		sitemapContentTemplate, err := self.templateProvider.GetSubTemplate(hostname, templates.SitemapContentTemplateName)
+		sitemapContentTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.SitemapContentTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Content template not found. Error: %s", err)
 			return
 		}
 
 		// get the sitemap template
-		sitemapTemplate, err := self.templateProvider.GetFullTemplate(hostname, templates.SitemapTemplateName)
+		sitemapTemplate, err := handler.templateProvider.GetFullTemplate(hostname, templates.SitemapTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
-		// render the sitemap content
-		sitemapContentModel := self.sitemapOrchestrator.GetSitemap()
+		// Page parameters
+		pageTitle := "Sitemap"
+		pageType := "sitemap"
+		descriptionText := "A list of all items in this repository."
+
+		// Page content
+		sitemapContentModel := handler.sitemapOrchestrator.GetSitemap()
 		sitemapContent := renderSitemapEntry(sitemapContentTemplate, sitemapContentModel)
 
+		// Page model
 		sitemapPageModel := viewmodel.Model{
 			Content: sitemapContent,
 		}
 
-		sitemapPageModel.Type = "sitemap"
-		sitemapPageModel.Title = "Sitemap"
-		sitemapPageModel.Description = "A list of all items in this repository."
-		sitemapPageModel.ToplevelNavigation = self.navigationOrchestrator.GetToplevelNavigation()
-		sitemapPageModel.BreadcrumbNavigation = self.navigationOrchestrator.GetBreadcrumbNavigation(route.New())
+		sitemapPageModel.Type = pageType
+		sitemapPageModel.Title = pageTitle
+		sitemapPageModel.PageTitle = handler.sitemapOrchestrator.GetPageTitle(pageTitle)
+		sitemapPageModel.Description = descriptionText
+		sitemapPageModel.ToplevelNavigation = handler.navigationOrchestrator.GetToplevelNavigation()
+		sitemapPageModel.BreadcrumbNavigation = handler.navigationOrchestrator.GetBreadcrumbNavigation(route.New())
 
 		renderTemplate(sitemapPageModel, sitemapTemplate, w)
 	}

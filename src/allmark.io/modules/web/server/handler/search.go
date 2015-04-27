@@ -5,18 +5,19 @@
 package handler
 
 import (
-	"allmark.io/modules/common/logger"
-	"allmark.io/modules/common/route"
-	"allmark.io/modules/web/orchestrator"
-	"allmark.io/modules/web/server/header"
-	"allmark.io/modules/web/view/templates"
-	"allmark.io/modules/web/view/viewmodel"
 	"bytes"
 	"fmt"
 	html "html/template"
 	"net/http"
 	"strings"
 	"text/template"
+
+	"allmark.io/modules/common/logger"
+	"allmark.io/modules/common/route"
+	"allmark.io/modules/web/orchestrator"
+	"allmark.io/modules/web/server/header"
+	"allmark.io/modules/web/view/templates"
+	"allmark.io/modules/web/view/viewmodel"
 )
 
 type Search struct {
@@ -57,10 +58,18 @@ func (handler *Search) Func() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Page parameters
+		pageType := "search"
+		headline := getPageTitle(query)
+		pageTitle := handler.searchOrchestrator.GetPageTitle(headline)
+		description := getDescription(query)
+
+		// Page model
 		viewModel := viewmodel.Model{}
-		viewModel.Type = "search"
-		viewModel.Title = getPageTitle(query)
-		viewModel.Description = getDescription(query)
+		viewModel.Type = pageType
+		viewModel.Title = headline
+		viewModel.PageTitle = pageTitle
+		viewModel.Description = description
 		viewModel.ToplevelNavigation = handler.navigationOrchestrator.GetToplevelNavigation()
 		viewModel.BreadcrumbNavigation = handler.navigationOrchestrator.GetBreadcrumbNavigation(route.New())
 

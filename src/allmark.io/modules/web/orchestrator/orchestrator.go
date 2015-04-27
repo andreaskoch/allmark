@@ -5,6 +5,10 @@
 package orchestrator
 
 import (
+	"fmt"
+	"strings"
+	"time"
+
 	"allmark.io/modules/common/config"
 	"allmark.io/modules/common/logger"
 	"allmark.io/modules/common/paths"
@@ -17,8 +21,6 @@ import (
 	"allmark.io/modules/web/orchestrator/search"
 	"allmark.io/modules/web/view/viewmodel"
 	"allmark.io/modules/web/webpaths"
-	"strings"
-	"time"
 )
 
 type CacheState int
@@ -73,6 +75,12 @@ type Orchestrator struct {
 	repositoryIndex *index.Index
 	items           []*model.Item
 	itemsByAlias    map[string]*model.Item
+}
+
+// Get the full-page title for a given headline.
+func (orchestrator *Orchestrator) GetPageTitle(headline string) string {
+	rootItem := orchestrator.rootItem()
+	return fmt.Sprintf("%s - %s", headline, rootItem.Title)
 }
 
 func (orchestrator *Orchestrator) blockingCacheWarmup() {

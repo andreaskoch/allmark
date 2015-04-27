@@ -5,13 +5,14 @@
 package orchestrator
 
 import (
+	"fmt"
+	"strings"
+
 	"allmark.io/modules/common/config"
 	"allmark.io/modules/common/paths"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
 	"allmark.io/modules/web/view/viewmodel"
-	"fmt"
-	"strings"
 )
 
 func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.Base {
@@ -29,7 +30,7 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 		PrintUrl: GetTypedItemUrl(item.Route(), "print"),
 		JsonUrl:  GetTypedItemUrl(item.Route(), "json"),
 
-		PageTitle:   getPageTitle(root, item),
+		PageTitle:   getPageTitleForItem(root, item),
 		Title:       item.Title,
 		Description: item.Description,
 
@@ -56,7 +57,7 @@ func getLanguageCode(languageHint string) string {
 	return languageHint
 }
 
-func getPageTitle(rootItem, item *model.Item) string {
+func getPageTitleForItem(rootItem, item *model.Item) string {
 	if item.Route().Value() == rootItem.Route().Value() {
 		return item.Title
 	}
