@@ -429,6 +429,7 @@ body>nav.breadcrumb>a {
 
 article>.description {
     font-size: 1.2em;
+    min-height: 1.2em;
     margin: 0;
 }
 
