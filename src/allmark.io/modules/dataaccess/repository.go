@@ -8,16 +8,31 @@ import (
 	"allmark.io/modules/common/route"
 )
 
-type Repository interface {
+type PathProvider interface {
 	Path() string
+}
 
-	Item(route route.Route) *Item
-	Items() []*Item
+type RoutesProvider interface {
 	Routes() []route.Route
+}
 
-	// update handling
+type ItemsProvider interface {
+	Items() []*Item
+	Item(route route.Route) *Item
+}
+
+type RepositoryUpdater interface {
 	AfterReindex(notificationChannel chan bool)
 	OnUpdate(callback func(route.Route))
 	StartWatching(route route.Route)
 	StopWatching(route route.Route)
+}
+
+type Repository interface {
+	PathProvider
+	ItemsProvider
+	RoutesProvider
+
+	// update handling
+	RepositoryUpdater
 }

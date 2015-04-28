@@ -5,25 +5,28 @@
 package webpaths
 
 import (
-	"allmark.io/modules/common/logger"
 	"allmark.io/modules/common/route"
 )
 
 // Create a new absolute web path provider
-func newAbsoluteWebPathProvider(logger logger.Logger, prefix string) *AbsoluteWebPathProvider {
+func newAbsoluteWebPathProvider(prefix string) *AbsoluteWebPathProvider {
 	return &AbsoluteWebPathProvider{
 		prefix: prefix,
-		logger: logger,
 	}
 }
 
 type AbsoluteWebPathProvider struct {
 	prefix string
-	logger logger.Logger
 }
 
 // Get the absolute path for the supplied item
 func (webPathProvider *AbsoluteWebPathProvider) Path(itemPath string) string {
+
+	// return the supplied item path if it is already absolute
+	if isAbsoluteUri(itemPath) {
+		return itemPath
+	}
+
 	return webPathProvider.prefix + itemPath
 }
 

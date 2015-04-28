@@ -5,33 +5,36 @@
 package webpaths
 
 import (
-	"allmark.io/modules/common/logger"
+	"strings"
+
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/dataaccess"
-	"strings"
 )
 
 // Create a new relative web path provider
-func newRelativeWebPathProvider(logger logger.Logger, repository dataaccess.Repository, baseRoute route.Route) *RelativeWebPathProvider {
+func newRelativeWebPathProvider(routesProvider dataaccess.RoutesProvider, baseRoute route.Route) *RelativeWebPathProvider {
 	return &RelativeWebPathProvider{
-		logger:     logger,
-		repository: repository,
-		baseRoute:  baseRoute,
+		routesProvider: routesProvider,
+		baseRoute:      baseRoute,
 	}
 }
 
 type RelativeWebPathProvider struct {
-	logger     logger.Logger
-	repository dataaccess.Repository
-	baseRoute  route.Route
+	routesProvider dataaccess.RoutesProvider
+	baseRoute      route.Route
 }
 
 // Get the path relative for the supplied item
 func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 
+	// return the supplied item path if it is already absolute
+	if isAbsoluteUri(itemPath) {
+		return itemPath
+	}
+
 	var matchingRouteHasBeenFound bool
 	var matchingRoute route.Route
-	for _, route := range webPathProvider.repository.Routes() {
+	for _, route := range webPathProvider.routesProvider.Routes() {
 
 		// ignore all routes which are not a child of the base route
 		if !route.IsChildOf(webPathProvider.baseRoute) {

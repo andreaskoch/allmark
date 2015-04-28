@@ -24,9 +24,9 @@ type PatherFactory struct {
 }
 
 func (factory *PatherFactory) Absolute(prefix string) paths.Pather {
-	return newAbsoluteWebPathProvider(factory.logger, prefix)
+	return newAbsoluteWebPathProvider(prefix)
 }
 
 func (factory *PatherFactory) Relative(baseRoute route.Route) paths.Pather {
-	return newRelativeWebPathProvider(factory.logger, factory.repository, baseRoute)
+	return newRelativeWebPathProvider(factory.repository, baseRoute)
 }
