@@ -5,11 +5,12 @@
 package filetreerenderer
 
 import (
+	"fmt"
+	"strings"
+
 	"allmark.io/modules/common/paths"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
-	"fmt"
-	"strings"
 )
 
 func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File) *FileTreeRenderer {
@@ -51,19 +52,12 @@ func (r *FileTreeRenderer) Render(title, cssClass, path string) string {
 
 	if rootNode := r.files.GetNode(fullFolderRoute); rootNode != nil {
 
-		if childs := rootNode.Childs(); len(childs) > 0 {
-
-			code += "<ul class=\"tree\">\n"
-
-			for _, child := range childs {
-				code += "<li>\n"
-				code += r.renderFileNode(child)
-				code += "</li>\n"
-			}
-
-			code += "</ul>\n</section>"
-
-		}
+		// Render the childs of the root node
+		code += "<ul class=\"tree\">\n"
+		code += "<li>\n"
+		code += r.renderFileNode(rootNode)
+		code += "</li>\n"
+		code += "</ul>\n</section>"
 
 	}
 
