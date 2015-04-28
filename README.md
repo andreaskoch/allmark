@@ -8,6 +8,30 @@ allmark is a lightweight markdown web server for Linux, BSD, Solaris Mac OS and 
 
 [![Build Status](https://travis-ci.org/andreaskoch/allmark.png)](https://travis-ci.org/andreaskoch/allmark)
 
+## Installation
+
+If you have [go](https://golang.org/dl/) (≥ 1.3) installed all you have to do is
+
+1. Clone the project from github
+2. Run the `make.go` file with the `-install` flag
+
+```bash
+git clone git@github.com:andreaskoch/allmark.git
+cd allmark
+go run make.go -install
+```
+
+Afterwards you will find the `allmark` binary in the bin-folder of the project. To test your installation you can start by serving the allmark-project directory:
+
+```bash
+cd allmark
+bin/allmark serve
+```
+
+After a second or so a browser window with this address `http://0.0.0.0:8080` should pop up. Or if it doesn't just type `http://localhost:8080` into your browser:
+
+![Screenshot: Testing the allmark server on the allmark-project directory](files/installation/screenshot-allmark-test-run-on-project-folder.png)
+
 ## Demo / Showcase
 
 If you want to see **allmark in action** you can visit my blog [AndyK Docs](https://andykdocs.de/) at [https://andykdocs.de](https://andykdocs.de):
