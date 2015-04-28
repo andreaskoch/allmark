@@ -7,6 +7,7 @@ package orchestrator
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"allmark.io/modules/common/config"
 	"allmark.io/modules/common/paths"
@@ -35,8 +36,8 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 		Description: item.Description,
 
 		LanguageTag:      getLanguageCode(item.MetaData.Language),
-		CreationDate:     item.MetaData.CreationDate.Format("2006-01-02"),
-		LastModifiedDate: item.MetaData.LastModifiedDate.Format("2006-01-02"),
+		CreationDate:     getFormattedDate(item.MetaData.CreationDate),
+		LastModifiedDate: getFormattedDate(item.MetaData.LastModifiedDate),
 	}
 
 	if item.Route().Level() > 0 {
@@ -47,6 +48,16 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 
 	return baseModel
 
+}
+
+// Get the formatted date if the supplied date is initialized; otherwise return an empty string.
+func getFormattedDate(date time.Time) string {
+
+	if date.IsZero() {
+		return ""
+	}
+
+	return date.Format("2006-01-02")
 }
 
 func getLanguageCode(languageHint string) string {
