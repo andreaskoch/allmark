@@ -6,6 +6,7 @@ package dataaccess
 
 import (
 	"allmark.io/modules/common/route"
+	"fmt"
 )
 
 type PathProvider interface {
@@ -21,18 +22,44 @@ type ItemsProvider interface {
 	Item(route route.Route) *Item
 }
 
-type RepositoryUpdater interface {
-	AfterReindex(notificationChannel chan bool)
-	OnUpdate(callback func(route.Route))
-	StartWatching(route route.Route)
-	StopWatching(route route.Route)
+type Subscriber interface {
+	Subscribe(updates chan Update)
 }
 
 type Repository interface {
 	PathProvider
 	ItemsProvider
 	RoutesProvider
+	Subscriber
+}
 
-	// update handling
-	RepositoryUpdater
+func NewUpdate(newItems, modifiedItems, deletedItems []*Item) Update {
+	return Update{newItems, modifiedItems, deletedItems}
+}
+
+type Update struct {
+	newItems      []*Item
+	modifiedItems []*Item
+	deletedItems  []*Item
+}
+
+func (update *Update) String() string {
+	return fmt.Sprintf("Update (New: %v, Modified: %v, Deleted: %v)",
+		len(update.newItems), len(update.modifiedItems), len(update.deletedItems))
+}
+
+func (update *Update) IsEmpty() bool {
+	return len(update.newItems) == 00 && len(update.modifiedItems) == 0 && len(update.deletedItems) == 0
+}
+
+func (update *Update) New() []*Item {
+	return update.newItems
+}
+
+func (update *Update) Modified() []*Item {
+	return update.modifiedItems
+}
+
+func (update *Update) Deleted() []*Item {
+	return update.deletedItems
 }

@@ -16,16 +16,12 @@ type UpdateOrchestrator struct {
 }
 
 func (orchestrator *UpdateOrchestrator) StartWatching(route route.Route) {
-	orchestrator.repository.StartWatching(route)
+	// todo
+	// orchestrator.repository.StartWatching(route)
 }
 
 func (orchestrator *UpdateOrchestrator) StopWatching(route route.Route) {
-	orchestrator.repository.StopWatching(route)
-}
-
-func (orchestrator *UpdateOrchestrator) OnUpdate(callback func(route.Route)) {
-	orchestrator.logger.Debug("Assigning a new update-callback to the repository.")
-	orchestrator.repository.OnUpdate(callback)
+	// orchestrator.repository.StopWatching(route)
 }
 
 func (orchestrator *UpdateOrchestrator) GetUpdatedModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {

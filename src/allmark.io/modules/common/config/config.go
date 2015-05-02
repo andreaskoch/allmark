@@ -5,13 +5,14 @@
 package config
 
 import (
-	"allmark.io/modules/common/logger/loglevel"
-	"allmark.io/modules/common/util/fsutil"
 	"bufio"
 	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
+
+	"allmark.io/modules/common/logger/loglevel"
+	"allmark.io/modules/common/util/fsutil"
 )
 
 const (
@@ -28,7 +29,7 @@ const (
 	DefaultPort                     = 8080
 	DefaultLanguage                 = "en-US"
 	DefaultLogLevel                 = loglevel.Info
-	DefaultReindexIntervalInSeconds = 0
+	DefaultReindexIntervalInSeconds = 5
 )
 
 var homeDirectory func() string

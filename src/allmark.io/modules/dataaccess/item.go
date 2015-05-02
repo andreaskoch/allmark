@@ -39,6 +39,15 @@ const (
 	TypeFileCollection
 )
 
+type ItemState int
+
+const (
+	ItemStateStable ItemState = iota
+	ItemStateNew
+	ItemStateModified
+	ItemStateDeleted
+)
+
 // An Item represents a single document in a repository.
 type Item struct {
 	*content.ContentProvider

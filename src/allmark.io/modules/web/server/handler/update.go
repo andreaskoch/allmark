@@ -24,16 +24,28 @@ func (handler *Update) Func() func(ws *websocket.Conn) {
 
 	hub := update.NewHub(handler.logger, handler.updateOrchestrator)
 
-	// attach a update-handler
-	handler.updateOrchestrator.OnUpdate(func(updatedRoute route.Route) {
-		updatedModel, found := handler.updateOrchestrator.GetUpdatedModel(updatedRoute)
-		if !found {
-			handler.logger.Warn("The item for route %q was no longer found.", updatedRoute)
-			return
-		}
+	updateChannel := make(chan orchestrator.Update, 1)
+	handler.updateOrchestrator.Subscribe(updateChannel)
 
-		hub.Message(updatedModel)
-	})
+	go func() {
+		for update := range updateChannel {
+
+			handler.logger.Warn("Recieved an update for route %q", update.Route())
+
+			// handle only modified items
+			if update.Type() != orchestrator.UpdateTypeModified {
+				continue
+			}
+
+			updatedModel, found := handler.updateOrchestrator.GetUpdatedModel(update.Route())
+			if !found {
+				handler.logger.Warn("The item for route %q was no longer found.", update.Route())
+				return
+			}
+
+			hub.Message(updatedModel)
+		}
+	}()
 
 	return func(ws *websocket.Conn) {
 

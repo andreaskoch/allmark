@@ -6,7 +6,7 @@ package thumbnail
 
 import (
 	"allmark.io/modules/common/logger"
-	"allmark.io/modules/common/route"
+	// "allmark.io/modules/common/route"
 	"allmark.io/modules/common/util/fsutil"
 	"allmark.io/modules/dataaccess"
 	"allmark.io/modules/services/imageconversion"
@@ -36,9 +36,9 @@ func NewConversionService(logger logger.Logger, repository dataaccess.Repository
 
 	// create a new conversion service
 	conversionService := &ConversionService{
-		logger:     logger,
-		repository: repository,
+		logger: logger,
 
+		repository:      repository,
 		index:           thumbnailIndex,
 		thumbnailFolder: thumbnailIndex.GetThumbnailFolder(),
 	}
@@ -50,8 +50,10 @@ func NewConversionService(logger logger.Logger, repository dataaccess.Repository
 }
 
 type ConversionService struct {
-	logger     logger.Logger
+	logger logger.Logger
+
 	repository dataaccess.Repository
+	updates    chan dataaccess.Update
 
 	index           *Index
 	thumbnailFolder string
@@ -60,11 +62,25 @@ type ConversionService struct {
 // Start the conversion process.
 func (conversion *ConversionService) startConversion() {
 
-	// distinctive update
-	conversion.repository.OnUpdate(func(route route.Route) {
-		item := conversion.repository.Item(route)
-		conversion.createThumbnailsForItem(item)
-	})
+	// listen for updates
+	repositoryUpdates := make(chan dataaccess.Update, 1)
+	conversion.repository.Subscribe(repositoryUpdates)
+
+	go func() {
+		for update := range repositoryUpdates {
+
+			// create thumbnails for new items
+			for _, newItem := range update.New() {
+				conversion.createThumbnailsForItem(newItem)
+			}
+
+			// create thumbnails for modified items
+			for _, modifiedItem := range update.Modified() {
+				conversion.createThumbnailsForItem(modifiedItem)
+			}
+
+		}
+	}()
 
 	// full run
 	go conversion.fullConversion()

@@ -26,7 +26,7 @@ type ViewModelOrchestrator struct {
 }
 
 func (orchestrator *ViewModelOrchestrator) blockingCacheWarmup() {
-	orchestrator.getViewModel(orchestrator.rootItem())
+	orchestrator.getViewModel(orchestrator.rootItem(), false)
 	orchestrator.GetLatest(route.New(), 5, 1)
 }
 
@@ -41,7 +41,7 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	}
 
 	// get the base view model
-	viewModel = *orchestrator.getViewModel(item)
+	viewModel = *orchestrator.getViewModel(item, false)
 
 	// navigation
 	viewModel.ToplevelNavigation = orchestrator.navigationOrchestrator.GetToplevelNavigation()
@@ -93,7 +93,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 		return viewModel, false
 	}
 
-	return *orchestrator.getViewModel(item), true
+	return *orchestrator.getViewModel(item, false), true
 }
 
 func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (latest []*viewmodel.Model, found bool) {
@@ -157,7 +157,7 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 	models := make([]*viewmodel.Model, 0, len(items))
 	for _, item := range items {
 
-		viewModel := orchestrator.getViewModel(item)
+		viewModel := orchestrator.getViewModel(item, false)
 		if viewModel == nil {
 			orchestrator.logger.Error("No view model found for item %q.", item)
 			continue
@@ -176,7 +176,7 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 	return models
 }
 
-func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) *viewmodel.Model {
+func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item, skipCache bool) *viewmodel.Model {
 
 	// get the root item
 	root := orchestrator.rootItem()
@@ -186,6 +186,11 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item) *viewm
 
 	itemRoute := item.Route()
 	cacheType := "viewmodels"
+
+	if skipCache {
+		// prime the cache synchronously
+		orchestrator.primeCache(cacheType)
+	}
 
 	// load from cache
 	if orchestrator.viewmodelsByRoute != nil {

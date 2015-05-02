@@ -17,18 +17,16 @@ func NewFactory(logger logger.Logger, config config.Config, repository dataacces
 
 	baseOrchestrator := newBaseOrchestrator(logger, config, repository, parser, converter, webPathProvider)
 
-	updateChannel := make(chan bool, 1)
-	repository.AfterReindex(updateChannel)
+	// listen for updates
+	repositoryUpdates := make(chan dataaccess.Update, 1)
+	repository.Subscribe(repositoryUpdates)
 
-	// refresh control
 	go func() {
-		for {
-			select {
-			case <-updateChannel:
-				// reset the list
-				logger.Debug("Resetting the the cache")
-				baseOrchestrator.ResetCache()
-			}
+		for update := range repositoryUpdates {
+
+			logger.Info("Received and update (%s). Resetting the the cache.", update.String())
+			baseOrchestrator.ResetCache(update)
+
 		}
 	}()
 

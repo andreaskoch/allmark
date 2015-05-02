@@ -30,6 +30,54 @@ const (
 	CacheStatePrimed
 )
 
+type UpdateType int
+
+const (
+	UpdateTypeUnchanged UpdateType = iota
+	UpdateTypeNew
+	UpdateTypeModified
+	UpdateTypeDeleted
+)
+
+func (updateType UpdateType) String() string {
+	switch updateType {
+	case UpdateTypeUnchanged:
+		return "Unchanged"
+
+	case UpdateTypeNew:
+		return "new"
+
+	case UpdateTypeModified:
+		return "modified"
+
+	case UpdateTypeDeleted:
+		return "deleted"
+	}
+
+	panic("Unreachable.")
+}
+
+func NewUpdate(updateType UpdateType, route route.Route) Update {
+	return Update{updateType, route}
+}
+
+type Update struct {
+	updateType UpdateType
+	route      route.Route
+}
+
+func (update *Update) String() string {
+	return fmt.Sprintf("%s (%s)", update.route.String(), update.updateType.String())
+}
+
+func (update *Update) Route() route.Route {
+	return update.route
+}
+
+func (update *Update) Type() UpdateType {
+	return update.updateType
+}
+
 func newBaseOrchestrator(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
 
 	startTime := time.Now()
@@ -43,6 +91,8 @@ func newBaseOrchestrator(logger logger.Logger, config config.Config, repository 
 		converter:  converter,
 
 		webPathProvider: webPathProvider,
+
+		updateSubscribers: make([]chan Update, 0),
 	}
 
 	// warm up caches
@@ -75,6 +125,8 @@ type Orchestrator struct {
 	repositoryIndex *index.Index
 	items           []*model.Item
 	itemsByAlias    map[string]*model.Item
+
+	updateSubscribers []chan Update
 }
 
 // Get the full-page title for a given headline.
@@ -90,19 +142,42 @@ func (orchestrator *Orchestrator) blockingCacheWarmup() {
 	orchestrator.getItemByAlias("")
 }
 
+func (orchestrator *Orchestrator) Subscribe(update chan Update) {
+	orchestrator.updateSubscribers = append(orchestrator.updateSubscribers, update)
+}
+
 // Reset all Caches
-func (orchestrator *Orchestrator) ResetCache() {
+func (orchestrator *Orchestrator) ResetCache(dataaccessLayerUpdate dataaccess.Update) {
 
 	// mark all caches as stale
 	for cacheType := range orchestrator.cacheStatusMap {
 		orchestrator.cacheStatusMap[cacheType] = CacheStateStale
 	}
 
-	// prime all caches asynchronously
-	go func() {
-		orchestrator.primeCaches()
-	}()
+	// prime all caches synchronously
+	orchestrator.primeCaches()
 
+	// inform subscribers ...
+	// ... about new items
+	for _, newItem := range dataaccessLayerUpdate.New() {
+		for _, subscriber := range orchestrator.updateSubscribers {
+			subscriber <- NewUpdate(UpdateTypeNew, newItem.Route())
+		}
+	}
+
+	// ... about modified items
+	for _, newItem := range dataaccessLayerUpdate.Modified() {
+		for _, subscriber := range orchestrator.updateSubscribers {
+			subscriber <- NewUpdate(UpdateTypeModified, newItem.Route())
+		}
+	}
+
+	// ... about deleted items
+	for _, newItem := range dataaccessLayerUpdate.Deleted() {
+		for _, subscriber := range orchestrator.updateSubscribers {
+			subscriber <- NewUpdate(UpdateTypeDeleted, newItem.Route())
+		}
+	}
 }
 
 func (orchestrator *Orchestrator) setCache(cacheType string, primer func()) {

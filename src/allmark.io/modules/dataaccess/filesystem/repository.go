@@ -5,29 +5,16 @@
 package filesystem
 
 import (
-	"allmark.io/modules/common/logger"
-	"allmark.io/modules/common/route"
-	"allmark.io/modules/common/util/fsutil"
-	"allmark.io/modules/dataaccess"
 	"fmt"
 	"path/filepath"
 	"runtime"
 	"time"
+
+	"allmark.io/modules/common/logger"
+	"allmark.io/modules/common/route"
+	"allmark.io/modules/common/util/fsutil"
+	"allmark.io/modules/dataaccess"
 )
-
-type UpdateCallback func(route.Route)
-
-type event struct {
-	Item  *dataaccess.Item
-	Error error
-}
-
-func newRepositoryEvent(item *dataaccess.Item, err error) event {
-	return event{
-		Item:  item,
-		Error: err,
-	}
-}
 
 type Repository struct {
 	logger    logger.Logger
@@ -37,15 +24,12 @@ type Repository struct {
 	itemProvider *itemProvider
 
 	// Indizes
-	items          []*dataaccess.Item
-	itemByRoute    map[string]*dataaccess.Item
-	itemByHash     map[string]*dataaccess.Item
-	itemHasChanged map[string]bool
+	items       []*dataaccess.Item
+	itemByRoute map[string]*dataaccess.Item
+	itemByHash  map[string]*dataaccess.Item
 
-	// Updates
-	reindexNotificationChannels []chan bool
-	routesWithSubscribers       map[string]route.Route
-	onUpdateCallbacks           []UpdateCallback
+	// Update Subscription
+	updateSubscribers []chan dataaccess.Update
 }
 
 func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeconds int) (*Repository, error) {
@@ -70,6 +54,9 @@ func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeco
 		return nil, fmt.Errorf("Cannot create the repository because the item provider could not be created. Error: %s", err.Error())
 	}
 
+	// create an update channel
+	updateSubscribers := make([]chan dataaccess.Update, 0)
+
 	// create the repository
 	repository := &Repository{
 		logger:    logger,
@@ -78,15 +65,12 @@ func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeco
 		itemProvider: itemProvider,
 
 		// Indizes
-		items:          make([]*dataaccess.Item, 0),
-		itemByRoute:    make(map[string]*dataaccess.Item),
-		itemByHash:     make(map[string]*dataaccess.Item),
-		itemHasChanged: make(map[string]bool),
+		items:       make([]*dataaccess.Item, 0),
+		itemByRoute: make(map[string]*dataaccess.Item),
+		itemByHash:  make(map[string]*dataaccess.Item),
 
-		// Updates
-		routesWithSubscribers:       make(map[string]route.Route),
-		onUpdateCallbacks:           make([]UpdateCallback, 0),
-		reindexNotificationChannels: make([]chan bool, 0),
+		// Update Subscription
+		updateSubscribers: updateSubscribers,
 	}
 
 	// index the repository
@@ -123,30 +107,18 @@ func (repository *Repository) Routes() []route.Route {
 // Initialize the repository - scan all folders and update the index.
 func (repository *Repository) init() {
 
-	newItemsChannel := make(chan event, 1)
-
-	go func() {
-		repository.discoverItems(repository.directory, newItemsChannel)
-		close(newItemsChannel)
-	}()
-
+	// notification lists
 	newItems := make([]*dataaccess.Item, 0)
-	newItemByRoute := make(map[string]*dataaccess.Item)
-	newItemByHash := make(map[string]*dataaccess.Item)
-	newItemHasChanged := make(map[string]bool)
+	modifiedItems := make([]*dataaccess.Item, 0)
+	deletedItems := make([]*dataaccess.Item, 0)
 
-	for event := range newItemsChannel {
+	// create new indices
+	items := make([]*dataaccess.Item, 0)
+	itemByRoute := make(map[string]*dataaccess.Item)
+	itemByHash := make(map[string]*dataaccess.Item)
 
-		err := event.Error
-		if err != nil {
-			repository.logger.Warn(err.Error())
-		}
-
-		item := event.Item
-		if item == nil {
-			repository.logger.Warn("The even contained an empty item but no error.")
-			continue
-		}
+	// scan the repository directory for new items
+	for _, item := range repository.getItemsFromDirectory(repository.directory) {
 
 		// determine the item hash
 		hash, err := item.Hash()
@@ -155,111 +127,64 @@ func (repository *Repository) init() {
 			continue
 		}
 
-		// check if the hash changed
-		hasChanged := false
-		if _, itemByHashWasFound := repository.itemByHash[hash]; !itemByHashWasFound {
-			hasChanged = true // it's a new item
+		// check if the item is new or modified
+		existingItem := repository.Item(item.Route())
+		isNewItem := existingItem == nil
+		if isNewItem {
+
+			// the route was not found in the index it must be a new item
+			newItems = append(newItems, item)
+
+		} else {
+
+			// check if the hash is already in the index
+			if _, itemHashIsAlreadyInTheIndex := repository.itemByHash[hash]; itemHashIsAlreadyInTheIndex == false {
+
+				// the item has changed the hash was not found in the index
+				modifiedItems = append(modifiedItems, item)
+			}
+
 		}
 
-		repository.logger.Debug("Adding item %q", item)
-
-		newItems = append(newItems, item)
-		newItemByRoute[item.Route().Value()] = item
-		newItemHasChanged[item.Route().Value()] = hasChanged
-		newItemByHash[hash] = item
+		// store the item in the indizes
+		items = append(items, item)
+		itemByRoute[item.Route().Value()] = item
+		itemByHash[hash] = item
 	}
 
-	repository.items = newItems
-	repository.itemByRoute = newItemByRoute
-	repository.itemHasChanged = newItemHasChanged
-	repository.itemByHash = newItemByHash
-
-	// inform subscribers about updates
-	repository.notifySubscribers()
-
-	// send out after reindex notifications
-	repository.sendAfterReindexUpdates()
-}
-
-func (repository *Repository) AfterReindex(notificationChannel chan bool) {
-	repository.reindexNotificationChannels = append(repository.reindexNotificationChannels, notificationChannel)
-}
-
-func (repository *Repository) OnUpdate(callback func(route.Route)) {
-	repository.onUpdateCallbacks = append(repository.onUpdateCallbacks, callback)
-}
-
-func (repository *Repository) StartWatching(r route.Route) {
-	repository.routesWithSubscribers[route.ToKey(r)] = r
-
-	// todo: start a watcher
-}
-
-func (repository *Repository) StopWatching(r route.Route) {
-	key := route.ToKey(r)
-	delete(repository.routesWithSubscribers, key)
-
-	// todo: stop the watcher started earlier
-}
-
-func (repository *Repository) sendAfterReindexUpdates() {
-	for _, updateChannel := range repository.reindexNotificationChannels {
-		updateChannel <- true
-	}
-}
-
-func (repository *Repository) notifySubscribers() {
-	for _, route := range repository.routesWithSubscribers {
-
-		hasChanged, exists := repository.itemHasChanged[route.Value()]
-		if !exists {
-			// don't notify if the item does no longer exists
+	// find deleted items
+	for _, oldItem := range repository.items {
+		oldItemRoute := oldItem.Route().Value()
+		if _, oldItemExistsInNewIndex := itemByRoute[oldItemRoute]; oldItemExistsInNewIndex {
 			continue
 		}
 
-		if !hasChanged {
-			// don't notify if the item has not changed
-			continue
-		}
-
-		repository.logger.Info("Item %q has changed.", route)
-
-		for _, onUpdateCallback := range repository.onUpdateCallbacks {
-			go onUpdateCallback(route)
-		}
-
-	}
-}
-
-// Start the fulltext search indexing process
-func (repository *Repository) reindex(intervalInSeconds int) {
-
-	if intervalInSeconds <= 1 {
-		repository.logger.Debug("Reindexing is disabled.")
-		return
+		deletedItems = append(deletedItems, oldItem)
 	}
 
-	go func() {
-		sleepInterval := time.Second * time.Duration(intervalInSeconds)
-		for {
+	// override the existing values
+	repository.items = items
+	repository.itemByRoute = itemByRoute
+	repository.itemByHash = itemByHash
 
-			repository.logger.Debug("Number of go routines: %d", runtime.NumGoroutine())
-			repository.logger.Info("Reindexing")
-			repository.init()
-
-			time.Sleep(sleepInterval)
-		}
-	}()
+	// send update to subscribers
+	repository.sendUpdate(dataaccess.NewUpdate(newItems, modifiedItems, deletedItems))
 }
 
 // Create a new Item for the specified path.
-func (repository *Repository) discoverItems(itemDirectory string, targetChannel chan event) {
+func (repository *Repository) getItemsFromDirectory(itemDirectory string) (items []*dataaccess.Item) {
+
+	items = make([]*dataaccess.Item, 0)
 
 	// create the item
 	item, err := repository.itemProvider.GetItemFromDirectory(itemDirectory)
+	if err != nil {
+		repository.logger.Error("Could not create an item from folder %q", itemDirectory)
+		return
+	}
 
-	// send the item to the target channel
-	targetChannel <- newRepositoryEvent(item, err)
+	// append the item
+	items = append(items, item)
 
 	// abort if the item cannot have childs
 	if !item.CanHaveChilds() {
@@ -269,6 +194,51 @@ func (repository *Repository) discoverItems(itemDirectory string, targetChannel 
 	// recurse for child items
 	childItemDirectories := getChildDirectories(itemDirectory)
 	for _, childItemDirectory := range childItemDirectories {
-		repository.discoverItems(childItemDirectory, targetChannel)
+		childItems := repository.getItemsFromDirectory(childItemDirectory)
+		items = append(items, childItems...)
+	}
+
+	return
+}
+
+// Start the fulltext search indexing process
+func (repository *Repository) reindex(intervalInSeconds int) {
+
+	if intervalInSeconds <= 1 {
+		repository.logger.Info("Reindexing: Off")
+		return
+	}
+
+	repository.logger.Info("Reindexing: On")
+
+	go func() {
+		sleepInterval := time.Second * time.Duration(intervalInSeconds)
+
+		for {
+
+			repository.logger.Debug("Number of go routines: %d", runtime.NumGoroutine())
+			repository.logger.Info("Reindexing")
+
+			// index
+			repository.init()
+
+			// wait for the next turn
+			time.Sleep(sleepInterval)
+		}
+	}()
+}
+
+func (repository *Repository) Subscribe(updates chan dataaccess.Update) {
+	repository.updateSubscribers = append(repository.updateSubscribers, updates)
+}
+
+// Send an update down the repository update channel
+func (repository *Repository) sendUpdate(update dataaccess.Update) {
+	if update.IsEmpty() {
+		return
+	}
+
+	for _, updateSubscriber := range repository.updateSubscribers {
+		updateSubscriber <- update
 	}
 }
