@@ -16,12 +16,11 @@ type UpdateOrchestrator struct {
 }
 
 func (orchestrator *UpdateOrchestrator) StartWatching(route route.Route) {
-	// todo
-	// orchestrator.repository.StartWatching(route)
+	orchestrator.repository.StartWatching(route)
 }
 
 func (orchestrator *UpdateOrchestrator) StopWatching(route route.Route) {
-	// orchestrator.repository.StopWatching(route)
+	orchestrator.repository.StopWatching(route)
 }
 
 func (orchestrator *UpdateOrchestrator) GetUpdatedModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {

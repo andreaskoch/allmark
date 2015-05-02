@@ -26,8 +26,8 @@ func newItemProvider(logger logger.Logger, repositoryPath string) (*itemProvider
 		return nil, fmt.Errorf("The supplied item repository path %q is not a directory.", repositoryPath)
 	}
 
-	// create the file provider
-	fileProvider, err := newFileProvider(logger, repositoryPath)
+	// create the file fileProvider
+	provider, err := newFileProvider(logger, repositoryPath)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot create the item provider because the file provider could not be created. Error: %s", err.Error())
 	}
@@ -35,7 +35,7 @@ func newItemProvider(logger logger.Logger, repositoryPath string) (*itemProvider
 	return &itemProvider{
 		logger:         logger,
 		repositoryPath: repositoryPath,
-		fileProvider:   fileProvider,
+		fileProvider:   provider,
 	}, nil
 }
 

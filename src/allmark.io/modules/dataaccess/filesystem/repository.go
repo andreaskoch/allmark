@@ -14,6 +14,8 @@ import (
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/common/util/fsutil"
 	"allmark.io/modules/dataaccess"
+
+	// "github.com/andreaskoch/go-fswatch"
 )
 
 type Repository struct {
@@ -240,5 +242,25 @@ func (repository *Repository) sendUpdate(update dataaccess.Update) {
 
 	for _, updateSubscriber := range repository.updateSubscribers {
 		updateSubscriber <- update
+	}
+}
+
+func (repository *Repository) StartWatching(route route.Route) {
+
+	item := repository.Item(route)
+	if item == nil {
+		repository.logger.Warn("Item %q was not found.", route.String())
+		return
+	}
+
+	// fswatch.NewFolderWatcher(folderPath string, recurse bool, skipFile func(path string) bool, checkIntervalInSeconds int)
+}
+
+func (repository *Repository) StopWatching(route route.Route) {
+
+	item := repository.Item(route)
+	if item == nil {
+		repository.logger.Warn("Item %q was not found.", route.String())
+		return
 	}
 }

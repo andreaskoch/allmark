@@ -26,11 +26,17 @@ type Subscriber interface {
 	Subscribe(updates chan Update)
 }
 
+type LiveReload interface {
+	StartWatching(route route.Route)
+	StopWatching(route route.Route)
+}
+
 type Repository interface {
 	PathProvider
 	ItemsProvider
 	RoutesProvider
 	Subscriber
+	LiveReload
 }
 
 func NewUpdate(newItems, modifiedItems, deletedItems []*Item) Update {
