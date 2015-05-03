@@ -18,7 +18,7 @@ const (
 )
 
 func Cache(w http.ResponseWriter, seconds int) {
-	w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%d", seconds))
+	w.Header().Add("Cache-Control", fmt.Sprintf("public, max-age=%d", seconds))
 }
 
 func ETag(w http.ResponseWriter, hash string) {
