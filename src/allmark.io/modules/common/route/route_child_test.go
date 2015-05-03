@@ -10,8 +10,8 @@ import (
 
 func Test_IsChildOf_ParentRouteIsEmpty_ResultIsTrue(t *testing.T) {
 	// arrange
-	parent, _ := NewFromRequest("/")
-	child, _ := NewFromRequest("/documents/Test-1")
+	parent := NewFromRequest("/")
+	child := NewFromRequest("/documents/Test-1")
 
 	// act
 	result := child.IsChildOf(parent)
@@ -24,8 +24,8 @@ func Test_IsChildOf_ParentRouteIsEmpty_ResultIsTrue(t *testing.T) {
 
 func Test_IsChildOf_RouteIsFirstLevelChild_ResultIsTrue(t *testing.T) {
 	// arrange
-	parent, _ := NewFromRequest("/documents/Collection")
-	child, _ := NewFromRequest("/documents/Collection/Level-1")
+	parent := NewFromRequest("/documents/Collection")
+	child := NewFromRequest("/documents/Collection/Level-1")
 
 	// act
 	result := child.IsChildOf(parent)
@@ -38,8 +38,8 @@ func Test_IsChildOf_RouteIsFirstLevelChild_ResultIsTrue(t *testing.T) {
 
 func Test_IsChildOf_RouteIsSecondLevelChild_ResultIsTrue(t *testing.T) {
 	// arrange
-	parent, _ := NewFromRequest("/documents/Collection")
-	child, _ := NewFromRequest("/documents/Collection/Level-1/Level-2")
+	parent := NewFromRequest("/documents/Collection")
+	child := NewFromRequest("/documents/Collection/Level-1/Level-2")
 
 	// act
 	result := child.IsChildOf(parent)
@@ -52,8 +52,8 @@ func Test_IsChildOf_RouteIsSecondLevelChild_ResultIsTrue(t *testing.T) {
 
 func Test_IsChildOf_RouteIsNotAChild_ResultIsFalse(t *testing.T) {
 	// arrange
-	parent, _ := NewFromRequest("/documents/Collection")
-	child, _ := NewFromRequest("/pictures/Test-1")
+	parent := NewFromRequest("/documents/Collection")
+	child := NewFromRequest("/pictures/Test-1")
 
 	// act
 	result := child.IsChildOf(parent)

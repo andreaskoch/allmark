@@ -56,11 +56,7 @@ func getRoutesFromStrings(uris []string) []route.Route {
 	routes := []route.Route{}
 
 	for _, uri := range uris {
-		route, err := route.NewFromRequest(uri)
-		if err != nil {
-			continue
-		}
-		routes = append(routes, route)
+		routes = append(routes, route.NewFromRequest(uri))
 	}
 
 	return routes

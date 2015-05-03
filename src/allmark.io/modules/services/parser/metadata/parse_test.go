@@ -17,7 +17,7 @@ func Test_getFallbackAlias_RouteWithFile_ReturnsItemFolder(t *testing.T) {
 	// arrange
 	expected := "test"
 	inputPath := fmt.Sprintf("/repository/document/%s/document.md", expected)
-	route, _ := route.NewFromFilePath("/repository", inputPath)
+	route := route.NewFromFilePath("/repository", inputPath)
 
 	item := model.NewItem(route, []*model.File{}, dataaccess.TypePhysical)
 

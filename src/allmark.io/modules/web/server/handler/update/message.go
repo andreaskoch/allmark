@@ -16,10 +16,7 @@ type Message struct {
 }
 
 func NewMessage(viewModel viewmodel.Model) Message {
-	route, err := route.NewFromRequest(viewModel.Route)
-	if err != nil {
-		panic(err)
-	}
+	route := route.NewFromRequest(viewModel.Route)
 
 	return Message{
 		Route:     route.Value(),

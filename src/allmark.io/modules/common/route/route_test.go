@@ -30,10 +30,10 @@ func Test_NewFromRequest_ValidPathReturnsRoute(t *testing.T) {
 	inputPath := "document/Test"
 
 	// act
-	result, err := NewFromRequest(inputPath)
+	result := NewFromRequest(inputPath)
 
 	// assert
-	if result.IsEmpty() || err != nil {
+	if result.IsEmpty() {
 		t.Errorf("The constructor function should return a Route object for the path %q.", inputPath)
 	}
 }

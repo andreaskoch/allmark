@@ -10,7 +10,7 @@ import (
 
 func Test_Level_RootItemRoute_LevelIsZero(t *testing.T) {
 	// arrange
-	route, _ := NewFromRequest("/")
+	route := NewFromRequest("/")
 
 	// act
 	result := route.Level()
@@ -24,7 +24,7 @@ func Test_Level_RootItemRoute_LevelIsZero(t *testing.T) {
 
 func Test_Level_FirstLevelRoute_LevelIsOne(t *testing.T) {
 	// arrange
-	route, _ := NewFromRequest("/documents")
+	route := NewFromRequest("/documents")
 
 	// act
 	result := route.Level()
@@ -38,7 +38,7 @@ func Test_Level_FirstLevelRoute_LevelIsOne(t *testing.T) {
 
 func Test_Level_SecondLevelRoute_LevelIsTwo(t *testing.T) {
 	// arrange
-	route, _ := NewFromRequest("/documents/Test-123")
+	route := NewFromRequest("/documents/Test-123")
 
 	// act
 	result := route.Level()
@@ -52,7 +52,7 @@ func Test_Level_SecondLevelRoute_LevelIsTwo(t *testing.T) {
 
 func Test_Level_ThirdLevelRoute_LevelIsThree(t *testing.T) {
 	// arrange
-	route, _ := NewFromRequest("/documents/Test-123/Another-Test")
+	route := NewFromRequest("/documents/Test-123/Another-Test")
 
 	// act
 	result := route.Level()

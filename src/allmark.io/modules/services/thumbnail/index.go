@@ -135,12 +135,7 @@ func (t Thumb) String() string {
 }
 
 func (t Thumb) ThumbRoute() route.Route {
-	thumbRoute, err := route.NewFromRequest(fmt.Sprintf("%s/%s", "thumbnails", t.Path))
-	if err != nil {
-		panic(err)
-	}
-
-	return thumbRoute
+	return route.NewFromRequest(fmt.Sprintf("%s/%s", "thumbnails", t.Path))
 }
 
 type ThumbDimension struct {
@@ -203,10 +198,7 @@ func GetThumbnailDimensionsFromRoute(routeWithDimensions route.Route) (baseRoute
 
 	// base route
 	fullMatch := matches[0]
-	cleanedRoute, err := route.NewFromRequest(strings.Replace(routeWithDimensions.Value(), fullMatch, "", 1))
-	if err != nil {
-		return routeWithDimensions, ThumbDimension{}
-	}
+	cleanedRoute := route.NewFromRequest(strings.Replace(routeWithDimensions.Value(), fullMatch, "", 1))
 
 	return cleanedRoute, ThumbDimension{
 		MaxWidth:  uint(width),

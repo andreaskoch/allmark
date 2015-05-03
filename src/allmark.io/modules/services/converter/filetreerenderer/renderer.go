@@ -30,19 +30,8 @@ type FileTreeRenderer struct {
 func (r *FileTreeRenderer) Render(title, cssClass, path string) string {
 
 	// create the base route from the path
-	folderRoute, err := route.NewFromRequest(path)
-	if err != nil {
-		// abort. an error occured.
-		// todo: log error
-		return ""
-	}
-
-	fullFolderRoute, err := route.Combine(r.base, folderRoute)
-	if err != nil {
-		// abort. an error occured.
-		// todo: log error
-		return ""
-	}
+	folderRoute := route.NewFromRequest(path)
+	fullFolderRoute := route.Combine(r.base, folderRoute)
 
 	// render the filesystem
 	code := fmt.Sprintf(`<section class="%s">`, cssClass)

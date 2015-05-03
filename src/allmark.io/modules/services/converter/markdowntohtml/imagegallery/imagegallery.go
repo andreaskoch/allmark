@@ -88,18 +88,9 @@ func (converter *FilePreviewExtension) getGalleryCode(galleryTitle, path string)
 
 func (converter *FilePreviewExtension) getImageLinksByPath(path string) []string {
 
-	galleryRoute, err := route.NewFromRequest(path)
-	if err != nil {
-		// todo: log error
-		return []string{}
-	}
-
 	baseRoute := converter.base
-	fullGalleryRoute, err := route.Combine(baseRoute, galleryRoute)
-	if err != nil {
-		// todo: log error
-		return []string{}
-	}
+	galleryRoute := route.NewFromRequest(path)
+	fullGalleryRoute := route.Combine(baseRoute, galleryRoute)
 
 	numberOfFiles := len(converter.files)
 	imagelinks := make([]string, 0, numberOfFiles)

@@ -41,11 +41,7 @@ func (handler *Latest) Func() func(w http.ResponseWriter, r *http.Request) {
 		path = strings.TrimSuffix(path, ".")
 
 		// get the request route
-		requestRoute, err := route.NewFromRequest(path)
-		if err != nil {
-			handler.logger.Error("Unable to get route from request. Error: %s", err)
-			return
-		}
+		requestRoute := route.NewFromRequest(path)
 
 		// make sure the request body is closed
 		defer r.Body.Close()

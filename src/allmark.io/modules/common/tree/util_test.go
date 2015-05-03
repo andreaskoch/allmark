@@ -11,7 +11,7 @@ import (
 
 func Test_RouteToPath(t *testing.T) {
 	// arrange
-	inputRoute, _ := route.NewFromRequest("document/sample-doc/child-1")
+	inputRoute := route.NewFromRequest("document/sample-doc/child-1")
 
 	// act
 	result := RouteToPath(inputRoute).String()

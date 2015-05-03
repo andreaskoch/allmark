@@ -110,7 +110,8 @@ func NewFromFilePath(baseDirectory, itemPath string) Route {
 	}
 }
 
-func NewFromRequest(requestPath string) (Route, error) {
+// Create a new route from the given request path.
+func NewFromRequest(requestPath string) Route {
 
 	// normalize the request path
 	routeValue := normalize(requestPath)
@@ -118,9 +119,10 @@ func NewFromRequest(requestPath string) (Route, error) {
 	return Route{
 		value:         toUrl(routeValue),
 		originalValue: routeValue,
-	}, nil
+	}
 }
 
+// Create an empty route.
 func New() Route {
 
 	// normalize the request path
@@ -134,7 +136,7 @@ func New() Route {
 }
 
 // combines two routes
-func Combine(route1, route2 Route) (Route, error) {
+func Combine(route1, route2 Route) Route {
 	return NewFromRequest(route1.OriginalValue() + "/" + route2.OriginalValue())
 }
 
@@ -259,7 +261,7 @@ func (route Route) SubRoute(level int) (Route, error) {
 
 	// root level
 	if level == 0 {
-		return NewFromRequest("")
+		return NewFromRequest(""), nil
 	}
 
 	// same level
@@ -279,11 +281,7 @@ func (route Route) SubRoute(level int) (Route, error) {
 	subset := components[0:level]
 	subRoutePath := strings.Join(subset, "/")
 
-	subRoute, err := NewFromRequest(subRoutePath)
-	if err != nil {
-		return Route{}, fmt.Errorf("Unable to create a route from the path %q. Error: %s", subRoutePath, err)
-	}
-
+	subRoute := NewFromRequest(subRoutePath)
 	return subRoute, nil
 }
 
@@ -313,11 +311,7 @@ func (route Route) Parent() (parent Route, exists bool) {
 	positionOfLastSlash := strings.LastIndex(routeValue, "/")
 	parentRouteValue := routeValue[:positionOfLastSlash]
 
-	parentRoute, err := NewFromRequest(parentRouteValue)
-	if err != nil {
-		return parent, false
-	}
-
+	parentRoute := NewFromRequest(parentRouteValue)
 	return parentRoute, true
 }
 

@@ -12,7 +12,7 @@ func Test_SubRoute_TwoLevelRoute_RequestLevelZero_LevelZeroIsReturned(t *testing
 	// arrange
 	level := 0
 	expected := ""
-	route, _ := NewFromRequest("/documents/Test-1")
+	route := NewFromRequest("/documents/Test-1")
 
 	// act
 	result, _ := route.SubRoute(level)
@@ -27,7 +27,7 @@ func Test_SubRoute_TwoLevelRoute_RequestFirstLevel_FirstLevelIsReturned(t *testi
 	// arrange
 	level := 1
 	expected := "documents"
-	route, _ := NewFromRequest("/documents/Test-1")
+	route := NewFromRequest("/documents/Test-1")
 
 	// act
 	result, _ := route.SubRoute(level)
@@ -42,7 +42,7 @@ func Test_SubRoute_TwoLevelRoute_RequestSecondLevel_SecondLevelIsReturned(t *tes
 	// arrange
 	level := 2
 	expected := "documents/Test-1"
-	route, _ := NewFromRequest("/documents/Test-1")
+	route := NewFromRequest("/documents/Test-1")
 
 	// act
 	result, _ := route.SubRoute(level)

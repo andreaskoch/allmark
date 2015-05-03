@@ -72,11 +72,7 @@ func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) [
 
 	for number, v := range searchResult.Items {
 
-		route, err := route.NewFromRequest(string(v.Id))
-		if err != nil {
-			index.logger.Warn("%s", err)
-			continue
-		}
+		route := route.NewFromRequest(string(v.Id))
 
 		// append the search results
 		searchResults = append(searchResults, Result{

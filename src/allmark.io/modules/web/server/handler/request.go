@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func getRouteFromRequest(r *http.Request) (route.Route, error) {
+func getRouteFromRequest(r *http.Request) route.Route {
 	return route.NewFromRequest(r.URL.Path)
 }
 

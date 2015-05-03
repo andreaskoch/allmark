@@ -58,11 +58,7 @@ func (handler *Update) Func() func(ws *websocket.Conn) {
 		path = strings.TrimSuffix(path, ".")
 
 		// get the request route
-		requestRoute, err := route.NewFromRequest(path)
-		if err != nil {
-			handler.logger.Error("Unable to get route from request. Error: %s", err)
-			return
-		}
+		requestRoute := route.NewFromRequest(path)
 
 		// stage 1: check if there is a item for the request
 		if exists := handler.updateOrchestrator.ItemExists(requestRoute); !exists {

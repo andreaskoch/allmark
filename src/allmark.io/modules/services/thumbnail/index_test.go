@@ -12,13 +12,13 @@ import (
 func Test_GetThumbnailDimensionsFromRoute(t *testing.T) {
 	// arrange
 	requestUrl := "/collections/Design/Splashscreens/collections/Design/Splashscreens/files/login-Space-Invaders.jpg-maxWidth:400-maxHeight:0"
-	requestRoute, _ := route.NewFromRequest(requestUrl)
+	requestRoute := route.NewFromRequest(requestUrl)
 
 	// act
 	resultRoute, _ := GetThumbnailDimensionsFromRoute(requestRoute)
 
 	// assert
-	expectedRoute, _ := route.NewFromRequest("/collections/Design/Splashscreens/collections/Design/Splashscreens/files/login-Space-Invaders.jpg")
+	expectedRoute := route.NewFromRequest("/collections/Design/Splashscreens/collections/Design/Splashscreens/files/login-Space-Invaders.jpg")
 	if expectedRoute.Value() != resultRoute.Value() {
 		t.Errorf("The base route should be %q but was %q.", expectedRoute, resultRoute)
 	}

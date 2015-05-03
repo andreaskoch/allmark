@@ -178,12 +178,7 @@ func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.I
 		}
 
 		// assemble the new link path
-		fullFileRoute, err := route.Combine(matchingFile.Parent(), matchingFile.Route())
-		if err != nil {
-			converter.logger.Error("%s", err)
-			continue
-		}
-
+		fullFileRoute := route.Combine(matchingFile.Parent(), matchingFile.Route())
 		matchingFilePath := pathProvider.Path(fullFileRoute.Value())
 
 		// assemble the new link

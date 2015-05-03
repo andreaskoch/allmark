@@ -52,11 +52,7 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 		path = strings.TrimSuffix(path, ".")
 
 		// get the request route
-		requestRoute, err := route.NewFromRequest(path)
-		if err != nil {
-			handler.logger.Error("Unable to get route from request. Error: %s", err.Error())
-			return
-		}
+		requestRoute := route.NewFromRequest(path)
 
 		// make sure the request body is closed
 		defer r.Body.Close()
@@ -170,23 +166,11 @@ func (handler *Rtf) convertToHtml(hostname string, viewModel viewmodel.Conversio
 }
 
 func getRichTextFilename(model viewmodel.ConversionModel) string {
-	fallback := "document"
-
-	originalRoute, err := route.NewFromRequest(model.Route)
-	if err != nil {
-		return fallback
-	}
-
-	fileNameRoute, err := route.NewFromRequest(originalRoute.LastComponentName())
-	if err != nil {
-		return fallback
-	}
+	originalRoute := route.NewFromRequest(model.Route)
+	fileNameRoute := route.NewFromRequest(originalRoute.LastComponentName())
 
 	if model.Level == 0 {
-		fileNameRoute, err = route.NewFromRequest(model.Title)
-		if err != nil {
-			return fallback
-		}
+		fileNameRoute = route.NewFromRequest(model.Title)
 	}
 
 	return fmt.Sprintf("%s.rtf", fileNameRoute.Value())

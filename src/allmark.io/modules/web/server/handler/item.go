@@ -31,11 +31,7 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 		hostname := getHostnameFromRequest(r)
 
 		// get the request route
-		requestRoute, err := getRouteFromRequest(r)
-		if err != nil {
-			handler.logger.Error("Unable to get route from request. Error: %s", err)
-			return
-		}
+		requestRoute := getRouteFromRequest(r)
 
 		// make sure the request body is closed
 		defer r.Body.Close()
