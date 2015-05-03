@@ -16,8 +16,8 @@ import (
 )
 
 type Error struct {
-	logger logger.Logger
-
+	logger                 logger.Logger
+	headerWriter           header.HeaderWriter
 	templateProvider       templates.Provider
 	navigationOrchestrator *orchestrator.NavigationOrchestrator
 }
@@ -27,9 +27,8 @@ func (handler Error) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "text/html; charset=utf-8")
-		header.VaryAcceptEncoding(w, r)
-		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
+		handler.headerWriter.Write(w, header.CONTENTTYPE_HTML)
+		w.WriteHeader(http.StatusNotFound)
 
 		// get the error template
 		hostname := getHostnameFromRequest(r)
@@ -49,9 +48,6 @@ func (handler Error) Func() func(w http.ResponseWriter, r *http.Request) {
 		errorModel.Description = "The requested resource was not found."
 		errorModel.ToplevelNavigation = handler.navigationOrchestrator.GetToplevelNavigation()
 		errorModel.BreadcrumbNavigation = handler.navigationOrchestrator.GetBreadcrumbNavigation(route.New())
-
-		// set 404 status code
-		w.WriteHeader(http.StatusNotFound)
 
 		// render the template
 		renderTemplate(errorModel, errorTemplate, w)

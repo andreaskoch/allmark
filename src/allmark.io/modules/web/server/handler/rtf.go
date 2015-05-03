@@ -24,14 +24,12 @@ import (
 )
 
 type Rtf struct {
-	logger logger.Logger
-
-	conversionToolPath string
-
+	logger                     logger.Logger
+	conversionToolPath         string
+	headerWriter               header.HeaderWriter
 	converterModelOrchestrator *orchestrator.ConversionModelOrchestrator
 	templateProvider           templates.Provider
-
-	error404Handler Handler
+	error404Handler            Handler
 }
 
 func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -39,9 +37,7 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "application/rtf; charset=utf-8")
-		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
-		header.VaryAcceptEncoding(w, r)
+		handler.headerWriter.Write(w, header.CONTENTTYPE_RTF)
 
 		// get the path from the request variables
 		vars := mux.Vars(r)

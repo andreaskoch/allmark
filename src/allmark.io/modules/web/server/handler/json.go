@@ -18,20 +18,17 @@ import (
 )
 
 type Json struct {
-	logger logger.Logger
-
+	logger                logger.Logger
+	headerWriter          header.HeaderWriter
 	viewModelOrchestrator *orchestrator.ViewModelOrchestrator
-
-	fallbackHandler Handler
+	fallbackHandler       Handler
 }
 
 func (handler *Json) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "application/json; charset=utf-8")
-		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
-		header.VaryAcceptEncoding(w, r)
+		handler.headerWriter.Write(w, header.CONTENTTYPE_JSON)
 
 		// get the path from the request variables
 		vars := mux.Vars(r)

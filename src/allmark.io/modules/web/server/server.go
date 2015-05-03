@@ -68,13 +68,16 @@ func New(logger logger.Logger, config config.Config, repository dataaccess.Repos
 	// handlers
 	templateProvider := templates.NewProvider(config.TemplatesFolder())
 	orchestratorFactory := orchestrator.NewFactory(logger, config, repository, parser, converter, webPathProvider)
-	handlerFactory := handler.NewFactory(logger, config, templateProvider, *orchestratorFactory)
+	reindexInterval := config.Indexing.IntervalInSeconds
+	headerWriterFactory := header.NewHeaderWriterFactory(reindexInterval)
+	handlerFactory := handler.NewFactory(logger, config, templateProvider, *orchestratorFactory, headerWriterFactory)
 
 	return &Server{
 		logger: logger,
 		config: config,
 
-		handlerFactory: handlerFactory,
+		headerWriterFactory: headerWriterFactory,
+		handlerFactory:      handlerFactory,
 	}, nil
 
 }
@@ -85,7 +88,8 @@ type Server struct {
 	logger logger.Logger
 	config config.Config
 
-	handlerFactory *handler.Factory
+	headerWriterFactory header.WriterFactory
+	handlerFactory      *handler.Factory
 }
 
 func (server *Server) IsRunning() bool {
@@ -132,7 +136,8 @@ func (server *Server) Start() chan error {
 
 		// serve static
 		themeFolderHandler := http.FileServer(http.Dir(themeFolder))
-		s := http.StripPrefix(StaticThemeFolderRoute, addStaticFileHeaders(themeFolder, "/"+config.ThemeFolderName, header.STATICCONTENT_CACHEDURATION_SECONDS, themeFolderHandler))
+		requestPrefixToStripFromRequestUri := "/" + config.ThemeFolderName
+		s := http.StripPrefix(StaticThemeFolderRoute, server.addStaticFileHeaders(themeFolder, requestPrefixToStripFromRequestUri, themeFolderHandler))
 		requestRouter.PathPrefix(StaticThemeFolderRoute).Handler(s)
 
 	} else {
@@ -147,7 +152,8 @@ func (server *Server) Start() chan error {
 	// serve thumbnails
 	if thumbnailsFolder := server.config.ThumbnailFolder(); fsutil.DirectoryExists(thumbnailsFolder) {
 		thumbnailsFolderHandler := http.FileServer(http.Dir(thumbnailsFolder))
-		s := http.StripPrefix(StaticThumbnailFolderRoute, addStaticFileHeaders(thumbnailsFolder, "/"+config.ThumbnailsFolderName, header.STATICCONTENT_CACHEDURATION_SECONDS, thumbnailsFolderHandler))
+		requestPrefixToStripFromRequestUri := "/" + config.ThumbnailsFolderName
+		s := http.StripPrefix(StaticThumbnailFolderRoute, server.addStaticFileHeaders(thumbnailsFolder, requestPrefixToStripFromRequestUri, thumbnailsFolderHandler))
 		requestRouter.PathPrefix(StaticThumbnailFolderRoute).Handler(s)
 	}
 
@@ -225,8 +231,13 @@ func (server *Server) getPort() int {
 	return port
 }
 
-func addStaticFileHeaders(baseFolder, requestPrefixToStripFromRequestUri string, seconds int, h http.Handler) http.Handler {
+func (server *Server) addStaticFileHeaders(baseFolder, requestPrefixToStripFromRequestUri string, h http.Handler) http.Handler {
+
+	staticHeaderWriter := server.headerWriterFactory.Static()
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		staticHeaderWriter.Write(w, "")
 
 		// determine the hash
 		etag := ""
@@ -248,11 +259,8 @@ func addStaticFileHeaders(baseFolder, requestPrefixToStripFromRequestUri string,
 			}
 		}
 		if etag != "" {
-			header.ETag(w, r, etag)
+			header.ETag(w, etag)
 		}
-
-		header.Cache(w, r, seconds)
-		header.VaryAcceptEncoding(w, r)
 
 		h.ServeHTTP(w, r)
 	})

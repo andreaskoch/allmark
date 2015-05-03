@@ -15,8 +15,8 @@ import (
 )
 
 type Titles struct {
-	logger logger.Logger
-
+	logger             logger.Logger
+	headerWriter       header.HeaderWriter
 	titlesOrchestrator *orchestrator.TitlesOrchestrator
 }
 
@@ -25,9 +25,7 @@ func (handler *Titles) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "application/json; charset=utf-8")
-		header.NoCache(w, r)
-		header.VaryAcceptEncoding(w, r)
+		handler.headerWriter.Write(w, header.CONTENTTYPE_JSON)
 
 		// get the suggestions
 		titles := handler.titlesOrchestrator.GetTitles()

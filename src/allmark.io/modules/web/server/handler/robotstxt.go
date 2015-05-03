@@ -12,7 +12,8 @@ import (
 )
 
 type RobotsTxt struct {
-	logger logger.Logger
+	logger       logger.Logger
+	headerWriter header.HeaderWriter
 }
 
 func (handler *RobotsTxt) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -20,9 +21,7 @@ func (handler *RobotsTxt) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "text/plain; charset=utf-8")
-		header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
-		header.VaryAcceptEncoding(w, r)
+		handler.headerWriter.Write(w, header.CONTENTTYPE_TEXT)
 
 		fmt.Fprintf(w, `User-agent: *
 Disallow: /thumbnails

@@ -21,14 +21,12 @@ import (
 )
 
 type Search struct {
-	logger logger.Logger
-
+	logger                 logger.Logger
+	headerWriter           header.HeaderWriter
 	navigationOrchestrator *orchestrator.NavigationOrchestrator
 	searchOrchestrator     *orchestrator.SearchOrchestrator
-
-	templateProvider templates.Provider
-
-	error404Handler Handler
+	templateProvider       templates.Provider
+	error404Handler        Handler
 }
 
 func (handler *Search) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -36,9 +34,7 @@ func (handler *Search) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "text/html; charset=utf-8")
-		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
-		header.VaryAcceptEncoding(w, r)
+		handler.headerWriter.Write(w, header.CONTENTTYPE_HTML)
 
 		hostname := getHostnameFromRequest(r)
 

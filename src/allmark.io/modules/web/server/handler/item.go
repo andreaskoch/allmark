@@ -15,13 +15,12 @@ import (
 )
 
 type Item struct {
-	logger logger.Logger
-
+	logger                logger.Logger
+	headerWriter          header.HeaderWriter
 	fileOrchestrator      *orchestrator.FileOrchestrator
 	viewModelOrchestrator *orchestrator.ViewModelOrchestrator
 	templateProvider      templates.Provider
-
-	error404Handler Handler
+	error404Handler       Handler
 }
 
 func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -44,10 +43,8 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 			handler.logger.Info("Returning item %q", requestRoute)
 
 			// set headers
-			header.ContentType(w, r, "text/html; charset=utf-8")
-			header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
-			header.VaryAcceptEncoding(w, r)
-			header.ETag(w, r, model.Hash)
+			handler.headerWriter.Write(w, header.CONTENTTYPE_HTML)
+			header.ETag(w, model.Hash)
 
 			handler.render(w, hostname, model)
 			return
@@ -59,10 +56,8 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 			handler.logger.Info("Returning file %q", requestRoute)
 
 			// set  headers
-			header.ContentType(w, r, file.MimeType)
-			header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
-			header.VaryAcceptEncoding(w, r)
-			header.ETag(w, r, file.Hash)
+			handler.headerWriter.Write(w, file.MimeType)
+			header.ETag(w, file.Hash)
 
 			// get the content provider
 			contentProvider := handler.fileOrchestrator.GetFileContentProvider(requestRoute)

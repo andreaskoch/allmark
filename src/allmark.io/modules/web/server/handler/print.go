@@ -18,12 +18,11 @@ import (
 )
 
 type Print struct {
-	logger logger.Logger
-
+	logger                     logger.Logger
+	headerWriter               header.HeaderWriter
 	converterModelOrchestrator *orchestrator.ConversionModelOrchestrator
 	templateProvider           templates.Provider
-
-	error404Handler Handler
+	error404Handler            Handler
 }
 
 func (handler *Print) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -31,9 +30,7 @@ func (handler *Print) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "text/html; charset=utf-8")
-		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
-		header.VaryAcceptEncoding(w, r)
+		handler.headerWriter.Write(w, header.CONTENTTYPE_HTML)
 
 		// get the path from the request variables
 		vars := mux.Vars(r)

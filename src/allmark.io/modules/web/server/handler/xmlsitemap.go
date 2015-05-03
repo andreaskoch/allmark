@@ -18,11 +18,10 @@ import (
 )
 
 type XmlSitemap struct {
-	logger logger.Logger
-
+	logger                 logger.Logger
+	headerWriter           header.HeaderWriter
 	xmlSitemapOrchestrator *orchestrator.XmlSitemapOrchestrator
-
-	templateProvider templates.Provider
+	templateProvider       templates.Provider
 }
 
 func (handler *XmlSitemap) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -30,10 +29,9 @@ func (handler *XmlSitemap) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "text/xml; charset=utf-8")
-		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
-		header.VaryAcceptEncoding(w, r)
+		handler.headerWriter.Write(w, header.CONTENTTYPE_XML)
 
+		// get the current hostname
 		hostname := getHostnameFromRequest(r)
 
 		// get the sitemap template
@@ -54,11 +52,12 @@ func (handler *XmlSitemap) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		// render the sitemap content
 		entries := handler.xmlSitemapOrchestrator.GetSitemapEntires(hostname)
-
 		sitemapContent := renderSitemapEntries(xmlSitemapContentTemplate, entries)
 
+		// combine wrapper and content
 		sitemapWrapper = strings.Replace(sitemapWrapper, templates.ChildTemplatePlaceholder, sitemapContent, 1)
 
+		// print the result
 		fmt.Fprintf(w, "%s", sitemapWrapper)
 	}
 }

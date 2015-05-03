@@ -20,11 +20,10 @@ import (
 var itemsPerPage = 5
 
 type Rss struct {
-	logger logger.Logger
-
+	logger           logger.Logger
+	headerWriter     header.HeaderWriter
 	templateProvider templates.Provider
 	error404Handler  Handler
-
 	feedOrchestrator *orchestrator.FeedOrchestrator
 }
 
@@ -36,9 +35,7 @@ func (handler *Rss) Func() func(w http.ResponseWriter, r *http.Request) {
 		hostname := getHostnameFromRequest(r)
 
 		// set headers
-		header.ContentType(w, r, "text/xml; charset=utf-8")
-		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
-		header.VaryAcceptEncoding(w, r)
+		handler.headerWriter.Write(w, header.CONTENTTYPE_XML)
 
 		// read the page url-parameter
 		page, pageParameterIsAvailable := getPageParameterFromUrl(*r.URL)

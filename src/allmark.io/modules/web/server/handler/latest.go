@@ -17,20 +17,17 @@ import (
 )
 
 type Latest struct {
-	logger logger.Logger
-
+	logger                logger.Logger
+	headerWriter          header.HeaderWriter
 	viewModelOrchestrator *orchestrator.ViewModelOrchestrator
-
-	fallbackHandler Handler
+	fallbackHandler       Handler
 }
 
 func (handler *Latest) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "application/json; charset=utf-8")
-		header.Cache(w, r, header.DYNAMICCONTENT_CACHEDURATION_SECONDS)
-		header.VaryAcceptEncoding(w, r)
+		handler.headerWriter.Write(w, header.CONTENTTYPE_JSON)
 
 		// get the path from the request variables
 		vars := mux.Vars(r)
@@ -60,7 +57,7 @@ func (handler *Latest) Func() func(w http.ResponseWriter, r *http.Request) {
 			// etag cache validator
 			etag := hashutil.FromBytes(jsonBytes)
 			if etag != "" {
-				header.ETag(w, r, etag)
+				header.ETag(w, etag)
 			}
 
 			w.Write(jsonBytes)

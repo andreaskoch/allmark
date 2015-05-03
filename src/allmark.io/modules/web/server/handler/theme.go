@@ -17,8 +17,8 @@ import (
 )
 
 type Theme struct {
-	logger logger.Logger
-
+	logger          logger.Logger
+	headerWriter    header.HeaderWriter
 	error404Handler Handler
 }
 
@@ -49,11 +49,9 @@ func (handler *Theme) Func() func(w http.ResponseWriter, r *http.Request) {
 		etag := hashutil.FromBytes(data)
 
 		// set headers
-		header.ContentType(w, r, fmt.Sprintf("%s; charset=utf-8", mimeType))
-		header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
-		header.VaryAcceptEncoding(w, r)
+		handler.headerWriter.Write(w, mimeType)
 		if etag != "" {
-			header.ETag(w, r, etag)
+			header.ETag(w, etag)
 		}
 
 		fmt.Fprintf(w, `%s`, data)

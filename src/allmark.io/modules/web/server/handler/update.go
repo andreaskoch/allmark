@@ -9,14 +9,15 @@ import (
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/web/orchestrator"
 	"allmark.io/modules/web/server/handler/update"
+	"allmark.io/modules/web/server/header"
 	"github.com/gorilla/mux"
 	"golang.org/x/net/websocket"
 	"strings"
 )
 
 type Update struct {
-	logger logger.Logger
-
+	logger             logger.Logger
+	headerWriter       header.HeaderWriter
 	updateOrchestrator *orchestrator.UpdateOrchestrator
 }
 

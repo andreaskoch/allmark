@@ -17,11 +17,10 @@ import (
 )
 
 type OpenSearchDescription struct {
-	logger logger.Logger
-
+	logger                            logger.Logger
+	headerWriter                      header.HeaderWriter
 	openSearchDescriptionOrchestrator *orchestrator.OpenSearchDescriptionOrchestrator
-
-	templateProvider templates.Provider
+	templateProvider                  templates.Provider
 }
 
 func (handler *OpenSearchDescription) Func() func(w http.ResponseWriter, r *http.Request) {
@@ -29,9 +28,7 @@ func (handler *OpenSearchDescription) Func() func(w http.ResponseWriter, r *http
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		header.ContentType(w, r, "text/xml; charset=utf-8")
-		header.Cache(w, r, header.STATICCONTENT_CACHEDURATION_SECONDS)
-		header.VaryAcceptEncoding(w, r)
+		handler.headerWriter.Write(w, header.CONTENTTYPE_XML)
 
 		// get the template
 		hostname := getHostnameFromRequest(r)
