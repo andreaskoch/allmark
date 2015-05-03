@@ -12,7 +12,3 @@ import (
 type File struct {
 	dataaccess.File
 }
-
-func NewFromDataAccess(dataaccessFile dataaccess.File) (*File, error) {
-	return &File{dataaccessFile}, nil
-}

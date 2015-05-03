@@ -94,12 +94,10 @@ func (parser *Parser) ParseItem(item dataaccess.Item) (*model.Item, error) {
 
 func (parser *Parser) ParseFile(file dataaccess.File) (*model.File, error) {
 
-	convertedFile, err := model.NewFromDataAccess(file)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to convert file %q. Error: %s", file, err.Error())
-	}
+	return &model.File{
+		file,
+	}, nil
 
-	return convertedFile, nil
 }
 
 func (parser *Parser) convertFiles(dataaccessFiles []dataaccess.File) []*model.File {
