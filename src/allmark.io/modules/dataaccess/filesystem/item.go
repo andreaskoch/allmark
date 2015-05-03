@@ -184,12 +184,8 @@ func (itemProvider *itemProvider) getChildItemsFromDirectory(itemDirectory strin
 }
 
 func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string) (dataaccess.Item, error) {
-	// route
-	route, err := route.NewFromItemPath(itemProvider.repositoryPath, filePath)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
-	}
 
+	route := route.NewFromItemPath(itemProvider.repositoryPath, filePath)
 	itemProvider.logger.Debug("Creating a physical item from route %q", route)
 
 	// content
