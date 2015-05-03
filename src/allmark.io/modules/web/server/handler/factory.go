@@ -169,10 +169,21 @@ func (factory *Factory) NewPrintHandler() Handler {
 
 func (factory *Factory) NewRtfHandler() Handler {
 
+	// check if rtf conversion is enabled
+	if !factory.config.Conversion.Rtf.Enabled {
+		return factory.NewErrorHandler()
+	}
+
+	// check if the a rtf conversion tool has been supplied
+	conversionToolPath := factory.config.Conversion.Rtf.Tool
+	if conversionToolPath == "" {
+		return factory.NewErrorHandler()
+	}
+
 	return &Rtf{
 		logger: factory.logger,
-		config: factory.config,
 
+		conversionToolPath:         conversionToolPath,
 		converterModelOrchestrator: factory.orchestratorFactory.NewConversionModelOrchestrator(),
 		templateProvider:           factory.templateProvider,
 
