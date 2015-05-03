@@ -18,14 +18,14 @@ type FileOrchestrator struct {
 	*Orchestrator
 }
 
-func (orchestrator *FileOrchestrator) GetFileContentProvider(fileRoute route.Route) *content.ContentProvider {
+func (orchestrator *FileOrchestrator) GetFileContentProvider(fileRoute route.Route) content.ContentProviderInterface {
 	file := orchestrator.getFile(fileRoute)
 	if file == nil {
 		orchestrator.logger.Warn("File %q was not found.", fileRoute)
 		return nil
 	}
 
-	return file.ContentProvider
+	return file
 }
 
 func (orchestrator *FileOrchestrator) GetFile(fileRoute route.Route) (fileModel viewmodel.File, found bool) {

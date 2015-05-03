@@ -268,7 +268,7 @@ func (orchestrator *Orchestrator) relativePather(baseRoute route.Route) paths.Pa
 	return orchestrator.webPathProvider.RelativePather(baseRoute)
 }
 
-func (orchestrator *Orchestrator) parseItem(item *dataaccess.Item) *model.Item {
+func (orchestrator *Orchestrator) parseItem(item dataaccess.Item) *model.Item {
 	parsedItem, err := orchestrator.parser.ParseItem(item)
 	if err != nil {
 		orchestrator.logger.Warn(err.Error())
@@ -278,7 +278,7 @@ func (orchestrator *Orchestrator) parseItem(item *dataaccess.Item) *model.Item {
 	return parsedItem
 }
 
-func (orchestrator *Orchestrator) parseFile(file *dataaccess.File) *model.File {
+func (orchestrator *Orchestrator) parseFile(file dataaccess.File) *model.File {
 	parsedFile, err := orchestrator.parser.ParseFile(file)
 	if err != nil {
 		orchestrator.logger.Warn(err.Error())

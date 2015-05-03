@@ -96,7 +96,7 @@ func (conversion *ConversionService) fullConversion() {
 }
 
 // Create thumbnail for all image files found in the supplied item.
-func (conversion *ConversionService) createThumbnailsForItem(item *dataaccess.Item) {
+func (conversion *ConversionService) createThumbnailsForItem(item dataaccess.Item) {
 
 	if item == nil {
 		return
@@ -112,7 +112,7 @@ func (conversion *ConversionService) createThumbnailsForItem(item *dataaccess.It
 }
 
 // Create thumbnail for all image files found in the supplied item.
-func (conversion *ConversionService) createThumbnailsForFile(file *dataaccess.File) {
+func (conversion *ConversionService) createThumbnailsForFile(file dataaccess.File) {
 
 	conversion.createThumbnail(file, SizeSmall)
 	conversion.createThumbnail(file, SizeMedium)
@@ -121,7 +121,7 @@ func (conversion *ConversionService) createThumbnailsForFile(file *dataaccess.Fi
 }
 
 // Creates a thumbnail for the supplied file with the specified dimensions.
-func (conversion *ConversionService) createThumbnail(file *dataaccess.File, dimensions ThumbDimension) {
+func (conversion *ConversionService) createThumbnail(file dataaccess.File, dimensions ThumbDimension) {
 
 	// get the mime type
 	mimeType, err := file.MimeType()

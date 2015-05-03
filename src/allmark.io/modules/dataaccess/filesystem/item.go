@@ -6,13 +6,94 @@ package filesystem
 
 import (
 	"allmark.io/modules/common/config"
+	"allmark.io/modules/common/content"
 	"allmark.io/modules/common/logger"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/common/util/fsutil"
+	"allmark.io/modules/common/util/hashutil"
 	"allmark.io/modules/dataaccess"
 	"fmt"
 	"path/filepath"
 )
+
+// An Item represents a single document in a repository.
+type Item struct {
+	*content.ContentProvider
+
+	itemType   dataaccess.ItemType
+	route      route.Route
+	filesFunc  func() []dataaccess.File
+	childsFunc func() []dataaccess.Item
+}
+
+func NewPhysicalItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item) (dataaccess.Item, error) {
+	return newItem(dataaccess.TypePhysical, route, contentProvider, files, childs)
+}
+
+func NewVirtualItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item) (dataaccess.Item, error) {
+	return newItem(dataaccess.TypeVirtual, route, contentProvider, files, childs)
+}
+
+func NewFileCollectionItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File) (dataaccess.Item, error) {
+	return newItem(dataaccess.TypeFileCollection, route, contentProvider, files, nil)
+}
+
+func newItem(itemType dataaccess.ItemType, route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item) (dataaccess.Item, error) {
+	return &Item{
+		contentProvider,
+		itemType,
+		route,
+		files,
+		childs,
+	}, nil
+}
+
+func (item *Item) String() string {
+	return fmt.Sprintf("%s", item.route.String())
+}
+
+func (item *Item) Id() string {
+	hash := hashutil.FromString(item.route.Value())
+
+	return hash
+}
+
+// Get the type of this item (e.g. "physical", "virtual", ...)
+func (item *Item) Type() dataaccess.ItemType {
+	return item.itemType
+}
+
+// Gets a flag inidicating whether this item can have childs or not.
+func (item *Item) CanHaveChilds() bool {
+	switch item.Type() {
+
+	// each child directory which is not the "files" folder can be a child
+	case dataaccess.TypePhysical, dataaccess.TypeVirtual:
+		return true
+
+		// file collection items cannot have childs because all items in the directory are "files" and not items
+	case dataaccess.TypeFileCollection:
+		return false
+
+	}
+
+	panic("Unreachable. Unknown Item type.")
+}
+
+// Get the route of this item.
+func (item *Item) Route() route.Route {
+	return item.route
+}
+
+// Get the files of this item. Returns a slice of zero or more files.
+func (item *Item) Files() (files []dataaccess.File) {
+
+	if item.filesFunc == nil {
+		return []dataaccess.File{}
+	}
+
+	return item.filesFunc()
+}
 
 func newItemProvider(logger logger.Logger, repositoryPath string) (*itemProvider, error) {
 
@@ -46,7 +127,7 @@ type itemProvider struct {
 	fileProvider *fileProvider
 }
 
-func (itemProvider *itemProvider) GetItemFromDirectory(itemDirectory string) (item *dataaccess.Item, err error) {
+func (itemProvider *itemProvider) GetItemFromDirectory(itemDirectory string) (item dataaccess.Item, err error) {
 
 	// abort if path does not exist
 	if !fsutil.PathExists(itemDirectory) {
@@ -81,9 +162,9 @@ func (itemProvider *itemProvider) GetItemFromDirectory(itemDirectory string) (it
 	return itemProvider.newFileCollectionItem(itemDirectory)
 }
 
-func (itemProvider *itemProvider) getChildItemsFromDirectory(itemDirectory string) (childItems []*dataaccess.Item) {
+func (itemProvider *itemProvider) getChildItemsFromDirectory(itemDirectory string) (childItems []dataaccess.Item) {
 
-	childItems = make([]*dataaccess.Item, 0)
+	childItems = make([]dataaccess.Item, 0)
 
 	childItemDirectories := getChildDirectories(itemDirectory)
 	for _, childItemDirectory := range childItemDirectories {
@@ -98,7 +179,7 @@ func (itemProvider *itemProvider) getChildItemsFromDirectory(itemDirectory strin
 	return childItems
 }
 
-func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string) (item *dataaccess.Item, err error) {
+func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string) (item dataaccess.Item, err error) {
 	// route
 	route, err := route.NewFromItemPath(itemProvider.repositoryPath, filePath)
 	if err != nil {
@@ -112,17 +193,17 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 
 	// files
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := func() []*dataaccess.File {
+	files := func() []dataaccess.File {
 		return itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 	}
 
 	// childs
-	childs := func() []*dataaccess.Item {
+	childs := func() []dataaccess.Item {
 		return itemProvider.getChildItemsFromDirectory(itemDirectory)
 	}
 
 	// create the item
-	item, err = dataaccess.NewPhysicalItem(route, contentProvider, files, childs)
+	item, err = NewPhysicalItem(route, contentProvider, files, childs)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
 	}
@@ -130,7 +211,7 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 	return item, nil
 }
 
-func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (item *dataaccess.Item, err error) {
+func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (item dataaccess.Item, err error) {
 
 	// route
 	route, err := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
@@ -147,17 +228,17 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (item *da
 
 	// files
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
-	files := func() []*dataaccess.File {
+	files := func() []dataaccess.File {
 		return itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 	}
 
 	// childs
-	childs := func() []*dataaccess.Item {
+	childs := func() []dataaccess.Item {
 		return itemProvider.getChildItemsFromDirectory(itemDirectory)
 	}
 
 	// create the item
-	item, err = dataaccess.NewVirtualItem(route, contentProvider, files, childs)
+	item, err = NewVirtualItem(route, contentProvider, files, childs)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
 	}
@@ -165,7 +246,7 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (item *da
 	return item, nil
 }
 
-func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (item *dataaccess.Item, err error) {
+func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (item dataaccess.Item, err error) {
 
 	// route
 	route, err := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
@@ -182,12 +263,12 @@ func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (i
 
 	// files
 	filesDirectory := itemDirectory
-	files := func() []*dataaccess.File {
+	files := func() []dataaccess.File {
 		return itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 	}
 
 	// create the item
-	item, err = dataaccess.NewFileCollectionItem(route, contentProvider, files)
+	item, err = NewFileCollectionItem(route, contentProvider, files)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot create Item %q. Error: %s", route, err)
 	}

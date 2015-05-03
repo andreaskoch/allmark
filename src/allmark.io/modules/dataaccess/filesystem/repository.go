@@ -26,9 +26,9 @@ type Repository struct {
 	itemProvider *itemProvider
 
 	// Indizes
-	items       []*dataaccess.Item
-	itemByRoute map[string]*dataaccess.Item
-	itemByHash  map[string]*dataaccess.Item
+	items       []dataaccess.Item
+	itemByRoute map[string]dataaccess.Item
+	itemByHash  map[string]dataaccess.Item
 
 	// Update Subscription
 	updateSubscribers []chan dataaccess.Update
@@ -67,9 +67,9 @@ func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeco
 		itemProvider: itemProvider,
 
 		// Indizes
-		items:       make([]*dataaccess.Item, 0),
-		itemByRoute: make(map[string]*dataaccess.Item),
-		itemByHash:  make(map[string]*dataaccess.Item),
+		items:       make([]dataaccess.Item, 0),
+		itemByRoute: make(map[string]dataaccess.Item),
+		itemByHash:  make(map[string]dataaccess.Item),
 
 		// Update Subscription
 		updateSubscribers: updateSubscribers,
@@ -88,11 +88,11 @@ func (repository *Repository) Path() string {
 	return repository.directory
 }
 
-func (repository *Repository) Items() []*dataaccess.Item {
+func (repository *Repository) Items() []dataaccess.Item {
 	return repository.items
 }
 
-func (repository *Repository) Item(route route.Route) *dataaccess.Item {
+func (repository *Repository) Item(route route.Route) dataaccess.Item {
 	return repository.itemByRoute[route.Value()]
 }
 
@@ -110,14 +110,14 @@ func (repository *Repository) Routes() []route.Route {
 func (repository *Repository) init() {
 
 	// notification lists
-	newItems := make([]*dataaccess.Item, 0)
-	modifiedItems := make([]*dataaccess.Item, 0)
-	deletedItems := make([]*dataaccess.Item, 0)
+	newItems := make([]dataaccess.Item, 0)
+	modifiedItems := make([]dataaccess.Item, 0)
+	deletedItems := make([]dataaccess.Item, 0)
 
 	// create new indices
-	items := make([]*dataaccess.Item, 0)
-	itemByRoute := make(map[string]*dataaccess.Item)
-	itemByHash := make(map[string]*dataaccess.Item)
+	items := make([]dataaccess.Item, 0)
+	itemByRoute := make(map[string]dataaccess.Item)
+	itemByHash := make(map[string]dataaccess.Item)
 
 	// scan the repository directory for new items
 	for _, item := range repository.getItemsFromDirectory(repository.directory) {
@@ -174,9 +174,9 @@ func (repository *Repository) init() {
 }
 
 // Create a new Item for the specified path.
-func (repository *Repository) getItemsFromDirectory(itemDirectory string) (items []*dataaccess.Item) {
+func (repository *Repository) getItemsFromDirectory(itemDirectory string) (items []dataaccess.Item) {
 
-	items = make([]*dataaccess.Item, 0)
+	items = make([]dataaccess.Item, 0)
 
 	// create the item
 	item, err := repository.itemProvider.GetItemFromDirectory(itemDirectory)

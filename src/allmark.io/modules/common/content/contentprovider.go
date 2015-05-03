@@ -9,6 +9,13 @@ import (
 	"time"
 )
 
+type ContentProviderInterface interface {
+	Data(contentReader func(content io.ReadSeeker) error) error
+	Hash() (string, error)
+	LastModified() (time.Time, error)
+	MimeType() (string, error)
+}
+
 type MimeTypeProviderFunc func() (string, error)
 
 type LastModifiedProviderFunc func() (time.Time, error)

@@ -29,7 +29,7 @@ func New(logger logger.Logger) (Parser, error) {
 	}, nil
 }
 
-func (parser *Parser) ParseItem(item *dataaccess.Item) (*model.Item, error) {
+func (parser *Parser) ParseItem(item dataaccess.Item) (*model.Item, error) {
 
 	if item == nil {
 		return nil, fmt.Errorf("Cannot parse an empty item.")
@@ -92,7 +92,7 @@ func (parser *Parser) ParseItem(item *dataaccess.Item) (*model.Item, error) {
 	return itemModel, nil
 }
 
-func (parser *Parser) ParseFile(file *dataaccess.File) (*model.File, error) {
+func (parser *Parser) ParseFile(file dataaccess.File) (*model.File, error) {
 
 	convertedFile, err := model.NewFromDataAccess(file)
 	if err != nil {
@@ -102,7 +102,7 @@ func (parser *Parser) ParseFile(file *dataaccess.File) (*model.File, error) {
 	return convertedFile, nil
 }
 
-func (parser *Parser) convertFiles(dataaccessFiles []*dataaccess.File) []*model.File {
+func (parser *Parser) convertFiles(dataaccessFiles []dataaccess.File) []*model.File {
 
 	convertedFiles := make([]*model.File, 0, len(dataaccessFiles))
 
@@ -117,7 +117,7 @@ func (parser *Parser) convertFiles(dataaccessFiles []*dataaccess.File) []*model.
 	return convertedFiles
 }
 
-func getItemData(item *dataaccess.Item) ([]byte, error) {
+func getItemData(item dataaccess.Item) ([]byte, error) {
 
 	// fetch the item data
 	byteBuffer := new(bytes.Buffer)

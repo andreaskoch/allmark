@@ -5,14 +5,52 @@
 package filesystem
 
 import (
+	"allmark.io/modules/common/content"
 	"allmark.io/modules/common/logger"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/common/util/fsutil"
+	"allmark.io/modules/common/util/hashutil"
 	"allmark.io/modules/dataaccess"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
 )
+
+type File struct {
+	*content.ContentProvider
+
+	parentRoute route.Route
+	fileRoute   route.Route
+}
+
+func NewFile(fileRoute, parentRoute route.Route, contentProvider *content.ContentProvider) (*File, error) {
+	return &File{
+		contentProvider,
+		parentRoute,
+		fileRoute,
+	}, nil
+}
+
+func (file *File) String() string {
+	return fmt.Sprintf("%s", file.fileRoute.Value())
+}
+
+func (file *File) Id() string {
+	hash := hashutil.FromString(file.fileRoute.Value())
+	return hash
+}
+
+func (file *File) Name() string {
+	return fmt.Sprintf("%s", file.fileRoute.LastComponentName())
+}
+
+func (file *File) Parent() route.Route {
+	return file.parentRoute
+}
+
+func (file *File) Route() route.Route {
+	return file.fileRoute
+}
 
 func newFileProvider(logger logger.Logger, repositoryPath string) (*fileProvider, error) {
 
@@ -37,9 +75,9 @@ type fileProvider struct {
 	repositoryPath string
 }
 
-func (provider *fileProvider) GetFilesFromDirectory(itemDirectory, filesDirectory string) []*dataaccess.File {
+func (provider *fileProvider) GetFilesFromDirectory(itemDirectory, filesDirectory string) []dataaccess.File {
 
-	childs := make([]*dataaccess.File, 0)
+	childs := make([]dataaccess.File, 0)
 
 	filesDirectoryEntries, err := ioutil.ReadDir(filesDirectory)
 	if err != nil {
@@ -69,7 +107,7 @@ func (provider *fileProvider) GetFilesFromDirectory(itemDirectory, filesDirector
 	return childs
 }
 
-func newFile(repositoryPath, itemDirectory, filePath string) (*dataaccess.File, error) {
+func newFile(repositoryPath, itemDirectory, filePath string) (dataaccess.File, error) {
 
 	// check if the file path is a file
 	if isFile, _ := fsutil.IsFile(filePath); !isFile {
@@ -92,7 +130,7 @@ func newFile(repositoryPath, itemDirectory, filePath string) (*dataaccess.File, 
 	contentProvider := newFileContentProviderWithoutChecksum(filePath, route)
 
 	// create the file
-	file, err := dataaccess.NewFile(route, parentRoute, contentProvider)
+	file, err := NewFile(route, parentRoute, contentProvider)
 
 	if err != nil {
 		return nil, err

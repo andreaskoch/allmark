@@ -18,8 +18,8 @@ type RoutesProvider interface {
 }
 
 type ItemsProvider interface {
-	Items() []*Item
-	Item(route route.Route) *Item
+	Items() []Item
+	Item(route route.Route) Item
 }
 
 type Subscriber interface {
@@ -39,14 +39,14 @@ type Repository interface {
 	LiveReload
 }
 
-func NewUpdate(newItems, modifiedItems, deletedItems []*Item) Update {
+func NewUpdate(newItems, modifiedItems, deletedItems []Item) Update {
 	return Update{newItems, modifiedItems, deletedItems}
 }
 
 type Update struct {
-	newItems      []*Item
-	modifiedItems []*Item
-	deletedItems  []*Item
+	newItems      []Item
+	modifiedItems []Item
+	deletedItems  []Item
 }
 
 func (update *Update) String() string {
@@ -58,14 +58,14 @@ func (update *Update) IsEmpty() bool {
 	return len(update.newItems) == 00 && len(update.modifiedItems) == 0 && len(update.deletedItems) == 0
 }
 
-func (update *Update) New() []*Item {
+func (update *Update) New() []Item {
 	return update.newItems
 }
 
-func (update *Update) Modified() []*Item {
+func (update *Update) Modified() []Item {
 	return update.modifiedItems
 }
 
-func (update *Update) Deleted() []*Item {
+func (update *Update) Deleted() []Item {
 	return update.deletedItems
 }

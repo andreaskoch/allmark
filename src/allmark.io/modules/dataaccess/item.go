@@ -7,8 +7,6 @@ package dataaccess
 import (
 	"allmark.io/modules/common/content"
 	"allmark.io/modules/common/route"
-	"allmark.io/modules/common/util/hashutil"
-	"fmt"
 )
 
 type ItemType int
@@ -49,79 +47,13 @@ const (
 )
 
 // An Item represents a single document in a repository.
-type Item struct {
-	*content.ContentProvider
-	itemType   ItemType
-	route      route.Route
-	filesFunc  func() []*File
-	childsFunc func() []*Item
-}
+type Item interface {
+	content.ContentProviderInterface
 
-func NewPhysicalItem(route route.Route, contentProvider *content.ContentProvider, files func() []*File, childs func() []*Item) (*Item, error) {
-	return newItem(TypePhysical, route, contentProvider, files, childs)
-}
-
-func NewVirtualItem(route route.Route, contentProvider *content.ContentProvider, files func() []*File, childs func() []*Item) (*Item, error) {
-	return newItem(TypeVirtual, route, contentProvider, files, childs)
-}
-
-func NewFileCollectionItem(route route.Route, contentProvider *content.ContentProvider, files func() []*File) (*Item, error) {
-	return newItem(TypeFileCollection, route, contentProvider, files, nil)
-}
-
-func newItem(itemType ItemType, route route.Route, contentProvider *content.ContentProvider, files func() []*File, childs func() []*Item) (*Item, error) {
-	return &Item{
-		contentProvider,
-		itemType,
-		route,
-		files,
-		childs,
-	}, nil
-}
-
-func (item *Item) String() string {
-	return fmt.Sprintf("%s", item.route.String())
-}
-
-func (item *Item) Id() string {
-	hash := hashutil.FromString(item.route.Value())
-
-	return hash
-}
-
-// Get the type of this item (e.g. "physical", "virtual", ...)
-func (item *Item) Type() ItemType {
-	return item.itemType
-}
-
-// Gets a flag inidicating whether this item can have childs or not.
-func (item *Item) CanHaveChilds() bool {
-	switch item.Type() {
-
-	// each child directory which is not the "files" folder can be a child
-	case TypePhysical, TypeVirtual:
-		return true
-
-		// file collection items cannot have childs because all items in the directory are "files" and not items
-	case TypeFileCollection:
-		return false
-
-	}
-
-	panic("Unreachable. Unknown Item type.")
-}
-
-// Get the route of this item.
-func (item *Item) Route() route.Route {
-	return item.route
-}
-
-// Get the files of this item. Returns a slice of zero or more files.
-func (item *Item) Files() (files []*File) {
-
-	if item.filesFunc == nil {
-		return []*File{}
-	}
-
-	return item.filesFunc()
+	String() string
+	Id() string
+	Type() ItemType
+	CanHaveChilds() bool
+	Route() route.Route
+	Files() []File
 }
