@@ -23,7 +23,7 @@ type Route struct {
 	isFileRoute   bool
 }
 
-// Creates a new route from the given base directory (e.g. "/home/user/repository") and item path (e.g. "/home/user/repository/documents/a document").
+// Creates a new route from the given base directory (e.g. "/home/user/repository") and item path (e.g. "/home/user/repository/documents/sample/document.md").
 func NewFromItemPath(baseDirectory, itemPath string) Route {
 
 	// normalize the base path
@@ -54,7 +54,8 @@ func NewFromItemPath(baseDirectory, itemPath string) Route {
 	}
 }
 
-func NewFromItemDirectory(baseDirectory, itemDirectory string) (Route, error) {
+// Creates a new route from the given base directory (e.g. "/home/user/repository") and item directory (e.g. "/home/user/repository/documents/sample").
+func NewFromItemDirectory(baseDirectory, itemDirectory string) Route {
 
 	// normalize the base path
 	normalizedBasePath := normalize(baseDirectory)
@@ -64,7 +65,7 @@ func NewFromItemDirectory(baseDirectory, itemDirectory string) (Route, error) {
 
 	// return a root if both paths are the same
 	if normalizedItemPath == normalizedBasePath {
-		return New(), nil
+		return New()
 	}
 
 	// prepare the route value:
@@ -78,7 +79,7 @@ func NewFromItemDirectory(baseDirectory, itemDirectory string) (Route, error) {
 		value:         toUrl(routeValue),
 		originalValue: routeValue,
 		isFileRoute:   false,
-	}, nil
+	}
 }
 
 func NewFromFilePath(baseDirectory, itemPath string) (Route, error) {

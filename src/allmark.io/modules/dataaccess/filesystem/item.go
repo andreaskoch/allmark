@@ -209,12 +209,7 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 
 func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (dataaccess.Item, error) {
 
-	// route
-	route, err := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
-	}
-
+	route := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
 	itemProvider.logger.Debug("Creating a virtual item from route %q", route)
 
 	// content
@@ -240,12 +235,7 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (dataacce
 
 func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (dataaccess.Item, error) {
 
-	// route
-	route, err := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot create an Item for the path %q. Error: %s", itemDirectory, err)
-	}
-
+	route := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
 	itemProvider.logger.Debug("Creating a file collection item from route %q", route)
 
 	// content
