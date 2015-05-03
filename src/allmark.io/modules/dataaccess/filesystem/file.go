@@ -106,19 +106,8 @@ func createFileFromFilesystem(repositoryPath, itemDirectory, filePath string) (d
 		return nil, fmt.Errorf("%q is not a file.", filePath)
 	}
 
-	// parent route
-	parentRoute, err := route.NewFromFilePath(repositoryPath, itemDirectory)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot create a parent route for the File with the file path %q. Error: %s", filePath, err)
-	}
-
-	// route
-	route, err := route.NewFromFilePath(repositoryPath, filePath)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot create a File for the file path %q. Error: %s", filePath, err)
-	}
-
-	// content provider
+	parentRoute := route.NewFromFilePath(repositoryPath, itemDirectory)
+	route := route.NewFromFilePath(repositoryPath, filePath)
 	contentProvider := newFileContentProviderWithoutChecksum(filePath, route)
 
 	// create the file
