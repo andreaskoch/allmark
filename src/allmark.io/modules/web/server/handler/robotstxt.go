@@ -26,6 +26,10 @@ func (handler *RobotsTxt) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Fprintf(w, `User-agent: *
 Disallow: /thumbnails
+Disallow: /rtf$
+Disallow: /json$
+Disallow: /print$
+Disallow: /ws$
 Disallow: /*.rtf$
 Disallow: /*.json$
 Disallow: /*.print$
