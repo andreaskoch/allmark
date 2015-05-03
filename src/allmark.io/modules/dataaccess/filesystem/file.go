@@ -23,14 +23,6 @@ type File struct {
 	fileRoute   route.Route
 }
 
-func NewFile(fileRoute, parentRoute route.Route, contentProvider *content.ContentProvider) (*File, error) {
-	return &File{
-		contentProvider,
-		parentRoute,
-		fileRoute,
-	}, nil
-}
-
 func (file *File) String() string {
 	return fmt.Sprintf("%s", file.fileRoute.Value())
 }
@@ -95,7 +87,7 @@ func (provider *fileProvider) GetFilesFromDirectory(itemDirectory, filesDirector
 		}
 
 		// append new file
-		file, err := newFile(provider.repositoryPath, itemDirectory, filePath)
+		file, err := createFileFromFilesystem(provider.repositoryPath, itemDirectory, filePath)
 		if err != nil {
 			provider.logger.Error("Unable to add file %q to index. Error: %s", filePath, err)
 			continue
@@ -107,7 +99,7 @@ func (provider *fileProvider) GetFilesFromDirectory(itemDirectory, filesDirector
 	return childs
 }
 
-func newFile(repositoryPath, itemDirectory, filePath string) (dataaccess.File, error) {
+func createFileFromFilesystem(repositoryPath, itemDirectory, filePath string) (dataaccess.File, error) {
 
 	// check if the file path is a file
 	if isFile, _ := fsutil.IsFile(filePath); !isFile {
@@ -130,10 +122,10 @@ func newFile(repositoryPath, itemDirectory, filePath string) (dataaccess.File, e
 	contentProvider := newFileContentProviderWithoutChecksum(filePath, route)
 
 	// create the file
-	file, err := NewFile(route, parentRoute, contentProvider)
-
-	if err != nil {
-		return nil, err
+	file := &File{
+		contentProvider,
+		parentRoute,
+		route,
 	}
 
 	return file, nil
