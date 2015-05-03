@@ -118,7 +118,7 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 	}
 
 	// create the item
-	item := newPhysicalItem(route, contentProvider, files, childs)
+	item := newPhysicalItem(route, contentProvider, files, childs, filePath)
 	return item, nil
 }
 

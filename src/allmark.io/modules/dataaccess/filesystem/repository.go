@@ -14,8 +14,6 @@ import (
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/common/util/fsutil"
 	"allmark.io/modules/dataaccess"
-
-	// "github.com/andreaskoch/go-fswatch"
 )
 
 type Repository struct {
@@ -249,18 +247,32 @@ func (repository *Repository) StartWatching(route route.Route) {
 
 	item := repository.Item(route)
 	if item == nil {
-		repository.logger.Warn("Item %q was not found.", route.String())
+		repository.logger.Warn("Cannot start watching. Item %q was not found.", route.String())
 		return
 	}
 
-	// fswatch.NewFolderWatcher(folderPath string, recurse bool, skipFile func(path string) bool, checkIntervalInSeconds int)
+	fileSystemItem := item.(*Item)
+	updates := fileSystemItem.StartWatching()
+
+	go func() {
+		for {
+			select {
+			case item := <-updates:
+				repository.logger.Info("Sending out an update for item %q.", item.String())
+				repository.sendUpdate(dataaccess.NewModifiedItemUpdate(item))
+			}
+		}
+	}()
 }
 
 func (repository *Repository) StopWatching(route route.Route) {
 
 	item := repository.Item(route)
 	if item == nil {
-		repository.logger.Warn("Item %q was not found.", route.String())
+		repository.logger.Warn("Cannot stop watching. Item %q was not found.", route.String())
 		return
 	}
+
+	fileSystemItem := item.(*Item)
+	fileSystemItem.StopWatching()
 }

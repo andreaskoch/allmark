@@ -39,6 +39,10 @@ type Repository interface {
 	LiveReload
 }
 
+func NewModifiedItemUpdate(item Item) Update {
+	return NewUpdate([]Item{}, []Item{item}, []Item{})
+}
+
 func NewUpdate(newItems, modifiedItems, deletedItems []Item) Update {
 	return Update{newItems, modifiedItems, deletedItems}
 }

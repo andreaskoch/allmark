@@ -31,7 +31,7 @@ func (handler *Update) Func() func(ws *websocket.Conn) {
 	go func() {
 		for update := range updateChannel {
 
-			handler.logger.Warn("Recieved an update for route %q", update.Route())
+			handler.logger.Debug("Recieved an update for route %q", update.Route())
 
 			// handle only modified items
 			if update.Type() != orchestrator.UpdateTypeModified {
