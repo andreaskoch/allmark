@@ -159,23 +159,23 @@ func (orchestrator *Orchestrator) ResetCache(dataaccessLayerUpdate dataaccess.Up
 
 	// inform subscribers ...
 	// ... about new items
-	for _, newItem := range dataaccessLayerUpdate.New() {
+	for _, newItemRoute := range dataaccessLayerUpdate.New() {
 		for _, subscriber := range orchestrator.updateSubscribers {
-			subscriber <- NewUpdate(UpdateTypeNew, newItem.Route())
+			subscriber <- NewUpdate(UpdateTypeNew, newItemRoute)
 		}
 	}
 
 	// ... about modified items
-	for _, newItem := range dataaccessLayerUpdate.Modified() {
+	for _, modifiedItemRoute := range dataaccessLayerUpdate.Modified() {
 		for _, subscriber := range orchestrator.updateSubscribers {
-			subscriber <- NewUpdate(UpdateTypeModified, newItem.Route())
+			subscriber <- NewUpdate(UpdateTypeModified, modifiedItemRoute)
 		}
 	}
 
 	// ... about deleted items
-	for _, newItem := range dataaccessLayerUpdate.Deleted() {
+	for _, deletedItemRoute := range dataaccessLayerUpdate.Deleted() {
 		for _, subscriber := range orchestrator.updateSubscribers {
-			subscriber <- NewUpdate(UpdateTypeDeleted, newItem.Route())
+			subscriber <- NewUpdate(UpdateTypeDeleted, deletedItemRoute)
 		}
 	}
 }

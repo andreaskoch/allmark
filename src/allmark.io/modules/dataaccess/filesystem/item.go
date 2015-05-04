@@ -10,27 +10,25 @@ import (
 	"allmark.io/modules/common/util/hashutil"
 	"allmark.io/modules/dataaccess"
 	"fmt"
-
-	"github.com/andreaskoch/go-fswatch"
 )
 
 // Create a new physical item.
-func newPhysicalItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item, filePath string) dataaccess.Item {
-	return newItem(dataaccess.TypePhysical, route, contentProvider, files, childs, filePath)
+func newPhysicalItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item, watcherPaths []watcherPather) dataaccess.Item {
+	return newItem(dataaccess.TypePhysical, route, contentProvider, files, childs, watcherPaths)
 }
 
 // Create a new virtual item.
 func newVirtualItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item) dataaccess.Item {
-	return newItem(dataaccess.TypeVirtual, route, contentProvider, files, childs, "")
+	return newItem(dataaccess.TypeVirtual, route, contentProvider, files, childs, []watcherPather{})
 }
 
 // Create new file-collection item.
-func newFileCollectionItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File) dataaccess.Item {
-	return newItem(dataaccess.TypeFileCollection, route, contentProvider, files, nil, "")
+func newFileCollectionItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, watcherPaths []watcherPather) dataaccess.Item {
+	return newItem(dataaccess.TypeFileCollection, route, contentProvider, files, nil, watcherPaths)
 }
 
 // Create a new item with the given item type.
-func newItem(itemType dataaccess.ItemType, route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item, filePath string) dataaccess.Item {
+func newItem(itemType dataaccess.ItemType, route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item, watcherPaths []watcherPather) dataaccess.Item {
 	return &Item{
 		contentProvider,
 		itemType,
@@ -38,8 +36,7 @@ func newItem(itemType dataaccess.ItemType, route route.Route, contentProvider *c
 		files,
 		childs,
 
-		filePath,
-		nil,
+		watcherPaths,
 	}
 }
 
@@ -52,8 +49,7 @@ type Item struct {
 	filesFunc  func() []dataaccess.File
 	childsFunc func() []dataaccess.Item
 
-	itemPath    string
-	filewatcher *fswatch.FileWatcher
+	watcherPaths []watcherPather
 }
 
 func (item *Item) String() string {
@@ -103,28 +99,6 @@ func (item *Item) Files() (files []dataaccess.File) {
 	return item.filesFunc()
 }
 
-func (item *Item) StartWatching() chan *Item {
-
-	updateChannel := make(chan *Item, 1)
-
-	item.filewatcher = fswatch.NewFileWatcher(item.itemPath, 1)
-	item.filewatcher.Start()
-
-	go func() {
-		for item.filewatcher.IsRunning() {
-
-			select {
-			case <-item.filewatcher.Modified():
-				updateChannel <- item
-			}
-		}
-	}()
-
-	return updateChannel
-}
-
-func (item *Item) StopWatching() {
-	if item.filewatcher != nil {
-		item.filewatcher.Stop()
-	}
+func (item *Item) WatcherPaths() []watcherPather {
+	return item.watcherPaths
 }

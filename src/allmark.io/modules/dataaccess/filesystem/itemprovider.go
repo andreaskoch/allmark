@@ -118,7 +118,15 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 	}
 
 	// create the item
-	item := newPhysicalItem(route, contentProvider, files, childs, filePath)
+	item := newPhysicalItem(
+		route,
+		contentProvider,
+		files,
+		childs,
+		[]watcherPather{
+			watcherFilePath{filePath},
+		},
+	)
 	return item, nil
 }
 
@@ -165,6 +173,14 @@ func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (d
 	}
 
 	// create the item
-	item := newFileCollectionItem(route, contentProvider, files)
+	item := newFileCollectionItem(
+		route,
+		contentProvider,
+		files,
+		[]watcherPather{
+			watcherDirectoryPath{itemDirectory},
+		},
+	)
+
 	return item, nil
 }

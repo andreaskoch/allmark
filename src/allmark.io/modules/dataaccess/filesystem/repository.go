@@ -29,6 +29,7 @@ type Repository struct {
 	itemByHash  map[string]dataaccess.Item
 
 	// Update Subscription
+	watcher           *filesystemWatcher
 	updateSubscribers []chan dataaccess.Update
 }
 
@@ -70,6 +71,7 @@ func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeco
 		itemByHash:  make(map[string]dataaccess.Item),
 
 		// Update Subscription
+		watcher:           newFilesystemWatcher(logger),
 		updateSubscribers: updateSubscribers,
 	}
 
@@ -108,9 +110,9 @@ func (repository *Repository) Routes() []route.Route {
 func (repository *Repository) init() {
 
 	// notification lists
-	newItems := make([]dataaccess.Item, 0)
-	modifiedItems := make([]dataaccess.Item, 0)
-	deletedItems := make([]dataaccess.Item, 0)
+	newItemRoutes := make([]route.Route, 0)
+	modifiedItemRoutes := make([]route.Route, 0)
+	deletedItemRoutes := make([]route.Route, 0)
 
 	// create new indices
 	items := make([]dataaccess.Item, 0)
@@ -133,7 +135,7 @@ func (repository *Repository) init() {
 		if isNewItem {
 
 			// the route was not found in the index it must be a new item
-			newItems = append(newItems, item)
+			newItemRoutes = append(newItemRoutes, item.Route())
 
 		} else {
 
@@ -141,7 +143,7 @@ func (repository *Repository) init() {
 			if _, itemHashIsAlreadyInTheIndex := repository.itemByHash[hash]; itemHashIsAlreadyInTheIndex == false {
 
 				// the item has changed the hash was not found in the index
-				modifiedItems = append(modifiedItems, item)
+				modifiedItemRoutes = append(modifiedItemRoutes, item.Route())
 			}
 
 		}
@@ -154,12 +156,12 @@ func (repository *Repository) init() {
 
 	// find deleted items
 	for _, oldItem := range repository.items {
-		oldItemRoute := oldItem.Route().Value()
-		if _, oldItemExistsInNewIndex := itemByRoute[oldItemRoute]; oldItemExistsInNewIndex {
+		oldItemRoute := oldItem.Route()
+		if _, oldItemExistsInNewIndex := itemByRoute[oldItemRoute.Value()]; oldItemExistsInNewIndex {
 			continue
 		}
 
-		deletedItems = append(deletedItems, oldItem)
+		deletedItemRoutes = append(deletedItemRoutes, oldItemRoute)
 	}
 
 	// override the existing values
@@ -168,7 +170,7 @@ func (repository *Repository) init() {
 	repository.itemByHash = itemByHash
 
 	// send update to subscribers
-	repository.sendUpdate(dataaccess.NewUpdate(newItems, modifiedItems, deletedItems))
+	repository.sendUpdate(dataaccess.NewUpdate(newItemRoutes, modifiedItemRoutes, deletedItemRoutes))
 }
 
 // Create a new Item for the specified path.
@@ -252,27 +254,24 @@ func (repository *Repository) StartWatching(route route.Route) {
 	}
 
 	fileSystemItem := item.(*Item)
-	updates := fileSystemItem.StartWatching()
+	updates, err := repository.watcher.Start(fileSystemItem.Route(), fileSystemItem.WatcherPaths())
+	if err != nil {
+		return
+	}
 
 	go func() {
-		for {
+		for repository.watcher.IsRunning(route) {
 			select {
-			case item := <-updates:
-				repository.logger.Info("Sending out an update for item %q.", item.String())
-				repository.sendUpdate(dataaccess.NewModifiedItemUpdate(item))
+			case <-updates:
+
+				repository.logger.Info("Sending out an update for route %q.", route.String())
+				repository.sendUpdate(dataaccess.NewModifiedItemUpdate(route))
+
 			}
 		}
 	}()
 }
 
 func (repository *Repository) StopWatching(route route.Route) {
-
-	item := repository.Item(route)
-	if item == nil {
-		repository.logger.Warn("Cannot stop watching. Item %q was not found.", route.String())
-		return
-	}
-
-	fileSystemItem := item.(*Item)
-	fileSystemItem.StopWatching()
+	repository.watcher.Stop(route)
 }

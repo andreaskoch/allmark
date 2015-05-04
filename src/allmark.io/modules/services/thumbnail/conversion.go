@@ -70,13 +70,13 @@ func (conversion *ConversionService) startConversion() {
 		for update := range repositoryUpdates {
 
 			// create thumbnails for new items
-			for _, newItem := range update.New() {
-				conversion.createThumbnailsForItem(newItem)
+			for _, newItemRoute := range update.New() {
+				conversion.createThumbnailsForItem(conversion.repository.Item(newItemRoute))
 			}
 
 			// create thumbnails for modified items
-			for _, modifiedItem := range update.Modified() {
-				conversion.createThumbnailsForItem(modifiedItem)
+			for _, modifiedItemRoute := range update.Modified() {
+				conversion.createThumbnailsForItem(conversion.repository.Item(modifiedItemRoute))
 			}
 
 		}

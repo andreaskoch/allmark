@@ -39,37 +39,37 @@ type Repository interface {
 	LiveReload
 }
 
-func NewModifiedItemUpdate(item Item) Update {
-	return NewUpdate([]Item{}, []Item{item}, []Item{})
+func NewModifiedItemUpdate(modifiedRoute route.Route) Update {
+	return NewUpdate([]route.Route{}, []route.Route{modifiedRoute}, []route.Route{})
 }
 
-func NewUpdate(newItems, modifiedItems, deletedItems []Item) Update {
-	return Update{newItems, modifiedItems, deletedItems}
+func NewUpdate(newItemRoutes, modifiedItemRoutes, deletedItemRoutes []route.Route) Update {
+	return Update{newItemRoutes, modifiedItemRoutes, deletedItemRoutes}
 }
 
 type Update struct {
-	newItems      []Item
-	modifiedItems []Item
-	deletedItems  []Item
+	newItemRoutes      []route.Route
+	modifiedItemRoutes []route.Route
+	deletedItemRoutes  []route.Route
 }
 
 func (update *Update) String() string {
 	return fmt.Sprintf("Update (New: %v, Modified: %v, Deleted: %v)",
-		len(update.newItems), len(update.modifiedItems), len(update.deletedItems))
+		len(update.newItemRoutes), len(update.modifiedItemRoutes), len(update.deletedItemRoutes))
 }
 
 func (update *Update) IsEmpty() bool {
-	return len(update.newItems) == 00 && len(update.modifiedItems) == 0 && len(update.deletedItems) == 0
+	return len(update.newItemRoutes) == 00 && len(update.modifiedItemRoutes) == 0 && len(update.deletedItemRoutes) == 0
 }
 
-func (update *Update) New() []Item {
-	return update.newItems
+func (update *Update) New() []route.Route {
+	return update.newItemRoutes
 }
 
-func (update *Update) Modified() []Item {
-	return update.modifiedItems
+func (update *Update) Modified() []route.Route {
+	return update.modifiedItemRoutes
 }
 
-func (update *Update) Deleted() []Item {
-	return update.deletedItems
+func (update *Update) Deleted() []route.Route {
+	return update.deletedItemRoutes
 }
