@@ -34,6 +34,7 @@ type FolderWatcher struct {
 	debug         bool
 	folder        string
 	running       bool
+	wasStopped    bool
 	checkInterval time.Duration
 
 	previousEntries []string
@@ -102,21 +103,14 @@ func (folderWatcher *FolderWatcher) Start() {
 		} else {
 
 			// use a new entry list
-			newEntryList, err := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
-			if err != nil {
-				// the folder does no longer exist or is not accessible
-				go func() {
-					folderWatcher.moved <- true
-				}()
-			}
-
+			newEntryList, _ := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
 			entryList = newEntryList
 		}
 
 		// increment watcher count
 		numberOfFolderWatchers++
 
-		for folderWatcher.IsRunning() {
+		for folderWatcher.wasStopped == false {
 
 			// get new entries
 			updatedEntryList, _ := getFolderEntries(directory, folderWatcher.recurse, folderWatcher.skipFile)
@@ -180,6 +174,8 @@ func (folderWatcher *FolderWatcher) Start() {
 			}
 		}
 
+		folderWatcher.running = false
+
 		// capture the entry list for a restart
 		folderWatcher.captureEntryList(entryList)
 
@@ -198,7 +194,7 @@ func (folderWatcher *FolderWatcher) Start() {
 
 func (folderWatcher *FolderWatcher) Stop() {
 	log("Stopping folder watcher %q", folderWatcher.String())
-	folderWatcher.running = false
+	folderWatcher.wasStopped = true
 }
 
 func (folderWatcher *FolderWatcher) IsRunning() bool {

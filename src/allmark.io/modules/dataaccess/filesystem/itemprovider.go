@@ -125,6 +125,7 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 		childs,
 		[]watcherPather{
 			watcherFilePath{filePath},
+			watcherDirectoryPath{filesDirectory},
 		},
 	)
 	return item, nil

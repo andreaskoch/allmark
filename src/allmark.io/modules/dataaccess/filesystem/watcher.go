@@ -138,7 +138,7 @@ func (watcher *filesystemWatcher) createFileWatcher(filePath string, backChannel
 }
 
 func (watcher *filesystemWatcher) createDirectoryWatcher(directoryPath string, backChannel chan bool) fswatch.Watcher {
-	checkIntervalInSeconds := 1
+	checkIntervalInSeconds := 2
 
 	recurse := true
 	skipNoFiles := func(path string) bool {

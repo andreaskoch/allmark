@@ -27,6 +27,7 @@ type FileWatcher struct {
 
 	file          string
 	running       bool
+	wasStopped    bool
 	checkInterval time.Duration
 
 	previousModTime time.Time
@@ -102,7 +103,7 @@ func (fileWatcher *FileWatcher) Start() {
 
 		}
 
-		for fileWatcher.running {
+		for fileWatcher.wasStopped == false {
 
 			newModTime, err := getLastModTimeFromFile(fileWatcher.file)
 			if err != nil {
@@ -141,6 +142,8 @@ func (fileWatcher *FileWatcher) Start() {
 
 		}
 
+		fileWatcher.running = false
+
 		// capture the entry list for a restart
 		fileWatcher.captureModTime(modTime)
 
@@ -159,7 +162,7 @@ func (fileWatcher *FileWatcher) Start() {
 
 func (fileWatcher *FileWatcher) Stop() {
 	log("Stopping file watcher %q", fileWatcher.String())
-	fileWatcher.running = false
+	fileWatcher.wasStopped = true
 }
 
 func (fileWatcher *FileWatcher) IsRunning() bool {
