@@ -19,6 +19,7 @@ import (
 	"allmark.io/modules/web/server"
 	"fmt"
 	// "github.com/davecheney/profile"
+	"flag"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -31,6 +32,12 @@ const (
 	CommandNameInit    = "init"
 	CommandNameServe   = "serve"
 	CommandNameVersion = "version"
+)
+
+var (
+	serveFlags = flag.NewFlagSet("serve-flags", flag.ContinueOnError)
+	reindex    = serveFlags.Bool("reindex", false, "Enable reindexing")
+	livereload = serveFlags.Bool("livereload", false, "Enable live-reload")
 )
 
 func main() {
@@ -90,7 +97,7 @@ func parseCommandLineArguments(args []string, commandHandler func(commandName, r
 
 	// Read the repository path parameters
 	var repositoryPath string
-	if len(args) > 2 {
+	if len(args) > 2 && !isCommandlineFlag(args[2]) {
 
 		// use supplied repository path
 		repositoryPath = args[2]
@@ -104,6 +111,12 @@ func parseCommandLineArguments(args []string, commandHandler func(commandName, r
 		// use the current directory
 		repositoryPath = fsutil.GetWorkingDirectory()
 
+	}
+
+	// use the rest of the arguments to parse flags
+	if len(args) > 2 {
+		remainingArguments := args[2:]
+		serveFlags.Parse(remainingArguments)
 	}
 
 	// validate the supplied repository paths
@@ -135,14 +148,13 @@ func printUsageInformation(args []string) {
 }
 
 func serve(repositoryPath string) bool {
-
 	serveStart := time.Now()
 
 	config := *config.Get(repositoryPath)
 	logger := console.New(loglevel.FromString(config.LogLevel))
 
 	// data access
-	repository, err := filesystem.NewRepository(logger, repositoryPath, config.Indexing.IntervalInSeconds)
+	repository, err := filesystem.NewRepository(logger, repositoryPath, config.Indexing.IntervalInSeconds, *reindex, *livereload)
 	if err != nil {
 		logger.Fatal("Unable to create a repository. Error: %s", err)
 	}
@@ -209,4 +221,8 @@ func initialize(repositoryPath string) bool {
 
 func printVersionInformation() {
 	fmt.Println(buildinfo.Version())
+}
+
+func isCommandlineFlag(argument string) bool {
+	return strings.HasPrefix(argument, "-")
 }

@@ -31,9 +31,12 @@ type Repository struct {
 	// Update Subscription
 	watcher           *filesystemWatcher
 	updateSubscribers []chan dataaccess.Update
+
+	// live reload
+	livereloadIsEnabled bool
 }
 
-func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeconds int) (*Repository, error) {
+func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeconds int, reindex, livereload bool) (*Repository, error) {
 
 	// check if path exists
 	if !fsutil.PathExists(directory) {
@@ -71,15 +74,20 @@ func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeco
 		itemByHash:  make(map[string]dataaccess.Item),
 
 		// Update Subscription
-		watcher:           newFilesystemWatcher(logger),
-		updateSubscribers: updateSubscribers,
+		watcher:             newFilesystemWatcher(logger),
+		updateSubscribers:   updateSubscribers,
+		livereloadIsEnabled: livereload,
 	}
 
 	// index the repository
 	repository.init()
 
 	// scheduled reindex
-	repository.reindex(reindexIntervalInSeconds)
+	if reindex {
+		repository.reindex(reindexIntervalInSeconds)
+	} else {
+		repository.logger.Info("Reindexing is disabled.")
+	}
 
 	return repository, nil
 }
@@ -246,6 +254,11 @@ func (repository *Repository) sendUpdate(update dataaccess.Update) {
 }
 
 func (repository *Repository) StartWatching(route route.Route) {
+
+	if !repository.livereloadIsEnabled {
+		repository.logger.Info("Live reload is disabled.")
+		return
+	}
 
 	item := repository.Item(route)
 	if item == nil {
