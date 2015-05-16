@@ -65,13 +65,19 @@ go run make.go -update-dependencies
 
 ## Cross-Compilation
 
-If you want to cross-compile allmark for different platforms and architectures you can do so by using the `-crosscompile` flag for the make script (if you have [docker](https://www.docker.com) >= 1.4 installed):
+If you want to cross-compile allmark for different platforms and architectures you can do so by using the `-crosscompile` or `-crosscompile-with-docker` flags for the make script.
+
+If you have prepared your prepared your go environment for cross-compilation (see: [Dave Cheney - An introduction to cross compilation with Go](http://dave.cheney.net/2012/09/08/an-introduction-to-cross-compilation-with-go)) you can use the `-crosscompile` flag:
 
 ```bash
 go run make.go -crosscompile
 ```
 
-This command will launch a [docker container with go 1.4](https://registry.hub.docker.com/u/library/golang/) in it that is prepared for cross-compilation and build allmark for you. The output will be available in the `bin` folder of this project:
+This command will cross-compile for all platforms and architectures directly on your system.
+
+If you have not prepared your golang installation for cross-compilation you can use the the `-crosscompile-with-docker` flag instead.
+
+This command will launch a [docker container with go 1.4](https://registry.hub.docker.com/u/library/golang/) that is prepared for cross-compilation and will build allmark for all available platforms and architectures inside the docker-container. The output will be available in the `bin` folder of this project:
 
 ```
 bin/
@@ -107,8 +113,6 @@ bin/
 └── src
 
 ```
-
-If you don't have docker or don't want to install it you can use [goxc](https://github.com/laher/goxc) to cross-compile allmark.
 
 ## Known Bugs
 

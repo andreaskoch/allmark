@@ -36,17 +36,24 @@ const GOPATH_ENVIRONMENT_VARIABLE = "GOPATH"
 // GOBIN environment variable name
 const GOBIN_ENVIRONMENT_VARIBALE = "GOBIN"
 
+// GOOS environment variable name
+const GOOS_ENVIRONMENT_VARIBALE = "GOOS"
+
+// GOARCH environment variable name
+const GOARCH_ENVIRONMENT_VARIBALE = "GOARCH"
+
 var (
 
 	// command line flags
-	verboseFlagIsSet            = flag.Bool("v", false, "Verbose mode")
-	fmtFlagIsSet                = flag.Bool("fmt", false, "Format the source files")
-	testFlagIsSet               = flag.Bool("test", false, "Execute all tests (go test")
-	installFlagIsSet            = flag.Bool("install", false, "Force rebuild of everything (go install -a)")
-	crossCompileFlagIsSet       = flag.Bool("crosscompile", false, "Cross-compile everything using docker (Won't work if you don't have docker installed)")
-	listDependenciesFlagIsSet   = flag.Bool("list-dependencies", false, "List all third-party dependencies")
-	updateDependenciesFlagIsSet = flag.Bool("update-dependencies", false, "Update all third-party dependencies")
-	versionFlagIsSet            = flag.Bool("version", false, "Get the current version number of the repository")
+	verboseFlagIsSet                = flag.Bool("v", false, "Verbose mode")
+	fmtFlagIsSet                    = flag.Bool("fmt", false, "Format the source files")
+	testFlagIsSet                   = flag.Bool("test", false, "Execute all tests (go test")
+	installFlagIsSet                = flag.Bool("install", false, "Force rebuild of everything (go install -a)")
+	crossCompileFlagIsSet           = flag.Bool("crosscompile", false, "Cross-compile everything (Won't work if you don't have your golang installation prepared for this)")
+	crossCompileWithDockerFlagIsSet = flag.Bool("crosscompile-with-docker", false, "Cross-compile everything using docker (Won't work if you don't have docker installed)")
+	listDependenciesFlagIsSet       = flag.Bool("list-dependencies", false, "List all third-party dependencies")
+	updateDependenciesFlagIsSet     = flag.Bool("update-dependencies", false, "Update all third-party dependencies")
+	versionFlagIsSet                = flag.Bool("version", false, "Get the current version number of the repository")
 
 	// The GOPATH for the current project
 	goPath = getWorkingDirectory()
@@ -134,6 +141,11 @@ func main() {
 		return
 	}
 
+	if *crossCompileWithDockerFlagIsSet {
+		crossCompileWithDocker()
+		return
+	}
+
 	if *listDependenciesFlagIsSet {
 		listDependencies()
 		return
@@ -155,14 +167,53 @@ func main() {
 // Install all parts of allmark using go install.
 func install() {
 
+	// prepare the environment variables
+	environmentVariables := cleanGoEnv()
+	environmentVariables = setEnv(environmentVariables, GOPATH_ENVIRONMENT_VARIABLE, goPath)
+	environmentVariables = setEnv(environmentVariables, GOBIN_ENVIRONMENT_VARIBALE, goBin)
+
 	for _, packageName := range buildPackages {
-		runCommand(os.Stdout, os.Stderr, goPath, "go", "install", getBuildVersionFlag(), packageName)
+		runCommand(os.Stdout, os.Stderr, goPath, environmentVariables, "go", "install", getBuildVersionFlag(), packageName)
 	}
 
 }
 
 // Cross-compile all parts of allmark for all supported platforms.
 func crossCompile() {
+
+	// prepare the environment variables
+	environmentVariables := cleanGoEnv()
+	environmentVariables = setEnv(environmentVariables, GOPATH_ENVIRONMENT_VARIABLE, goPath)
+	environmentVariables = setEnv(environmentVariables, GOBIN_ENVIRONMENT_VARIBALE, goBin)
+
+	// iterate over all supported compilation targets
+	for _, target := range compilationTargets {
+
+		// iterate over all build packages
+		for _, packageName := range buildPackages {
+
+			// prepare environment variables for cross-compilation
+			crossCompileEnvironemntVariables := environmentVariables
+			crossCompileEnvironemntVariables = setEnv(crossCompileEnvironemntVariables, GOOS_ENVIRONMENT_VARIBALE, target.OperatingSystem)
+			crossCompileEnvironemntVariables = setEnv(crossCompileEnvironemntVariables, GOARCH_ENVIRONMENT_VARIBALE, target.Architecture)
+
+			// build the package for the specified os and arch
+			fmt.Printf("Compiling %s for %s\n", packageName, target.String())
+			runCommand(os.Stdout, os.Stderr, goPath, crossCompileEnvironemntVariables, "go", "install", getBuildVersionFlag(), packageName)
+		}
+	}
+
+}
+
+// Cross-compile all parts of allmark for all supported platforms using docker.
+func crossCompileWithDocker() {
+	dockerImageName := "golang:1.4.2-cross"
+	projectPathInDocker := "/usr/src/allmark"
+	binPath := filepath.Join(projectPathInDocker, "bin")
+	command := `docker`
+
+	// prepare the environment variables
+	environmentVariables := cleanGoEnv()
 
 	// iterate over all supported compilation targets
 	for _, target := range compilationTargets {
@@ -171,11 +222,25 @@ func crossCompile() {
 		for _, packageName := range buildPackages {
 
 			// assemble the build command
-			command, args := getCrossCompilationCommand(packageName, target.OperatingSystem, target.Architecture)
+			args := []string{
+				"run",
+				"--rm",
+				"-v=" + fmt.Sprintf(`%s:%s`, goPath, projectPathInDocker),
+				`-w=` + projectPathInDocker,
+				"-e=" + envPair(GOOS_ENVIRONMENT_VARIBALE, target.OperatingSystem),
+				"-e=" + envPair(GOARCH_ENVIRONMENT_VARIBALE, target.Architecture),
+				"-e=" + envPair(GOPATH_ENVIRONMENT_VARIABLE, projectPathInDocker),
+				"-e=" + envPair(GOBIN_ENVIRONMENT_VARIBALE, binPath),
+				dockerImageName,
+				"go",
+				"install",
+				getBuildVersionFlag(),
+				packageName,
+			}
 
 			// build the package for the specified os and arch
 			fmt.Printf("Compiling %s for %s\n", packageName, target.String())
-			runCommand(os.Stdout, os.Stderr, goPath, command, args...)
+			runCommand(os.Stdout, os.Stderr, goPath, environmentVariables, command, args...)
 		}
 	}
 
@@ -185,10 +250,15 @@ func crossCompile() {
 func executeTests() {
 	packages := getPackagesWithTests()
 
+	// prepare the environment variables
+	environmentVariables := cleanGoEnv()
+	environmentVariables = setEnv(environmentVariables, GOPATH_ENVIRONMENT_VARIABLE, goPath)
+	environmentVariables = setEnv(environmentVariables, GOBIN_ENVIRONMENT_VARIBALE, goBin)
+
 	for index, packageName := range packages {
 
 		fmt.Printf("Testing package %02d of %v: %s\n", index+1, len(packages), packageName)
-		runCommand(os.Stdout, os.Stderr, goPath, "go", "test", packageName)
+		runCommand(os.Stdout, os.Stderr, goPath, environmentVariables, "go", "test", packageName)
 	}
 }
 
@@ -196,10 +266,15 @@ func executeTests() {
 func format() {
 	packages := getInternalPackages()
 
+	// prepare the environment variables
+	environmentVariables := cleanGoEnv()
+	environmentVariables = setEnv(environmentVariables, GOPATH_ENVIRONMENT_VARIABLE, goPath)
+	environmentVariables = setEnv(environmentVariables, GOBIN_ENVIRONMENT_VARIBALE, goBin)
+
 	for index, packageName := range packages {
 
 		fmt.Printf("Formatting package %02d of %v: %s\n", index+1, len(packages), packageName)
-		runCommand(os.Stdout, os.Stderr, goPath, "go", "fmt", packageName)
+		runCommand(os.Stdout, os.Stderr, goPath, environmentVariables, "go", "fmt", packageName)
 
 	}
 }
@@ -216,6 +291,11 @@ func listDependencies() {
 // Update all third-party packages that allmark depends on.
 func updateDependencies() {
 
+	// prepare the environment variables
+	environmentVariables := cleanGoEnv()
+	environmentVariables = setEnv(environmentVariables, GOPATH_ENVIRONMENT_VARIABLE, goPath)
+	environmentVariables = setEnv(environmentVariables, GOBIN_ENVIRONMENT_VARIBALE, goBin)
+
 	// Remove all existing third party packages
 	for _, namespace := range getTopNamespacesOfExternalDependencies() {
 
@@ -231,7 +311,7 @@ func updateDependencies() {
 	for index, dependency := range thirdPartyPackages {
 
 		fmt.Printf("Updating package %02d of %v: %s\n", index+1, len(thirdPartyPackages), dependency)
-		runCommand(os.Stdout, os.Stderr, goPath, "go", "get", dependency)
+		runCommand(os.Stdout, os.Stderr, goPath, environmentVariables, "go", "get", dependency)
 
 	}
 
@@ -319,12 +399,17 @@ func getThirdPartyPackages() []string {
 // Get a sorted and unique list of all non-standard library packages used in this project that meet the supplied expression.
 func getAllNonStandardLibraryPackages(inclusionExpression func(packageName string) bool) []string {
 
+	// prepare the environment variables
+	environmentVariables := cleanGoEnv()
+	environmentVariables = setEnv(environmentVariables, GOPATH_ENVIRONMENT_VARIABLE, goPath)
+	environmentVariables = setEnv(environmentVariables, GOBIN_ENVIRONMENT_VARIBALE, goBin)
+
 	// get all dependent packages (will include duplicates and standard library packages)
 	allDependentPackages := make([]string, 0)
 	for _, buildPackage := range buildPackages {
 		output := new(bytes.Buffer)
 		errors := new(bytes.Buffer)
-		runCommand(output, errors, goPath, "go", "list", "-f", `'{{ join .Deps ","}}'`, buildPackage)
+		runCommand(output, errors, goPath, environmentVariables, "go", "list", "-f", `'{{ join .Deps ","}}'`, buildPackage)
 
 		allDependentPackages = append(allDependentPackages, strings.Split(output.String(), ",")...)
 	}
@@ -399,20 +484,19 @@ func getWorkingDirectory() string {
 }
 
 // Execute go in the specified go path with the supplied command arguments.
-func runCommand(stdout, stderr io.Writer, workingDirectory string, command string, args ...string) {
+func runCommand(stdout, stderr io.Writer, workingDirectory string, environmentVariables []string, command string, args ...string) {
 
-	commandName := command
-	cmdName := fmt.Sprintf("%s %s", commandName, strings.Join(args, " "))
+	// Create the command
+	cmdName := fmt.Sprintf("%s %s", command, strings.Join(args, " "))
+	cmd := exec.Command(command, args...)
 
-	// set the go path
-	cmd := exec.Command(commandName, args...)
+	// Set the working directory
 	cmd.Dir = workingDirectory
 
-	cmd.Env = cleanGoEnv()
-	cmd.Env = setEnv(cmd.Env, GOPATH_ENVIRONMENT_VARIABLE, goPath)
-	cmd.Env = setEnv(cmd.Env, GOBIN_ENVIRONMENT_VARIBALE, goBin)
+	// set environment variables
+	cmd.Env = environmentVariables
 
-	// execute the command
+	// Capture the output
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 
@@ -420,6 +504,7 @@ func runCommand(stdout, stderr io.Writer, workingDirectory string, command strin
 		log.Printf("Running %s", cmdName)
 	}
 
+	// execute the command
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalf("Error running %s: %v", cmdName, err)
@@ -483,32 +568,6 @@ func gitVersion() string {
 	}
 
 	return versionNumber
-}
-
-// Get the command for cross-compiling the specified package for the desired operating system and architecture (e.g. 2015-01-11-284c030+).
-func getCrossCompilationCommand(packageName, os, arch string) (command string, args []string) {
-	dockerImageName := "golang:1.4-cross"
-	projectPathInDocker := "/usr/src/allmark"
-	binPath := filepath.Join(projectPathInDocker, "bin")
-
-	command = `docker`
-	args = []string{
-		"run",
-		"--rm",
-		"-v=" + fmt.Sprintf(`%s:%s`, goPath, projectPathInDocker),
-		`-w=` + projectPathInDocker,
-		"-e=" + "GOOS=" + os,
-		"-e=" + "GOARCH=" + arch,
-		"-e=" + envPair(GOPATH_ENVIRONMENT_VARIABLE, projectPathInDocker),
-		"-e=" + envPair(GOBIN_ENVIRONMENT_VARIBALE, binPath),
-		dockerImageName,
-		"go",
-		"install",
-		getBuildVersionFlag(),
-		packageName,
-	}
-
-	return command, args
 }
 
 // Get the build version flag for the go linker (e.g. -X allmark.io/cmd/allmark 2015-01-11-284c030+).
