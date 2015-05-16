@@ -1,6 +1,6 @@
-# allmark - the tiny markdown server
+# allmark - the markdown server
 
-allmark is a lightweight markdown web server for Linux, BSD, Solaris Mac OS and Windows written in go.
+allmark is a standalone markdown web server for Linux, BSD, Solaris Mac OS and Windows written in go.
 
 ![allmark logo (128x128px)](files/design/logo/PNG8/allmark-logo-128x128.png)
 
@@ -51,23 +51,28 @@ allmark relies on many great third-party libraries. These are some of them:
 - [github.com/shurcooL/go/github_flavored_markdown/sanitized_anchor_name](src/github.com/shurcooL/go/github_flavored_markdown/sanitized_anchor_name)
 - [github.com/skratchdot/open-golang/open](src/github.com/skratchdot/open-golang/open)
 - [golang.org/x/net/websocket](src/golang.org/x/net/websocket)
+- [github.com/andreaskoch/go-fswatch](src/github.com/andreaskoch/go-fswatch)
 
-These are not under allmark copyright/license. See the respective projects for their copyright & licensing details.
-These are mirrored into allmark for hermetic build reasons and versioning.
+These depenendencies are not under allmark copyright/license. See the respective projects for their copyright & licensing details.
+The packages are mirrored into allmark for hermetic build reasons and versioning.
 
 To get a full list of all used third-party libraries you execute the make tool with the `-list-dependencies` flag:
 
 ```bash
 go run make.go -list-dependencies
-```pod.nasa.gov/apod/image/1104/
+```
+
+To download the latest versions for all dependencies use the `-update-dependencies` flag:
+
+```bash
 go run make.go -update-dependencies
 ```
 
 ## Cross-Compilation
 
-If you want to cross-compile allmark for different platforms and architectures you can do so by using the `-crosscompile` or `-crosscompile-with-docker` flags for the make script.
+If you want to cross-compile allmark for different platforms (darwin, dragonfly, freebsd, linux, nacl, netbsd, openbsd, windows) and architectures (386, amd64, arm) you can do so by using the `-crosscompile` or `-crosscompile-with-docker` flags for the make script.
 
-If you have prepared your prepared your go environment for cross-compilation (see: [Dave Cheney - An introduction to cross compilation with Go](http://dave.cheney.net/2012/09/08/an-introduction-to-cross-compilation-with-go)) you can use the `-crosscompile` flag:
+If you have prepared your go environment for cross-compilation (see: [Dave Cheney - An introduction to cross compilation with Go](http://dave.cheney.net/2012/09/08/an-introduction-to-cross-compilation-with-go)) you can use the `-crosscompile` flag:
 
 ```bash
 go run make.go -crosscompile
@@ -75,9 +80,7 @@ go run make.go -crosscompile
 
 This command will cross-compile for all platforms and architectures directly on your system.
 
-If you have not prepared your golang installation for cross-compilation you can use the the `-crosscompile-with-docker` flag instead.
-
-This command will launch a [docker container with go 1.4](https://registry.hub.docker.com/u/library/golang/) that is prepared for cross-compilation and will build allmark for all available platforms and architectures inside the docker-container. The output will be available in the `bin` folder of this project:
+If you have not prepared your golang installation for cross-compilation you can use the the `-crosscompile-with-docker` flag instead. This command will launch a [docker container with go 1.4](https://registry.hub.docker.com/u/library/golang/) that is prepared for cross-compilation and will build allmark for all available platforms and architectures inside the docker-container. The output will be available in the `bin` folder of this project:
 
 ```
 bin/
@@ -128,14 +131,10 @@ bin/
 
 Here are some of the ideas and todos I would like to add in the future. Contributions are welcome!
 
-### Architecture
+### Architecture & Features
 
 - Expose the markdown source
 - HTTPs support
-- Run on Raspberry Pi / WDLXTV ("Host your blog from your home")
-    - store images and thumbnails on amazon s3
-    - can be run with very little bandwidth
-    - DDNS support
 - Data Access
     - Dropbox support
     - SMTP message posting
@@ -145,16 +144,8 @@ Here are some of the ideas and todos I would like to add in the future. Contribu
     - Repository sharding
     - load-balancing
 - Static website generation
-
-### Features
-
 - User Management / Access Restrictions
     - User management pages
-- Editing
-    - sublime snippets
-    - sublime theme
-    - Examples
-- Posting comments
 - Make live-reload more intelligent and more efficient
 
 ### Theming
@@ -162,11 +153,4 @@ Here are some of the ideas and todos I would like to add in the future. Contribu
 - Redesign default theme with Twitter Bootstrap
 - Create a theme "loader"
 - Infinite Scrolling for latest items
-
-### Rendering / Markdown extensions
-
-- 360° panoramas
-- image galleries (implemented but needs improvement)
-- file lists (implemented but needs improvement)
-- cross references
-- geo locations
+- Improved Image Galleries
