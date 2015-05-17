@@ -153,7 +153,15 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (dataacce
 	}
 
 	// create the item
-	item := newVirtualItem(route, contentProvider, files, childs)
+	item := newVirtualItem(
+		route,
+		contentProvider,
+		files,
+		childs,
+		[]watcherPather{
+			watcherDirectoryPath{itemDirectory},
+		})
+
 	return item, nil
 }
 

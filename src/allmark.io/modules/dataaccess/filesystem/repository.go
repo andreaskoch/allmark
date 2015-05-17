@@ -277,7 +277,9 @@ func (repository *Repository) StartWatching(route route.Route) {
 			select {
 			case <-updates:
 
-				repository.logger.Info("Sending out an update for route %q.", route.String())
+				repository.logger.Info("Recieved an update for route %q. Reindexing.", route.String())
+				repository.init() // todo: refactor init function to allow partial reindexing of the repository by pasing in the parent route below which items shall be reindexed.
+				// And add a type change detection to to items so a reindex does not have to be executed every time a item changes.
 				repository.sendUpdate(dataaccess.NewModifiedItemUpdate(route))
 
 			}

@@ -18,8 +18,8 @@ func newPhysicalItem(route route.Route, contentProvider *content.ContentProvider
 }
 
 // Create a new virtual item.
-func newVirtualItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item) dataaccess.Item {
-	return newItem(dataaccess.TypeVirtual, route, contentProvider, files, childs, []watcherPather{})
+func newVirtualItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item, watcherPaths []watcherPather) dataaccess.Item {
+	return newItem(dataaccess.TypeVirtual, route, contentProvider, files, childs, watcherPaths)
 }
 
 // Create new file-collection item.
