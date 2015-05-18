@@ -4,9 +4,77 @@ allmark is a standalone markdown web server for Linux, BSD, Solaris Mac OS and W
 
 ![allmark logo (128x128px)](files/design/logo/PNG8/allmark-logo-128x128.png)
 
-## Build Status
+You can point **allmark** at any folder structure that contains **markdown documents** and files referenced by these documents (e.g. this repository folder) and allmark will start a **web-server** and serve the folder contents as HTML via HTTP (default: 8080).
 
-[![Build Status](https://travis-ci.org/andreaskoch/allmark.png)](https://travis-ci.org/andreaskoch/allmark)
+**Folder Structure Conventions**
+
+The standard folder structure for a **markdown-repository item** could look something like this:
+
+```
+├── files
+│   ├── image.png
+│   └── more-files
+│       ├── file1.txt
+│       ├── file2.txt
+│       └── file3.txt
+└── some-file.md
+```
+
+1. one markdown file per folder (with the extension .md, .markdown or .mdown)
+2. a `files` folder which contains all files referenced by the markdown document
+3. an arbitrary number of child directories that can contain more markdown-repository items
+
+**Nesting / Hierarchie**
+
+You can nest repository items arbitrarily. Example:
+
+```
+├── child-item-1
+│   └── item1.md
+├── child-item-2
+│   └── item2.md
+├── child-item-3
+│   └── item3.md
+├── files
+│   ├── image.png
+│   └── more-files
+│       ├── file1.txt
+│       ├── file2.txt
+│       └── file3.txt
+└── some-file.md
+```
+
+**Folders without Markdown Files**
+
+- If you have folders in your repository that don't contains markdown files allmark will display and index of all files in that directory (=> **file-collection item**)
+- file-collection items cannot have other childs
+
+**Markdown Document Structure**
+
+allmark makes certain assumptions about the structure of your documents. They should have
+
+1. Title
+2. Description Text
+3. Document Body
+
+A **typical document** expected by allmark could look like this:
+
+	# Document Title / Headline
+
+	A short description of the document ... Usually one sentence.
+
+	The Content of your document
+
+	![Some Image](files/image.jpg)
+
+	- A List 1
+	- A List 2
+	- A List 3
+
+	**Some garbage text**: In pharetra ullamcorper egestas.
+	Nam vel sodales velit. Nulla elementum dapibus sem nec scelerisque.
+	In hac habitasse platea dictumst. Nulla vestibulum lacinia tincidunt.
+
 
 ## Installation
 
@@ -32,11 +100,65 @@ After a second or so a browser window with this address `http://0.0.0.0:8080` sh
 
 ![Screenshot: Testing the allmark server on the allmark-project directory](files/installation/screenshot-allmark-test-run-on-project-folder.png)
 
+## Features
+
+This is an unordered list of the most prominent features of allmark:
+
+1. Renders [GitHub Flavored MarkDown](https://help.github.com/articles/github-flavored-markdown/)
+2. Full text search (+ Autocomplete)
+3. Live-Reload / Live-Editing (via WebSockets)
+4. Document Tagging
+5. Tag Cloud
+6. Documents By Tag
+7. HTML Sitemap
+8. XML Sitemap
+9. robots.txt
+10. RSS Feed
+11. Print Preview
+12. JSON Representation of Documents
+13. Hierarchical Document Trees
+14. Repository Navigation
+	- Top-Level Navigation
+	- Bread-Crumb Navigation
+	- Previous and Next Items
+	- Child-Documents
+15. Image Thumbnails
+16. Markdown Extensions
+	- Image Galleries
+	- File Preview
+	- Displaying Folder Contents
+	- Video Player Integration
+	- Audio Player Integration
+	- PDF Document Preview
+	- Repository Cross-Links
+17. Different Item Types (Repository, Document, Presentation)
+18. Document Meta Data
+	⁻ Author
+	- Tags
+	- Document Alias
+	- Creation Date
+	- Last Modified Date
+	- Language
+	- Geo Location
+19. Default Theme
+	- Responsive Design
+	- Lazy Loading for images and videos
+	- Syntax Highlighting
+20. Presentation Mode
+21. Rich Text Conversion (Download documents as .rtf files)
+22. Image Thumbnail Generation
+
+I will try to create videos showing you the different features when there is time.
+
 ## Demo / Showcase
 
 If you want to see **allmark in action** you can visit my blog [AndyK Docs](https://andykdocs.de/) at [https://andykdocs.de](https://andykdocs.de):
 
 ![Animation: Demo of allmark hosting andykdocs.de ](files/demo/allmark-demo-andykdocs.gif)
+
+## Build Status
+
+[![Build Status](https://travis-ci.org/andreaskoch/allmark.png)](https://travis-ci.org/andreaskoch/allmark)
 
 ## Dependencies
 
@@ -147,6 +269,7 @@ Here are some of the ideas and todos I would like to add in the future. Contribu
 - User Management / Access Restrictions
     - User management pages
 - Make live-reload more intelligent and more efficient
+- Support for Folders with multiple Markdown Files
 
 ### Theming
 
