@@ -29,6 +29,9 @@ $(function() {
 			return;
 		}
 
+		// transform the content
+		transformPresentationStructure();
+
 		/**
 		 * Toggle the page header elements
 		 */
@@ -73,9 +76,6 @@ $(function() {
     // load deck.js
     appendStyleSheet("/theme/deck.css");
     $.getScript("/theme/deck.js", function(){
-
-		// transform the content
-		transformPresentationStructure();
 
 		// render the presentaton
 		renderPresentation();

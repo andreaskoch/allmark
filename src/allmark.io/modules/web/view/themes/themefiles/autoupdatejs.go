@@ -212,4 +212,7 @@ var Autoupdate = (function () {
 
     return Autoupdate;
 })();
+
+autoupdate = new Autoupdate();
+autoupdate.start();
 `
