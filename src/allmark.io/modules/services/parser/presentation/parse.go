@@ -97,7 +97,7 @@ func horizontalRuleAlreadyPresentIn(lines []string) bool {
 		return pattern.IsHorizontalRule(line)
 	}
 
-	panic("Unreachable")
+	return false
 }
 
 // Determine if the supplied lines contain content before
@@ -129,5 +129,5 @@ func followingLinesContainContent(lines []string) bool {
 		return true
 	}
 
-	panic("Unreachable")
+	return false
 }
