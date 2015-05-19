@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 
@@ -25,14 +26,18 @@ const (
 	ThumbnailsFolderName   = "thumbnails"
 
 	// Global Defaults
-	DefaultHostName                 = "0.0.0.0"
-	DefaultPort                     = 8080
-	DefaultLanguage                 = "en-US"
-	DefaultLogLevel                 = loglevel.Info
-	DefaultReindexIntervalInSeconds = 60
+	DefaultHostName                  = "0.0.0.0"
+	DefaultPort                      = 8080
+	DefaultLanguage                  = "en-US"
+	DefaultLogLevel                  = loglevel.Info
+	DefaultReindexIntervalInSeconds  = 60
+	DefaultRichTextConversionEnabled = true
 )
 
 var homeDirectory func() string
+
+// A flag indicating whether the RTF conversion tool is available
+var rtfConversionToolIsAvailable bool
 
 func init() {
 
@@ -43,6 +48,12 @@ func init() {
 
 	homeDirectory = func() string {
 		return filepath.Clean(usr.HomeDir)
+	}
+
+	// check if pandoc is available in the path
+	command := exec.Command(DefaultConversionToolPath, "--help")
+	if err := command.Run(); err == nil {
+		rtfConversionToolIsAvailable = true
 	}
 }
 
@@ -115,8 +126,8 @@ func Default(baseFolder string) *Config {
 	config.Conversion.Thumbnails.IndexFileName = ThumbnailIndexFileName
 	config.Conversion.Thumbnails.FolderName = ThumbnailsFolderName
 
-	// RTF conversion
-	config.Conversion.Rtf.Tool = DefaultConversionToolPath
+	// Rtf Conversion
+	config.Conversion.Rtf.Enabled = DefaultRichTextConversionEnabled
 
 	config.LogLevel = DefaultLogLevel.String()
 	config.Indexing.IntervalInSeconds = DefaultReindexIntervalInSeconds
@@ -162,7 +173,14 @@ type Conversion struct {
 
 type RtfConversion struct {
 	Enabled bool
-	Tool    string
+}
+
+func (rtf RtfConversion) Tool() string {
+	return DefaultConversionToolPath
+}
+
+func (rtf RtfConversion) IsEnabled() bool {
+	return rtf.Enabled && rtfConversionToolIsAvailable
 }
 
 type ThumbnailConversion struct {

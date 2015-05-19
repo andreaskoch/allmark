@@ -68,14 +68,15 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 
 		// write the html to a temp file
 		htmlFilePath := fsutil.GetTempFileName("html-source") + ".html"
-		htmlFile, err := fsutil.OpenFile(htmlFilePath)
+		htmlFile, err := os.Create(htmlFilePath)
 		if err != nil {
 			handler.logger.Error("Cannot open HTML file for writing. Error: %s", err.Error())
 			return
 		}
 
-		defer htmlFile.Close()
 		htmlFile.WriteString(html)
+		htmlFile.Sync()
+		htmlFile.Close()
 
 		// get a target file path
 		targetFile := fsutil.GetTempFileName("rtf-target") + ".rtf"
