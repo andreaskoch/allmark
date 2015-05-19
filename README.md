@@ -75,10 +75,37 @@ A **typical document** expected by allmark could look like this:
 	Nam vel sodales velit. Nulla elementum dapibus sem nec scelerisque.
 	In hac habitasse platea dictumst. Nulla vestibulum lacinia tincidunt.
 
+## Download / Installation
 
-## Installation
+You can download the **latest binaries** of allmark for your operating system from [allmark.io/bin](https://allmark.io/bin)
 
-If you have [go](https://golang.org/dl/) (≥ 1.3) installed all you have to do is
+**Linux**
+
+```bash
+sudo curl -s --insecure https://allmark.io/bin/allmark > /usr/local/bin/allmark
+sudo chmod +x /usr/local/bin/allmark
+```
+
+**Mac OS**
+
+```bash
+sudo curl "https://allmark.io/bin/darwin_amd64/allmark" -o "/usr/local/bin/allmark"
+sudo chmod +x /usr/local/bin/allmark
+```
+
+**Windows**
+
+```bash
+Invoke-WebRequest https://allmark.io/bin/windows_amd64/allmark.exe -OutFile allmark.exe
+```
+
+All binaries at [allmark.io](https://allmark.io) are up-to-date builds of the **master**-branch.
+
+If you want to download and install binarier from the **develop**-branch you can go to [develop.allmark.io/bin](https://develop.allmark.io).
+
+## Build
+
+If you have [go](https://golang.org/dl/) (≥ 1.3) installed you can build allmark yourself in two steps:
 
 1. Clone the project from github
 2. Run the `make.go` file with the `-install` flag
@@ -159,6 +186,8 @@ If you want to see **allmark in action** you can visit my blog [AndyK Docs](http
 ## Build Status
 
 [![Build Status](https://travis-ci.org/andreaskoch/allmark.png)](https://travis-ci.org/andreaskoch/allmark)
+
+There is also an automated docker build at [registry.hub.docker.com/u/andreaskoch/allmark/](https://registry.hub.docker.com/u/andreaskoch/allmark/) which builds the develop and master branch every time a commit is pushed.
 
 ## Dependencies
 
