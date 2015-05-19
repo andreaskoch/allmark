@@ -26,7 +26,7 @@ const (
 	ThumbnailsFolderName   = "thumbnails"
 
 	// Global Defaults
-	DefaultHostName                  = "0.0.0.0"
+	DefaultHostName                  = "127.0.0.1"
 	DefaultPort                      = 8080
 	DefaultLanguage                  = "en-US"
 	DefaultLogLevel                  = loglevel.Info
