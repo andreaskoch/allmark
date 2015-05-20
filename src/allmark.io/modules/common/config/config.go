@@ -7,6 +7,8 @@ package config
 import (
 	"bufio"
 	"fmt"
+	"math"
+	"net"
 	"os"
 	"os/exec"
 	"os/user"
@@ -27,7 +29,7 @@ const (
 
 	// Global Defaults
 	DefaultHostName                  = "127.0.0.1"
-	DefaultPort                      = 8080
+	DefaultPort                      = 0
 	DefaultLanguage                  = "en-US"
 	DefaultLogLevel                  = loglevel.Info
 	DefaultReindexIntervalInSeconds  = 60
@@ -35,6 +37,8 @@ const (
 )
 
 var homeDirectory func() string
+
+var freePort int
 
 // A flag indicating whether the RTF conversion tool is available
 var rtfConversionToolIsAvailable bool
@@ -55,6 +59,9 @@ func init() {
 	if err := command.Run(); err == nil {
 		rtfConversionToolIsAvailable = true
 	}
+
+	// locate a free port
+	freePort = getFreePort()
 }
 
 func isHomeDir(directory string) bool {
@@ -138,6 +145,21 @@ func Default(baseFolder string) *Config {
 type Http struct {
 	Hostname string
 	Port     int
+}
+
+func (http *Http) GetPort() int {
+	port := http.Port
+	if port < 0 || port > math.MaxUint16 {
+		panic(fmt.Sprintf("%q is an invalid value for a port. Ports can only be in the range of %v to %v,", port, 1, math.MaxUint16))
+	}
+
+	if port == 0 {
+
+		return freePort
+
+	}
+
+	return port
 }
 
 type Web struct {
@@ -330,4 +352,19 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 	config.Analytics = newConfig.Analytics
 
 	return config, nil
+}
+
+// Ask the kernel for a free open port that is ready to use
+func getFreePort() int {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		panic(err)
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		panic(err)
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port
 }

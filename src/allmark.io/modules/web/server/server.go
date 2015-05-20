@@ -21,7 +21,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skratchdot/open-golang/open"
 	"golang.org/x/net/websocket"
-	"math"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -190,7 +189,7 @@ func (server *Server) Start() chan error {
 func (server *Server) getHttpBinding() string {
 
 	hostname := server.getHostname()
-	port := server.getPort()
+	port := server.config.Server.Http.GetPort()
 
 	if strings.TrimSpace(hostname) == "" {
 		fmt.Sprintf(":%v", port)
@@ -201,7 +200,7 @@ func (server *Server) getHttpBinding() string {
 
 func (server *Server) getAddress() string {
 	hostname := server.getHostname()
-	port := server.getPort()
+	port := server.config.Server.Http.GetPort()
 
 	switch port {
 	case 80:
@@ -220,15 +219,6 @@ func (server *Server) getHostname() string {
 	}
 
 	return hostname
-}
-
-func (server *Server) getPort() int {
-	port := server.config.Server.Http.Port
-	if port < 1 || port > math.MaxUint16 {
-		panic(fmt.Sprintf("%q is an invalid value for a port. Ports can only be in the range of %v to %v,", port, 1, math.MaxUint16))
-	}
-
-	return port
 }
 
 func (server *Server) addStaticFileHeaders(baseFolder, requestPrefixToStripFromRequestUri string, h http.Handler) http.Handler {
