@@ -87,20 +87,26 @@ func main() {
 
 func parseCommandLineArguments(args []string, commandHandler func(commandName, repositoryPath string) (commandWasFound bool)) {
 
+	remainingArguments := args
+
 	// check if the mandatory amount of
 	// command line parameters has been
 	// supplied. If not, print usage information.
-	if len(args) < 2 {
+	if len(remainingArguments) < 2 {
 		printUsageInformation(args)
 		return
 	}
 
+	commandName := strings.ToLower(remainingArguments[1])
+	remainingArguments = remainingArguments[2:]
+
 	// Read the repository path parameters
 	var repositoryPath string
-	if len(args) > 2 && !isCommandlineFlag(args[2]) {
+	if len(remainingArguments) > 0 && !isCommandlineFlag(remainingArguments[0]) {
 
 		// use supplied repository path
-		repositoryPath = args[2]
+		repositoryPath = remainingArguments[0]
+		remainingArguments = remainingArguments[1:]
 
 		if isFile, _ := fsutil.IsFile(repositoryPath); isFile {
 			repositoryPath = filepath.Dir(repositoryPath)
@@ -114,8 +120,7 @@ func parseCommandLineArguments(args []string, commandHandler func(commandName, r
 	}
 
 	// use the rest of the arguments to parse flags
-	if len(args) > 2 {
-		remainingArguments := args[2:]
+	if len(remainingArguments) > 0 {
 		serveFlags.Parse(remainingArguments)
 	}
 
@@ -126,7 +131,6 @@ func parseCommandLineArguments(args []string, commandHandler func(commandName, r
 	}
 
 	// Read the command parameter and execute the command handler
-	commandName := strings.ToLower(args[1])
 	if commandWasFound := commandHandler(commandName, repositoryPath); !commandWasFound {
 		printUsageInformation(args)
 	}
