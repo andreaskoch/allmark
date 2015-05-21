@@ -93,7 +93,12 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 		return viewModel, false
 	}
 
-	return *orchestrator.getViewModel(item, false), true
+	vm := orchestrator.getViewModel(item, false)
+	if vm == nil {
+		return viewModel, false
+	}
+
+	return *vm, true
 }
 
 func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (latest []*viewmodel.Model, found bool) {
