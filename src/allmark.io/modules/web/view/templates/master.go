@@ -179,9 +179,28 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 {{ if .IsRepositoryItem }}
 <script src="/theme/autoupdate.js"></script>
 <script src="/theme/pdfpreview.js"></script>
-<script src="/theme/codehighlighting/highlight.js"></script>
 <script src="/theme/presentation.js"></script>
 <script src="/theme/latest.js"></script>
+<script src="/theme/codehighlighting/highlight.js"></script>
+<script type="text/javascript">
+$(function() {
+	$('pre code').each(function(i, block) {
+		hljs.highlightBlock(block);
+	});
+
+	// register a on change listener
+	if (typeof(autoupdate) === 'object' && typeof(autoupdate.onchange) === 'function') {
+		autoupdate.onchange(
+			"Code Highlighting",
+			function() {
+				$('pre code').each(function(i, block) {
+					hljs.highlightBlock(block);
+				});
+			}
+		);
+	}
+});
+</script>
 {{ end }}
 
 {{if .Analytics.Enabled}}
