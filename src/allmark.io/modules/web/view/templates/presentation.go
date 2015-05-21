@@ -15,9 +15,28 @@ const presentationTemplate = `
 {{.Description}}
 </section>
 
+{{if or .Author.Name .CreationDate}}
 <section class="publisher">
-created {{if .Author}}by <span class="author" itemprop="author" rel="author"><a href="{{ .Author.Url }}" title="{{ .Author.Name }}" target="_blank">{{ .Author.Name }}</a></span>{{end}}{{ if .CreationDate }} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>{{ end }}
+{{if and .Author.Name .Author.Url}}
+
+	created by <span class="author" itemprop="author" rel="author">
+	<a href="{{ .Author.Url }}" title="{{ .Author.Name }}" target="_blank">
+	{{ .Author.Name }}
+	</a>
+	</span>
+
+{{else if .Author.Name}}
+
+	created by <span class="author" itemprop="author" rel="author">{{ .Author.Name }}</span>
+
+{{end}}
+{{if .CreationDate}}
+
+	{{if not .Author.Name}}created{{end}} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>
+
+{{end}}
 </section>
+{{end}}
 
 <nav>
 	<div class="nav-element pager deck-status">

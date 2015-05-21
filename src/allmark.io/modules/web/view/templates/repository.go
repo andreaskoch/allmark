@@ -17,7 +17,19 @@ const repositoryTemplate = `
 
 {{if .Author.Name}}
 <section class="publisher">
-by <span class="author" itemprop="author" rel="author"><a href="{{ .Author.Url }}" title="{{ .Author.Name }}" target="_blank">{{ .Author.Name }}</a></span>
+{{if and .Author.Name .Author.Url}}
+
+	by <span class="author" itemprop="author" rel="author">
+	<a href="{{ .Author.Url }}" title="{{ .Author.Name }}" target="_blank">
+	{{ .Author.Name }}
+	</a>
+	</span>
+
+{{else if .Author.Name}}
+
+	created by <span class="author" itemprop="author" rel="author">{{ .Author.Name }}</span>
+
+{{end}}
 </section>
 {{end}}
 

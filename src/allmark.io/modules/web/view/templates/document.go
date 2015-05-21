@@ -15,11 +15,28 @@ const documentTemplate = `
 {{.Description}}
 </section>
 
+{{if or .Author.Name .CreationDate}}
 <section class="publisher">
-{{if or .Author.Name .CreationDate }}
-created {{if .Author.Name}}by <span class="author" itemprop="author" rel="author"><a href="{{ .Author.Url }}" title="{{ .Author.Name }}" target="_blank">{{ .Author.Name }}</a></span>{{end}}{{ if .CreationDate }} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>{{ end }}
-{{ end }}
+{{if and .Author.Name .Author.Url}}
+
+	created by <span class="author" itemprop="author" rel="author">
+	<a href="{{ .Author.Url }}" title="{{ .Author.Name }}" target="_blank">
+	{{ .Author.Name }}
+	</a>
+	</span>
+
+{{else if .Author.Name}}
+
+	created by <span class="author" itemprop="author" rel="author">{{ .Author.Name }}</span>
+
+{{end}}
+{{if .CreationDate}}
+
+	{{if not .Author.Name}}created{{end}} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>
+
+{{end}}
 </section>
+{{end}}
 
 <section class="content" itemprop="articleBody">
 {{.Content}}
