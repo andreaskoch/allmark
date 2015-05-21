@@ -14,6 +14,9 @@ $(function() {
 		return;
 	}
 
+	/**
+	 * Split the document body into separate slides
+	 */
 	var transformPresentationStructure = function() {
 		var presentationContent = $(presentationSelector).html();
 		var slides = presentationContent.split("<hr>")
@@ -21,6 +24,28 @@ $(function() {
 		$(presentationSelector).html(newHtml);
 	};
 
+
+	/**
+	 * Toggle the page header elements
+	 */
+	var togglePresentationMode = function() {
+		$("body>nav.toplevel").toggle();
+		$("body>nav.breadcrumb").toggle();
+		$("body>nav.search").toggle();
+		$("aside.sidebar").toggle();
+		$(".publisher").toggle();
+		$("article.presentation").toggleClass("presentation-mode");
+		$("article.presentation>header").toggle();
+		$("article.presentation>nav").toggle();
+		$("article.presentation>.description").toggle();
+		$("article.presentation>.tags").toggle();
+		$("aside.export").toggle();
+		$("body>footer").toggle();
+	};
+
+	/**
+	 * Transform all slides into a presentation
+	 */
 	var renderPresentation = function() {
 
 
@@ -31,23 +56,6 @@ $(function() {
 
 		// transform the content
 		transformPresentationStructure();
-
-		/**
-		 * Toggle the page header elements
-		 */
-		var togglePresentationMode = function() {
-			$("body>nav.toplevel").toggle();
-			$("body>nav.breadcrumb").toggle();
-			$("body>nav.search").toggle();
-			$("aside.sidebar").toggle();
-			$("article.presentation").toggleClass("presentation-mode");
-			$("article.presentation>header").toggle();
-			$("article.presentation>nav").toggle();
-			$("article.presentation>.description").toggle();
-			$("article.presentation>.tags").toggle();
-			$("aside.export").toggle();
-			$("body>footer").toggle();
-		};
 
 		// render the presentation
 		$.deck('.slide', {
@@ -60,18 +68,18 @@ $(function() {
 			}
 		});
 
-		// handle keyboard shortcuts
-		$(document).keydown(function(e) {
-
-			/* <ctrl> + <shift> */
-			if (e.ctrlKey && (e.which === 16) ) {
-				console.log( "You pressed Ctrl + Shift" );
-				togglePresentationMode();
-			}
-
-		});
-
 	};
+
+	// handle keyboard shortcuts
+	$(document).keydown(function(e) {
+
+		/* <ctrl> + <shift> */
+		if (e.ctrlKey && (e.which === 16) ) {
+			console.log( "You pressed Ctrl + Shift" );
+			togglePresentationMode();
+		}
+
+	});
 
     // load deck.js
     appendStyleSheet("/theme/deck.css");
