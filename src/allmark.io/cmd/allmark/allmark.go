@@ -29,13 +29,20 @@ import (
 )
 
 const (
-	CommandNameInit    = "init"
-	CommandNameServe   = "serve"
+
+	// CommandNameInit contains the name of the init action
+	CommandNameInit = "init"
+
+	// CommandNameServe contains the name of the serve action
+	CommandNameServe = "serve"
+
+	// CommandNameVersion contains the name of the version action
 	CommandNameVersion = "version"
 )
 
 var (
 	serveFlags = flag.NewFlagSet("serve-flags", flag.ContinueOnError)
+	secure     = serveFlags.Bool("secure", false, "Use HTTPs")
 	reindex    = serveFlags.Bool("reindex", false, "Enable reindexing")
 	livereload = serveFlags.Bool("livereload", false, "Enable live-reload")
 )
@@ -80,8 +87,6 @@ func main() {
 		default:
 			return false
 		}
-
-		panic("Unreachable")
 	})
 }
 
@@ -140,11 +145,11 @@ func parseCommandLineArguments(args []string, commandHandler func(commandName, r
 func printUsageInformation(args []string) {
 	executeableName := args[0]
 
-	fmt.Fprintf(os.Stderr, "%s - %s (Version: %s)\n", executeableName, "A markdown web server and renderer", buildinfo.Version())
+	fmt.Fprintf(os.Stderr, "%s - %s (Version: %s)\n", executeableName, "The standalone markdown webserver", buildinfo.Version())
 	fmt.Fprintf(os.Stderr, "\nUsage:\n%s %s %s\n", executeableName, "<command>", "<repository path>")
 	fmt.Fprintf(os.Stderr, "\nAvailable commands:\n")
 	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameInit, "Initialize the configuration")
-	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameServe, "Start serving the supplied repository via HTTP")
+	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameServe, "Start serving the supplied repository via HTTP and HTTPs")
 	fmt.Fprintf(os.Stderr, "\n")
 	fmt.Fprintf(os.Stderr, "Fork me on GitHub %q\n", "https://github.com/andreaskoch/allmark")
 
@@ -154,11 +159,29 @@ func printUsageInformation(args []string) {
 func serve(repositoryPath string) bool {
 	serveStart := time.Now()
 
+	// get the configuration
 	config := *config.Get(repositoryPath)
+
+	// check if https shall be forced
+	if *secure {
+		config.Server.Https.Force = true
+	}
+
+	// check if indexing is enabled
+	if *reindex {
+		config.Indexing.Enabled = true
+	}
+
+	// check if live-reload is enabled
+	if *livereload {
+		config.LiveReload.Enabled = true
+	}
+
+	// create a logger
 	logger := console.New(loglevel.FromString(config.LogLevel))
 
 	// data access
-	repository, err := filesystem.NewRepository(logger, repositoryPath, config.Indexing.IntervalInSeconds, *reindex, *livereload)
+	repository, err := filesystem.NewRepository(logger, repositoryPath, config)
 	if err != nil {
 		logger.Fatal("Unable to create a repository. Error: %s", err)
 	}

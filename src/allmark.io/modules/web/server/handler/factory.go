@@ -246,3 +246,12 @@ func (factory *Factory) NewThemeHandler() Handler {
 	}
 
 }
+
+func (factory *Factory) NewRedirectHandler(baseUriTarget string) Handler {
+
+	return &Redirect{
+		logger:        factory.logger,
+		baseUriTarget: baseUriTarget,
+	}
+
+}

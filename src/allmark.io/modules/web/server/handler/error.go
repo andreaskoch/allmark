@@ -31,7 +31,7 @@ func (handler Error) Func() func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 
 		// get the error template
-		hostname := getHostnameFromRequest(r)
+		hostname := getBaseUrlFromRequest(r)
 		errorTemplate, err := handler.templateProvider.GetFullTemplate(hostname, templates.ErrorTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)

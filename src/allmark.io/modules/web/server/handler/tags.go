@@ -33,7 +33,7 @@ func (handler *Tags) Func() func(w http.ResponseWriter, r *http.Request) {
 		// set headers
 		handler.headerWriter.Write(w, header.CONTENTTYPE_HTML)
 
-		hostname := getHostnameFromRequest(r)
+		hostname := getBaseUrlFromRequest(r)
 
 		tagmapTemplate, err := handler.templateProvider.GetFullTemplate(hostname, templates.TagmapTemplateName)
 		if err != nil {

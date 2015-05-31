@@ -228,7 +228,7 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item, skipCa
 
 			// create a view model
 			viewModel := &viewmodel.Model{
-				Base:             getBaseModel(root, child, orchestrator.itemPather()),
+				Base:             getBaseModel(root, child, orchestrator.itemPather(), orchestrator.config),
 				Content:          convertedContent,
 				Publisher:        orchestrator.getPublisherInformation(),
 				Author:           orchestrator.getAuthorInformation(child.MetaData.Author),
@@ -273,7 +273,7 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route)
 
 	childItems := orchestrator.getChilds(itemRoute)
 	for _, childItem := range childItems {
-		baseModel := getBaseModel(rootItem, childItem, pathProvider)
+		baseModel := getBaseModel(rootItem, childItem, pathProvider, orchestrator.config)
 		childModels = append(childModels, &baseModel)
 	}
 

@@ -82,20 +82,99 @@ func New(logger logger.Logger, config config.Config, repository dataaccess.Repos
 }
 
 type Server struct {
-	isRunning bool
-
 	logger logger.Logger
 	config config.Config
 
 	headerWriterFactory header.WriterFactory
 	handlerFactory      *handler.Factory
-}
 
-func (server *Server) IsRunning() bool {
-	return server.isRunning
+	standardRequestRouter *mux.Router
 }
 
 func (server *Server) Start() chan error {
+
+	result := make(chan error)
+
+	standardRequestRouter := server.getStandardRequestRouter()
+
+	// bindings
+	httpBinding, httpEnabled := server.getHttpBinding()
+	httpsBinding, httpsEnabled := server.getHttpsBinding()
+
+	// http
+	if httpEnabled {
+
+		go func() {
+			server.logger.Info("HTTP Endpoint: %s", httpBinding.Url())
+
+			if httpBinding.ForceHttps() {
+
+				// Redirect HTTP → HTTPs
+				redirectTarget := httpsBinding.Url()
+				httpsRedirectRouter := server.getRedirectRouter(redirectTarget)
+
+				if err := http.ListenAndServe(httpBinding.String(), httpsRedirectRouter); err != nil {
+					result <- fmt.Errorf("Server failed with error: %v", err)
+				} else {
+					result <- nil
+				}
+
+			} else {
+
+				// Standard HTTP Request Router
+				if err := http.ListenAndServe(httpBinding.String(), standardRequestRouter); err != nil {
+					result <- fmt.Errorf("Server failed with error: %v", err)
+				} else {
+					result <- nil
+				}
+
+			}
+
+		}()
+	}
+
+	// https
+	if httpsEnabled {
+
+		go func() {
+			server.logger.Info("HTTPs Endpoint: %s", httpsBinding.Url())
+
+			// Standard HTTPs Request Router
+			if err := http.ListenAndServeTLS(httpsBinding.String(), httpsBinding.CertFilePath(), httpsBinding.KeyFilePath(), standardRequestRouter); err != nil {
+				result <- fmt.Errorf("Server failed with error: %v", err)
+			} else {
+				result <- nil
+			}
+
+		}()
+
+	}
+
+	// open url in browser
+	repositoryUrl := httpBinding.Url()
+	if httpsEnabled && httpBinding.ForceHttps() {
+		repositoryUrl = httpsBinding.Url()
+	}
+
+	open.Run(repositoryUrl)
+
+	return result
+}
+
+// Get a redirect router which redirects all requests to the url with the given base.
+func (server *Server) getRedirectRouter(baseUriTarget string) *mux.Router {
+	redirectRouter := mux.NewRouter()
+	redirectHandler := server.handlerFactory.NewRedirectHandler(baseUriTarget)
+	redirectRouter.HandleFunc("/{path:.*$}", redirectHandler.Func())
+	return redirectRouter
+}
+
+// Get an instance of the standard request router for all repository related routes.
+func (server *Server) getStandardRequestRouter() *mux.Router {
+
+	if server.standardRequestRouter != nil {
+		return server.standardRequestRouter
+	}
 
 	// instantiate handlers
 	updateHandler := server.handlerFactory.NewUpdateHandler()
@@ -162,58 +241,54 @@ func (server *Server) Start() chan error {
 	requestRouter.HandleFunc(LatestHandlerRoute, latestHanlder.Func())
 	requestRouter.HandleFunc(ItemHandlerRoute, itemHandler.Func())
 
-	result := make(chan error)
-
-	go func() {
-		server.isRunning = true
-
-		// start http server: http
-		httpBinding := server.getHttpBinding()
-		server.logger.Info("Starting http server %q\n", httpBinding)
-
-		if err := http.ListenAndServe(httpBinding, requestRouter); err != nil {
-			result <- fmt.Errorf("Server failed with error: %v", err)
-		} else {
-			result <- nil
-		}
-
-		server.isRunning = false
-	}()
-
-	// open the repository in the browser
-	open.Run(server.getAddress())
-
-	return result
+	server.standardRequestRouter = requestRouter
+	return server.standardRequestRouter
 }
 
-func (server *Server) getHttpBinding() string {
+// Get the http binding if it is enabled.
+func (server *Server) getHttpBinding() (httpBinding HttpBinding, enabled bool) {
 
-	hostname := server.getHostname()
-	port := server.config.Server.Http.GetPort()
-
-	if strings.TrimSpace(hostname) == "" {
-		fmt.Sprintf(":%v", port)
+	if !server.config.Server.Http.Enabled {
+		return HttpBinding{}, false
 	}
 
-	return fmt.Sprintf("%s:%v", hostname, port)
+	return HttpBinding{
+		hostname:   server.getHostname(),
+		portNumber: server.config.Server.Http.GetPortNumber(),
+		isSecure:   false,
+		forceHttps: server.config.Server.Https.ForceHttps(),
+	}, true
+
 }
 
-func (server *Server) getAddress() string {
-	hostname := server.getHostname()
-	port := server.config.Server.Http.GetPort()
+// Get the https binding if it is enabled.
+func (server *Server) getHttpsBinding() (httpsBinding HttpsBinding, enabled bool) {
 
-	switch port {
-	case 80:
-		return fmt.Sprintf("http://%s", hostname)
-	default:
-		return fmt.Sprintf("http://%s:%v", hostname, port)
+	if !server.config.Server.Https.Enabled {
+		return HttpsBinding{}, false
 	}
 
-	panic("Unreachable")
+	httpBinding := HttpBinding{
+		hostname:   server.getHostname(),
+		portNumber: server.config.Server.Https.GetPortNumber(),
+		isSecure:   true,
+	}
+
+	certFilePath, keyFilePath := server.config.CertificateFilePaths()
+
+	httpsBinding = HttpsBinding{
+		HttpBinding:  httpBinding,
+		certFilePath: certFilePath,
+		keyFilePath:  keyFilePath,
+	}
+
+	return httpsBinding, true
+
 }
 
+// Get the configured hostname (default: "localhost")
 func (server *Server) getHostname() string {
-	hostname := strings.ToLower(strings.TrimSpace(server.config.Server.Http.Hostname))
+	hostname := strings.ToLower(strings.TrimSpace(server.config.Server.Hostname))
 	if hostname == "" {
 		return "localhost"
 	}
@@ -258,4 +333,60 @@ func (server *Server) addStaticFileHeaders(baseFolder, requestPrefixToStripFromR
 
 func stripPathFromRequest(r *http.Request, path string) string {
 	return strings.TrimPrefix(r.RequestURI, path)
+}
+
+type HttpBinding struct {
+	hostname   string
+	portNumber int
+	isSecure   bool
+	forceHttps bool
+}
+
+func (b *HttpBinding) String() string {
+	return fmt.Sprintf("%s:%v", b.hostname, b.portNumber)
+}
+
+func (b *HttpBinding) Hostname() string {
+	return b.hostname
+}
+
+func (b *HttpBinding) PortNumber() int {
+	return b.portNumber
+}
+
+func (b *HttpBinding) IsSecure() bool {
+	return b.isSecure
+}
+
+func (b *HttpBinding) Url() string {
+	protocol := "http"
+	if b.isSecure {
+		protocol = "https"
+	}
+
+	isStandardPort := b.PortNumber() == 80 || b.PortNumber() == 443
+	if isStandardPort {
+		return fmt.Sprintf("%s://%s", protocol, b.Hostname())
+	}
+
+	return fmt.Sprintf("%s://%s:%v", protocol, b.Hostname(), b.PortNumber())
+}
+
+func (b *HttpBinding) ForceHttps() bool {
+	return b.forceHttps
+}
+
+type HttpsBinding struct {
+	HttpBinding
+
+	certFilePath string
+	keyFilePath  string
+}
+
+func (https *HttpsBinding) CertFilePath() string {
+	return https.certFilePath
+}
+
+func (https *HttpsBinding) KeyFilePath() string {
+	return https.keyFilePath
 }

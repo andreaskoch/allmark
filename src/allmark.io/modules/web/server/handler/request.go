@@ -13,6 +13,6 @@ func getRouteFromRequest(r *http.Request) route.Route {
 	return route.NewFromRequest(r.URL.Path)
 }
 
-func getHostnameFromRequest(r *http.Request) string {
-	return r.Host
+func getBaseUrlFromRequest(r *http.Request) string {
+	return r.URL.Scheme + "//" + r.Host
 }

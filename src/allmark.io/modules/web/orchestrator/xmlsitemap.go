@@ -32,7 +32,7 @@ func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(hostname string) [
 		}
 
 		// item location
-		addressPrefix := fmt.Sprintf("http://%s/", hostname)
+		addressPrefix := fmt.Sprintf("%s/", hostname)
 		pathProvider := orchestrator.absolutePather(addressPrefix)
 		location := pathProvider.Path(item.Route().Value())
 

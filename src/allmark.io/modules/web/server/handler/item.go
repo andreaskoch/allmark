@@ -27,7 +27,7 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		hostname := getHostnameFromRequest(r)
+		baseUrl := getBaseUrlFromRequest(r)
 
 		// get the request route
 		requestRoute := getRouteFromRequest(r)
@@ -46,7 +46,7 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 			handler.headerWriter.Write(w, header.CONTENTTYPE_HTML)
 			header.ETag(w, model.Hash)
 
-			handler.render(w, hostname, model)
+			handler.render(w, baseUrl, model)
 			return
 		}
 
@@ -84,11 +84,11 @@ func (handler *Item) Func() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (handler *Item) render(writer io.Writer, hostname string, viewModel viewmodel.Model) {
+func (handler *Item) render(writer io.Writer, baseUrl string, viewModel viewmodel.Model) {
 
 	// get a template
 	templateName := viewModel.Type
-	template, err := handler.templateProvider.GetFullTemplate(hostname, templateName)
+	template, err := handler.templateProvider.GetFullTemplate(baseUrl, templateName)
 	if err != nil {
 		handler.logger.Error("No template for item of type %q.", templateName)
 		return

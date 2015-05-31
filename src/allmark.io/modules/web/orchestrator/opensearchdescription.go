@@ -26,7 +26,7 @@ func (orchestrator *OpenSearchDescriptionOrchestrator) GetDescriptionModel(hostn
 		tags = append(tags, tag.Name())
 	}
 
-	addressPrefix := fmt.Sprintf("http://%s/", hostname)
+	addressPrefix := fmt.Sprintf("%s/", hostname)
 	pathProvider := orchestrator.absolutePather(addressPrefix)
 
 	descriptionModel := viewmodel.OpenSearchDescription{

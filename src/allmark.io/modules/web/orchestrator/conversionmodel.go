@@ -16,7 +16,7 @@ type ConversionModelOrchestrator struct {
 	fileOrchestrator *FileOrchestrator
 }
 
-func (orchestrator *ConversionModelOrchestrator) GetConversionModel(hostname string, route route.Route) (model viewmodel.ConversionModel, found bool) {
+func (orchestrator *ConversionModelOrchestrator) GetConversionModel(baseUrl string, route route.Route) (model viewmodel.ConversionModel, found bool) {
 
 	// get the root item
 	root := orchestrator.rootItem()
@@ -32,7 +32,7 @@ func (orchestrator *ConversionModelOrchestrator) GetConversionModel(hostname str
 	}
 
 	// create the path provider
-	addressPrefix := fmt.Sprintf("http://%s/%s/", hostname, item.Route().Value())
+	addressPrefix := fmt.Sprintf("%s/%s/", baseUrl, item.Route().Value())
 	pathProvider := orchestrator.absolutePather(addressPrefix)
 
 	// convert content
@@ -43,7 +43,7 @@ func (orchestrator *ConversionModelOrchestrator) GetConversionModel(hostname str
 
 	// create a view model
 	model = viewmodel.ConversionModel{
-		Base:    getBaseModel(root, item, pathProvider),
+		Base:    getBaseModel(root, item, pathProvider, orchestrator.config),
 		Content: convertedContent,
 
 		// files

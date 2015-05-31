@@ -14,17 +14,17 @@ type FeedOrchestrator struct {
 	*Orchestrator
 }
 
-func (orchestrator *FeedOrchestrator) GetRootEntry(hostname string) viewmodel.FeedEntry {
+func (orchestrator *FeedOrchestrator) GetRootEntry(baseUrl string) viewmodel.FeedEntry {
 
 	rootItem := orchestrator.rootItem()
 	if rootItem == nil {
 		orchestrator.logger.Fatal("No root item found.")
 	}
 
-	return orchestrator.createFeedEntryModel(hostname, rootItem)
+	return orchestrator.createFeedEntryModel(baseUrl, rootItem)
 }
 
-func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, page int) (entries []viewmodel.FeedEntry, found bool) {
+func (orchestrator *FeedOrchestrator) GetEntries(baseUrl string, itemsPerPage, page int) (entries []viewmodel.FeedEntry, found bool) {
 
 	// validate page number
 	if page < 1 {
@@ -44,15 +44,15 @@ func (orchestrator *FeedOrchestrator) GetEntries(hostname string, itemsPerPage, 
 	}
 
 	for _, item := range latestItems {
-		feedEntries = append(feedEntries, orchestrator.createFeedEntryModel(hostname, item))
+		feedEntries = append(feedEntries, orchestrator.createFeedEntryModel(baseUrl, item))
 	}
 
 	return feedEntries, true
 }
 
-func (orchestrator *FeedOrchestrator) createFeedEntryModel(hostname string, item *model.Item) viewmodel.FeedEntry {
+func (orchestrator *FeedOrchestrator) createFeedEntryModel(baseUrl string, item *model.Item) viewmodel.FeedEntry {
 
-	addressPrefix := fmt.Sprintf("http://%s/%s/", hostname, item.Route().Value())
+	addressPrefix := fmt.Sprintf("%s/%s/", baseUrl, item.Route().Value())
 	pathProvider := orchestrator.absolutePather(addressPrefix)
 
 	// item location

@@ -10,6 +10,7 @@ import (
 	"allmark.io/modules/web/view/viewmodel"
 	"fmt"
 	"math"
+	"net/url"
 )
 
 var (
@@ -53,7 +54,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 		for _, item := range orchestrator.getAllItems() {
 
 			itemViewModel := &viewmodel.Model{
-				Base: getBaseModel(rootItem, item, orchestrator.relativePather(rootItem.Route())),
+				Base: getBaseModel(rootItem, item, orchestrator.relativePather(rootItem.Route()), orchestrator.config),
 			}
 
 			tags := []model.Tag{}
@@ -78,7 +79,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 			// create view model
 			tagModel := &viewmodel.Tag{
 				Name:   tag,
-				Route:  orchestrator.tagPather().Path(tag),
+				Route:  orchestrator.tagPather().Path(url.QueryEscape(tag)),
 				Childs: items,
 			}
 
@@ -135,7 +136,7 @@ func (orchestrator *TagsOrchestrator) GetTagCloud() *viewmodel.TagCloud {
 			// create a new tag cloud entry
 			tagCloudEntry := viewmodel.TagCloudEntry{
 				Name:           tag.Name,
-				Route:          orchestrator.tagPather().Path(tag.Name),
+				Route:          orchestrator.tagPather().Path(url.QueryEscape(tag.Name)),
 				NumberOfChilds: numberItemsPerTag,
 			}
 
@@ -173,7 +174,7 @@ func (orchestrator *TagsOrchestrator) getItemTags(route route.Route) []*viewmode
 		// create view model
 		tagModel := &viewmodel.Tag{
 			Name:  tag.Name(),
-			Route: orchestrator.tagPather().Path(tag.Name()),
+			Route: orchestrator.tagPather().Path(url.QueryEscape(tag.Name())),
 		}
 
 		// append to list

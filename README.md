@@ -1,10 +1,51 @@
 # allmark - the markdown server
 
-allmark is a standalone markdown web server for Linux, BSD, Solaris Mac OS and Windows written in go.
+allmark is a standalone markdown web server for Linux, Mac OS and Windows written in go.
 
 ![allmark logo (128x128px)](files/design/logo/PNG8/allmark-logo-128x128.png)
 
-You can point **allmark** at any folder structure that contains **markdown documents** and files referenced by these documents (e.g. this repository folder) and allmark will start a **web-server** and serve the folder contents as HTML via HTTP (default: 8080).
+## Usage
+
+Serve a specific directory:
+
+```bash
+allmark serve <directory path>
+```
+
+Serve the current directory:
+
+```bash
+cd markdown-repository
+allmark serve
+```
+
+Serve the current directory with **live-reload** enabled:
+
+```bash
+allmark serve -livereload
+```
+
+Force a full **reindex** every 60* seconds:
+
+```bash
+allmark serve -reindex
+```
+
+`*` The default interval is 60 seconds. You can change the interval in the repository config.
+
+Force HTTPs (redirect all http requests to https):
+
+```bash
+allmark serve -secure
+```
+
+Save the default configuration to the `.allmark` folder so you can customize it:
+
+```bash
+allmark init
+```
+
+You can point **allmark** at any folder structure that contains **markdown documents** and files referenced by these documents (e.g. this repository folder) and allmark will start a **web-server** and serve the folder contents as HTML via HTTP(s) on a random free port.
 
 **Folder Structure Conventions**
 
@@ -46,7 +87,7 @@ You can nest repository items arbitrarily. Example:
 
 **Folders without Markdown Files**
 
-- If you have folders in your repository that don't contains markdown files allmark will display and index of all files in that directory (=> **file-collection item**)
+- If you have folders in your repository that don't contains markdown files allmark will display and index of all files in that directory (→ **file-collection item**)
 - file-collection items cannot have other childs
 
 **Markdown Document Structure**
@@ -95,37 +136,217 @@ sudo chmod +x /usr/local/bin/allmark
 
 **Windows**
 
-```bash
+```powershell
 Invoke-WebRequest https://allmark.io/bin/windows_amd64/allmark.exe -OutFile allmark.exe
 ```
 
 All binaries at [allmark.io](https://allmark.io) are up-to-date builds of the **master**-branch.
 
-If you want to download and install binarier from the **develop**-branch you can go to [develop.allmark.io/bin](https://develop.allmark.io).
+If you want to download and install binaries from the **develop**-branch you can go to [develop.allmark.io/bin](https://develop.allmark.io).
 
-## Build
+## Configuration
 
-If you have [go](https://golang.org/dl/) (≥ 1.3) installed you can build allmark yourself in two steps:
+You can configure and customize how all allmark serves your repositories by creating a custom repository configuration.
 
-1. Clone the project from github
-2. Run the `make.go` file with the `-install` flag
-
-```bash
-git clone git@github.com:andreaskoch/allmark.git
-cd allmark
-go run make.go -install
-```
-
-Afterwards you will find the `allmark` binary in the bin-folder of the project. To test your installation you can start by serving the allmark-project directory:
+You can use the `init` action to save the default configuration to the current or given folder:
 
 ```bash
-cd allmark
-bin/allmark serve
+cd markdown-repository
+allmark init
 ```
 
-After a second or so a browser window with this address `http://0.0.0.0:8080` should pop up. Or if it doesn't just type `http://localhost:8080` into your browser:
+or
 
-![Screenshot: Testing the allmark server on the allmark-project directory](files/installation/screenshot-allmark-test-run-on-project-folder.png)
+```bash
+allmark init <directory path>
+```
+
+This will create a folder with the name `.allmark` in the current or the specified directory:
+
+- `config`: contains the **JSON configuration** for allmark
+- `templates`: contains all **templates** used for rendering the web pages
+- `theme`: contains all **assets** used by the templates
+
+```
+<your-markdown-repository>
+└── .allmark
+    ├── config
+    ├── templates
+    │   ├── converter.gohtml
+    │   ├── document.gohtml
+    │   ├── error.gohtml
+    │   ├── master.gohtml
+    │   ├── opensearchdescription.gohtml
+    │   ├── presentation.gohtml
+    │   ├── repository.gohtml
+    │   ├── rssfeed.gohtml
+    │   ├── rssfeedcontent.gohtml
+    │   ├── search.gohtml
+    │   ├── searchcontent.gohtml
+    │   ├── sitemap.gohtml
+    │   ├── sitemapcontent.gohtml
+    │   ├── tagmap.gohtml
+    │   ├── tagmapcontent.gohtml
+    │   ├── xmlsitemap.gohtml
+    │   └── xmlsitemapcontent.gohtml
+    └── theme
+        ├── autoupdate.js
+        ├── codehighlighting
+        │   ├── highlight.css
+        │   └── highlight.js
+        ├── deck.css
+        ├── deck.js
+        ├── favicon.ico
+        ├── jquery.js
+        ├── jquery.lazyload.js
+        ├── jquery.lazyload.srcset.js
+        ├── jquery.lazyload.video.js
+        ├── jquery.tmpl.js
+        ├── latest.js
+        ├── modernizr.js
+        ├── pdf.js
+        ├── pdfpreview.js
+        ├── presentation.js
+        ├── print.css
+        ├── screen.css
+        ├── search.js
+        ├── site.js
+        ├── tree-last-node.png
+        ├── tree-node.png
+        ├── tree-vertical-line.png
+        └── typeahead.js
+```
+
+If you init a configuration in your **home-directory**, this configuration will be used as **default for all your repositories** as long as you don't have one in your respective directory:
+
+```bash
+allmark init ~/
+```
+
+or
+
+```bash
+cd ~
+allmark init
+```
+
+But configurations in your repositories will take precedence over your default configuration in your home-directory.
+
+The **configuration file** has a **JSON format** and is located in `.allmark/config`:
+
+- `Server`
+	- `ThemeFolderName`: The name of the folder that contains all theme assets (js, css, ...) (default: `"theme"`)
+	- `Hostname`: The ip-address or hostname that shall be used (e.g. `"0.0.0.0"`, `"127.0.0.1"`, `"localhost"`, `"www.example.com"`)
+	- `Http`
+		- Enabled: If set to `true` http is enabled. If set to `false` http is disabled.
+		- PortNumber: 0-65535 (0 means that a random port will be allocated)
+	- `Https`
+		- `Enabled`: If set to `true` https is enabled. If set to `false` https is disabled.
+		- `PortNumber`: 0-65535 (0 means that a random port will be allocated)
+		- `CertFileName`: The filename of the SSL certificate in the `.allmark/certs`-folder (e.g. `"cert.pem"`, `"cert.pem"`)
+		- `KeyFileName`: The filename of the SSL certificate key file in the `.allmark/certs`-folder (e.g. `"cert.key"`)
+		- `Force`: If set to `true` and if http and https are enabled all http requests will be redirected to http. If set to `false` you can use https alongside http.
+- `Web`
+	- `DefaultLanguage`: An [ISO 639-1](http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) two-letter language code (e.g. `"en"` → english, `"de"` → german, `"fr"` → french) that is used as the default value for the `<html lang="">` attribute (default: `"en"`).
+	- `DefaultAuthor`: The name of the default author (e.g. "John Doe") for all documents in your repository that don't have a `author: Your Name` line in the meta-data section.
+	- `Publisher`: Information about the repository-publisher / the owner of an repository.
+		- `Name`: The publisher name or organization (e.g. `"Example Org"`)
+		- `Email`: The publisher email address (e.g. `"webmaster@example.com"`)
+		- `Url`: The URL of the publisher (e.g. `"http://example.com/about"`)
+		- `GooglePlusHandle`: The Google+ username/handle of the publisher (e.g. `"exampleorg"`)
+		- `TwitterHandle`: The Twitter username/handle of the publisher (e.g. `"exampleorg"`)
+		- `FacebookHandle`: The Facebook username/handle of the publisher (e.g. `"exampleorg"`)
+	- `Authors`: Detail information about each author of your repository (by name)
+		- `"John Doe"`
+			- `Name`: `"John Doe"`
+			- `Email`: `"johndoe@example.com"`
+			- `Url`: `"http://example.com/about/johndoe"`
+			- `GooglePlusHandle`: The Google+ username/handle of the author (e.g. `"johndoe"`)
+			- `TwitterHandle`: The Twitter username/handle of the author (e.g. `"johndoe"`)
+			- `FacebookHandle`: The Facebook username/handle of the author (e.g. `"johndoe"`)
+		- `"Jane Doe"`
+			- `"Name"`
+			- ...
+		- ...
+- `Conversion`
+	- `Rtf`: Rich-text Conversion
+		- `Enabled`: If set to `true` rich-text conversion is enabled. allmark uses [pandoc](http://pandoc.org/) for the rich-text conversion. If the [pandoc binary](https://github.com/jgm/pandoc/releases/latest) is not found in your PATH, rich-text conversion will not be available.
+	- `Thumbnails`: Image-Thumbnail creation.
+		- `Enabled`: If set to `true` allmark will create smaller versions (Small: 320x240, Medium: 640x480, Large: 1024x768) for all images in your repository and use the respective version depending on the screen size of your clients (default: `false`).
+	- `IndexFileName`: The name of the file where allmark stores an index of all thumbnails it has created (default: `"thumbnail.index"`).
+	- `FolderName`: The name of the folder were allmark stores the thumbnails (default: `"thumbnails"`).
+- `LogLevel`: Possible options are: `"off"`, `"debug"`, `"info"`, `"statistics"`, `"warn"`, `"error"`, `"fatal"` (default: `"info"`).
+- `Indexing`
+	- `IntervalInSeconds`: The indexing interval in seconds (default: 60). allmark will reindex the repository every x seconds.
+- `Analytics`
+	- `Enabled`: If set to `true` analytics is enabled (default: `false`).
+	- `GoogleAnalytics`
+		- `Enabled`: If set to `true` Google Analytics is enabled (default: `false`).
+		- `TrackingId`: Your Google Analytics tracking id (e.g `"UA-000000-01"`).
+
+
+```json
+{
+	"Server": {
+		"ThemeFolderName": "theme",
+		"Hostname": "127.0.0.1",
+		"Http": {
+			"PortNumber": 0,
+			"Enabled": true
+		},
+		"Https": {
+			"PortNumber": 0,
+			"Enabled": true,
+			"CertFileName": "",
+			"KeyFileName": "",
+			"Force": false
+		}
+	},
+	"Web": {
+		"DefaultLanguage": "en",
+		"DefaultAuthor": "",
+		"Publisher": {
+			"Name": "",
+			"Email": "",
+			"Url": "",
+			"GooglePlusHandle": "",
+			"TwitterHandle": "",
+			"FacebookHandle": ""
+		},
+		"Authors": {
+			"Unknown": {
+				"Name": "",
+				"Email": "",
+				"Url": "",
+				"GooglePlusHandle": "",
+				"TwitterHandle": "",
+				"FacebookHandle": ""
+			}
+		}
+	},
+	"Conversion": {
+		"Rtf": {
+			"Enabled": true
+		},
+		"Thumbnails": {
+			"Enabled": false,
+			"IndexFileName": "thumbnail.index",
+			"FolderName": "thumbnails"
+		}
+	},
+	"LogLevel": "Info",
+	"Indexing": {
+		"IntervalInSeconds": 60
+	},
+	"Analytics": {
+		"Enabled": false,
+		"GoogleAnalytics": {
+			"Enabled": false,
+			"TrackingId": ""
+		}
+	}
+}
+```
 
 ## Features
 
@@ -174,6 +395,9 @@ This is an unordered list of the most prominent features of allmark:
 20. Presentation Mode
 21. Rich Text Conversion (Download documents as .rtf files)
 22. Image Thumbnail Generation
+23. HTTPs Support
+	- Reference custom SSL certificates via `.allmark/config` from the `.allmark/certs` folder
+	- Generates self-signed SSL certificates on-the-fly if no certificate is configured
 
 I will try to create videos showing you the different features when there is time.
 
@@ -188,6 +412,30 @@ If you want to see **allmark in action** you can visit my blog [AndyK Docs](http
 [![Build Status](https://travis-ci.org/andreaskoch/allmark.png)](https://travis-ci.org/andreaskoch/allmark)
 
 There is also an automated docker build at [registry.hub.docker.com/u/andreaskoch/allmark/](https://registry.hub.docker.com/u/andreaskoch/allmark/) which builds the develop and master branch every time a commit is pushed.
+
+## Build
+
+If you have [go](https://golang.org/dl/) (≥ 1.3) installed you can build allmark yourself in two steps:
+
+1. Clone the project from github
+2. Run the `make.go` file with the `-install` flag
+
+```bash
+git clone git@github.com:andreaskoch/allmark.git
+cd allmark
+go run make.go -install
+```
+
+Afterwards you will find the `allmark` binary in the bin-folder of the project. To test your installation you can start by serving the allmark-project directory:
+
+```bash
+cd allmark
+bin/allmark serve
+```
+
+After a second or so a browser window should pop up.
+
+![Screenshot: Testing the allmark server on the allmark-project directory](files/installation/screenshot-allmark-test-run-on-project-folder.png)
 
 ## Dependencies
 
@@ -265,7 +513,6 @@ bin/
 ├── ...
 ├── README.md
 └── src
-
 ```
 
 ## Known Bugs
@@ -276,7 +523,7 @@ bin/
 
 ### Windows
 
-- Fileystem links: Serving folders that are fileystem junctions/links is no longer possible with go 1.4 (it did work with go 1.3)
+- Filesystem links: Serving folders that are filesystem junctions/links is no longer possible with go 1.4 (it did work with go 1.3)
 
 ## Roadmap / To Dos
 
@@ -285,7 +532,7 @@ Here are some of the ideas and todos I would like to add in the future. Contribu
 ### Architecture & Features
 
 - Expose the markdown source
-- HTTPs support
+- Web Editor for Markdown Documents
 - Data Access
     - Dropbox support
     - SMTP message posting
@@ -299,6 +546,8 @@ Here are some of the ideas and todos I would like to add in the future. Contribu
     - User management pages
 - Make live-reload more intelligent and more efficient
 - Support for Folders with multiple Markdown Files
+- Basic Authentication
+- Support for custom-rewrites
 
 ### Theming
 

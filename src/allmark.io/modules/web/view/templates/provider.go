@@ -93,7 +93,6 @@ func (provider *Provider) GetFullTemplate(hostname, templateName string) (*templ
 
 	t, err := provider.getParsedTemplate(templateName, true)
 	if err != nil {
-		panic(err)
 		return nil, err
 	}
 
@@ -133,7 +132,7 @@ func (provider *Provider) getTemplateFunctions(hostname string) map[string]inter
 			uri = "/" + uri
 		}
 
-		return "http://" + getHostname() + uri
+		return getHostname() + uri
 	}
 
 	// Replace all occurances of `textToReplace` in `text` with `replacement`.

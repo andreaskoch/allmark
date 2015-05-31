@@ -177,7 +177,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <script src="/theme/search.js"></script>
 
 {{ if .IsRepositoryItem }}
-<script src="/theme/autoupdate.js"></script>
+{{ if .LiveReloadEnabled }}<script src="/theme/autoupdate.js"></script>{{ end }}
 <script src="/theme/pdfpreview.js"></script>
 <script src="/theme/presentation.js"></script>
 <script src="/theme/latest.js"></script>

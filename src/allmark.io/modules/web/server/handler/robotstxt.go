@@ -34,6 +34,6 @@ Disallow: /*.json$
 Disallow: /*.print$
 Disallow: /*.ws$
 
-Sitemap: http://%s/sitemap.xml`, getHostnameFromRequest(r))
+Sitemap: %s/sitemap.xml`, getBaseUrlFromRequest(r))
 	}
 }

@@ -34,7 +34,7 @@ func (handler *Sitemap) Func() func(w http.ResponseWriter, r *http.Request) {
 		// set headers
 		handler.headerWriter.Write(w, header.CONTENTTYPE_HTML)
 
-		hostname := getHostnameFromRequest(r)
+		hostname := getBaseUrlFromRequest(r)
 
 		// get the sitemap content template
 		sitemapContentTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.SitemapContentTemplateName)

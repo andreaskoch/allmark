@@ -32,7 +32,7 @@ func (handler *XmlSitemap) Func() func(w http.ResponseWriter, r *http.Request) {
 		handler.headerWriter.Write(w, header.CONTENTTYPE_XML)
 
 		// get the current hostname
-		hostname := getHostnameFromRequest(r)
+		hostname := getBaseUrlFromRequest(r)
 
 		// get the sitemap template
 		xmlSitemapTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.XmlSitemapTemplateName)

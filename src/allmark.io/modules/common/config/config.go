@@ -14,6 +14,7 @@ import (
 	"os/user"
 	"path/filepath"
 
+	"allmark.io/modules/common/certificates"
 	"allmark.io/modules/common/logger/loglevel"
 	"allmark.io/modules/common/util/fsutil"
 )
@@ -26,19 +27,29 @@ const (
 	TemplatesFolderName    = "templates"
 	ThumbnailIndexFileName = "thumbnail.index"
 	ThumbnailsFolderName   = "thumbnails"
+	SSLCertsFolderName     = "certs"
 
 	// Global Defaults
 	DefaultHostName                  = "127.0.0.1"
-	DefaultPort                      = 0
-	DefaultLanguage                  = "en-US"
+	DefaultHttpPort                  = 0
+	DefaultHttpPortEnabled           = true
+	DefaultHttpsPort                 = 0
+	DefaultHttpsPortEnabled          = true
+	DefaultHttpsCertName             = "cert.pem"
+	DefaultHttpsKeyName              = "cert.key"
+	DefaultForceHttps                = false
+	DefaultLanguage                  = "en"
 	DefaultLogLevel                  = loglevel.Info
-	DefaultReindexIntervalInSeconds  = 60
+	DefaultIndexingEnabled           = false
+	DefaultIndexingIntervalInSeconds = 60
+	DefaultLiveReloadEnabled         = false
 	DefaultRichTextConversionEnabled = true
 )
 
 var homeDirectory func() string
 
-var freePort int
+var freeHttpPort int
+var freeHttpsPort int
 
 // A flag indicating whether the RTF conversion tool is available
 var rtfConversionToolIsAvailable bool
@@ -60,8 +71,9 @@ func init() {
 		rtfConversionToolIsAvailable = true
 	}
 
-	// locate a free port
-	freePort = getFreePort()
+	// locate free ports for http and https
+	freeHttpPort = getFreePort()
+	freeHttpsPort = getFreePort()
 }
 
 func isHomeDir(directory string) bool {
@@ -116,8 +128,12 @@ func Default(baseFolder string) *Config {
 
 	// apply default values
 	config.Server.ThemeFolderName = ThemeFolderName
-	config.Server.Http.Hostname = DefaultHostName
-	config.Server.Http.Port = DefaultPort
+	config.Server.Hostname = DefaultHostName
+	config.Server.Http.PortNumber = DefaultHttpPort
+	config.Server.Http.Enabled = DefaultHttpPortEnabled
+	config.Server.Https.PortNumber = DefaultHttpsPort
+	config.Server.Https.Enabled = DefaultHttpsPortEnabled
+	config.Server.Https.Force = DefaultForceHttps
 
 	config.Web.DefaultLanguage = DefaultLanguage
 
@@ -136,30 +152,69 @@ func Default(baseFolder string) *Config {
 	// Rtf Conversion
 	config.Conversion.Rtf.Enabled = DefaultRichTextConversionEnabled
 
+	// Logging
 	config.LogLevel = DefaultLogLevel.String()
-	config.Indexing.IntervalInSeconds = DefaultReindexIntervalInSeconds
+
+	// Indexing
+	config.Indexing.Enabled = DefaultIndexingEnabled
+	config.Indexing.IntervalInSeconds = DefaultIndexingIntervalInSeconds
+
+	// Live-Reload
+	config.LiveReload.Enabled = DefaultLiveReloadEnabled
 
 	return config
 }
 
-type Http struct {
-	Hostname string
-	Port     int
+type Port struct {
+	PortNumber int
+	Enabled    bool
 }
 
-func (http *Http) GetPort() int {
-	port := http.Port
-	if port < 0 || port > math.MaxUint16 {
-		panic(fmt.Sprintf("%q is an invalid value for a port. Ports can only be in the range of %v to %v,", port, 1, math.MaxUint16))
+func (port *Port) GetPortNumber() int {
+	portNumber := port.PortNumber
+	if portNumber < 0 || portNumber > math.MaxUint16 {
+		panic(fmt.Sprintf("%q is an invalid value for a port. Ports can only be in the range of %v to %v,", portNumber, 0, math.MaxUint16))
 	}
 
-	if port == 0 {
+	if portNumber == 0 {
 
-		return freePort
+		return freeHttpPort
 
 	}
 
-	return port
+	return portNumber
+}
+
+type SecurePort struct {
+	Port
+
+	CertFileName string
+	KeyFileName  string
+
+	Force bool
+}
+
+func (securePort *SecurePort) GetPortNumber() int {
+	portNumber := securePort.PortNumber
+	if portNumber < 0 || portNumber > math.MaxUint16 {
+		panic(fmt.Sprintf("%q is an invalid value for a port. Ports can only be in the range of %v to %v,", portNumber, 0, math.MaxUint16))
+	}
+
+	if portNumber == 0 {
+
+		return freeHttpsPort
+
+	}
+
+	return portNumber
+}
+
+func (securePort *SecurePort) ForceHttps() bool {
+	if securePort.Enabled == false {
+		return false
+	}
+
+	return securePort.Force
 }
 
 type Web struct {
@@ -181,11 +236,18 @@ type UserInformation struct {
 
 type Server struct {
 	ThemeFolderName string
-	Http            Http
+	Hostname        string
+	Http            Port
+	Https           SecurePort
 }
 
 type Indexing struct {
+	Enabled           bool
 	IntervalInSeconds int
+}
+
+type LiveReload struct {
+	Enabled bool
 }
 
 type Conversion struct {
@@ -227,12 +289,75 @@ type Config struct {
 	Conversion Conversion
 	LogLevel   string
 	Indexing   Indexing
+	LiveReload LiveReload
 	Analytics  Analytics
 
 	baseFolder      string
 	metaDataFolder  string
 	themeFolderBase string
 	templatesFolder string
+}
+
+func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath string) {
+
+	// Determine the hostname
+	hostname := config.Server.Hostname
+	if hostname == "" {
+		hostname = DefaultHostName
+	}
+
+	// Determine  the cert name
+	certificateFileName := config.Server.Https.CertFileName
+	if certificateFileName == "" {
+		certificateFileName = DefaultHttpsCertName
+	}
+
+	// Determine the key name
+	keyFileName := config.Server.Https.KeyFileName
+	if keyFileName == "" {
+		keyFileName = DefaultHttpsKeyName
+	}
+
+	// Determine the base directory for the certificates
+	certificateBaseDirectory := filepath.Join(config.MetaDataFolder(), SSLCertsFolderName)
+
+	// Default cert and key path
+	certificateFilePath = filepath.Join(certificateBaseDirectory, certificateFileName)
+	keyFilePath = filepath.Join(certificateBaseDirectory, keyFileName)
+
+	// check if the specified file exists
+	if fsutil.FileExists(certificateFilePath) && fsutil.FileExists(keyFilePath) {
+
+		// return the existing paths
+		return certificateFilePath, keyFilePath
+	}
+
+	// determine the target location for the dummy cert
+	if fsutil.DirectoryExists(config.MetaDataFolder()) {
+
+		// meta data folder
+		if created := fsutil.CreateDirectory(certificateBaseDirectory); !created {
+			panic(fmt.Sprintf("Could not create directory %q", certificateBaseDirectory))
+		}
+
+		// the file path can stay the same
+
+	} else {
+
+		// create a temporary directory
+		tempDirectory := fsutil.GetTempDirectory()
+
+		certificateFilePath = filepath.Join(tempDirectory, certificateFileName)
+		keyFilePath = filepath.Join(tempDirectory, keyFileName)
+
+	}
+
+	// create a dummy cert and key
+	if err := certificates.GenerateDummyCert(certificateFilePath, keyFilePath, hostname); err != nil {
+		panic(fmt.Sprintf("Could not create dummy certificates %q and %q for hostname %q. Error: %s", certificateFilePath, keyFilePath, hostname, err.Error))
+	}
+
+	return certificateFilePath, keyFilePath
 }
 
 func (config *Config) BaseFolder() string {

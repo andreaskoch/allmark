@@ -35,7 +35,7 @@ type Model struct {
 
 	Hash string `json:"hash"`
 
-	IsRepositoryItem bool `json:"isRepositoryItem"`
+	IsRepositoryItem bool
 }
 
 func Error(title, content, route string) *Model {

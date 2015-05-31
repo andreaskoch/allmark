@@ -16,7 +16,7 @@ import (
 	"allmark.io/modules/web/view/viewmodel"
 )
 
-func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.Base {
+func getBaseModel(root, item *model.Item, pathProvider paths.Pather, config config.Config) viewmodel.Base {
 
 	baseModel := viewmodel.Base{
 		RepositoryName:        root.Title,
@@ -38,6 +38,8 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather) viewmodel.B
 		LanguageTag:      getLanguageCode(item.MetaData.Language),
 		CreationDate:     getFormattedDate(item.MetaData.CreationDate),
 		LastModifiedDate: getFormattedDate(item.MetaData.LastModifiedDate),
+
+		LiveReloadEnabled: config.LiveReload.Enabled,
 	}
 
 	if item.Route().Level() > 0 {

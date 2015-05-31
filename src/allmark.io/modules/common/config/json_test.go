@@ -17,8 +17,8 @@ func Test_SerializeConfig_NoErrorIsReturned(t *testing.T) {
 	config := &Config{
 		Server: Server{
 			ThemeFolderName: "/some/folder",
-			Http: Http{
-				Port: 80,
+			Http: Port{
+				PortNumber: 80,
 			},
 		},
 	}
@@ -42,8 +42,8 @@ func Test_SerializeConfig_JsonContainsConfigValues(t *testing.T) {
 	config := &Config{
 		Server: Server{
 			ThemeFolderName: "/some/folder",
-			Http: Http{
-				Port: 80,
+			Http: Port{
+				PortNumber: 80,
 			},
 		},
 	}
@@ -63,9 +63,9 @@ func Test_SerializeConfig_JsonContainsConfigValues(t *testing.T) {
 	}
 
 	// assert: json contains http port
-	if !strings.Contains(json, string(config.Server.Http.Port)) {
+	if !strings.Contains(json, string(config.Server.Http.PortNumber)) {
 		t.Fail()
-		t.Logf("The produced json does not contain the 'Http Port' value %q. The produced JSON is this: %s", config.Server.Http.Port, json)
+		t.Logf("The produced json does not contain the 'Http PortNumber' value %q. The produced JSON is this: %s", config.Server.Http.PortNumber, json)
 	}
 }
 
@@ -76,8 +76,8 @@ func Test_SerializeConfig_JsonIsFormatted(t *testing.T) {
 	config := &Config{
 		Server: Server{
 			ThemeFolderName: "/some/folder",
-			Http: Http{
-				Port: 80,
+			Http: Port{
+				PortNumber: 80,
 			},
 		},
 	}
@@ -120,7 +120,7 @@ func Test_DeserializeConfig_FullConfigString_AllFieldsAreSet(t *testing.T) {
 		"Server": {
 			"ThemeFolderName": "/some/folder",
 			"Http": {
-				"Port": 80
+				"PortNumber": 80
 			}
 		}
 	}`
@@ -138,9 +138,9 @@ func Test_DeserializeConfig_FullConfigString_AllFieldsAreSet(t *testing.T) {
 	}
 
 	// assert: http port
-	if config.Server.Http.Port == 0 {
+	if config.Server.Http.PortNumber == 0 {
 		t.Fail()
-		t.Logf("The deserialized config object should have the %q field properly initialized. Deserialization result: %#v", "Http.Port", config)
+		t.Logf("The deserialized config object should have the %q field properly initialized. Deserialization result: %#v", "Http.PortNumber", config)
 	}
 }
 

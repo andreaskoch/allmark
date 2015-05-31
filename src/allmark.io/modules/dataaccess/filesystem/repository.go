@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"time"
 
+	"allmark.io/modules/common/config"
 	"allmark.io/modules/common/logger"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/common/util/fsutil"
@@ -18,7 +19,6 @@ import (
 
 type Repository struct {
 	logger    logger.Logger
-	hash      string
 	directory string
 
 	itemProvider *itemProvider
@@ -36,7 +36,7 @@ type Repository struct {
 	livereloadIsEnabled bool
 }
 
-func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeconds int, reindex, livereload bool) (*Repository, error) {
+func NewRepository(logger logger.Logger, directory string, config config.Config) (*Repository, error) {
 
 	// check if path exists
 	if !fsutil.PathExists(directory) {
@@ -74,17 +74,16 @@ func NewRepository(logger logger.Logger, directory string, reindexIntervalInSeco
 		itemByHash:  make(map[string]dataaccess.Item),
 
 		// Update Subscription
-		watcher:             newFilesystemWatcher(logger),
-		updateSubscribers:   updateSubscribers,
-		livereloadIsEnabled: livereload,
+		watcher:           newFilesystemWatcher(logger),
+		updateSubscribers: updateSubscribers,
 	}
 
 	// index the repository
 	repository.init()
 
 	// scheduled reindex
-	if reindex {
-		repository.reindex(reindexIntervalInSeconds)
+	if config.Indexing.Enabled {
+		repository.reindex(config.Indexing.IntervalInSeconds)
 	} else {
 		repository.logger.Info("Reindexing is disabled.")
 	}

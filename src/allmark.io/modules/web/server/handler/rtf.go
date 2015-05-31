@@ -54,8 +54,8 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
 		// get the conversion model
-		hostname := getHostnameFromRequest(r)
-		model, found := handler.converterModelOrchestrator.GetConversionModel(hostname, requestRoute)
+		baseUrl := getBaseUrlFromRequest(r)
+		model, found := handler.converterModelOrchestrator.GetConversionModel(baseUrl, requestRoute)
 		if !found {
 
 			// display a 404 error page
@@ -64,7 +64,7 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		html := handler.convertToHtml(hostname, model)
+		html := handler.convertToHtml(baseUrl, model)
 
 		// write the html to a temp file
 		htmlFilePath := fsutil.GetTempFileName("html-source") + ".html"
@@ -115,10 +115,10 @@ func (handler *Rtf) Func() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (handler *Rtf) convertToHtml(hostname string, viewModel viewmodel.ConversionModel) string {
+func (handler *Rtf) convertToHtml(baseUrl string, viewModel viewmodel.ConversionModel) string {
 
 	// get a template
-	template, err := handler.templateProvider.GetSubTemplate(hostname, templates.ConversionTemplateName)
+	template, err := handler.templateProvider.GetSubTemplate(baseUrl, templates.ConversionTemplateName)
 	if err != nil {
 		handler.logger.Error("No template for item of type %q.", viewModel.Type)
 		return ""

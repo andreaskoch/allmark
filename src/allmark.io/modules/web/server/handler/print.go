@@ -47,8 +47,8 @@ func (handler *Print) Func() func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
 		// check if there is a item for the request
-		hostname := getHostnameFromRequest(r)
-		viewModel, found := handler.converterModelOrchestrator.GetConversionModel(hostname, requestRoute)
+		baseUrl := getBaseUrlFromRequest(r)
+		viewModel, found := handler.converterModelOrchestrator.GetConversionModel(baseUrl, requestRoute)
 		if !found {
 
 			// display a 404 error page
@@ -58,14 +58,14 @@ func (handler *Print) Func() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// render the view model
-		handler.render(w, hostname, viewModel)
+		handler.render(w, baseUrl, viewModel)
 	}
 }
 
-func (handler *Print) render(writer io.Writer, hostname string, viewModel viewmodel.ConversionModel) {
+func (handler *Print) render(writer io.Writer, baseUrl string, viewModel viewmodel.ConversionModel) {
 
 	// get a template
-	template, err := handler.templateProvider.GetSubTemplate(hostname, templates.ConversionTemplateName)
+	template, err := handler.templateProvider.GetSubTemplate(baseUrl, templates.ConversionTemplateName)
 	if err != nil {
 		handler.logger.Error("No template for item of type %q.", viewModel.Type)
 		return

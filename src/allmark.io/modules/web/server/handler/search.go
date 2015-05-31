@@ -36,7 +36,7 @@ func (handler *Search) Func() func(w http.ResponseWriter, r *http.Request) {
 		// set headers
 		handler.headerWriter.Write(w, header.CONTENTTYPE_HTML)
 
-		hostname := getHostnameFromRequest(r)
+		hostname := getBaseUrlFromRequest(r)
 
 		// get the query parameter
 		query, _ := getQueryParameterFromUrl(*r.URL)

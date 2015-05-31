@@ -31,6 +31,8 @@ type Base struct {
 	LanguageTag      string `json:"languageTag"`
 	CreationDate     string `json:"creationdate"`
 	LastModifiedDate string `json:"lastmodifieddate"`
+
+	LiveReloadEnabled bool
 }
 
 type SortBaseModelBy func(model1, model2 *Base) bool

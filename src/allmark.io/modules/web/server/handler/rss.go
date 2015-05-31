@@ -32,7 +32,7 @@ func (handler *Rss) Func() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// get the current hostname
-		hostname := getHostnameFromRequest(r)
+		hostname := getBaseUrlFromRequest(r)
 
 		// set headers
 		handler.headerWriter.Write(w, header.CONTENTTYPE_XML)
