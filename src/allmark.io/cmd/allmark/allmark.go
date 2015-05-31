@@ -160,7 +160,7 @@ func serve(repositoryPath string) bool {
 	serveStart := time.Now()
 
 	// get the configuration
-	config := *config.Get(repositoryPath)
+	config := config.Get(repositoryPath)
 
 	// check if https shall be forced
 	if *secure {
@@ -181,7 +181,7 @@ func serve(repositoryPath string) bool {
 	logger := console.New(loglevel.FromString(config.LogLevel))
 
 	// data access
-	repository, err := filesystem.NewRepository(logger, repositoryPath, config)
+	repository, err := filesystem.NewRepository(logger, repositoryPath, *config)
 	if err != nil {
 		logger.Fatal("Unable to create a repository. Error: %s", err)
 	}
@@ -214,7 +214,7 @@ func serve(repositoryPath string) bool {
 	converter := markdowntohtml.New(logger, thumbnailIndex)
 
 	// server
-	server, err := server.New(logger, config, repository, itemParser, converter)
+	server, err := server.New(logger, *config, repository, itemParser, converter)
 	if err != nil {
 		logger.Error("Unable to instantiate a server. Error: %s", err.Error())
 		return false

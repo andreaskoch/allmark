@@ -76,6 +76,8 @@ func NewRepository(logger logger.Logger, directory string, config config.Config)
 		// Update Subscription
 		watcher:           newFilesystemWatcher(logger),
 		updateSubscribers: updateSubscribers,
+
+		livereloadIsEnabled: config.LiveReload.Enabled,
 	}
 
 	// index the repository
