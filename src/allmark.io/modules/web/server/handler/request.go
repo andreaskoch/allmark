@@ -14,5 +14,10 @@ func getRouteFromRequest(r *http.Request) route.Route {
 }
 
 func getBaseUrlFromRequest(r *http.Request) string {
-	return r.URL.Scheme + "//" + r.Host
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+
+	return scheme + "://" + r.Host
 }

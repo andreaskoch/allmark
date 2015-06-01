@@ -31,8 +31,8 @@ func (handler *Rss) Func() func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// get the current hostname
-		hostname := getBaseUrlFromRequest(r)
+		// get the current baseUrl
+		baseUrl := getBaseUrlFromRequest(r)
 
 		// set headers
 		handler.headerWriter.Write(w, header.CONTENTTYPE_XML)
@@ -44,25 +44,25 @@ func (handler *Rss) Func() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// get the sitemap template
-		feedTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.RssFeedTemplateName)
+		feedTemplate, err := handler.templateProvider.GetSubTemplate(baseUrl, templates.RssFeedTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
 		// root entry / channel item
-		rootEntry := handler.feedOrchestrator.GetRootEntry(hostname)
+		rootEntry := handler.feedOrchestrator.GetRootEntry(baseUrl)
 		feedWrapper := renderFeedWrapper(feedTemplate, rootEntry)
 
 		// get the sitemap content template
-		feedContentTemplate, err := handler.templateProvider.GetSubTemplate(hostname, templates.RssFeedContentTemplateName)
+		feedContentTemplate, err := handler.templateProvider.GetSubTemplate(baseUrl, templates.RssFeedContentTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Content template not found. Error: %s", err)
 			return
 		}
 
 		// render the sitemap content
-		entries, found := handler.feedOrchestrator.GetEntries(hostname, itemsPerPage, page)
+		entries, found := handler.feedOrchestrator.GetEntries(baseUrl, itemsPerPage, page)
 
 		// display error 404 non-existing page has been requested
 		if !found {

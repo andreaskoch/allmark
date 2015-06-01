@@ -52,7 +52,7 @@ func (orchestrator *FeedOrchestrator) GetEntries(baseUrl string, itemsPerPage, p
 
 func (orchestrator *FeedOrchestrator) createFeedEntryModel(baseUrl string, item *model.Item) viewmodel.FeedEntry {
 
-	addressPrefix := fmt.Sprintf("%s/%s/", baseUrl, item.Route().Value())
+	addressPrefix := fmt.Sprintf("%s/", baseUrl)
 	pathProvider := orchestrator.absolutePather(addressPrefix)
 
 	// item location
