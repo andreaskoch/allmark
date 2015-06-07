@@ -184,7 +184,7 @@ func (factory *Factory) NewViewModelOrchestrator() *ViewModelOrchestrator {
 	return factory.viewModelOrchestrator
 }
 
-func (factory *Factory) NewXmlSitemapOrchestrator() *XmlSitemapOrchestrator {
+func (factory *Factory) NewXMLSitemapOrchestrator() *XmlSitemapOrchestrator {
 
 	if factory.xmlSitemapOrchestrator != nil {
 		return factory.xmlSitemapOrchestrator

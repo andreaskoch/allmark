@@ -123,8 +123,9 @@ You can download the **latest binaries** of allmark for your operating system fr
 **Linux**
 
 ```bash
-sudo curl -s --insecure https://allmark.io/bin/allmark > /usr/local/bin/allmark
-sudo chmod +x /usr/local/bin/allmark
+sudo su
+curl -s --insecure https://allmark.io/bin/allmark > /usr/local/bin/allmark
+chmod +x /usr/local/bin/allmark
 ```
 
 **Mac OS**
@@ -166,10 +167,15 @@ This will create a folder with the name `.allmark` in the current or the specifi
 - `config`: contains the **JSON configuration** for allmark
 - `templates`: contains all **templates** used for rendering the web pages
 - `theme`: contains all **assets** used by the templates
+- `certs`: contains a generated and self-signed SSL-certificate that can be used for serving HTTPs
+- `users.htpasswd`: the user file for **[basic-authentication](http://httpd.apache.org/docs/2.2/programs/htpasswd.html)** (default: `<empty>`)
 
 ```
 <your-markdown-repository>
 └── .allmark
+    ├── certs
+    │   ├── cert.key
+    │   └── cert.pem
     ├── config
     ├── templates
     │   ├── converter.gohtml
@@ -179,6 +185,7 @@ This will create a folder with the name `.allmark` in the current or the specifi
     │   ├── opensearchdescription.gohtml
     │   ├── presentation.gohtml
     │   ├── repository.gohtml
+    │   ├── robotstxt.gohtml
     │   ├── rssfeed.gohtml
     │   ├── rssfeedcontent.gohtml
     │   ├── search.gohtml
@@ -189,32 +196,33 @@ This will create a folder with the name `.allmark` in the current or the specifi
     │   ├── tagmapcontent.gohtml
     │   ├── xmlsitemap.gohtml
     │   └── xmlsitemapcontent.gohtml
-    └── theme
-        ├── autoupdate.js
-        ├── codehighlighting
-        │   ├── highlight.css
-        │   └── highlight.js
-        ├── deck.css
-        ├── deck.js
-        ├── favicon.ico
-        ├── jquery.js
-        ├── jquery.lazyload.js
-        ├── jquery.lazyload.srcset.js
-        ├── jquery.lazyload.video.js
-        ├── jquery.tmpl.js
-        ├── latest.js
-        ├── modernizr.js
-        ├── pdf.js
-        ├── pdfpreview.js
-        ├── presentation.js
-        ├── print.css
-        ├── screen.css
-        ├── search.js
-        ├── site.js
-        ├── tree-last-node.png
-        ├── tree-node.png
-        ├── tree-vertical-line.png
-        └── typeahead.js
+    ├── theme
+    │   ├── autoupdate.js
+    │   ├── codehighlighting
+    │   │   ├── highlight.css
+    │   │   └── highlight.js
+    │   ├── deck.css
+    │   ├── deck.js
+    │   ├── favicon.ico
+    │   ├── jquery.js
+    │   ├── jquery.lazyload.js
+    │   ├── jquery.lazyload.srcset.js
+    │   ├── jquery.lazyload.video.js
+    │   ├── jquery.tmpl.js
+    │   ├── latest.js
+    │   ├── modernizr.js
+    │   ├── pdf.js
+    │   ├── pdfpreview.js
+    │   ├── presentation.js
+    │   ├── print.css
+    │   ├── screen.css
+    │   ├── search.js
+    │   ├── site.js
+    │   ├── tree-last-node.png
+    │   ├── tree-node.png
+    │   ├── tree-vertical-line.png
+    │   └── typeahead.js
+    └── users.htpasswd
 ```
 
 If you init a configuration in your **home-directory**, this configuration will be used as **default for all your repositories** as long as you don't have one in your respective directory:
@@ -238,14 +246,17 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 	- `ThemeFolderName`: The name of the folder that contains all theme assets (js, css, ...) (default: `"theme"`)
 	- `Hostname`: The ip-address or hostname that shall be used (e.g. `"0.0.0.0"`, `"127.0.0.1"`, `"localhost"`, `"www.example.com"`)
 	- `Http`
-		- Enabled: If set to `true` http is enabled. If set to `false` http is disabled.
-		- PortNumber: 0-65535 (0 means that a random port will be allocated)
+		- `Enabled`: If set to `true` http is enabled. If set to `false` http is disabled.
+		- `PortNumber`: 0-65535 (0 means that a random port will be allocated)
 	- `Https`
 		- `Enabled`: If set to `true` https is enabled. If set to `false` https is disabled.
 		- `PortNumber`: 0-65535 (0 means that a random port will be allocated)
 		- `CertFileName`: The filename of the SSL certificate in the `.allmark/certs`-folder (e.g. `"cert.pem"`, `"cert.pem"`)
 		- `KeyFileName`: The filename of the SSL certificate key file in the `.allmark/certs`-folder (e.g. `"cert.key"`)
 		- `Force`: If set to `true` and if http and https are enabled all http requests will be redirected to http. If set to `false` you can use https alongside http.
+	- `Authentication`
+		- `Enabled`: If set to `true` basic-authentication will be enabled. If set to `false` basic-authentication will be disabled. **Note**: Even if set to `true`, basic authentication will only be enabled if HTTPs is forced.
+		- `UserStoreFileName`: The filename of the [htpasswd-file](http://httpd.apache.org/docs/2.2/programs/htpasswd.html) that contains all authorized usernames, realms and passwords/hashes (default: `"users.htpasswd"`).
 - `Web`
 	- `DefaultLanguage`: An [ISO 639-1](http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) two-letter language code (e.g. `"en"` → english, `"de"` → german, `"fr"` → french) that is used as the default value for the `<html lang="">` attribute (default: `"en"`).
 	- `DefaultAuthor`: The name of the default author (e.g. "John Doe") for all documents in your repository that don't have a `author: Your Name` line in the meta-data section.
@@ -300,6 +311,10 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 			"CertFileName": "",
 			"KeyFileName": "",
 			"Force": false
+		},
+		"Authentication": {
+			"Enabled": false,
+			"UserStoreFileName": "users.htpasswd"
 		}
 	},
 	"Web": {
@@ -398,6 +413,9 @@ This is an unordered list of the most prominent features of allmark:
 23. HTTPs Support
 	- Reference custom SSL certificates via `.allmark/config` from the `.allmark/certs` folder
 	- Generates self-signed SSL certificates on-the-fly if no certificate is configured
+24. Basic-Authentication
+	- For an additional level of security allmark will only allow basic-authentication over SSL.
+	- You can add users to the `.allmark/users.htpasswd` file using the tool [htpasswd](http://httpd.apache.org/docs/2.2/programs/htpasswd.html)
 
 I will try to create videos showing you the different features when there is time.
 
@@ -439,7 +457,7 @@ After a second or so a browser window should pop up.
 
 ## Dependencies
 
-allmark relies on many great third-party libraries. These are some of them:
+allmark relies on a number of third-party libraries:
 
 - [github.com/bradleypeabody/fulltext](src/github.com/bradleypeabody/fulltext)
 - [github.com/gorilla/context](src/github.com/gorilla/context)
@@ -451,11 +469,13 @@ allmark relies on many great third-party libraries. These are some of them:
 - [github.com/skratchdot/open-golang/open](src/github.com/skratchdot/open-golang/open)
 - [golang.org/x/net/websocket](src/golang.org/x/net/websocket)
 - [github.com/andreaskoch/go-fswatch](src/github.com/andreaskoch/go-fswatch)
+- [github.com/abbot/go-http-auth](src/github.com/abbot/go-http-auth)
 
-These depenendencies are not under allmark copyright/license. See the respective projects for their copyright & licensing details.
-The packages are mirrored into allmark for hermetic build reasons and versioning.
+These dependencies are not covered by the allmark copyright/license. See the respective projects for their copyright & licensing details.
 
-To get a full list of all used third-party libraries you execute the make tool with the `-list-dependencies` flag:
+The packages are mirrored into allmark [src-folder](src) for hermetic build reasons and versioning.
+
+To get a full list of all used third-party libraries you can execute the make tool with the `-list-dependencies` flag:
 
 ```bash
 go run make.go -list-dependencies
@@ -546,7 +566,6 @@ Here are some of the ideas and todos I would like to add in the future. Contribu
     - User management pages
 - Make live-reload more intelligent and more efficient
 - Support for Folders with multiple Markdown Files
-- Basic Authentication
 - Support for custom-rewrites
 
 ### Theming

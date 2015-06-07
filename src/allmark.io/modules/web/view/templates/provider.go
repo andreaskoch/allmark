@@ -38,6 +38,9 @@ const (
 	SearchContentTemplateName = "searchcontent"
 
 	ConversionTemplateName = "converter"
+
+	// RobotsTxtTemplateName defines the name of the robots.txt template.
+	RobotsTxtTemplateName = "robotstxt"
 )
 
 type Provider struct {
@@ -78,6 +81,8 @@ func NewProvider(templateFolder string) Provider {
 	templates[model.TypePresentation.String()] = NewTemplate(templateFolder, model.TypePresentation.String(), presentationTemplate)
 
 	templates[ConversionTemplateName] = NewTemplate(templateFolder, ConversionTemplateName, converterTemplate)
+
+	templates[RobotsTxtTemplateName] = NewTemplate(templateFolder, RobotsTxtTemplateName, robotsTxtTemplate)
 
 	// create the provider
 	provider := Provider{

@@ -1,4 +1,4 @@
-// Copyright 2014 Andreas Koch. All rights reserved.
+// Copyright 2015 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -17,6 +17,7 @@ import (
 	"allmark.io/modules/common/certificates"
 	"allmark.io/modules/common/logger/loglevel"
 	"allmark.io/modules/common/util/fsutil"
+	"github.com/abbot/go-http-auth"
 )
 
 const (
@@ -44,6 +45,12 @@ const (
 	DefaultIndexingIntervalInSeconds = 60
 	DefaultLiveReloadEnabled         = false
 	DefaultRichTextConversionEnabled = true
+
+	// DefaultAuthenticationEnabled contains the default-state for the authentication feature.
+	DefaultAuthenticationEnabled = false
+
+	// UserStoreFileName defines the default user-store file name.
+	DefaultUserStoreFileName = "users.htpasswd"
 )
 
 var homeDirectory func() string
@@ -129,11 +136,21 @@ func Default(baseFolder string) *Config {
 	// apply default values
 	config.Server.ThemeFolderName = ThemeFolderName
 	config.Server.Hostname = DefaultHostName
+
+	// HTTP
 	config.Server.Http.PortNumber = DefaultHttpPort
 	config.Server.Http.Enabled = DefaultHttpPortEnabled
+
+	// HTTPS
 	config.Server.Https.PortNumber = DefaultHttpsPort
 	config.Server.Https.Enabled = DefaultHttpsPortEnabled
 	config.Server.Https.Force = DefaultForceHttps
+	config.Server.Https.CertFileName = DefaultHttpsCertName
+	config.Server.Https.KeyFileName = DefaultHttpsKeyName
+
+	// Authentication
+	config.Server.Authentication.Enabled = DefaultAuthenticationEnabled
+	config.Server.Authentication.UserStoreFileName = DefaultUserStoreFileName
 
 	config.Web.DefaultLanguage = DefaultLanguage
 
@@ -217,6 +234,15 @@ func (securePort *SecurePort) ForceHttps() bool {
 	return securePort.Force
 }
 
+// Authentication contains authentication settings.
+type Authentication struct {
+	// Enabled is flag indicating whether authentication is enabled.
+	Enabled bool
+
+	// UserStoreFileName defines the file name for the authentication user-store file (e.g. "users.htpasswd").
+	UserStoreFileName string
+}
+
 type Web struct {
 	DefaultLanguage string
 	DefaultAuthor   string
@@ -239,6 +265,7 @@ type Server struct {
 	Hostname        string
 	Http            Port
 	Https           SecurePort
+	Authentication  Authentication
 }
 
 type Indexing struct {
@@ -298,6 +325,11 @@ type Config struct {
 	templatesFolder string
 }
 
+// CertificateDirectory returns the path of the ssl-certificates directory in the meta-data folder.
+func (config *Config) CertificateDirectory() string {
+	return filepath.Join(config.MetaDataFolder(), SSLCertsFolderName)
+}
+
 func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath string) {
 
 	// Determine the hostname
@@ -319,7 +351,7 @@ func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath s
 	}
 
 	// Determine the base directory for the certificates
-	certificateBaseDirectory := filepath.Join(config.MetaDataFolder(), SSLCertsFolderName)
+	certificateBaseDirectory := config.CertificateDirectory()
 
 	// Default cert and key path
 	certificateFilePath = filepath.Join(certificateBaseDirectory, certificateFileName)
@@ -354,7 +386,7 @@ func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath s
 
 	// create a dummy cert and key
 	if err := certificates.GenerateDummyCert(certificateFilePath, keyFilePath, hostname); err != nil {
-		panic(fmt.Sprintf("Could not create dummy certificates %q and %q for hostname %q. Error: %s", certificateFilePath, keyFilePath, hostname, err.Error))
+		panic(fmt.Sprintf("Could not create dummy certificates %q and %q for hostname %q. Error: %s", certificateFilePath, keyFilePath, hostname, err.Error()))
 	}
 
 	return certificateFilePath, keyFilePath
@@ -479,9 +511,52 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 	return config, nil
 }
 
+func (config *Config) AuthenticationIsEnabled() bool {
+
+	if !config.Server.Authentication.Enabled {
+		return false
+	}
+
+	// we will only allow basic authentication over https
+	if config.Server.Http.Enabled && config.Server.Https.ForceHttps() == false {
+		fmt.Println("Basic-Authentication over HTTP is not available. Please disable HTTP or force HTTPs in order to use basic-authentication.")
+		os.Exit(1)
+	}
+
+	return true
+}
+
+// AuthenticationFilePath returns the path of the authentication file.
+func (config *Config) AuthenticationFilePath() string {
+
+	if config.Server.Authentication.UserStoreFileName == "" {
+		config.Server.Authentication.UserStoreFileName = DefaultUserStoreFileName
+	}
+
+	digestFilePath := filepath.Join(config.MetaDataFolder(), config.Server.Authentication.UserStoreFileName)
+	return digestFilePath
+}
+
+// GetAuthenticationUserStore returns a digest-access authentication secret provider function
+// that uses the configured authentication file.
+func (config *Config) GetAuthenticationUserStore() auth.SecretProvider {
+	// abort if authentication is disabled
+	if !config.AuthenticationIsEnabled() {
+		return nil
+	}
+
+	// panic if authentication is enabled but the auth file does not exist.
+	digestFilePath := config.AuthenticationFilePath()
+	if !fsutil.FileExists(digestFilePath) {
+		panic(fmt.Sprintf("The specified authentication user store %q does not exist.", digestFilePath))
+	}
+
+	return auth.HtpasswdFileProvider(digestFilePath)
+}
+
 // Ask the kernel for a free open port that is ready to use
 func getFreePort() int {
-	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:0")
 	if err != nil {
 		panic(err)
 	}
