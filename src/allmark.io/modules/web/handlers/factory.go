@@ -8,8 +8,8 @@ import (
 	"allmark.io/modules/common/config"
 	"allmark.io/modules/common/logger"
 	"allmark.io/modules/common/util/fsutil"
-	"allmark.io/modules/web/orchestrator"
 	"allmark.io/modules/web/header"
+	"allmark.io/modules/web/orchestrator"
 	"allmark.io/modules/web/view/templates"
 	"fmt"
 	"net/http"
@@ -179,7 +179,7 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 	handlers.Add(PrintHandlerRoute, Print(logger, headerWriterFactory.Dynamic(), conversionModelOrchestrator, templateProvider, errorHandler))
 
 	// rtf
-	handlers.Add(PrintHandlerRoute, RTF(logger, config.Conversion.Rtf.Tool(), headerWriterFactory.Dynamic(), conversionModelOrchestrator, templateProvider, errorHandler))
+	handlers.Add(RTFHandlerRoute, RTF(logger, config.Conversion.Rtf.Tool(), headerWriterFactory.Dynamic(), conversionModelOrchestrator, templateProvider, errorHandler))
 
 	// update
 	handlers.Add(UpdateHandlerRoute, Update(logger, headerWriterFactory.Dynamic(), updateOrchestrator))
