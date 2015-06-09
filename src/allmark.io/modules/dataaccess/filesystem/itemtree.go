@@ -1,29 +1,26 @@
-// Copyright 2014 Andreas Koch. All rights reserved.
+// Copyright 2015 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package index
+package filesystem
 
 import (
-	"allmark.io/modules/common/logger"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/common/tree"
-	"allmark.io/modules/model"
+	"allmark.io/modules/dataaccess"
 )
 
-func newItemTree(logger logger.Logger) *ItemTree {
+func newItemTree() *ItemTree {
 	return &ItemTree{
 		*tree.Empty(),
-		logger,
 	}
 }
 
 type ItemTree struct {
 	tree.Tree
-	logger logger.Logger
 }
 
-func (itemTree *ItemTree) Root() *model.Item {
+func (itemTree *ItemTree) Root() dataaccess.Item {
 	rootNode := itemTree.Tree.Root()
 	if rootNode == nil {
 		return nil
@@ -32,7 +29,7 @@ func (itemTree *ItemTree) Root() *model.Item {
 	return nodeToItem(rootNode)
 }
 
-func (itemTree *ItemTree) Insert(item *model.Item) {
+func (itemTree *ItemTree) Insert(item dataaccess.Item) {
 
 	if item == nil {
 		return
@@ -40,17 +37,14 @@ func (itemTree *ItemTree) Insert(item *model.Item) {
 
 	// convert the route to a path
 	path := tree.RouteToPath(item.Route())
-
-	if _, err := itemTree.Tree.Insert(path, item); err != nil {
-		itemTree.logger.Error("Cannot insert item %q. Error: %s", item.Route(), err.Error())
-	}
+	itemTree.Tree.Insert(path, item)
 }
 
 func (itemTree *ItemTree) Delete(itemRoute route.Route) (bool, error) {
 	return itemTree.Tree.Delete(itemRoute.Components())
 }
 
-func (itemTree *ItemTree) GetItem(route route.Route) *model.Item {
+func (itemTree *ItemTree) GetItem(route route.Route) dataaccess.Item {
 
 	// locate the node
 	node := itemTree.getNode(route)
@@ -62,9 +56,9 @@ func (itemTree *ItemTree) GetItem(route route.Route) *model.Item {
 	return nodeToItem(node)
 }
 
-func (itemTree *ItemTree) GetChildItems(route route.Route) []*model.Item {
+func (itemTree *ItemTree) GetChildItems(route route.Route) []dataaccess.Item {
 
-	childItems := make([]*model.Item, 0)
+	childItems := make([]dataaccess.Item, 0)
 
 	node := itemTree.getNode(route)
 	if node == nil {
@@ -74,7 +68,6 @@ func (itemTree *ItemTree) GetChildItems(route route.Route) []*model.Item {
 	for _, childNode := range node.Childs() {
 		item := nodeToItem(childNode)
 		if item == nil {
-			itemTree.logger.Warn("The item of child node %q is nil.", childNode)
 			continue
 		}
 
@@ -99,7 +92,7 @@ func (itemTree *ItemTree) getNode(route route.Route) *tree.Node {
 }
 
 // Walk visits every node in the current tree. Starting with the root, every child of the root and then recurses down the childs.
-func (itemTree *ItemTree) Walk(expression func(item *model.Item)) {
+func (itemTree *ItemTree) Walk(expression func(item dataaccess.Item)) {
 	itemTree.Tree.Walk(func(node *tree.Node) {
 		item := nodeToItem(node)
 		if item == nil {
@@ -110,11 +103,11 @@ func (itemTree *ItemTree) Walk(expression func(item *model.Item)) {
 	})
 }
 
-func nodeToItem(node *tree.Node) *model.Item {
+func nodeToItem(node *tree.Node) dataaccess.Item {
 
 	if node.Value() == nil {
 		return nil
 	}
 
-	return node.Value().(*model.Item)
+	return node.Value().(dataaccess.Item)
 }

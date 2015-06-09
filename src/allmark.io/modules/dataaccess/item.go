@@ -56,4 +56,5 @@ type Item interface {
 	CanHaveChilds() bool
 	Route() route.Route
 	Files() []File
+	LastHash() string
 }

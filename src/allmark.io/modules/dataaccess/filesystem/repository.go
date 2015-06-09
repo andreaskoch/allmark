@@ -23,10 +23,7 @@ type Repository struct {
 
 	itemProvider *itemProvider
 
-	// Indizes
-	items       []dataaccess.Item
-	itemByRoute map[string]dataaccess.Item
-	itemByHash  map[string]dataaccess.Item
+	index *Index
 
 	// Update Subscription
 	watcher           *filesystemWatcher
@@ -69,9 +66,7 @@ func NewRepository(logger logger.Logger, directory string, config config.Config)
 		itemProvider: itemProvider,
 
 		// Indizes
-		items:       make([]dataaccess.Item, 0),
-		itemByRoute: make(map[string]dataaccess.Item),
-		itemByHash:  make(map[string]dataaccess.Item),
+		index: newIndex(),
 
 		// Update Subscription
 		watcher:           newFilesystemWatcher(logger),
@@ -98,17 +93,25 @@ func (repository *Repository) Path() string {
 }
 
 func (repository *Repository) Items() []dataaccess.Item {
-	return repository.items
+	return repository.index.GetAllItems()
 }
 
 func (repository *Repository) Item(route route.Route) dataaccess.Item {
-	return repository.itemByRoute[route.Value()]
+	item, isMatch := repository.index.IsMatch(route)
+	if !isMatch {
+		return nil
+	}
+	return item
 }
 
 func (repository *Repository) Routes() []route.Route {
+	return getRoutesFromIndex(repository.index)
+}
 
-	routes := make([]route.Route, 0, len(repository.items))
-	for _, item := range repository.items {
+func getRoutesFromIndex(index *Index) []route.Route {
+	routes := make([]route.Route, 0)
+
+	for _, item := range index.GetAllItems() {
 		routes = append(routes, item.Route())
 	}
 
@@ -117,75 +120,88 @@ func (repository *Repository) Routes() []route.Route {
 
 // Initialize the repository - scan all folders and update the index.
 func (repository *Repository) init() {
+	newIndex, _ := repository.rescan(repository.directory, false, 0)
+	repository.index = newIndex
+}
 
-	// notification lists
+func (repository *Repository) rescan(directory string, limitMaxDepth bool, maxDepth int) (*Index, dataaccess.Update) {
+
+	repository.logger.Debug("Rescanning", directory)
+
+	// notification listssrc/allmark.io/modules/web/handlers/update.go
 	newItemRoutes := make([]route.Route, 0)
 	modifiedItemRoutes := make([]route.Route, 0)
 	deletedItemRoutes := make([]route.Route, 0)
 
-	// create new indices
-	items := make([]dataaccess.Item, 0)
-	itemByRoute := make(map[string]dataaccess.Item)
-	itemByHash := make(map[string]dataaccess.Item)
+	index := repository.index.Copy()
 
 	// scan the repository directory for new items
-	for _, item := range repository.getItemsFromDirectory(repository.directory) {
-
-		// determine the item hash
-		hash, err := item.Hash()
-		if err != nil {
-			repository.logger.Warn("Could not determine the hash for item %q. Error: %s", item.Route(), err.Error())
-			continue
-		}
+	for _, newItem := range repository.getItemsFromDirectory(directory, limitMaxDepth, maxDepth) {
 
 		// check if the item is new or modified
-		existingItem := repository.Item(item.Route())
+		existingItem := repository.Item(newItem.Route())
 		isNewItem := existingItem == nil
 		if isNewItem {
 
 			// the route was not found in the index it must be a new item
-			newItemRoutes = append(newItemRoutes, item.Route())
+			newItemRoutes = append(newItemRoutes, newItem.Route())
+			repository.logger.Debug("Item %q is new", newItem.Route())
 
 		} else {
 
-			// check if the hash is already in the index
-			if _, itemHashIsAlreadyInTheIndex := repository.itemByHash[hash]; itemHashIsAlreadyInTheIndex == false {
+			// compare hashes
+			hash := newItem.LastHash()
+			existingItemHash := existingItem.LastHash()
 
-				// the item has changed the hash was not found in the index
-				modifiedItemRoutes = append(modifiedItemRoutes, item.Route())
+			if existingItemHash != hash {
+
+				// the hash has changed
+				modifiedItemRoutes = append(modifiedItemRoutes, newItem.Route())
+				repository.logger.Debug("Item %q is changed", newItem.Route())
+
+			} else {
+				repository.logger.Debug("Item %q is not modified", newItem.Route())
 			}
 
 		}
 
-		// store the item in the indizes
-		items = append(items, item)
-		itemByRoute[item.Route().Value()] = item
-		itemByHash[hash] = item
+		index.Add(newItem)
+
 	}
 
 	// find deleted items
-	for _, oldItem := range repository.items {
-		oldItemRoute := oldItem.Route()
-		if _, oldItemExistsInNewIndex := itemByRoute[oldItemRoute.Value()]; oldItemExistsInNewIndex {
+	for _, oldItemRoute := range repository.Routes() {
+		if _, exists := index.IsMatch(oldItemRoute); exists {
 			continue
 		}
 
 		deletedItemRoutes = append(deletedItemRoutes, oldItemRoute)
+
+		// remove the item from the existing index
+		index.Remove(oldItemRoute)
 	}
 
-	// override the existing values
-	repository.items = items
-	repository.itemByRoute = itemByRoute
-	repository.itemByHash = itemByHash
-
 	// send update to subscribers
-	repository.sendUpdate(dataaccess.NewUpdate(newItemRoutes, modifiedItemRoutes, deletedItemRoutes))
+	return index, dataaccess.NewUpdate(newItemRoutes, modifiedItemRoutes, deletedItemRoutes)
+
 }
 
 // Create a new Item for the specified path.
-func (repository *Repository) getItemsFromDirectory(itemDirectory string) (items []dataaccess.Item) {
+func (repository *Repository) getItemsFromDirectory(itemDirectory string, limitDepth bool, maxDepth int) (items []dataaccess.Item) {
 
 	items = make([]dataaccess.Item, 0)
+
+	if limitDepth {
+
+		// abort if the max depth level has been reached
+		if maxDepth == 0 {
+			return items
+		}
+
+		// count down the max depth
+		maxDepth = maxDepth - 1
+
+	}
 
 	// create the item
 	item, err := repository.itemProvider.GetItemFromDirectory(itemDirectory)
@@ -205,7 +221,7 @@ func (repository *Repository) getItemsFromDirectory(itemDirectory string) (items
 	// recurse for child items
 	childItemDirectories := getChildDirectories(itemDirectory)
 	for _, childItemDirectory := range childItemDirectories {
-		childItems := repository.getItemsFromDirectory(childItemDirectory)
+		childItems := repository.getItemsFromDirectory(childItemDirectory, limitDepth, maxDepth)
 		items = append(items, childItems...)
 	}
 
@@ -246,9 +262,11 @@ func (repository *Repository) Subscribe(updates chan dataaccess.Update) {
 // Send an update down the repository update channel
 func (repository *Repository) sendUpdate(update dataaccess.Update) {
 	if update.IsEmpty() {
+		repository.logger.Debug("sendUpdate: Empty update")
 		return
 	}
 
+	repository.logger.Debug("sendUpdate: %s", update.String())
 	for _, updateSubscriber := range repository.updateSubscribers {
 		updateSubscriber <- update
 	}
@@ -279,9 +297,11 @@ func (repository *Repository) StartWatching(route route.Route) {
 			case <-updates:
 
 				repository.logger.Info("Recieved an update for route %q. Reindexing.", route.String())
-				repository.init() // todo: refactor init function to allow partial reindexing of the repository by pasing in the parent route below which items shall be reindexed.
-				// And add a type change detection to to items so a reindex does not have to be executed every time a item changes.
-				repository.sendUpdate(dataaccess.NewModifiedItemUpdate(route))
+
+				newIndex, updates := repository.rescan(fileSystemItem.Directory(), true, 1)
+
+				repository.index = newIndex
+				repository.sendUpdate(updates)
 
 			}
 		}

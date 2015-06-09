@@ -5,7 +5,6 @@
 package orchestrator
 
 import (
-	"fmt"
 	"time"
 
 	"allmark.io/modules/common/route"
@@ -21,27 +20,26 @@ type ViewModelOrchestrator struct {
 	tagOrchestrator        *TagsOrchestrator
 	fileOrchestrator       *FileOrchestrator
 
+	// caches (do not initialize!)
 	latestByRoute     map[string][]*viewmodel.Model
 	viewmodelsByRoute map[string]*viewmodel.Model
 }
 
-func (orchestrator *ViewModelOrchestrator) blockingCacheWarmup() {
-	orchestrator.getViewModel(orchestrator.rootItem(), false)
-	orchestrator.GetLatest(route.New(), 5, 1)
-}
-
-func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
+func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Route) (viewmodel.Model, bool) {
 
 	startTime := time.Now()
 
 	// get the requested item
 	item := orchestrator.getItem(itemRoute)
 	if item == nil {
-		return viewModel, false
+		return viewmodel.Model{}, false
 	}
 
 	// get the base view model
-	viewModel = *orchestrator.getViewModel(item, false)
+	viewModel := orchestrator.getViewModel(itemRoute)
+	if viewModel == nil {
+		return viewmodel.Model{}, false
+	}
 
 	// navigation
 	viewModel.ToplevelNavigation = orchestrator.navigationOrchestrator.GetToplevelNavigation()
@@ -82,18 +80,12 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	duration := endTime.Sub(startTime)
 	orchestrator.logger.Statistics("Getting the full view model %s took %f seconds.", viewModel.Route, duration.Seconds())
 
-	return viewModel, true
+	return *viewModel, true
 }
 
 func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
 
-	// get the requested item
-	item := orchestrator.getItem(itemRoute)
-	if item == nil {
-		return viewModel, false
-	}
-
-	vm := orchestrator.getViewModel(item, false)
+	vm := orchestrator.getViewModel(itemRoute)
 	if vm == nil {
 		return viewModel, false
 	}
@@ -103,17 +95,8 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 
 func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (latest []*viewmodel.Model, found bool) {
 
-	cacheType := "latest"
-
-	// load from cache
 	if orchestrator.latestByRoute != nil {
 
-		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(cacheType) {
-			go orchestrator.primeCache(cacheType)
-		}
-
-		// return the result
 		if models, exists := orchestrator.latestByRoute[itemRoute.Value()]; exists {
 			return pagedViewmodels(models, pageSize, page)
 		}
@@ -122,30 +105,26 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 
 	}
 
-	orchestrator.setCache(cacheType, func() {
+	startTime := time.Now()
 
-		startTime := time.Now()
+	latestModelsByRoute := make(map[string][]*viewmodel.Model)
 
-		latestModelsByRoute := make(map[string][]*viewmodel.Model)
+	for _, childRoute := range orchestrator.repository.Routes() {
 
-		for _, childRoute := range orchestrator.repository.Routes() {
+		// get the latest items
+		latestItems := orchestrator.getLatestItems(childRoute)
 
-			// get the latest items
-			latestItems := orchestrator.getLatestItems(childRoute)
+		// store the results
+		latestModelsByRoute[childRoute.Value()] = orchestrator.getLastesViewModelsFromItemList(latestItems)
 
-			// store the results
-			latestModelsByRoute[childRoute.Value()] = orchestrator.getLastesViewModelsFromItemList(latestItems)
+	}
 
-		}
+	endTime := time.Now()
+	duration := endTime.Sub(startTime)
+	orchestrator.logger.Statistics("Priming the latest cache took %f seconds.", duration.Seconds())
 
-		endTime := time.Now()
-		duration := endTime.Sub(startTime)
-		orchestrator.logger.Statistics("Priming the latest cache took %f seconds.", duration.Seconds())
-
-		// save the result
-		orchestrator.latestByRoute = latestModelsByRoute
-
-	})
+	// save the result
+	orchestrator.latestByRoute = latestModelsByRoute
 
 	// return a result
 	if models, exists := orchestrator.latestByRoute[itemRoute.Value()]; exists {
@@ -162,7 +141,7 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 	models := make([]*viewmodel.Model, 0, len(items))
 	for _, item := range items {
 
-		viewModel := orchestrator.getViewModel(item, false)
+		viewModel := orchestrator.getViewModel(item.Route())
 		if viewModel == nil {
 			orchestrator.logger.Error("No view model found for item %q.", item)
 			continue
@@ -181,81 +160,59 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 	return models
 }
 
-func (orchestrator *ViewModelOrchestrator) getViewModel(item *model.Item, skipCache bool) *viewmodel.Model {
+func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *viewmodel.Model {
 
-	// get the root item
-	root := orchestrator.rootItem()
-	if root == nil {
-		panic(fmt.Sprintf("Cannot get viewmodel for route %q because no root item was found.", item))
-	}
-
-	itemRoute := item.Route()
-	cacheType := "viewmodels"
-
-	if skipCache {
-		// prime the cache synchronously
-		orchestrator.primeCache(cacheType)
-	}
-
-	// load from cache
 	if orchestrator.viewmodelsByRoute != nil {
-
-		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(cacheType) {
-			go orchestrator.primeCache(cacheType)
-		}
-
-		// return the result
-		return orchestrator.viewmodelsByRoute[itemRoute.Value()]
+		return orchestrator.viewmodelsByRoute[itemRoute.String()]
 	}
 
-	orchestrator.setCache(cacheType, func() {
+	// updateViewModel stores the view model for the given route to the cache
+	updateViewModel := func(route route.Route) {
 
-		startTime := time.Now()
-
-		viewmodelsByRoute := make(map[string]*viewmodel.Model)
-
-		for _, child := range orchestrator.index().GetAllItems() {
-
-			childRoute := child.Route()
-
-			// convert content
-			convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, orchestrator.relativePather(childRoute), child)
-			if err != nil {
-				orchestrator.logger.Warn("Cannot convert content for item %q. Error: %s.", child.String(), err.Error())
-				convertedContent = "<!-- Conversion Error -->"
-			}
-
-			// create a view model
-			viewModel := &viewmodel.Model{
-				Base:             getBaseModel(root, child, orchestrator.itemPather(), orchestrator.config),
-				Content:          convertedContent,
-				Publisher:        orchestrator.getPublisherInformation(),
-				Author:           orchestrator.getAuthorInformation(child.MetaData.Author),
-				Files:            orchestrator.fileOrchestrator.GetFiles(childRoute),
-				Images:           orchestrator.fileOrchestrator.GetImages(childRoute),
-				IsRepositoryItem: true,
-			}
-
-			// add rft url if rtf conversion is enabled
-			if orchestrator.config.Conversion.Rtf.IsEnabled() {
-				viewModel.RtfUrl = GetTypedItemUrl(child.Route(), "rtf")
-			}
-
-			// store the view model
-			viewmodelsByRoute[childRoute.Value()] = viewModel
-
+		// convert content
+		item := orchestrator.getItem(route)
+		root := orchestrator.rootItem()
+		convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, orchestrator.relativePather(route), item)
+		if err != nil {
+			orchestrator.logger.Warn("Cannot convert content for route %q. Error: %s.", route, err.Error())
+			convertedContent = "<!-- Conversion Error -->"
 		}
 
-		endTime := time.Now()
-		duration := endTime.Sub(startTime)
-		orchestrator.logger.Statistics("Priming the viewModel cache took %f seconds.", duration.Seconds())
+		viewModel := &viewmodel.Model{
+			Base:             getBaseModel(root, item, orchestrator.itemPather(), orchestrator.config),
+			Content:          convertedContent,
+			Publisher:        orchestrator.getPublisherInformation(),
+			Author:           orchestrator.getAuthorInformation(item.MetaData.Author),
+			Files:            orchestrator.fileOrchestrator.GetFiles(route),
+			Images:           orchestrator.fileOrchestrator.GetImages(route),
+			IsRepositoryItem: true,
+		}
 
-		orchestrator.viewmodelsByRoute = viewmodelsByRoute
+		// add rft url if rtf conversion is enabled
+		if orchestrator.config.Conversion.Rtf.IsEnabled() {
+			viewModel.RtfUrl = GetTypedItemUrl(route, "rtf")
+		}
 
-	})
+		orchestrator.viewmodelsByRoute[route.String()] = viewModel
+	}
 
-	return orchestrator.viewmodelsByRoute[itemRoute.Value()]
+	// deleteViewModel stores the view model for the given route from the cache
+	deleteViewModel := func(route route.Route) {
+		delete(orchestrator.viewmodelsByRoute, route.String())
+	}
+
+	// build the cache
+	orchestrator.viewmodelsByRoute = make(map[string]*viewmodel.Model)
+	for _, item := range orchestrator.index().GetAllItems() {
+		updateViewModel(item.Route())
+	}
+
+	// register update callbacks
+	orchestrator.registerUpdateCallback("update viewmodel", UpdateTypeNew, updateViewModel)
+	orchestrator.registerUpdateCallback("update viewmodel", UpdateTypeModified, updateViewModel)
+	orchestrator.registerUpdateCallback("update viewmodel", UpdateTypeDeleted, deleteViewModel)
+
+	return orchestrator.viewmodelsByRoute[itemRoute.String()]
 }
 
 func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route) []*viewmodel.Base {

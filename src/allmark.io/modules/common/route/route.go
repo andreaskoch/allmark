@@ -183,6 +183,11 @@ func (route Route) String() string {
 	return strings.Join(route.Components(), " > ")
 }
 
+// Equals compares the current route with the supplied route. Returns true if the routes are alike; otherwise false.
+func (route Route) Equals(otherRoute Route) bool {
+	return route.String() == otherRoute.String()
+}
+
 func (route Route) OriginalValue() string {
 	return route.originalValue
 }

@@ -123,6 +123,7 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 		contentProvider,
 		files,
 		childs,
+		itemDirectory,
 		[]watcherPather{
 			watcherFilePath{filePath},
 			watcherDirectoryPath{filesDirectory},
@@ -158,6 +159,7 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (dataacce
 		contentProvider,
 		files,
 		childs,
+		itemDirectory,
 		[]watcherPather{
 			watcherDirectoryPath{itemDirectory},
 		})
@@ -186,6 +188,7 @@ func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (d
 		route,
 		contentProvider,
 		files,
+		itemDirectory,
 		[]watcherPather{
 			watcherDirectoryPath{itemDirectory},
 		},

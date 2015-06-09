@@ -23,13 +23,6 @@ import (
 	"allmark.io/modules/web/webpaths"
 )
 
-type CacheState int
-
-const (
-	CacheStateStale CacheState = iota
-	CacheStatePrimed
-)
-
 type UpdateType int
 
 const (
@@ -54,7 +47,7 @@ func (updateType UpdateType) String() string {
 		return "deleted"
 	}
 
-	panic("Unreachable.")
+	panic("Unknown update type")
 }
 
 func NewUpdate(updateType UpdateType, route route.Route) Update {
@@ -78,6 +71,20 @@ func (update *Update) Type() UpdateType {
 	return update.updateType
 }
 
+func cacheUpdate(name string, updateType UpdateType, callback func(updatedRoute route.Route)) CacheUpdateCallback {
+	return CacheUpdateCallback{
+		name,
+		updateType,
+		callback,
+	}
+}
+
+type CacheUpdateCallback struct {
+	Name   string
+	Type   UpdateType
+	Update func(updatedRoute route.Route)
+}
+
 func newBaseOrchestrator(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
 
 	startTime := time.Now()
@@ -93,6 +100,8 @@ func newBaseOrchestrator(logger logger.Logger, config config.Config, repository 
 		webPathProvider: webPathProvider,
 
 		updateSubscribers: make([]chan Update, 0),
+
+		updateCallbacks: make(map[UpdateType][]CacheUpdateCallback),
 	}
 
 	// warm up caches
@@ -115,10 +124,8 @@ type Orchestrator struct {
 
 	webPathProvider webpaths.WebPathProvider
 
-	// cache control
-	cacheStatusMap    map[string]CacheState
-	cachePrimerMap    map[string]func()
-	cachePrimerStatus map[string]bool
+	// update handling
+	updateCallbacks map[UpdateType][]CacheUpdateCallback
 
 	// caches and indizes
 	fulltextIndex   *search.ItemSearch
@@ -135,6 +142,7 @@ func (orchestrator *Orchestrator) GetPageTitle(headline string) string {
 	return fmt.Sprintf("%s - %s", headline, rootItem.Title)
 }
 
+// blockingCacheWarmup triggers a cache-warmup.
 func (orchestrator *Orchestrator) blockingCacheWarmup() {
 	orchestrator.index()
 	orchestrator.getAllItems()
@@ -146,20 +154,19 @@ func (orchestrator *Orchestrator) Subscribe(update chan Update) {
 	orchestrator.updateSubscribers = append(orchestrator.updateSubscribers, update)
 }
 
-// Reset all Caches
-func (orchestrator *Orchestrator) ResetCache(dataaccessLayerUpdate dataaccess.Update) {
-
-	// mark all caches as stale
-	for cacheType := range orchestrator.cacheStatusMap {
-		orchestrator.cacheStatusMap[cacheType] = CacheStateStale
-	}
-
-	// prime all caches synchronously
-	orchestrator.primeCaches()
+// Update all caches
+func (orchestrator *Orchestrator) UpdateCache(dataaccessLayerUpdate dataaccess.Update) {
 
 	// inform subscribers ...
 	// ... about new items
 	for _, newItemRoute := range dataaccessLayerUpdate.New() {
+
+		// execute cache update callbacks
+		for _, callbackDefinition := range orchestrator.updateCallbacks[UpdateTypeNew] {
+			callbackDefinition.Update(newItemRoute)
+		}
+
+		// notify subscribers
 		for _, subscriber := range orchestrator.updateSubscribers {
 			subscriber <- NewUpdate(UpdateTypeNew, newItemRoute)
 		}
@@ -167,6 +174,15 @@ func (orchestrator *Orchestrator) ResetCache(dataaccessLayerUpdate dataaccess.Up
 
 	// ... about modified items
 	for _, modifiedItemRoute := range dataaccessLayerUpdate.Modified() {
+
+		// execute cache update callbacks
+		for _, callbackDefinition := range orchestrator.updateCallbacks[UpdateTypeModified] {
+			fmt.Println(callbackDefinition.Name)
+			callbackDefinition.Update(modifiedItemRoute)
+			fmt.Println(len(orchestrator.updateCallbacks[UpdateTypeModified]))
+		}
+
+		// notify subscribers
 		for _, subscriber := range orchestrator.updateSubscribers {
 			subscriber <- NewUpdate(UpdateTypeModified, modifiedItemRoute)
 		}
@@ -174,77 +190,27 @@ func (orchestrator *Orchestrator) ResetCache(dataaccessLayerUpdate dataaccess.Up
 
 	// ... about deleted items
 	for _, deletedItemRoute := range dataaccessLayerUpdate.Deleted() {
+
+		// execute cache update callbacks
+		for _, callbackDefinition := range orchestrator.updateCallbacks[UpdateTypeDeleted] {
+			callbackDefinition.Update(deletedItemRoute)
+		}
+
+		// notify subscribers
 		for _, subscriber := range orchestrator.updateSubscribers {
 			subscriber <- NewUpdate(UpdateTypeDeleted, deletedItemRoute)
 		}
 	}
 }
 
-func (orchestrator *Orchestrator) setCache(cacheType string, primer func()) {
+// registerUpdateCallback registers callbacks for new, modified and deleted items.
+func (orchestrator *Orchestrator) registerUpdateCallback(name string, updateType UpdateType, callback func(updatedRoute route.Route)) {
 
-	// initialize the primer map on first use
-	if orchestrator.cachePrimerMap == nil {
-		orchestrator.cachePrimerMap = make(map[string]func())
+	if orchestrator.updateCallbacks[updateType] == nil {
+		orchestrator.updateCallbacks[updateType] = make([]CacheUpdateCallback, 0)
 	}
 
-	// initialize the status map on first use
-	if orchestrator.cacheStatusMap == nil {
-		orchestrator.cacheStatusMap = make(map[string]CacheState)
-	}
-
-	// store the primer
-	orchestrator.cachePrimerMap[cacheType] = primer
-
-	// fill the cache
-	primer()
-
-	// mark the cache type as primed
-	orchestrator.cacheStatusMap[cacheType] = CacheStatePrimed
-}
-
-func (orchestrator *Orchestrator) isCacheStale(cacheType string) bool {
-	if status, exists := orchestrator.cacheStatusMap[cacheType]; exists {
-		return status == CacheStateStale
-	}
-
-	// if there is no status it is definitly stale
-	return true
-}
-
-// Prime all caches
-func (orchestrator *Orchestrator) primeCaches() {
-	for cacheType := range orchestrator.cacheStatusMap {
-		orchestrator.primeCache(cacheType)
-	}
-}
-
-// Prime a particular cache
-func (orchestrator *Orchestrator) primeCache(cacheType string) {
-
-	// initialize the mutex map
-	if orchestrator.cachePrimerStatus == nil {
-		orchestrator.cachePrimerStatus = make(map[string]bool)
-	}
-
-	// check if there is a mutex
-	if exists, _ := orchestrator.cachePrimerStatus[cacheType]; exists {
-
-		// abort. There is already a primer running for the supplied cache type
-		return
-	}
-
-	// set a mutex for the supplied cache type
-	orchestrator.cachePrimerStatus[cacheType] = true
-
-	// execute the primer func
-	primerFunc := orchestrator.cachePrimerMap[cacheType]
-	primerFunc()
-
-	// set the cache status to "primed"
-	orchestrator.cacheStatusMap[cacheType] = CacheStatePrimed
-
-	// release the mutex
-	defer delete(orchestrator.cachePrimerStatus, cacheType)
+	orchestrator.updateCallbacks[updateType] = append(orchestrator.updateCallbacks[updateType], cacheUpdate(name, updateType, callback))
 }
 
 func (orchestrator *Orchestrator) ItemExists(route route.Route) bool {
@@ -313,102 +279,85 @@ func (orchestrator *Orchestrator) getLatestItems(parentRoute route.Route) []*mod
 
 func (orchestrator *Orchestrator) index() *index.Index {
 
-	cacheType := "index"
-
-	// load from cache
 	if orchestrator.repositoryIndex != nil {
-
-		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(cacheType) {
-			go orchestrator.primeCache(cacheType)
-		}
-
 		return orchestrator.repositoryIndex
 	}
 
-	orchestrator.setCache(cacheType, func() {
+	// newItem fetches the item with the given route and adds it to the index.
+	updateItem := func(updatedRoute route.Route) {
 
-		// parse all items
-		repositoryItems := orchestrator.repository.Items()
-		parsedItems := make([]*model.Item, 0, len(repositoryItems))
-		for _, repositoryItem := range repositoryItems {
-			parsedItem := orchestrator.parseItem(repositoryItem)
-			if parsedItem == nil {
-				continue
-			}
+		// get the updated item from the repository
+		updatedRepositoryItem := orchestrator.repository.Item(updatedRoute)
 
-			parsedItems = append(parsedItems, parsedItem)
+		// parse the item
+		parsedItem := orchestrator.parseItem(updatedRepositoryItem)
+		if parsedItem == nil {
+			orchestrator.logger.Warn("Unable to parse item %q", parsedItem.String())
+			return
 		}
 
-		// create a new index
-		newIndex := index.New(orchestrator.logger, parsedItems)
+		// update the index
+		if orchestrator.repositoryIndex == nil {
+			orchestrator.logger.Warn("Cannot add item %q, the index has not been initialized yet.", parsedItem.String())
+			return
+		}
 
-		// store to cache
-		orchestrator.repositoryIndex = newIndex
-	})
+		orchestrator.repositoryIndex.Add(parsedItem)
+	}
+
+	// deleteItem deletes the item with the given route from the index.
+	deleteItem := func(deletedRoute route.Route) {
+		orchestrator.repositoryIndex.Remove(deletedRoute)
+	}
+
+	// create a new index
+	orchestrator.repositoryIndex = index.New(orchestrator.logger)
+
+	// parse all items
+	repositoryItems := orchestrator.repository.Items()
+	for _, repositoryItem := range repositoryItems {
+		parsedItem := orchestrator.parseItem(repositoryItem)
+		if parsedItem == nil {
+			orchestrator.logger.Warn("Unable to parse item %q", repositoryItem.String())
+			continue
+		}
+
+		orchestrator.repositoryIndex.Add(parsedItem)
+	}
+
+	// register update callbacks
+	orchestrator.registerUpdateCallback("update index", UpdateTypeNew, updateItem)
+	orchestrator.registerUpdateCallback("update index", UpdateTypeModified, updateItem)
+	orchestrator.registerUpdateCallback("update index", UpdateTypeDeleted, deleteItem)
 
 	return orchestrator.repositoryIndex
 }
 
 func (orchestrator *Orchestrator) search(keywords string, maxiumNumberOfResults int) []search.Result {
-	cacheType := "fulltextIndex"
 
-	// load from cache
 	if orchestrator.fulltextIndex != nil {
-
-		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(cacheType) {
-			go orchestrator.primeCache(cacheType)
-		}
-
 		return orchestrator.fulltextIndex.Search(keywords, maxiumNumberOfResults)
 	}
 
-	orchestrator.setCache(cacheType, func() {
+	newFullTextIndex := search.NewItemSearch(orchestrator.logger, orchestrator.getAllItems())
 
-		newFullTextIndex := search.NewItemSearch(orchestrator.logger, orchestrator.getAllItems())
+	// destroy the old index
+	if orchestrator.fulltextIndex != nil {
+		oldIndex := orchestrator.fulltextIndex
+		go oldIndex.Destroy()
+	}
 
-		// destroy the old index
-		if orchestrator.fulltextIndex != nil {
-			oldIndex := orchestrator.fulltextIndex
-			go oldIndex.Destroy()
-		}
-
-		// store to cache
-		orchestrator.fulltextIndex = newFullTextIndex
-	})
+	orchestrator.fulltextIndex = newFullTextIndex
 
 	return orchestrator.fulltextIndex.Search(keywords, maxiumNumberOfResults)
 }
 
 func (orchestrator *Orchestrator) getAllItems() []*model.Item {
 
-	cacheType := "allItems"
+	allItems := orchestrator.index().GetAllItems()
+	model.SortItemsBy(sortItemsByDate).Sort(allItems)
+	return allItems
 
-	// load from cache
-	if orchestrator.items != nil {
-
-		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(cacheType) {
-			go orchestrator.primeCache(cacheType)
-		}
-
-		return orchestrator.items
-	}
-
-	orchestrator.setCache(cacheType, func() {
-
-		// get all items
-		allItems := orchestrator.index().GetAllItems()
-
-		// sort the items by date
-		model.SortItemsBy(sortItemsByDate).Sort(allItems)
-
-		// store to cache
-		orchestrator.items = allItems
-	})
-
-	return orchestrator.items
 }
 
 func (orchestrator *Orchestrator) getItems(pageSize, page int) []*model.Item {
@@ -532,37 +481,64 @@ func (orchestrator *Orchestrator) getChilds(route route.Route) []*model.Item {
 // Get the item that has the specified alias. Returns nil if there is no matching item.
 func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 
-	cacheType := "itembyalias"
-	alias = strings.TrimSpace(strings.ToLower(alias))
-
-	// load from cache
+	// return from cache
+	alias = normalizeAlias(alias)
 	if orchestrator.itemsByAlias != nil {
-
-		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(cacheType) {
-			go orchestrator.primeCache(cacheType)
-		}
-
 		return orchestrator.itemsByAlias[alias]
 	}
 
-	orchestrator.setCache(cacheType, func() {
-
-		itemsByAlias := make(map[string]*model.Item)
-
-		for _, item := range orchestrator.getAllItems() {
-
-			// continue items without an alias
-			if item.MetaData.Alias == "" {
-				continue
-			}
-
-			itemAlias := strings.TrimSpace(strings.ToLower(item.MetaData.Alias))
-			itemsByAlias[itemAlias] = item
+	// updateAliasMap updates the alias map for the given route.
+	updateAliasMap := func(route route.Route) {
+		item := orchestrator.getItem(route)
+		alias := normalizeAlias(item.MetaData.Alias)
+		if alias == "" {
+			return
 		}
 
-		orchestrator.itemsByAlias = itemsByAlias
-	})
+		// add item to map
+		orchestrator.itemsByAlias[alias] = item
+	}
+
+	// removeItemFromAliasMap removed the item with the given route from the alias map.
+	removeItemFromAliasMap := func(route route.Route) {
+
+		aliasToRemove := ""
+		for alias, item := range orchestrator.itemsByAlias {
+			if item.Route().Equals(route) {
+				aliasToRemove = alias
+				break
+			}
+		}
+
+		// abort if no alias was found
+		if aliasToRemove == "" {
+			return
+		}
+
+		// remove item from map
+		delete(orchestrator.itemsByAlias, aliasToRemove)
+	}
+
+	// build cache
+	itemsByAlias := make(map[string]*model.Item)
+
+	for _, item := range orchestrator.getAllItems() {
+
+		// ignore items without an alias
+		if item.MetaData.Alias == "" {
+			continue
+		}
+
+		itemAlias := normalizeAlias(item.MetaData.Alias)
+		itemsByAlias[itemAlias] = item
+	}
+
+	orchestrator.itemsByAlias = itemsByAlias
+
+	// register update callbacks
+	orchestrator.registerUpdateCallback("update alias map", UpdateTypeNew, updateAliasMap)
+	orchestrator.registerUpdateCallback("update alias map", UpdateTypeModified, updateAliasMap)
+	orchestrator.registerUpdateCallback("update alias map", UpdateTypeDeleted, removeItemFromAliasMap)
 
 	return orchestrator.itemsByAlias[alias]
 }
@@ -614,4 +590,9 @@ func (orchestrator *Orchestrator) getAnalyticsSettings() viewmodel.Analytics {
 			TrackingId: orchestrator.config.Analytics.GoogleAnalytics.TrackingId,
 		},
 	}
+}
+
+// normalizeAlias takes the supplied alias and normalizes it.
+func normalizeAlias(alias string) string {
+	return strings.TrimSpace(strings.ToLower(alias))
 }

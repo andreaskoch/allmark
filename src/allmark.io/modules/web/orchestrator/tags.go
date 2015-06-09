@@ -29,132 +29,108 @@ type TagsOrchestrator struct {
 
 func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 
-	cacheType := "tags"
-
-	// load from cache
 	if orchestrator.tags != nil {
-
-		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(cacheType) {
-			go orchestrator.primeCache(cacheType)
-		}
-
 		return orchestrator.tags
 	}
 
-	orchestrator.setCache(cacheType, func() {
+	rootItem := orchestrator.rootItem()
+	if rootItem == nil {
+		orchestrator.logger.Fatal("No root item found")
+	}
 
-		rootItem := orchestrator.rootItem()
-		if rootItem == nil {
-			orchestrator.logger.Fatal("No root item found")
+	// items by tag
+	itemsByTag := make(map[string][]*viewmodel.Model)
+	for _, item := range orchestrator.getAllItems() {
+
+		itemViewModel := &viewmodel.Model{
+			Base: getBaseModel(rootItem, item, orchestrator.relativePather(rootItem.Route()), orchestrator.config),
 		}
 
-		// items by tag
-		itemsByTag := make(map[string][]*viewmodel.Model)
-		for _, item := range orchestrator.getAllItems() {
-
-			itemViewModel := &viewmodel.Model{
-				Base: getBaseModel(rootItem, item, orchestrator.relativePather(rootItem.Route()), orchestrator.config),
-			}
-
-			tags := []model.Tag{}
-			if len(item.MetaData.Tags) > 0 {
-				tags = item.MetaData.Tags
-			}
-
-			for _, tag := range tags {
-				if items, exists := itemsByTag[tag.Name()]; exists {
-					itemsByTag[tag.Name()] = append(items, itemViewModel)
-				} else {
-					itemsByTag[tag.Name()] = []*viewmodel.Model{itemViewModel}
-				}
-			}
-
+		tags := []model.Tag{}
+		if len(item.MetaData.Tags) > 0 {
+			tags = item.MetaData.Tags
 		}
 
-		// create tag models
-		tags := make([]*viewmodel.Tag, 0)
-		for tag, items := range itemsByTag {
-
-			// create view model
-			tagModel := &viewmodel.Tag{
-				Name:   tag,
-				Route:  orchestrator.tagPather().Path(url.QueryEscape(tag)),
-				Childs: items,
+		for _, tag := range tags {
+			if items, exists := itemsByTag[tag.Name()]; exists {
+				itemsByTag[tag.Name()] = append(items, itemViewModel)
+			} else {
+				itemsByTag[tag.Name()] = []*viewmodel.Model{itemViewModel}
 			}
-
-			// append to list
-			tags = append(tags, tagModel)
 		}
 
-		// sort the tags
-		viewmodel.SortTagBy(tagsByName).Sort(tags)
+	}
 
-		orchestrator.tags = tags
-	})
+	// create tag models
+	tags := make([]*viewmodel.Tag, 0)
+	for tag, items := range itemsByTag {
+
+		// create view model
+		tagModel := &viewmodel.Tag{
+			Name:   tag,
+			Route:  orchestrator.tagPather().Path(url.QueryEscape(tag)),
+			Childs: items,
+		}
+
+		// append to list
+		tags = append(tags, tagModel)
+	}
+
+	// sort the tags
+	viewmodel.SortTagBy(tagsByName).Sort(tags)
+
+	orchestrator.tags = tags
 
 	return orchestrator.tags
 }
 
 func (orchestrator *TagsOrchestrator) GetTagCloud() *viewmodel.TagCloud {
 
-	cacheType := "tagCloud"
-
-	// load from cache
 	if orchestrator.tagCloud != nil {
-
-		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(cacheType) {
-			go orchestrator.primeCache(cacheType)
-		}
-
 		return orchestrator.tagCloud
 	}
 
-	orchestrator.setCache(cacheType, func() {
+	cloud := make(viewmodel.TagCloud, 0)
 
-		cloud := make(viewmodel.TagCloud, 0)
+	minNumberOfItems := 1
+	maxNumberOfItems := 1
 
-		minNumberOfItems := 1
-		maxNumberOfItems := 1
+	for _, tag := range orchestrator.GetTags() {
 
-		for _, tag := range orchestrator.GetTags() {
+		// calculate the number of items per tag
+		numberItemsPerTag := len(tag.Childs)
 
-			// calculate the number of items per tag
-			numberItemsPerTag := len(tag.Childs)
-
-			// update the maximum number of items per tag
-			if numberItemsPerTag > maxNumberOfItems {
-				maxNumberOfItems = numberItemsPerTag
-			}
-
-			// update the minimum number of items per tag
-			if numberItemsPerTag < minNumberOfItems {
-				minNumberOfItems = numberItemsPerTag
-			}
-
-			// create a new tag cloud entry
-			tagCloudEntry := viewmodel.TagCloudEntry{
-				Name:           tag.Name,
-				Route:          orchestrator.tagPather().Path(url.QueryEscape(tag.Name)),
-				NumberOfChilds: numberItemsPerTag,
-			}
-
-			cloud = append(cloud, &tagCloudEntry)
+		// update the maximum number of items per tag
+		if numberItemsPerTag > maxNumberOfItems {
+			maxNumberOfItems = numberItemsPerTag
 		}
 
-		// update the tag cloud entry levels according
-		// to the recorded min and max number of items
-		for index, entry := range cloud {
-			// calculate the entry level
-			cloud[index].Level = getTagCloudEntryLevel(entry.NumberOfChilds, minNumberOfItems, maxNumberOfItems, tagCloudEntryLevels)
+		// update the minimum number of items per tag
+		if numberItemsPerTag < minNumberOfItems {
+			minNumberOfItems = numberItemsPerTag
 		}
 
-		// sort tags by name
-		viewmodel.SortTagCloudBy(tagCloudEntriesByName).Sort(cloud)
+		// create a new tag cloud entry
+		tagCloudEntry := viewmodel.TagCloudEntry{
+			Name:           tag.Name,
+			Route:          orchestrator.tagPather().Path(url.QueryEscape(tag.Name)),
+			NumberOfChilds: numberItemsPerTag,
+		}
 
-		orchestrator.tagCloud = &cloud
-	})
+		cloud = append(cloud, &tagCloudEntry)
+	}
+
+	// update the tag cloud entry levels according
+	// to the recorded min and max number of items
+	for index, entry := range cloud {
+		// calculate the entry level
+		cloud[index].Level = getTagCloudEntryLevel(entry.NumberOfChilds, minNumberOfItems, maxNumberOfItems, tagCloudEntryLevels)
+	}
+
+	// sort tags by name
+	viewmodel.SortTagCloudBy(tagCloudEntriesByName).Sort(cloud)
+
+	orchestrator.tagCloud = &cloud
 
 	return orchestrator.tagCloud
 }

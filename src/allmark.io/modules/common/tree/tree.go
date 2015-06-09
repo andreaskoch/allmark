@@ -111,3 +111,12 @@ func (tree *Tree) GetNode(path Path) *Node {
 	// no match
 	return nil
 }
+
+// Walk visits every node in the current tree. Starting with the root, every child of the root and then recurses down the childs.
+func (tree *Tree) Walk(expression func(node *Node)) {
+	if tree.Root() == nil {
+		return
+	}
+
+	tree.Root().Walk(expression)
+}

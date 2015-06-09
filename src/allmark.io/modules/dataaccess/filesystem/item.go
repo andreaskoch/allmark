@@ -13,22 +13,51 @@ import (
 )
 
 // Create a new physical item.
-func newPhysicalItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item, watcherPaths []watcherPather) dataaccess.Item {
-	return newItem(dataaccess.TypePhysical, route, contentProvider, files, childs, watcherPaths)
+func newPhysicalItem(route route.Route,
+	contentProvider *content.ContentProvider,
+	files func() []dataaccess.File,
+	childs func() []dataaccess.Item,
+	directory string,
+	watcherPaths []watcherPather) dataaccess.Item {
+
+	return newItem(dataaccess.TypePhysical, route, contentProvider, files, childs, directory, watcherPaths)
+
 }
 
 // Create a new virtual item.
-func newVirtualItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item, watcherPaths []watcherPather) dataaccess.Item {
-	return newItem(dataaccess.TypeVirtual, route, contentProvider, files, childs, watcherPaths)
+func newVirtualItem(route route.Route,
+	contentProvider *content.ContentProvider,
+	files func() []dataaccess.File,
+	childs func() []dataaccess.Item,
+	directory string,
+	watcherPaths []watcherPather) dataaccess.Item {
+
+	return newItem(dataaccess.TypeVirtual, route, contentProvider, files, childs, directory, watcherPaths)
+
 }
 
 // Create new file-collection item.
-func newFileCollectionItem(route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, watcherPaths []watcherPather) dataaccess.Item {
-	return newItem(dataaccess.TypeFileCollection, route, contentProvider, files, nil, watcherPaths)
+func newFileCollectionItem(route route.Route,
+	contentProvider *content.ContentProvider,
+	files func() []dataaccess.File,
+	directory string,
+	watcherPaths []watcherPather) dataaccess.Item {
+
+	return newItem(dataaccess.TypeFileCollection, route, contentProvider, files, nil, directory, watcherPaths)
+
 }
 
 // Create a new item with the given item type.
-func newItem(itemType dataaccess.ItemType, route route.Route, contentProvider *content.ContentProvider, files func() []dataaccess.File, childs func() []dataaccess.Item, watcherPaths []watcherPather) dataaccess.Item {
+func newItem(itemType dataaccess.ItemType,
+	route route.Route,
+	contentProvider *content.ContentProvider,
+	files func() []dataaccess.File,
+	childs func() []dataaccess.Item,
+	directory string,
+	watcherPaths []watcherPather) dataaccess.Item {
+
+	hash, _ := contentProvider.Hash()
+
 	return &Item{
 		contentProvider,
 		itemType,
@@ -36,8 +65,12 @@ func newItem(itemType dataaccess.ItemType, route route.Route, contentProvider *c
 		files,
 		childs,
 
+		directory,
+		hash,
+
 		watcherPaths,
 	}
+
 }
 
 // An Item represents a single document in a repository.
@@ -48,6 +81,9 @@ type Item struct {
 	route      route.Route
 	filesFunc  func() []dataaccess.File
 	childsFunc func() []dataaccess.Item
+
+	directory string
+	lastHash  string
 
 	watcherPaths []watcherPather
 }
@@ -99,6 +135,14 @@ func (item *Item) Files() (files []dataaccess.File) {
 	return item.filesFunc()
 }
 
+func (item *Item) Directory() string {
+	return item.directory
+}
+
 func (item *Item) WatcherPaths() []watcherPather {
 	return item.watcherPaths
+}
+
+func (item *Item) LastHash() string {
+	return item.lastHash
 }

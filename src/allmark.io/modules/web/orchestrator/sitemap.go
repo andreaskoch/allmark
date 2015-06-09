@@ -18,35 +18,23 @@ type SitemapOrchestrator struct {
 
 func (orchestrator *SitemapOrchestrator) GetSitemap() viewmodel.Sitemap {
 
-	cacheType := "html sitmap"
-
-	// load from cache
 	if orchestrator.sitemap != nil {
-
-		// re-prime the cache if it is stale
-		if orchestrator.isCacheStale(cacheType) {
-			go orchestrator.primeCache(cacheType)
-		}
-
 		return *orchestrator.sitemap
 	}
 
-	orchestrator.setCache(cacheType, func() {
+	rootItem := orchestrator.rootItem()
+	if rootItem == nil {
+		orchestrator.logger.Fatal("No root item found")
+	}
 
-		rootItem := orchestrator.rootItem()
-		if rootItem == nil {
-			orchestrator.logger.Fatal("No root item found")
-		}
+	sitemapModel := viewmodel.Sitemap{
+		Title:       rootItem.Title,
+		Description: rootItem.Description,
+		Childs:      orchestrator.getSitemapEntries(rootItem.Route()),
+		Path:        "/",
+	}
 
-		sitemapModel := viewmodel.Sitemap{
-			Title:       rootItem.Title,
-			Description: rootItem.Description,
-			Childs:      orchestrator.getSitemapEntries(rootItem.Route()),
-			Path:        "/",
-		}
-
-		orchestrator.sitemap = &sitemapModel
-	})
+	orchestrator.sitemap = &sitemapModel
 
 	return *orchestrator.sitemap
 }

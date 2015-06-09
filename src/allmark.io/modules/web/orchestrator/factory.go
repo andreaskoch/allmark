@@ -25,7 +25,7 @@ func NewFactory(logger logger.Logger, config config.Config, repository dataacces
 		for update := range repositoryUpdates {
 
 			logger.Info("Received and update (%s). Resetting the the cache.", update.String())
-			baseOrchestrator.ResetCache(update)
+			baseOrchestrator.UpdateCache(update)
 
 		}
 	}()
@@ -174,9 +174,6 @@ func (factory *Factory) NewViewModelOrchestrator() *ViewModelOrchestrator {
 		tagOrchestrator:        factory.NewTagsOrchestrator(),
 		fileOrchestrator:       factory.NewFileOrchestrator(),
 	}
-
-	// warm up the caches
-	orchestrator.blockingCacheWarmup()
 
 	// store
 	factory.viewModelOrchestrator = orchestrator

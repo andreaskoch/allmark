@@ -10,20 +10,14 @@ import (
 	"allmark.io/modules/model"
 )
 
-func New(logger logger.Logger, items []*model.Item) *Index {
-	index := &Index{
+func New(logger logger.Logger) *Index {
+	return &Index{
 		logger: logger,
 
 		itemList: make([]*model.Item, 0),
 		routeMap: make(map[string]*model.Item),
 		itemTree: newItemTree(logger),
 	}
-
-	for _, item := range items {
-		index.add(item)
-	}
-
-	return index
 }
 
 type Index struct {
@@ -33,6 +27,10 @@ type Index struct {
 	itemList []*model.Item
 	routeMap map[string]*model.Item // route -> item,
 	itemTree *ItemTree
+}
+
+func (index *Index) String() string {
+	return index.itemTree.String()
 }
 
 func (index *Index) IsMatch(r route.Route) (item *model.Item, isMatch bool) {
@@ -118,9 +116,13 @@ func (index *Index) Size() int {
 	return len(index.itemList)
 }
 
-// Get all items
+// GetAllItems returns all items in the index.
 func (index *Index) GetAllItems() []*model.Item {
-	return index.itemList
+	items := make([]*model.Item, 0)
+	index.itemTree.Walk(func(item *model.Item) {
+		items = append(items, item)
+	})
+	return items
 }
 
 // Get all childs that match the given expression
@@ -191,7 +193,7 @@ func (index *Index) GetLeafes(route route.Route) []*model.Item {
 	return leafes
 }
 
-func (index *Index) add(item *model.Item) {
+func (index *Index) Add(item *model.Item) {
 
 	// abort if item is invalid
 	if item == nil {
@@ -203,6 +205,11 @@ func (index *Index) add(item *model.Item) {
 	index.itemList = append(index.itemList, item)
 	index.routeMap[route.ToKey(item.Route())] = item
 	index.itemTree.Insert(item)
+}
+
+func (index *Index) Remove(itemRoute route.Route) {
+	delete(index.routeMap, route.ToKey(itemRoute))
+	index.itemTree.Delete(itemRoute)
 }
 
 // sort the models by date and name

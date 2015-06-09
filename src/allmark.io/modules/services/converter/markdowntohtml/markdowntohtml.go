@@ -49,7 +49,7 @@ func New(logger logger.Logger, thumbnailIndex *thumbnail.Index) *Converter {
 // Convert the supplied item with all paths relative to the supplied base route
 func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item, pathProvider paths.Pather, item *model.Item) (convertedContent string, converterError error) {
 
-	converter.logger.Debug("Converting item %q.", item)
+	converter.logger.Debug("Converting markdown for item %q.", item)
 
 	itemRoute := item.Route()
 	content := item.Content
