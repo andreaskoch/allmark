@@ -12,6 +12,7 @@ type TagCloud []*TagCloudEntry
 
 type TagCloudEntry struct {
 	Name           string `json:"name"`
+	Anchor         string `json:"anchor"`
 	Route          string `json:"route"`
 	Level          int    `json:"level"`
 	NumberOfChilds int    `json:"numberofchilds"`

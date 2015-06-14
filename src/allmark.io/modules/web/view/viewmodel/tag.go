@@ -10,6 +10,7 @@ import (
 
 type Tag struct {
 	Name   string   `json:"name"`
+	Anchor string   `json:"anchor"`
 	Route  string   `json:"route"`
 	Childs []*Model `json:"childs"`
 }

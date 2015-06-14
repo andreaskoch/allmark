@@ -68,6 +68,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 		// create view model
 		tagModel := &viewmodel.Tag{
 			Name:   tag,
+			Anchor: url.QueryEscape(tag),
 			Route:  orchestrator.tagPather().Path(url.QueryEscape(tag)),
 			Childs: items,
 		}
@@ -113,6 +114,7 @@ func (orchestrator *TagsOrchestrator) GetTagCloud() *viewmodel.TagCloud {
 		// create a new tag cloud entry
 		tagCloudEntry := viewmodel.TagCloudEntry{
 			Name:           tag.Name,
+			Anchor:         url.QueryEscape(tag.Name),
 			Route:          orchestrator.tagPather().Path(url.QueryEscape(tag.Name)),
 			NumberOfChilds: numberItemsPerTag,
 		}
@@ -149,8 +151,9 @@ func (orchestrator *TagsOrchestrator) getItemTags(route route.Route) []*viewmode
 
 		// create view model
 		tagModel := &viewmodel.Tag{
-			Name:  tag.Name(),
-			Route: orchestrator.tagPather().Path(url.QueryEscape(tag.Name())),
+			Name:   tag.Name(),
+			Anchor: url.QueryEscape(tag.Name()),
+			Route:  orchestrator.tagPather().Path(url.QueryEscape(tag.Name())),
 		}
 
 		// append to list
@@ -192,7 +195,7 @@ func getTagCloudEntryLevel(numberOfChilds, minNumberOfChilds, maxNumberOfChilds,
 	return level
 }
 
-// sort tags by name
+// sort tags by nametag
 func tagsByName(tag1, tag2 *viewmodel.Tag) bool {
 	return tag1.Name < tag2.Name
 }

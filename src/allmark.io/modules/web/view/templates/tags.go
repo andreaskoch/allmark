@@ -6,14 +6,14 @@ package templates
 
 var tagmapContentTemplate = `
 <li class="tag">
-	<a name="{{.Name}}" href={{.Route}}>{{.Name}}</a>
+	<a name="{{.Anchor}}" href={{.Route}}>{{.Name}}</a>
 	<ol class="childs">
 		{{range .Childs}}
 		<li class="child">
 			<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
 			<p class="child-description">{{.Description}}</p>
 		</li>
-		{{end}} 
+		{{end}}
 	</ol>
 </li>
 `
