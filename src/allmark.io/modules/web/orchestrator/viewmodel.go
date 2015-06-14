@@ -109,8 +109,10 @@ func (orchestrator *ViewModelOrchestrator) GetViewModelByAlias(alias string) (vi
 	return *vm, true
 }
 
+// GetLatest returns the latest items (sorted by creation date) for the given route.
 func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (latest []*viewmodel.Model, found bool) {
 
+	// return from cache if cache has been initialized
 	if orchestrator.latestByRoute != nil {
 
 		if models, exists := orchestrator.latestByRoute[itemRoute.Value()]; exists {
@@ -121,33 +123,37 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 
 	}
 
-	startTime := time.Now()
+	// updateLatest updates the latest items for the given route.
+	updateLatest := func(route route.Route) {
+		startTime := time.Now()
 
-	latestModelsByRoute := make(map[string][]*viewmodel.Model)
+		orchestrator.latestByRoute = make(map[string][]*viewmodel.Model)
+		for _, childRoute := range orchestrator.repository.Routes() {
+			latestItems := orchestrator.getLatestItems(childRoute)
+			orchestrator.latestByRoute[childRoute.Value()] = orchestrator.getLastesViewModelsFromItemList(latestItems)
+		}
 
-	for _, childRoute := range orchestrator.repository.Routes() {
-
-		// get the latest items
-		latestItems := orchestrator.getLatestItems(childRoute)
-
-		// store the results
-		latestModelsByRoute[childRoute.Value()] = orchestrator.getLastesViewModelsFromItemList(latestItems)
-
+		// log timing reports
+		endTime := time.Now()
+		duration := endTime.Sub(startTime)
+		orchestrator.logger.Statistics("Priming the latest cache took %f seconds.", duration.Seconds())
 	}
 
-	endTime := time.Now()
-	duration := endTime.Sub(startTime)
-	orchestrator.logger.Statistics("Priming the latest cache took %f seconds.", duration.Seconds())
-
-	// save the result
-	orchestrator.latestByRoute = latestModelsByRoute
-
-	// return a result
-	if models, exists := orchestrator.latestByRoute[itemRoute.Value()]; exists {
-		return pagedViewmodels(models, pageSize, page)
+	// asyncUpdateLatest executes updateLatest for the given route in a go routine.
+	asyncUpdateLatest := func(route route.Route) {
+		go updateLatest(route)
 	}
 
-	return []*viewmodel.Model{}, false
+	// initialize cache
+	updateLatest(route.New())
+
+	// register update callbacks
+	orchestrator.registerUpdateCallback("update latest", UpdateTypeNew, asyncUpdateLatest)
+	orchestrator.registerUpdateCallback("update latest", UpdateTypeModified, asyncUpdateLatest)
+	orchestrator.registerUpdateCallback("update latest", UpdateTypeDeleted, asyncUpdateLatest)
+
+	// return the result
+	return orchestrator.GetLatest(itemRoute, pageSize, page)
 }
 
 // Converts a list of model.Item elements into a view models for the latest-items controller
@@ -187,6 +193,11 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *
 
 		// convert content
 		item := orchestrator.getItem(route)
+		if item == nil {
+			orchestrator.logger.Warn("Cannot update viewmodel cache. The item with the route %q was not found.", route.String())
+			return
+		}
+
 		root := orchestrator.rootItem()
 		convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, orchestrator.relativePather(route), item)
 		if err != nil {

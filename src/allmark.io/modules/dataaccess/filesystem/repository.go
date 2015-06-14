@@ -80,9 +80,17 @@ func NewRepository(logger logger.Logger, directory string, config config.Config)
 
 	// scheduled reindex
 	if config.Indexing.Enabled {
+		repository.logger.Info("Reindexing: On")
 		repository.reindex(config.Indexing.IntervalInSeconds)
 	} else {
-		repository.logger.Info("Reindexing is disabled.")
+		repository.logger.Info("Reindexing: Off")
+	}
+
+	// live reload
+	if config.LiveReload.Enabled {
+		repository.logger.Info("Live Reload: On")
+	} else {
+		repository.logger.Info("Live Reload: Off")
 	}
 
 	return repository, nil
@@ -120,11 +128,12 @@ func getRoutesFromIndex(index *Index) []route.Route {
 
 // Initialize the repository - scan all folders and update the index.
 func (repository *Repository) init() {
-	newIndex, _ := repository.rescan(repository.directory, false, 0)
+	newIndex, updates := repository.rescan(newIndex(), repository.directory, false, 0)
 	repository.index = newIndex
+	repository.sendUpdate(updates)
 }
 
-func (repository *Repository) rescan(directory string, limitMaxDepth bool, maxDepth int) (*Index, dataaccess.Update) {
+func (repository *Repository) rescan(baseIndex *Index, directory string, limitMaxDepth bool, maxDepth int) (*Index, dataaccess.Update) {
 
 	repository.logger.Debug("Rescanning", directory)
 
@@ -133,7 +142,7 @@ func (repository *Repository) rescan(directory string, limitMaxDepth bool, maxDe
 	modifiedItemRoutes := make([]route.Route, 0)
 	deletedItemRoutes := make([]route.Route, 0)
 
-	index := repository.index.Copy()
+	index := baseIndex.Copy()
 
 	// scan the repository directory for new items
 	for _, newItem := range repository.getItemsFromDirectory(directory, limitMaxDepth, maxDepth) {
@@ -236,21 +245,19 @@ func (repository *Repository) reindex(intervalInSeconds int) {
 		return
 	}
 
-	repository.logger.Info("Reindexing: On")
-
 	go func() {
 		sleepInterval := time.Second * time.Duration(intervalInSeconds)
 
 		for {
+
+			// wait for the next turn
+			time.Sleep(sleepInterval)
 
 			repository.logger.Debug("Number of go routines: %d", runtime.NumGoroutine())
 			repository.logger.Info("Reindexing")
 
 			// index
 			repository.init()
-
-			// wait for the next turn
-			time.Sleep(sleepInterval)
 		}
 	}()
 }
@@ -275,7 +282,7 @@ func (repository *Repository) sendUpdate(update dataaccess.Update) {
 func (repository *Repository) StartWatching(route route.Route) {
 
 	if !repository.livereloadIsEnabled {
-		repository.logger.Info("Live reload is disabled.")
+		repository.logger.Info("Live reload: Off")
 		return
 	}
 
@@ -298,7 +305,7 @@ func (repository *Repository) StartWatching(route route.Route) {
 
 				repository.logger.Info("Recieved an update for route %q. Reindexing.", route.String())
 
-				newIndex, updates := repository.rescan(fileSystemItem.Directory(), true, 1)
+				newIndex, updates := repository.rescan(repository.index, fileSystemItem.Directory(), true, 1)
 
 				repository.index = newIndex
 				repository.sendUpdate(updates)

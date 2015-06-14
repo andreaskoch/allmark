@@ -100,8 +100,7 @@ func newBaseOrchestrator(logger logger.Logger, config config.Config, repository 
 		webPathProvider: webPathProvider,
 
 		updateSubscribers: make([]chan Update, 0),
-
-		updateCallbacks: make(map[UpdateType][]CacheUpdateCallback),
+		updateCallbacks:   make(map[UpdateType][]CacheUpdateCallback),
 	}
 
 	// warm up caches
@@ -124,15 +123,14 @@ type Orchestrator struct {
 
 	webPathProvider webpaths.WebPathProvider
 
-	// update handling
-	updateCallbacks map[UpdateType][]CacheUpdateCallback
-
-	// caches and indizes
+	// caches and indizes (do not initialize!)
 	fulltextIndex   *search.ItemSearch
 	repositoryIndex *index.Index
 	items           []*model.Item
 	itemsByAlias    map[string]*model.Item
 
+	// update handling
+	updateCallbacks   map[UpdateType][]CacheUpdateCallback
 	updateSubscribers []chan Update
 }
 
@@ -177,9 +175,7 @@ func (orchestrator *Orchestrator) UpdateCache(dataaccessLayerUpdate dataaccess.U
 
 		// execute cache update callbacks
 		for _, callbackDefinition := range orchestrator.updateCallbacks[UpdateTypeModified] {
-			fmt.Println(callbackDefinition.Name)
 			callbackDefinition.Update(modifiedItemRoute)
-			fmt.Println(len(orchestrator.updateCallbacks[UpdateTypeModified]))
 		}
 
 		// notify subscribers
