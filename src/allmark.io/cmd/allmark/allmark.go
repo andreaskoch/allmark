@@ -160,38 +160,39 @@ func serve(repositoryPath string) bool {
 	serveStart := time.Now()
 
 	// get the configuration
-	config := config.Get(repositoryPath)
+	configuration := config.Get(repositoryPath)
 
 	// check if https shall be forced
 	if *secure {
-		config.Server.Https.Force = true
+		configuration.Server.Https.Force = true
 	}
 
 	// check if indexing is enabled
 	if *reindex {
-		config.Indexing.Enabled = true
+		configuration.Indexing.Enabled = true
+		configuration.Indexing.IntervalInSeconds = config.DefaultIndexingIntervalInSeconds
 	}
 
 	// check if live-reload is enabled
 	if *livereload {
-		config.LiveReload.Enabled = true
+		configuration.LiveReload.Enabled = true
 	}
 
 	// create a logger
-	logger := console.New(loglevel.FromString(config.LogLevel))
+	logger := console.New(loglevel.FromString(configuration.LogLevel))
 
 	// data access
-	repository, err := filesystem.NewRepository(logger, repositoryPath, *config)
+	repository, err := filesystem.NewRepository(logger, repositoryPath, *configuration)
 	if err != nil {
 		logger.Fatal("Unable to create a repository. Error: %s", err)
 	}
 
 	// thumbnail index
 	thumbnailIndex := thumbnail.EmptyIndex()
-	if config.Conversion.Thumbnails.Enabled {
+	if configuration.Conversion.Thumbnails.Enabled {
 
-		thumbnailIndexFilePath := config.ThumbnailIndexFilePath()
-		thumbnailFolder := config.ThumbnailFolder()
+		thumbnailIndexFilePath := configuration.ThumbnailIndexFilePath()
+		thumbnailFolder := configuration.ThumbnailFolder()
 
 		if !fsutil.CreateDirectory(thumbnailFolder) {
 			logger.Fatal("Could not create the thumbnail folder %q", thumbnailFolder)
@@ -214,7 +215,7 @@ func serve(repositoryPath string) bool {
 	converter := markdowntohtml.New(logger, thumbnailIndex)
 
 	// server
-	server, err := server.New(logger, *config, repository, itemParser, converter)
+	server, err := server.New(logger, *configuration, repository, itemParser, converter)
 	if err != nil {
 		logger.Error("Unable to instantiate a server. Error: %s", err.Error())
 		return false
