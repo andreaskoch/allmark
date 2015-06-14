@@ -82,6 +82,9 @@ var (
 
 	// RedirectHandlerRoute defines the route for redirect-handler requests.
 	RedirectHandlerRoute = "/{path:.*$}"
+
+	// AliasLookupHandlerRoute defines the route for alias-lookup-handler requests.
+	AliasLookupHandlerRoute = "/>{alias:.*$}"
 )
 
 // RouteAndHandler combines routes and http-handlers.
@@ -183,6 +186,9 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 
 	// update
 	handlers.Add(UpdateHandlerRoute, Update(logger, headerWriterFactory.Dynamic(), updateOrchestrator))
+
+	// alias lookup
+	handlers.Add(AliasLookupHandlerRoute, AliasLookup(headerWriterFactory.Dynamic(), viewModelOrchestrator, itemHandler))
 
 	// items
 	handlers.Add(ItemHandlerRoute, itemHandler)

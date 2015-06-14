@@ -93,6 +93,22 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 	return *vm, true
 }
 
+// GetViewModelByAlias returns the viewmodel by its alias.
+func (orchestrator *ViewModelOrchestrator) GetViewModelByAlias(alias string) (viewModel viewmodel.Model, found bool) {
+
+	item := orchestrator.getItemByAlias(alias)
+	if item == nil {
+		return viewmodel.Model{}, false
+	}
+
+	vm := orchestrator.getViewModel(item.Route())
+	if vm == nil {
+		return viewModel, false
+	}
+
+	return *vm, true
+}
+
 func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (latest []*viewmodel.Model, found bool) {
 
 	if orchestrator.latestByRoute != nil {
