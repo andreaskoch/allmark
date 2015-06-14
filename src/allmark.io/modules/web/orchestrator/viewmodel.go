@@ -78,7 +78,7 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 
 	endTime := time.Now()
 	duration := endTime.Sub(startTime)
-	orchestrator.logger.Statistics("Getting the full view model %s took %f seconds.", viewModel.Route, duration.Seconds())
+	orchestrator.logger.Statistics("Getting the full view model for route %q took %f seconds.", viewModel.Route, duration.Seconds())
 
 	return *viewModel, true
 }
@@ -266,7 +266,7 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route)
 
 	endTime := time.Now()
 	duration := endTime.Sub(startTime)
-	orchestrator.logger.Statistics("Getting child models for route %s took %f seconds.", itemRoute, duration.Seconds())
+	orchestrator.logger.Statistics("Getting child models for route %q took %f seconds.", itemRoute, duration.Seconds())
 
 	return childModels
 }

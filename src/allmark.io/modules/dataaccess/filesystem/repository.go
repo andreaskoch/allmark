@@ -158,23 +158,29 @@ func (repository *Repository) rescan(baseIndex *Index, directory string, limitMa
 
 		} else {
 
-			// compare hashes
-			hash := newItem.LastHash()
+			// determine the hash of the new item
+			newItemHash, err := newItem.Hash()
+			if err != nil {
+				repository.logger.Error("Skipping item %q because the hash of the new item cannot be determined", newItem.Route())
+				continue
+			}
+
+			// determine the hash of the existing item
 			existingItemHash := existingItem.LastHash()
 
-			if existingItemHash != hash {
-
-				// the hash has changed
+			// compare hashes
+			if existingItemHash != newItemHash {
+				repository.logger.Debug("Item %q has changed", newItem.Route())
 				modifiedItemRoutes = append(modifiedItemRoutes, newItem.Route())
-				repository.logger.Debug("Item %q is changed", newItem.Route())
-
 			} else {
-				repository.logger.Debug("Item %q is not modified", newItem.Route())
+				repository.logger.Debug("Item %q has not changed", newItem.Route())
 			}
 
 		}
 
-		index.Add(newItem)
+		if _, err := index.Add(newItem); err != nil {
+			repository.logger.Error("Cannot add item %q to index: Error: %s", newItem.String, err.Error())
+		}
 
 	}
 
@@ -303,12 +309,12 @@ func (repository *Repository) StartWatching(route route.Route) {
 			select {
 			case <-updates:
 
-				repository.logger.Info("Recieved an update for route %q. Reindexing.", route.String())
+				repository.logger.Info("Recieved an update for route %q. Recanning directory %q.", route.String(), fileSystemItem.Directory())
 
-				newIndex, updates := repository.rescan(repository.index, fileSystemItem.Directory(), true, 1)
+				newIndex, changedItems := repository.rescan(repository.index, fileSystemItem.Directory(), true, 1)
 
 				repository.index = newIndex
-				repository.sendUpdate(updates)
+				repository.sendUpdate(changedItems)
 
 			}
 		}

@@ -113,7 +113,7 @@ func Test_normalize_NormalizeSlashes(t *testing.T) {
 	}
 }
 
-// Testing the urlSafe function: Replace all double white spaces
+// Testing the normalize function: Replace all double white spaces
 func Test_normalize_ReplaceDoubleWhitespace(t *testing.T) {
 	// arrange
 	inputPath := "my    documents/A  Test"
@@ -128,11 +128,27 @@ func Test_normalize_ReplaceDoubleWhitespace(t *testing.T) {
 	}
 }
 
+// Testing the normalize function: Two almost identify paths get a different route.
+func Test_normalize_UniqueResultsForUniquePaths(t *testing.T) {
+	// arrange
+	inputPath1 := "/Images/Hurricane-Festival"
+	inputPath2 := "/Images/Hurricane Festival"
+
+	// act
+	result1 := normalize(inputPath1)
+	result2 := normalize(inputPath2)
+
+	// assert
+	if result1 == result2 {
+		t.Errorf("normalize should always return a unique route for a unique path. But normalize returned the same result for two different paths. normalize(%q)=%q  == normalize(%q)=%q", inputPath1, result1, inputPath2, result2)
+	}
+}
+
 // Testing the toUrl function: Replace white space with url safe characters.
 func Test_toUrl_ReplaceWhitespaceWithUrlSafeCharacters(t *testing.T) {
 	// arrange
 	inputPath := "documents/A Test"
-	expectedResult := "documents/A-Test"
+	expectedResult := "documents/A+Test"
 
 	// act
 	result := toUrl(inputPath)

@@ -7,6 +7,7 @@ package filesystem
 import (
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/dataaccess"
+	"fmt"
 )
 
 func newIndex() *Index {
@@ -144,16 +145,16 @@ func (index *Index) GetLeafes(route route.Route) []dataaccess.Item {
 	return leafes
 }
 
-func (index *Index) Add(item dataaccess.Item) {
+func (index *Index) Add(item dataaccess.Item) (bool, error) {
 
 	// abort if item is invalid
 	if item == nil {
-		return
+		return false, fmt.Errorf("Cannot add nil item to index.")
 	}
 
 	// the the item to the indizes
 	index.routeMap[route.ToKey(item.Route())] = item
-	index.itemTree.Insert(item)
+	return index.itemTree.Insert(item)
 }
 
 func (index *Index) Remove(itemRoute route.Route) {

@@ -25,11 +25,18 @@ type DataProviderFunc func(contentReader func(content io.ReadSeeker) error) erro
 type HashProviderFunc func() (string, error)
 
 func NewContentProvider(mimeType MimeTypeProviderFunc, data DataProviderFunc, hash HashProviderFunc, lastModified LastModifiedProviderFunc) *ContentProvider {
+
+	currentHash, err := hash()
+	if err != nil {
+		panic(err)
+	}
+
 	return &ContentProvider{
 		mimeTypeProviderFunc:     mimeType,
 		dataProviderFunc:         data,
 		hashProviderFunc:         hash,
 		lastModifiedProviderFunc: lastModified,
+		lastHash:                 currentHash,
 	}
 }
 
@@ -38,6 +45,7 @@ type ContentProvider struct {
 	dataProviderFunc         DataProviderFunc
 	hashProviderFunc         HashProviderFunc
 	lastModifiedProviderFunc LastModifiedProviderFunc
+	lastHash                 string
 }
 
 func (provider *ContentProvider) Data(contentReader func(content io.ReadSeeker) error) error {
@@ -45,7 +53,13 @@ func (provider *ContentProvider) Data(contentReader func(content io.ReadSeeker) 
 }
 
 func (provider *ContentProvider) Hash() (string, error) {
-	return provider.hashProviderFunc()
+	hash, err := provider.hashProviderFunc()
+	if err != nil {
+		return hash, err
+	}
+
+	provider.lastHash = hash
+	return hash, nil
 }
 
 func (provider *ContentProvider) LastModified() (time.Time, error) {
@@ -54,4 +68,8 @@ func (provider *ContentProvider) LastModified() (time.Time, error) {
 
 func (provider *ContentProvider) MimeType() (string, error) {
 	return provider.mimeTypeProviderFunc()
+}
+
+func (provider *ContentProvider) LastHash() string {
+	return provider.lastHash
 }

@@ -8,6 +8,7 @@ import (
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/common/tree"
 	"allmark.io/modules/dataaccess"
+	"fmt"
 )
 
 func newItemTree() *ItemTree {
@@ -29,15 +30,15 @@ func (itemTree *ItemTree) Root() dataaccess.Item {
 	return nodeToItem(rootNode)
 }
 
-func (itemTree *ItemTree) Insert(item dataaccess.Item) {
+func (itemTree *ItemTree) Insert(item dataaccess.Item) (bool, error) {
 
 	if item == nil {
-		return
+		return false, fmt.Errorf("Cannot insert item into tree. The supplied item cannot be null.")
 	}
 
 	// convert the route to a path
 	path := tree.RouteToPath(item.Route())
-	itemTree.Tree.Insert(path, item)
+	return itemTree.Tree.Insert(path, item)
 }
 
 func (itemTree *ItemTree) Delete(itemRoute route.Route) (bool, error) {

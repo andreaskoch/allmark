@@ -56,8 +56,6 @@ func newItem(itemType dataaccess.ItemType,
 	directory string,
 	watcherPaths []watcherPather) dataaccess.Item {
 
-	hash, _ := contentProvider.Hash()
-
 	return &Item{
 		contentProvider,
 		itemType,
@@ -66,7 +64,6 @@ func newItem(itemType dataaccess.ItemType,
 		childs,
 
 		directory,
-		hash,
 
 		watcherPaths,
 	}
@@ -83,7 +80,6 @@ type Item struct {
 	childsFunc func() []dataaccess.Item
 
 	directory string
-	lastHash  string
 
 	watcherPaths []watcherPather
 }
@@ -141,8 +137,4 @@ func (item *Item) Directory() string {
 
 func (item *Item) WatcherPaths() []watcherPather {
 	return item.watcherPaths
-}
-
-func (item *Item) LastHash() string {
-	return item.lastHash
 }

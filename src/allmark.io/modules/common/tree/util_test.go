@@ -17,7 +17,7 @@ func Test_RouteToPath(t *testing.T) {
 	result := RouteToPath(inputRoute).String()
 
 	// assert
-	expected := "document > sample doc > child 1"
+	expected := "document > sample-doc > child-1"
 	if result != expected {
 		t.Errorf("The path should be %q but was %q instead.", expected, result)
 	}
