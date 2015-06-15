@@ -21,66 +21,107 @@ type ViewModelOrchestrator struct {
 	fileOrchestrator       *FileOrchestrator
 
 	// caches (do not initialize!)
-	latestByRoute     map[string][]*viewmodel.Model
-	viewmodelsByRoute map[string]*viewmodel.Model
+	latestByRoute         map[string][]*viewmodel.Model
+	viewmodelsByRoute     map[string]*viewmodel.Model
+	fullViewmodelsByRoute map[string]*viewmodel.Model
 }
 
+// GetFullViewModel returns a fully-initialized viewmodel for the given route.
 func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Route) (viewmodel.Model, bool) {
 
-	startTime := time.Now()
+	// return from cache
+	if orchestrator.fullViewmodelsByRoute != nil {
+		viewModel := orchestrator.fullViewmodelsByRoute[itemRoute.String()]
+		if viewModel != nil {
+			return *viewModel, true
+		}
 
-	// get the requested item
-	item := orchestrator.getItem(itemRoute)
-	if item == nil {
 		return viewmodel.Model{}, false
 	}
 
-	// get the base view model
-	viewModel := orchestrator.getViewModel(itemRoute)
-	if viewModel == nil {
-		return viewmodel.Model{}, false
-	}
+	// initialize the cache
+	orchestrator.fullViewmodelsByRoute = make(map[string]*viewmodel.Model)
 
-	// navigation
-	viewModel.ToplevelNavigation = orchestrator.navigationOrchestrator.GetToplevelNavigation()
-	viewModel.BreadcrumbNavigation = orchestrator.navigationOrchestrator.GetBreadcrumbNavigation(itemRoute)
-	viewModel.ItemNavigation = orchestrator.navigationOrchestrator.GetItemNavigation(itemRoute)
+	// updateViewModel update the viewmodel cache for the given route.
+	updateViewModel := func(route route.Route) {
 
-	// childs
-	viewModel.Childs = orchestrator.getChildModels(itemRoute)
+		// get the requested item
+		item := orchestrator.getItem(route)
+		if item == nil {
+			return
+		}
 
-	// tags
-	viewModel.Tags = orchestrator.tagOrchestrator.getItemTags(itemRoute)
+		// get the base view model
+		viewModel := orchestrator.getViewModel(route)
+		if viewModel == nil {
+			return
+		}
 
-	// Geo Coordinates
-	viewModel.GeoLocation = getGeoLocation(item)
+		// navigation
+		viewModel.ToplevelNavigation = orchestrator.navigationOrchestrator.GetToplevelNavigation()
+		viewModel.BreadcrumbNavigation = orchestrator.navigationOrchestrator.GetBreadcrumbNavigation(route)
+		viewModel.ItemNavigation = orchestrator.navigationOrchestrator.GetItemNavigation(route)
 
-	// Analytics Settings
-	viewModel.Analytics = orchestrator.getAnalyticsSettings()
+		// childs
+		viewModel.Childs = orchestrator.getChildModels(route)
 
-	// Hash / ETag
-	viewModel.Hash = item.Hash
+		// tags
+		viewModel.Tags = orchestrator.tagOrchestrator.getItemTags(route)
 
-	// special viewmodel attributes
-	isRepositoryItem := item.Type == model.TypeRepository
-	if isRepositoryItem {
+		// Geo Coordinates
+		viewModel.GeoLocation = getGeoLocation(item)
 
-		// tag cloud
-		repositoryIsNotEmpty := orchestrator.index().Size() >= 5 // don't bother to create a tag cloud if there aren't enough documents
-		if repositoryIsNotEmpty {
+		// Analytics Settings
+		viewModel.Analytics = orchestrator.getAnalyticsSettings()
 
-			tagCloud := orchestrator.tagOrchestrator.GetTagCloud()
-			viewModel.TagCloud = tagCloud
+		// Hash / ETag
+		viewModel.Hash = item.Hash
+
+		// special viewmodel attributes
+		isRepositoryItem := item.Type == model.TypeRepository
+		if isRepositoryItem {
+
+			// tag cloud
+			repositoryIsNotEmpty := orchestrator.index().Size() >= 5 // don't bother to create a tag cloud if there aren't enough documents
+			if repositoryIsNotEmpty {
+
+				tagCloud := orchestrator.tagOrchestrator.GetTagCloud()
+				viewModel.TagCloud = tagCloud
+
+			}
 
 		}
 
+		orchestrator.fullViewmodelsByRoute[route.String()] = viewModel
 	}
 
-	endTime := time.Now()
-	duration := endTime.Sub(startTime)
-	orchestrator.logger.Statistics("Getting the full view model for route %q took %f seconds.", viewModel.Route, duration.Seconds())
+	// deleteViewModel removed the viewmodel with the given route from the cache.
+	deleteViewModel := func(route route.Route) {
+		delete(orchestrator.fullViewmodelsByRoute, route.String())
+	}
 
-	return *viewModel, true
+	// write the cache for the requested route directly
+	updateViewModel(itemRoute)
+
+	// write cache for all other routes async
+	go func() {
+		startTime := time.Now()
+
+		for _, childRoute := range orchestrator.repository.Routes() {
+			updateViewModel(childRoute)
+		}
+
+		endTime := time.Now()
+		duration := endTime.Sub(startTime)
+		orchestrator.logger.Statistics("Priming the full view model cache took %f seconds.", duration.Seconds())
+	}()
+
+	// register update callbacks
+	orchestrator.registerUpdateCallback("update full viewmodel", UpdateTypeNew, updateViewModel)
+	orchestrator.registerUpdateCallback("update full viewmodel", UpdateTypeModified, updateViewModel)
+	orchestrator.registerUpdateCallback("update full viewmodel", UpdateTypeDeleted, deleteViewModel)
+
+	return orchestrator.GetFullViewModel(itemRoute)
 }
 
 func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
