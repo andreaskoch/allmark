@@ -89,9 +89,7 @@ func (conversion *ConversionService) startConversion() {
 // Process all items in the repository.
 func (conversion *ConversionService) fullConversion() {
 	for _, item := range conversion.repository.Items() {
-
-		go conversion.createThumbnailsForItem(item)
-
+		conversion.createThumbnailsForItem(item)
 	}
 }
 
@@ -103,21 +101,15 @@ func (conversion *ConversionService) createThumbnailsForItem(item dataaccess.Ite
 	}
 
 	for _, file := range item.Files() {
-
-		// create the thumbnails
 		conversion.createThumbnailsForFile(file)
-
 	}
-
 }
 
 // Create thumbnail for all image files found in the supplied item.
 func (conversion *ConversionService) createThumbnailsForFile(file dataaccess.File) {
-
 	conversion.createThumbnail(file, SizeSmall)
 	conversion.createThumbnail(file, SizeMedium)
 	conversion.createThumbnail(file, SizeLarge)
-
 }
 
 // Creates a thumbnail for the supplied file with the specified dimensions.
