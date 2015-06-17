@@ -183,8 +183,6 @@ func (currentNode *Node) GetNode(path Path) *Node {
 // Walk visits the current node, then every child of the current node and then recurses down the childs.
 func (currentNode *Node) Walk(expression func(node *Node)) {
 
-	expression(currentNode)
-
 	// childs first
 	for _, child := range currentNode.Childs() {
 		expression(child)

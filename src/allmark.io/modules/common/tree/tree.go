@@ -118,5 +118,7 @@ func (tree *Tree) Walk(expression func(node *Node)) {
 		return
 	}
 
+	expression(tree.Root())
+
 	tree.Root().Walk(expression)
 }
