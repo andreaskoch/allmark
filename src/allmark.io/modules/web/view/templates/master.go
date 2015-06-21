@@ -169,9 +169,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 <script src="/theme/jquery.js"></script>
 <script src="/theme/jquery.tmpl.js"></script>
-<script src="/theme/jquery.lazyload.js"></script>
-<script src="/theme/jquery.lazyload.srcset.js"></script>
-<script src="/theme/jquery.lazyload.video.js"></script>
+<script src="/theme/lazysizes.js"></script>
 <script src="/theme/site.js"></script>
 <script src="/theme/typeahead.js"></script>
 <script src="/theme/search.js"></script>

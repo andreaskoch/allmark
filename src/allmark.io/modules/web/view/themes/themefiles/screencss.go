@@ -90,6 +90,10 @@ img {
     max-width: 100%;
 }
 
+img[data-sizes="auto"] {
+  display: block; width: 100%;
+}
+
 h1,h2,h3,h4,h5,h6 {
     font-weight: normal;
     color: #111;

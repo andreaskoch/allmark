@@ -45,8 +45,6 @@ func (provider *ImageProvider) GetImageCode(imageTitle string, fileRoute route.R
 	// assemble the src sets
 	if smallExists || mediumExists || largeExists {
 
-		image += " srcset=\""
-
 		srcSets := make([]string, 0)
 		if smallExists {
 			srcSets = append(srcSets, small+fmt.Sprintf(" %vw", thumbnail.SizeSmall.MaxWidth))
@@ -60,19 +58,21 @@ func (provider *ImageProvider) GetImageCode(imageTitle string, fileRoute route.R
 			srcSets = append(srcSets, large+fmt.Sprintf(" %vw", thumbnail.SizeLarge.MaxWidth))
 		}
 
-		image += strings.Join(srcSets, ", ")
+		if len(srcSets) > 0 {
+			image += fmt.Sprintf(` srcset="%s"`, strings.Join(srcSets, `, `))
+		}
 	}
 
 	// default image
 	if smallExists || mediumExists || largeExists {
 
 		// use the small image as the default
-		image += " src=\"" + small + "\""
+		image += fmt.Sprintf(` src="%s"`, small)
 
 	} else {
 
 		// use the full image as the defaults
-		image += " src=\"" + fullSizeImagePath + "\""
+		image += fmt.Sprintf(` src="%s"`, fullSizeImagePath)
 
 	}
 

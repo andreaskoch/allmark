@@ -34,7 +34,6 @@ $(function() {
 		success: function(items) {
 			$.each(items, function(index, item) {
 				$.tmpl( "itemTemplate", item).appendTo( "article>.preview>ul" );
-				$("article>.preview *[data-lazyload=\"true\"]").lazyLoadXT();
 			});
 		},
 		dataType: "json"

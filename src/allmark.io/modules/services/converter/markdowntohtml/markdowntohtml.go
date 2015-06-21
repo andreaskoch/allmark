@@ -224,7 +224,7 @@ func lazyLoadSrc(html string) string {
 		path := strings.TrimSpace(matches[1])
 
 		// assemble the new link
-		newLinkText := fmt.Sprintf("data-lazyload=\"true\" %s=\"%s\"", "data-src", path)
+		newLinkText := fmt.Sprintf(`data-sizes="auto" class="lazyload" data-src="%s"`, path)
 
 		// replace the old text
 		html = strings.Replace(html, originalText, newLinkText, -1)
@@ -248,7 +248,7 @@ func lazyLoadSrcSet(html string) string {
 		srcSetPaths := strings.TrimSpace(matches[1])
 
 		// assemble the new link
-		newLinkText := fmt.Sprintf("data-lazyload=\"true\" %s=\"%s\"", "data-srcset", srcSetPaths)
+		newLinkText := fmt.Sprintf(`data-sizes="auto" class="lazyload" data-srcset="%s"`, srcSetPaths)
 
 		// replace the old text
 		html = strings.Replace(html, originalText, newLinkText, -1)

@@ -537,10 +537,6 @@ bin/
 
 ## Known Bugs
 
-### Default Theme
-
-- Responsive Design: The default theme always selects the smallest thumbnail size which makes the previewed images look crappy on large screens.
-
 ### Windows
 
 - Filesystem links: Serving folders that are filesystem junctions/links is no longer possible with go 1.4 (it did work with go 1.3)
