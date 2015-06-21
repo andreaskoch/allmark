@@ -560,7 +560,6 @@ Here are some of the ideas and todos I would like to add in the future. Contribu
 - Static website generation
 - User Management / Access Restrictions
     - User management pages
-- Make live-reload more intelligent and more efficient
 - Support for Folders with multiple Markdown Files
 - Support for custom-rewrites
 
