@@ -16,6 +16,7 @@ import (
 
 	"allmark.io/modules/common/certificates"
 	"allmark.io/modules/common/logger/loglevel"
+	"allmark.io/modules/common/ports"
 	"allmark.io/modules/common/util/fsutil"
 	"github.com/abbot/go-http-auth"
 )
@@ -31,10 +32,8 @@ const (
 	SSLCertsFolderName     = "certs"
 
 	// Global Defaults
-	DefaultHostName                  = "127.0.0.1"
-	DefaultHttpPort                  = 0
+	DefaultDomainName                = "localhost"
 	DefaultHttpPortEnabled           = true
-	DefaultHttpsPort                 = 0
 	DefaultHttpsPortEnabled          = true
 	DefaultHttpsCertName             = "cert.pem"
 	DefaultHttpsKeyName              = "cert.key"
@@ -55,9 +54,6 @@ const (
 
 var homeDirectory func() string
 
-var freeHttpPort int
-var freeHttpsPort int
-
 // A flag indicating whether the RTF conversion tool is available
 var rtfConversionToolIsAvailable bool
 
@@ -77,10 +73,6 @@ func init() {
 	if err := command.Run(); err == nil {
 		rtfConversionToolIsAvailable = true
 	}
-
-	// locate free ports for http and https
-	freeHttpPort = getFreePort()
-	freeHttpsPort = getFreePort()
 }
 
 func isHomeDir(directory string) bool {
@@ -135,18 +127,44 @@ func Default(baseFolder string) *Config {
 
 	// apply default values
 	config.Server.ThemeFolderName = ThemeFolderName
-	config.Server.Hostname = DefaultHostName
+	config.Server.DomainName = DefaultDomainName
 
 	// HTTP
-	config.Server.Http.PortNumber = DefaultHttpPort
-	config.Server.Http.Enabled = DefaultHttpPortEnabled
+	config.Server.HTTP.Enabled = DefaultHttpPortEnabled
+	config.Server.HTTP.Bindings = []TCPBinding{
+		TCPBinding{
+			Network: "tcp4",
+			IP:      "0.0.0.0",
+			Zone:    "",
+			Port:    0,
+		},
+		TCPBinding{
+			Network: "tcp6",
+			IP:      "::",
+			Zone:    "",
+			Port:    0,
+		},
+	}
 
 	// HTTPS
-	config.Server.Https.PortNumber = DefaultHttpsPort
-	config.Server.Https.Enabled = DefaultHttpsPortEnabled
-	config.Server.Https.Force = DefaultForceHttps
-	config.Server.Https.CertFileName = DefaultHttpsCertName
-	config.Server.Https.KeyFileName = DefaultHttpsKeyName
+	config.Server.HTTPs.Enabled = DefaultHttpsPortEnabled
+	config.Server.HTTPs.CertFileName = DefaultHttpsCertName
+	config.Server.HTTPs.KeyFileName = DefaultHttpsKeyName
+	config.Server.HTTPs.Force = DefaultForceHttps
+	config.Server.HTTPs.Bindings = []TCPBinding{
+		TCPBinding{
+			Network: "tcp4",
+			IP:      "0.0.0.0",
+			Zone:    "",
+			Port:    0,
+		},
+		TCPBinding{
+			Network: "tcp6",
+			IP:      "::",
+			Zone:    "",
+			Port:    0,
+		},
+	}
 
 	// Authentication
 	config.Server.Authentication.Enabled = DefaultAuthenticationEnabled
@@ -182,28 +200,40 @@ func Default(baseFolder string) *Config {
 	return config
 }
 
-type Port struct {
-	PortNumber int
-	Enabled    bool
+// TCPBinding contains all required parameters for a tcp4 or tcp6 address binding.
+type TCPBinding struct {
+	Network string
+
+	IP   string
+	Zone string
+	Port int
 }
 
-func (port *Port) GetPortNumber() int {
-	portNumber := port.PortNumber
-	if portNumber < 0 || portNumber > math.MaxUint16 {
-		panic(fmt.Sprintf("%q is an invalid value for a port. Ports can only be in the range of %v to %v,", portNumber, 0, math.MaxUint16))
+// GetTCPAddress returns a net.TCPAddress object of the current TCP binding.
+func (binding *TCPBinding) GetTCPAddress() net.TCPAddr {
+	ip := net.ParseIP(binding.IP)
+	return net.TCPAddr{
+		IP:   ip,
+		Port: binding.Port,
+		Zone: binding.Zone,
 	}
-
-	if portNumber == 0 {
-
-		return freeHttpPort
-
-	}
-
-	return portNumber
 }
 
-type SecurePort struct {
-	Port
+func (binding *TCPBinding) AssignFreePort() {
+	if binding.Port > 0 && binding.Port < math.MaxUint16 {
+		return
+	}
+
+	binding.Port = ports.GetFreePort(binding.Network, binding.GetTCPAddress())
+}
+
+type HTTP struct {
+	Enabled  bool
+	Bindings []TCPBinding
+}
+
+type HTTPs struct {
+	HTTP
 
 	CertFileName string
 	KeyFileName  string
@@ -211,27 +241,13 @@ type SecurePort struct {
 	Force bool
 }
 
-func (securePort *SecurePort) GetPortNumber() int {
-	portNumber := securePort.PortNumber
-	if portNumber < 0 || portNumber > math.MaxUint16 {
-		panic(fmt.Sprintf("%q is an invalid value for a port. Ports can only be in the range of %v to %v,", portNumber, 0, math.MaxUint16))
-	}
-
-	if portNumber == 0 {
-
-		return freeHttpsPort
-
-	}
-
-	return portNumber
-}
-
-func (securePort *SecurePort) ForceHttps() bool {
-	if securePort.Enabled == false {
+// HttpsIsForced indicates whether HTTPs is forced or not.
+func (https *HTTPs) HTTPsIsForced() bool {
+	if https.Enabled == false {
 		return false
 	}
 
-	return securePort.Force
+	return https.Force
 }
 
 // Authentication contains authentication settings.
@@ -262,9 +278,9 @@ type UserInformation struct {
 
 type Server struct {
 	ThemeFolderName string
-	Hostname        string
-	Http            Port
-	Https           SecurePort
+	DomainName      string
+	HTTP            HTTP
+	HTTPs           HTTPs
 	Authentication  Authentication
 }
 
@@ -332,20 +348,20 @@ func (config *Config) CertificateDirectory() string {
 
 func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath string) {
 
-	// Determine the hostname
-	hostname := config.Server.Hostname
-	if hostname == "" {
-		hostname = DefaultHostName
+	// Determine the domain name
+	domainname := config.Server.DomainName
+	if domainname == "" {
+		domainname = DefaultDomainName
 	}
 
 	// Determine  the cert name
-	certificateFileName := config.Server.Https.CertFileName
+	certificateFileName := config.Server.HTTPs.CertFileName
 	if certificateFileName == "" {
 		certificateFileName = DefaultHttpsCertName
 	}
 
 	// Determine the key name
-	keyFileName := config.Server.Https.KeyFileName
+	keyFileName := config.Server.HTTPs.KeyFileName
 	if keyFileName == "" {
 		keyFileName = DefaultHttpsKeyName
 	}
@@ -385,8 +401,8 @@ func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath s
 	}
 
 	// create a dummy cert and key
-	if err := certificates.GenerateDummyCert(certificateFilePath, keyFilePath, hostname); err != nil {
-		panic(fmt.Sprintf("Could not create dummy certificates %q and %q for hostname %q. Error: %s", certificateFilePath, keyFilePath, hostname, err.Error()))
+	if err := certificates.GenerateDummyCert(certificateFilePath, keyFilePath, domainname); err != nil {
+		panic(fmt.Sprintf("Could not create dummy certificates %q and %q for domainname %q. Error: %s", certificateFilePath, keyFilePath, domainname, err.Error()))
 	}
 
 	return certificateFilePath, keyFilePath
@@ -518,7 +534,7 @@ func (config *Config) AuthenticationIsEnabled() bool {
 	}
 
 	// we will only allow basic authentication over https
-	if config.Server.Http.Enabled && config.Server.Https.ForceHttps() == false {
+	if config.Server.HTTP.Enabled && config.Server.HTTPs.HTTPsIsForced() == false {
 		fmt.Println("Basic-Authentication over HTTP is not available. Please disable HTTP or force HTTPs in order to use basic-authentication.")
 		os.Exit(1)
 	}
@@ -552,19 +568,4 @@ func (config *Config) GetAuthenticationUserStore() auth.SecretProvider {
 	}
 
 	return auth.HtpasswdFileProvider(digestFilePath)
-}
-
-// Ask the kernel for a free open port that is ready to use
-func getFreePort() int {
-	addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:0")
-	if err != nil {
-		panic(err)
-	}
-
-	l, err := net.ListenTCP("tcp", addr)
-	if err != nil {
-		panic(err)
-	}
-	defer l.Close()
-	return l.Addr().(*net.TCPAddr).Port
 }

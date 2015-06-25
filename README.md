@@ -244,16 +244,21 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 
 - `Server`
 	- `ThemeFolderName`: The name of the folder that contains all theme assets (js, css, ...) (default: `"theme"`)
-	- `Hostname`: The ip-address or hostname that shall be used (e.g. `"0.0.0.0"`, `"127.0.0.1"`, `"localhost"`, `"www.example.com"`)
-	- `Http`
+	- `DomainName`: The default host-/domain name that shall be used (e.g. `"localhost"`, `"www.example.com"`)
+	- `HTTP`
 		- `Enabled`: If set to `true` http is enabled. If set to `false` http is disabled.
-		- `PortNumber`: 0-65535 (0 means that a random port will be allocated)
-	- `Https`
+		- `Bindings`: An array of 0..n TCP bindings that will be used to serve HTTP
+			- `Network`: `"tcp4"` for IPv4 or `"tcp6"` for IPv6
+			- `IP`: An IPv4 address (e.g. `"0.0.0.0"`, `"127.0.0.1"`) or an IPv6 address (e.g. `"::"`, `"::1"`)
+			- `Zone`: The [IPv6 zone index](https://en.wikipedia.org/wiki/IPv6_address#Link-local_addresses_and_zone_indices) (e.g. `""`, `"eth0"`, `"eth1"`; (default: `""`)
+			- `Port`: 0-65535 (0 means that a random port will be allocated)
+	- `HTTPs`
 		- `Enabled`: If set to `true` https is enabled. If set to `false` https is disabled.
-		- `PortNumber`: 0-65535 (0 means that a random port will be allocated)
 		- `CertFileName`: The filename of the SSL certificate in the `.allmark/certs`-folder (e.g. `"cert.pem"`, `"cert.pem"`)
 		- `KeyFileName`: The filename of the SSL certificate key file in the `.allmark/certs`-folder (e.g. `"cert.key"`)
 		- `Force`: If set to `true` and if http and https are enabled all http requests will be redirected to http. If set to `false` you can use https alongside http.
+		- `Bindings`: An array of 0..n TCP bindings that will be used to serve HTTPs
+			- same format (Network, IP, Zone, Port) as for HTTP
 	- `Authentication`
 		- `Enabled`: If set to `true` basic-authentication will be enabled. If set to `false` basic-authentication will be disabled. **Note**: Even if set to `true`, basic authentication will only be enabled if HTTPs is forced.
 		- `UserStoreFileName`: The filename of the [htpasswd-file](http://httpd.apache.org/docs/2.2/programs/htpasswd.html) that contains all authorized usernames, realms and passwords/hashes (default: `"users.htpasswd"`).
@@ -300,16 +305,42 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 {
 	"Server": {
 		"ThemeFolderName": "theme",
-		"Hostname": "127.0.0.1",
-		"Http": {
-			"PortNumber": 0,
-			"Enabled": true
-		},
-		"Https": {
-			"PortNumber": 0,
+		"DomainName": "localhost",
+		"HTTP": {
 			"Enabled": true,
-			"CertFileName": "",
-			"KeyFileName": "",
+			"Bindings": [
+				{
+					"Network": "tcp4",
+					"IP": "0.0.0.0",
+					"Zone": "",
+					"Port": 80
+				},
+				{
+					"Network": "tcp6",
+					"IP": "::",
+					"Zone": "",
+					"Port": 80
+				}
+			]
+		},
+		"HTTPs": {
+			"Enabled": true,
+			"Bindings": [
+				{
+					"Network": "tcp4",
+					"IP": "0.0.0.0",
+					"Zone": "",
+					"Port": 443
+				},
+				{
+					"Network": "tcp6",
+					"IP": "::",
+					"Zone": "",
+					"Port": 443
+				}
+			],
+			"CertFileName": "cert.pem",
+			"KeyFileName": "cert.key",
 			"Force": false
 		},
 		"Authentication": {
@@ -393,10 +424,10 @@ This is an unordered list of the most prominent features of allmark:
 	- Video Player Integration
 	- Audio Player Integration
 	- PDF Document Preview
-	- Repository Cross-Links
+	- Repository cross-links by alias
 17. Different Item Types (Repository, Document, Presentation)
 18. Document Meta Data
-	⁻ Author
+	- Author
 	- Tags
 	- Document Alias
 	- Creation Date
@@ -416,6 +447,7 @@ This is an unordered list of the most prominent features of allmark:
 24. Basic-Authentication
 	- For an additional level of security allmark will only allow basic-authentication over SSL.
 	- You can add users to the `.allmark/users.htpasswd` file using the tool [htpasswd](http://httpd.apache.org/docs/2.2/programs/htpasswd.html)
+25. Parallel hosting of HTTP/HTTPs over IPv4 and/or IPv6
 
 I will try to create videos showing you the different features when there is time.
 

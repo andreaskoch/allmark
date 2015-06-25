@@ -164,7 +164,7 @@ func serve(repositoryPath string) bool {
 
 	// check if https shall be forced
 	if *secure {
-		configuration.Server.Https.Force = true
+		configuration.Server.HTTPs.Force = true
 	}
 
 	// check if indexing is enabled
