@@ -19,7 +19,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skratchdot/open-golang/open"
 	"net/http"
-	"strings"
 )
 
 func New(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter) (*Server, error) {
@@ -83,7 +82,7 @@ func (server *Server) Start() chan error {
 				if httpEndpoint.ForceHttps() {
 
 					// Redirect HTTP → HTTPs
-					redirectTarget := httpsEndpoint.URL(tcpBinding)
+					redirectTarget := httpsEndpoint.DefaultURL()
 					httpsRedirectRouter := server.getRedirectRouter(redirectTarget)
 
 					if err := http.ListenAndServe(address, httpsRedirectRouter); err != nil {
@@ -107,7 +106,7 @@ func (server *Server) Start() chan error {
 
 			// store the URL for later opening
 			if httpsEnabled == false {
-				endpointURL := httpEndpoint.URL(tcpBinding)
+				endpointURL := httpEndpoint.DefaultURL()
 				uniqueUrls[endpointURL] = endpointURL
 			}
 
@@ -138,7 +137,7 @@ func (server *Server) Start() chan error {
 			}()
 
 			// store the URL for later opening
-			endpointURL := httpsEndpoint.URL(tcpBinding)
+			endpointURL := httpsEndpoint.DefaultURL()
 			uniqueUrls[endpointURL] = endpointURL
 		}
 
@@ -178,13 +177,13 @@ func (server *Server) getStandardRequestRouter() *mux.Router {
 		requestHandler := requestHandler.Handler
 
 		// add authentication
-		if httpsEndpoint, httpsEnabled := server.httpsEndpoint(); httpsEnabled && server.config.AuthenticationIsEnabled() {
+		if _, httpsEnabled := server.httpsEndpoint(); httpsEnabled && server.config.AuthenticationIsEnabled() {
 			secretProvider := server.config.GetAuthenticationUserStore()
 			if secretProvider == nil {
 				panic("Authentication is enabled but the supplied secret provider is nil.")
 			}
 
-			requestHandler = handlers.RequireDigestAuthentication(requestHandler, httpsEndpoint.DomainName(), secretProvider)
+			requestHandler = handlers.RequireDigestAuthentication(requestHandler, secretProvider)
 		}
 
 		requestRouter.Handle(requestRoute, requestHandler)
@@ -201,7 +200,6 @@ func (server *Server) httpEndpoint() (httpEndpoint HTTPEndpoint, enabled bool) {
 	}
 
 	return HTTPEndpoint{
-		domainName:  server.getDefaultDomainName(),
 		isSecure:    false,
 		forceHttps:  server.config.Server.HTTPs.HTTPsIsForced(),
 		tcpBindings: server.config.Server.HTTP.Bindings,
@@ -209,7 +207,7 @@ func (server *Server) httpEndpoint() (httpEndpoint HTTPEndpoint, enabled bool) {
 
 }
 
-// Get the https binding if it is enabled.
+// Get the https binding if it is enabled.tcpBinding
 func (server *Server) httpsEndpoint() (httpsEndpoint HTTPsEndpoint, enabled bool) {
 
 	if !server.config.Server.HTTPs.Enabled {
@@ -217,7 +215,6 @@ func (server *Server) httpsEndpoint() (httpsEndpoint HTTPsEndpoint, enabled bool
 	}
 
 	httpEndpoint := HTTPEndpoint{
-		domainName:  server.getDefaultDomainName(),
 		isSecure:    true,
 		tcpBindings: server.config.Server.HTTPs.Bindings,
 	}
@@ -234,51 +231,42 @@ func (server *Server) httpsEndpoint() (httpsEndpoint HTTPsEndpoint, enabled bool
 
 }
 
-// Get the default domain name (e.g. "localhost").
-func (server *Server) getDefaultDomainName() string {
-	domainName := strings.ToLower(strings.TrimSpace(server.config.Server.DomainName))
-	if domainName == "" {
-		return "localhost"
-	}
-
-	return domainName
-}
-
 type HTTPEndpoint struct {
-	domainName  string
 	isSecure    bool
 	forceHttps  bool
-	tcpBindings []config.TCPBinding
-}
-
-func (endpoint *HTTPEndpoint) DomainName() string {
-	return endpoint.domainName
+	tcpBindings []*config.TCPBinding
 }
 
 func (endpoint *HTTPEndpoint) IsSecure() bool {
 	return endpoint.isSecure
 }
 
+func (endpoint *HTTPEndpoint) Protocol() string {
+	if endpoint.isSecure {
+		return "https"
+	}
+	return "http"
+}
+
 func (endpoint *HTTPEndpoint) ForceHttps() bool {
 	return endpoint.forceHttps
 }
 
-func (endpoint *HTTPEndpoint) Bindings() []config.TCPBinding {
+func (endpoint *HTTPEndpoint) Bindings() []*config.TCPBinding {
 	return endpoint.tcpBindings
 }
 
 func (endpoint *HTTPEndpoint) URL(tcpBinding config.TCPBinding) string {
-	protocol := "http"
-	if endpoint.isSecure {
-		protocol = "https"
+	tcpAddress := tcpBinding.GetTCPAddress()
+	return fmt.Sprintf("%s://%s", endpoint.Protocol(), tcpAddress.String())
+}
+
+func (endpoint *HTTPEndpoint) DefaultURL() string {
+	if len(endpoint.tcpBindings) == 0 {
+		return ""
 	}
 
-	isStandardPort := tcpBinding.Port == 80 || tcpBinding.Port == 443
-	if isStandardPort {
-		return fmt.Sprintf("%s://%s", protocol, endpoint.DomainName())
-	}
-
-	return fmt.Sprintf("%s://%s:%v", protocol, endpoint.DomainName(), tcpBinding.Port)
+	return endpoint.URL(*endpoint.tcpBindings[0])
 }
 
 type HTTPsEndpoint struct {

@@ -131,14 +131,14 @@ func Default(baseFolder string) *Config {
 
 	// HTTP
 	config.Server.HTTP.Enabled = DefaultHttpPortEnabled
-	config.Server.HTTP.Bindings = []TCPBinding{
-		TCPBinding{
+	config.Server.HTTP.Bindings = []*TCPBinding{
+		&TCPBinding{
 			Network: "tcp4",
 			IP:      "0.0.0.0",
 			Zone:    "",
 			Port:    0,
 		},
-		TCPBinding{
+		&TCPBinding{
 			Network: "tcp6",
 			IP:      "::",
 			Zone:    "",
@@ -151,14 +151,14 @@ func Default(baseFolder string) *Config {
 	config.Server.HTTPs.CertFileName = DefaultHttpsCertName
 	config.Server.HTTPs.KeyFileName = DefaultHttpsKeyName
 	config.Server.HTTPs.Force = DefaultForceHttps
-	config.Server.HTTPs.Bindings = []TCPBinding{
-		TCPBinding{
+	config.Server.HTTPs.Bindings = []*TCPBinding{
+		&TCPBinding{
 			Network: "tcp4",
 			IP:      "0.0.0.0",
 			Zone:    "",
 			Port:    0,
 		},
-		TCPBinding{
+		&TCPBinding{
 			Network: "tcp6",
 			IP:      "::",
 			Zone:    "",
@@ -229,7 +229,7 @@ func (binding *TCPBinding) AssignFreePort() {
 
 type HTTP struct {
 	Enabled  bool
-	Bindings []TCPBinding
+	Bindings []*TCPBinding
 }
 
 type HTTPs struct {
