@@ -47,72 +47,72 @@ func New(logger logger.Logger, thumbnailIndex *thumbnail.Index) *Converter {
 }
 
 // Convert the supplied item with all paths relative to the supplied base route
-func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item, pathProvider paths.Pather, item *model.Item) (convertedContent string, converterError error) {
+func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item, rootPathProvider, itemContentPathProvider paths.Pather, item *model.Item) (convertedContent string, converterError error) {
 
 	converter.logger.Debug("Converting markdown for item %q.", item)
 
 	itemRoute := item.Route()
 	content := item.Content
-	imageProvider := common.NewImageProvider(pathProvider, converter.thumbnailIndex)
+	imageProvider := common.NewImageProvider(rootPathProvider, converter.thumbnailIndex)
 
 	// markdown extension: image/thumbnails
-	imageConverter := image.New(pathProvider, itemRoute, item.Files(), imageProvider)
+	imageConverter := image.New(itemContentPathProvider, itemRoute, item.Files(), imageProvider)
 	content, imageConversionError := imageConverter.Convert(content)
 	if imageConversionError != nil {
 		converter.logger.Warn("Error while converting images/thumbnails. Error: %s", imageConversionError)
 	}
 
 	// markdown extension: audio
-	audioConverter := audio.New(pathProvider, item.Files())
+	audioConverter := audio.New(itemContentPathProvider, item.Files())
 	content, audioConversionError := audioConverter.Convert(content)
 	if audioConversionError != nil {
 		converter.logger.Warn("Error while converting audio extensions. Error: %s", audioConversionError)
 	}
 
 	// markdown extension: video
-	videoConverter := video.New(pathProvider, item.Files())
+	videoConverter := video.New(itemContentPathProvider, item.Files())
 	content, videoConversionError := videoConverter.Convert(content)
 	if videoConversionError != nil {
 		converter.logger.Warn("Error while converting video extensions. Error: %s", videoConversionError)
 	}
 
 	// markdown extension: pdf
-	pdfConverter := pdf.New(pathProvider, item.Files())
+	pdfConverter := pdf.New(itemContentPathProvider, item.Files())
 	content, pdfConversionError := pdfConverter.Convert(content)
 	if pdfConversionError != nil {
 		converter.logger.Warn("Error while converting pdf extensions. Error: %s", pdfConversionError)
 	}
 
 	// markdown extension: files
-	filesConverter := files.New(pathProvider, itemRoute, item.Files())
+	filesConverter := files.New(itemContentPathProvider, itemRoute, item.Files())
 	content, filesConversionError := filesConverter.Convert(content)
 	if filesConversionError != nil {
 		converter.logger.Warn("Error while converting files extensions. Error: %s", filesConversionError)
 	}
 
 	// markdown extension: filepreview
-	filePreviewConverter := filepreview.New(pathProvider, item.Files())
+	filePreviewConverter := filepreview.New(itemContentPathProvider, item.Files())
 	content, filePreviewConversionError := filePreviewConverter.Convert(content)
 	if filePreviewConversionError != nil {
 		converter.logger.Warn("Error while converting file preview extensions. Error: %s", filePreviewConversionError)
 	}
 
 	// markdown extension: imagegallery
-	imagegalleryConverter := imagegallery.New(pathProvider, itemRoute, item.Files(), imageProvider)
+	imagegalleryConverter := imagegallery.New(itemContentPathProvider, itemRoute, item.Files(), imageProvider)
 	content, imagegalleryConversionError := imagegalleryConverter.Convert(content)
 	if imagegalleryConversionError != nil {
 		converter.logger.Warn("Error while converting image gallery extensions. Error: %s", imagegalleryConversionError)
 	}
 
 	// markdown extension: csv table
-	csvTableConverter := csvtable.New(pathProvider, item.Files())
+	csvTableConverter := csvtable.New(itemContentPathProvider, item.Files())
 	content, csvTableConversionError := csvTableConverter.Convert(content)
 	if csvTableConversionError != nil {
 		converter.logger.Warn("Error while converting csv table extensions. Error: %s", csvTableConversionError)
 	}
 
 	// markdown extension: reference
-	referenceConverter := reference.New(pathProvider, aliasResolver)
+	referenceConverter := reference.New(itemContentPathProvider, aliasResolver)
 	content, referenceConversionError := referenceConverter.Convert(content)
 	if referenceConversionError != nil {
 		converter.logger.Warn("Error while converting reference extensions. Error: %s", referenceConversionError)
@@ -122,11 +122,11 @@ func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item
 	content = markdown.Convert(content)
 
 	// fix links
-	content = converter.rewireLinks(pathProvider, item, content)
+	content = converter.rewireLinks(itemContentPathProvider, item, content)
 
 	// append the file list
 	if item.IsFileCollection() && len(item.Files()) > 0 {
-		fileTreeRenderer := filetreerenderer.New(pathProvider, itemRoute, item.Files())
+		fileTreeRenderer := filetreerenderer.New(itemContentPathProvider, itemRoute, item.Files())
 		fileBaseFolder := getBaseFolder(itemRoute, item.Files())
 		content += fileTreeRenderer.Render("Attachments", "attachments", fileBaseFolder)
 	}
@@ -155,7 +155,7 @@ func getBaseFolder(referenceRoute route.Route, files []*model.File) string {
 	return baseFolder
 }
 
-func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.Item, html string) string {
+func (converter *Converter) rewireLinks(itemContentPathProvider paths.Pather, item *model.Item, html string) string {
 
 	allMatches := htmlLinkPattern.FindAllStringSubmatch(html, -1)
 	for _, matches := range allMatches {
@@ -179,7 +179,7 @@ func (converter *Converter) rewireLinks(pathProvider paths.Pather, item *model.I
 
 		// assemble the new link path
 		fullFileRoute := route.Combine(matchingFile.Parent(), matchingFile.Route())
-		matchingFilePath := pathProvider.Path(fullFileRoute.Value())
+		matchingFilePath := itemContentPathProvider.Path(fullFileRoute.Value())
 
 		// assemble the new link
 		newLinkText := fmt.Sprintf("%s=\"%s\"", linkType, matchingFilePath)

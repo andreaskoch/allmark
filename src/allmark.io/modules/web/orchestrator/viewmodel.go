@@ -240,7 +240,9 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *
 		}
 
 		root := orchestrator.rootItem()
-		convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, orchestrator.relativePather(route), item)
+		rootPathProvider := orchestrator.absolutePather("/")
+		itemContentPathProvider := orchestrator.relativePather(route)
+		convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, rootPathProvider, itemContentPathProvider, item)
 		if err != nil {
 			orchestrator.logger.Warn("Cannot convert content for route %q. Error: %s.", route, err.Error())
 			convertedContent = "<!-- Conversion Error -->"

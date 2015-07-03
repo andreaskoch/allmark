@@ -32,18 +32,18 @@ func (orchestrator *ConversionModelOrchestrator) GetConversionModel(baseUrl stri
 	}
 
 	// create the path provider
-	addressPrefix := fmt.Sprintf("%s/%s/", baseUrl, item.Route().Value())
-	pathProvider := orchestrator.absolutePather(addressPrefix)
+	rootPathProvider := orchestrator.absolutePather(fmt.Sprintf("%s/", baseUrl))
+	itemContentPathProvider := orchestrator.absolutePather(fmt.Sprintf("%s/%s/", baseUrl, item.Route().Value()))
 
 	// convert content
-	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, pathProvider, item)
+	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, rootPathProvider, itemContentPathProvider, item)
 	if err != nil {
 		return model, false
 	}
 
 	// create a view model
 	model = viewmodel.ConversionModel{
-		Base:    getBaseModel(root, item, pathProvider, orchestrator.config),
+		Base:    getBaseModel(root, item, itemContentPathProvider, orchestrator.config),
 		Content: convertedContent,
 
 		// files
