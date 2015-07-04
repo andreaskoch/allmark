@@ -64,6 +64,11 @@ func (orchestrator *FeedOrchestrator) createFeedEntryModel(baseUrl string, item 
 		content = err.Error()
 	}
 
+	// append the description
+	if item.Description != "" {
+		content = fmt.Sprintf("<p>%s</p>\n\n%s", item.Description, content)
+	}
+
 	// creation date
 	creationDate := item.MetaData.CreationDate.Format("2006-01-02")
 
