@@ -215,6 +215,7 @@ func (server *Server) httpsEndpoint() (httpsEndpoint HTTPsEndpoint, enabled bool
 	}
 
 	httpEndpoint := HTTPEndpoint{
+		domain:      server.config.Server.DomainName,
 		isSecure:    true,
 		tcpBindings: server.config.Server.HTTPs.Bindings,
 	}
@@ -232,6 +233,7 @@ func (server *Server) httpsEndpoint() (httpsEndpoint HTTPsEndpoint, enabled bool
 }
 
 type HTTPEndpoint struct {
+	domain      string
 	isSecure    bool
 	forceHttps  bool
 	tcpBindings []*config.TCPBinding
@@ -262,6 +264,11 @@ func (endpoint *HTTPEndpoint) URL(tcpBinding config.TCPBinding) string {
 }
 
 func (endpoint *HTTPEndpoint) DefaultURL() string {
+
+	if endpoint.domain != "" {
+		return fmt.Sprintf("%s://%s", endpoint.Protocol(), endpoint.domain)
+	}
+
 	if len(endpoint.tcpBindings) == 0 {
 		return ""
 	}
