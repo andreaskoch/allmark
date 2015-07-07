@@ -104,7 +104,10 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 	itemProvider.logger.Debug("Creating a physical item from route %q", route)
 
 	// content
-	contentProvider := newFileContentProvider(filePath, route)
+	contentProvider, contentProviderError := newFileContentProvider(filePath, route)
+	if contentProviderError != nil {
+		return nil, contentProviderError
+	}
 
 	// files
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
@@ -140,7 +143,10 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (dataacce
 	// content
 	title := filepath.Base(itemDirectory)
 	content := fmt.Sprintf(`# %s`, title)
-	contentProvider := newTextContentProvider(content, route)
+	contentProvider, contentProviderError := newTextContentProvider(content, route)
+	if contentProviderError != nil {
+		return nil, contentProviderError
+	}
 
 	// files
 	filesDirectory := filepath.Join(itemDirectory, config.FilesDirectoryName)
@@ -175,7 +181,10 @@ func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (d
 	// content
 	title := filepath.Base(itemDirectory)
 	content := fmt.Sprintf(`# %s`, title)
-	contentProvider := newTextContentProvider(content, route)
+	contentProvider, contentProviderError := newTextContentProvider(content, route)
+	if contentProviderError != nil {
+		return nil, contentProviderError
+	}
 
 	// files
 	filesDirectory := itemDirectory

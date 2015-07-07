@@ -176,6 +176,9 @@ func (server *Server) getStandardRequestRouter() *mux.Router {
 		requestRoute := requestHandler.Route
 		requestHandler := requestHandler.Handler
 
+		// add logging
+		requestHandler = handlers.LogRequests(requestHandler)
+
 		// add authentication
 		if _, httpsEnabled := server.httpsEndpoint(); httpsEnabled && server.config.AuthenticationIsEnabled() {
 			secretProvider := server.config.GetAuthenticationUserStore()

@@ -49,12 +49,12 @@ func Item(logger logger.Logger,
 		// make sure the request body is closed
 		defer r.Body.Close()
 
-		logger.Info("Requesting %q", requestRoute)
+		logger.Debug("Requesting %q", requestRoute)
 
 		// stage 1: check if there is a item for the request
 		if model, found := viewModelOrchestrator.GetFullViewModel(requestRoute); found {
 
-			logger.Info("Returning item %q", requestRoute)
+			logger.Debug("Returning item %q", requestRoute)
 
 			// set headers
 			headerWriter.Write(w, header.CONTENTTYPE_HTML)
@@ -67,7 +67,7 @@ func Item(logger logger.Logger,
 		// stage 2: check if there is a file for the request
 		if file, found := fileOrchestrator.GetFile(requestRoute); found {
 
-			logger.Info("Returning file %q", requestRoute)
+			logger.Debug("Returning file %q", requestRoute)
 
 			// set  headers
 			headerWriter.Write(w, file.MimeType)
@@ -90,7 +90,7 @@ func Item(logger logger.Logger,
 			return
 		}
 
-		logger.Warn("No item or file found for route %q", requestRoute)
+		logger.Debug("No item or file found for route %q", requestRoute)
 
 		// display a 404 error page
 		error404Handler.ServeHTTP(w, r)

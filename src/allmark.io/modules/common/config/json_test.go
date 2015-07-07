@@ -17,8 +17,8 @@ func Test_SerializeConfig_NoErrorIsReturned(t *testing.T) {
 	config := &Config{
 		Server: Server{
 			ThemeFolderName: "/some/folder",
-			Http: Port{
-				PortNumber: 80,
+			HTTP: HTTP{
+				Enabled: true,
 			},
 		},
 	}
@@ -42,8 +42,8 @@ func Test_SerializeConfig_JsonContainsConfigValues(t *testing.T) {
 	config := &Config{
 		Server: Server{
 			ThemeFolderName: "/some/folder",
-			Http: Port{
-				PortNumber: 80,
+			HTTP: HTTP{
+				Enabled: true,
 			},
 		},
 	}
@@ -62,10 +62,10 @@ func Test_SerializeConfig_JsonContainsConfigValues(t *testing.T) {
 		t.Logf("The produced json does not contain the 'ThemeFolderName' value %q. The produced JSON is this: %s", config.Server.ThemeFolderName, json)
 	}
 
-	// assert: json contains http port
-	if !strings.Contains(json, string(config.Server.Http.PortNumber)) {
+	// assert: json contains http enabled
+	if !strings.Contains(json, "true") {
 		t.Fail()
-		t.Logf("The produced json does not contain the 'Http PortNumber' value %q. The produced JSON is this: %s", config.Server.Http.PortNumber, json)
+		t.Logf("The produced json does not contain the 'Http Enabled' value %q. The produced JSON is this: %s", config.Server.HTTP.Enabled, json)
 	}
 }
 
@@ -76,8 +76,8 @@ func Test_SerializeConfig_JsonIsFormatted(t *testing.T) {
 	config := &Config{
 		Server: Server{
 			ThemeFolderName: "/some/folder",
-			Http: Port{
-				PortNumber: 80,
+			HTTP: HTTP{
+				Enabled: true,
 			},
 		},
 	}
@@ -119,8 +119,8 @@ func Test_DeserializeConfig_FullConfigString_AllFieldsAreSet(t *testing.T) {
 	json := `{
 		"Server": {
 			"ThemeFolderName": "/some/folder",
-			"Http": {
-				"PortNumber": 80
+			"HTTP": {
+				"Enabled": true
 			}
 		}
 	}`
@@ -137,10 +137,10 @@ func Test_DeserializeConfig_FullConfigString_AllFieldsAreSet(t *testing.T) {
 		t.Logf("The deserialized config object should have the %q field properly initialized. Deserialization result: %#v", "ThemeFolderName", config)
 	}
 
-	// assert: http port
-	if config.Server.Http.PortNumber == 0 {
+	// assert: http enabled
+	if config.Server.HTTP.Enabled != true {
 		t.Fail()
-		t.Logf("The deserialized config object should have the %q field properly initialized. Deserialization result: %#v", "Http.PortNumber", config)
+		t.Logf("The deserialized config object should have the %q field properly initialized. Deserialization result: %#v", "Http.Enabled", config)
 	}
 }
 

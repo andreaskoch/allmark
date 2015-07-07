@@ -78,7 +78,10 @@ func createFileFromFilesystem(repositoryPath, itemDirectory, filePath string) (d
 
 	parentRoute := route.NewFromFilePath(repositoryPath, itemDirectory)
 	route := route.NewFromFilePath(repositoryPath, filePath)
-	contentProvider := newFileContentProviderWithoutChecksum(filePath, route)
+	contentProvider, contentProviderError := newFileContentProviderWithoutChecksum(filePath, route)
+	if contentProviderError != nil {
+		return nil, contentProviderError
+	}
 
 	// create the file
 	file := &File{

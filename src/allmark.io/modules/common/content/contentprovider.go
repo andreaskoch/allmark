@@ -5,6 +5,7 @@
 package content
 
 import (
+	"fmt"
 	"io"
 	"time"
 )
@@ -24,11 +25,12 @@ type DataProviderFunc func(contentReader func(content io.ReadSeeker) error) erro
 
 type HashProviderFunc func() (string, error)
 
-func NewContentProvider(mimeType MimeTypeProviderFunc, data DataProviderFunc, hash HashProviderFunc, lastModified LastModifiedProviderFunc) *ContentProvider {
+// NewContentProvider creates a new content provider with the given mimeType, data provider, hash provider and last modified provider.
+func NewContentProvider(mimeType MimeTypeProviderFunc, data DataProviderFunc, hash HashProviderFunc, lastModified LastModifiedProviderFunc) (*ContentProvider, error) {
 
 	currentHash, err := hash()
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("Cannot create content provider because hash() returned an error: %s", err.Error())
 	}
 
 	return &ContentProvider{
@@ -37,7 +39,7 @@ func NewContentProvider(mimeType MimeTypeProviderFunc, data DataProviderFunc, ha
 		hashProviderFunc:         hash,
 		lastModifiedProviderFunc: lastModified,
 		lastHash:                 currentHash,
-	}
+	}, nil
 }
 
 type ContentProvider struct {

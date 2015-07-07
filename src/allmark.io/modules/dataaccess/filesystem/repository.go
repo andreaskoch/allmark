@@ -135,7 +135,7 @@ func (repository *Repository) init() {
 
 func (repository *Repository) rescan(baseIndex *Index, directory string, limitMaxDepth bool, maxDepth int) (*Index, dataaccess.Update) {
 
-	repository.logger.Debug("Rescanning", directory)
+	repository.logger.Debug("Scanning directory %q", directory)
 
 	// notification listssrc/allmark.io/modules/web/handlers/update.go
 	newItemRoutes := make([]route.Route, 0)

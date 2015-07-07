@@ -494,6 +494,7 @@ allmark relies on a number of third-party libraries:
 - [github.com/bradleypeabody/fulltext](src/github.com/bradleypeabody/fulltext)
 - [github.com/gorilla/context](src/github.com/gorilla/context)
 - [github.com/gorilla/mux](src/github.com/gorilla/mux)
+- [github.com/gorilla/handlers](src/github.com/gorilla/handlers)
 - [github.com/jbarham/go-cdb](src/github.com/jbarham/go-cdb)
 - [github.com/nfnt/resize](src/github.com/nfnt/resize)
 - [github.com/russross/blackfriday](src/github.com/russross/blackfriday)

@@ -94,7 +94,7 @@ func (hub *Hub) run() {
 		// subscribe a new connection
 		case connection := <-hub.subscribe:
 			{
-				hub.logger.Debug("Subscring connection %s", connection.String())
+				hub.logger.Debug("Subscribing connection %s", connection.String())
 				hub.logger.Debug("Number of Connections - Before: %v", len(hub.connections))
 
 				// register the connection

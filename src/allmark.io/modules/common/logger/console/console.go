@@ -8,8 +8,8 @@ import (
 	"allmark.io/modules/common/logger/loglevel"
 	"fmt"
 	"io"
+	"log"
 	"os"
-	"time"
 )
 
 const (
@@ -46,7 +46,7 @@ func (logger *ConsoleLogger) Debug(format string, v ...interface{}) {
 		return
 	}
 
-	logger.print(LogLevelDebug, fmt.Sprintf(format, v...))
+	log.Println(fmt.Sprintf("%13s", LogLevelDebug) + fmt.Sprintf("%4s", "") + fmt.Sprintf(format, v...))
 }
 
 func (logger *ConsoleLogger) Level() loglevel.LogLevel {
@@ -58,7 +58,7 @@ func (logger *ConsoleLogger) Info(format string, v ...interface{}) {
 		return
 	}
 
-	logger.print(LogLevelInfo, fmt.Sprintf(format, v...))
+	log.Println(fmt.Sprintf("%13s", LogLevelInfo) + fmt.Sprintf("%4s", "") + fmt.Sprintf(format, v...))
 }
 
 func (logger *ConsoleLogger) Statistics(format string, v ...interface{}) {
@@ -66,7 +66,7 @@ func (logger *ConsoleLogger) Statistics(format string, v ...interface{}) {
 		return
 	}
 
-	logger.print(LogLevelStatistics, fmt.Sprintf(format, v...))
+	log.Println(fmt.Sprintf("%13s", LogLevelStatistics) + fmt.Sprintf("%4s", "") + fmt.Sprintf(format, v...))
 }
 
 func (logger *ConsoleLogger) Warn(format string, v ...interface{}) {
@@ -74,7 +74,7 @@ func (logger *ConsoleLogger) Warn(format string, v ...interface{}) {
 		return
 	}
 
-	logger.print(LogLevelWarn, fmt.Sprintf(format, v...))
+	log.Println(fmt.Sprintf("%13s", LogLevelWarn) + fmt.Sprintf("%4s", "") + fmt.Sprintf(format, v...))
 }
 
 func (logger *ConsoleLogger) Error(format string, v ...interface{}) {
@@ -82,16 +82,10 @@ func (logger *ConsoleLogger) Error(format string, v ...interface{}) {
 		return
 	}
 
-	logger.print(LogLevelError, fmt.Sprintf(format, v...))
+	log.Println(fmt.Sprintf("%13s", LogLevelError) + fmt.Sprintf("%4s", "") + fmt.Sprintf(format, v...))
 }
 
 func (logger *ConsoleLogger) Fatal(format string, v ...interface{}) {
-	logger.print(LogLevelFatal, fmt.Sprintf(format, v...))
+	log.Fatalln(LogLevelFatal + fmt.Sprintf("%4s", "") + fmt.Sprintf(format, v...))
 	os.Exit(1)
-}
-
-func (logger *ConsoleLogger) print(level, message string) {
-
-	timestamp := time.Now().Format(time.RFC1123)
-	fmt.Fprintln(logger.output, timestamp+" "+level+":  "+message)
 }

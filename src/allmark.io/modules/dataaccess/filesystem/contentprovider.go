@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-func newFileContentProvider(path string, route route.Route) *content.ContentProvider {
+func newFileContentProvider(path string, route route.Route) (*content.ContentProvider, error) {
 
 	// mimeType
 	mimeType := func() (string, error) {
@@ -62,7 +62,7 @@ func newFileContentProvider(path string, route route.Route) *content.ContentProv
 		lastModifiedProvider)
 }
 
-func newFileContentProviderWithoutChecksum(path string, route route.Route) *content.ContentProvider {
+func newFileContentProviderWithoutChecksum(path string, route route.Route) (*content.ContentProvider, error) {
 
 	// mimeType
 	mimeType := func() (string, error) {
@@ -106,7 +106,7 @@ func newFileContentProviderWithoutChecksum(path string, route route.Route) *cont
 		lastModifiedProvider)
 }
 
-func newTextContentProvider(text string, route route.Route) *content.ContentProvider {
+func newTextContentProvider(text string, route route.Route) (*content.ContentProvider, error) {
 
 	// mimeType
 	mimeType := func() (string, error) {

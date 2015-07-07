@@ -39,7 +39,7 @@ const (
 	DefaultHttpsKeyName              = "cert.key"
 	DefaultForceHttps                = false
 	DefaultLanguage                  = "en"
-	DefaultLogLevel                  = loglevel.Info
+	DefaultLogLevel                  = loglevel.Debug
 	DefaultIndexingEnabled           = false
 	DefaultIndexingIntervalInSeconds = 60
 	DefaultLiveReloadEnabled         = false
