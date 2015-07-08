@@ -33,7 +33,7 @@ allmark serve -reindex
 
 `*` The default interval is 60 seconds. You can change the interval in the repository config.
 
-Force HTTPs (redirect all http requests to https):
+Force HTTPS (redirect all http requests to HTTPS):
 
 ```bash
 allmark serve -secure
@@ -118,32 +118,32 @@ A **typical document** expected by allmark could look like this:
 
 ## Download / Installation
 
-You can download the **latest binaries** of allmark for your operating system from [allmark.io/bin](https://allmark.io/bin)
+You can download the **latest binaries** of allmark for your operating system from [allmark.io/bin](HTTPS://allmark.io/bin)
 
 **Linux**
 
 ```bash
 sudo su
-curl -s --insecure https://allmark.io/bin/allmark > /usr/local/bin/allmark
+curl -s --insecure HTTPS://allmark.io/bin/allmark > /usr/local/bin/allmark
 chmod +x /usr/local/bin/allmark
 ```
 
 **Mac OS**
 
 ```bash
-sudo curl "https://allmark.io/bin/darwin_amd64/allmark" -o "/usr/local/bin/allmark"
+sudo curl "HTTPS://allmark.io/bin/darwin_amd64/allmark" -o "/usr/local/bin/allmark"
 sudo chmod +x /usr/local/bin/allmark
 ```
 
 **Windows**
 
 ```powershell
-Invoke-WebRequest https://allmark.io/bin/windows_amd64/allmark.exe -OutFile allmark.exe
+Invoke-WebRequest HTTPS://allmark.io/bin/windows_amd64/allmark.exe -OutFile allmark.exe
 ```
 
-All binaries at [allmark.io](https://allmark.io) are up-to-date builds of the **master**-branch.
+All binaries at [allmark.io](HTTPS://allmark.io) are up-to-date builds of the **master**-branch.
 
-If you want to download and install binaries from the **develop**-branch you can go to [develop.allmark.io/bin](https://develop.allmark.io).
+If you want to download and install binaries from the **develop**-branch you can go to [develop.allmark.io/bin](HTTPS://develop.allmark.io).
 
 ## Configuration
 
@@ -167,7 +167,7 @@ This will create a folder with the name `.allmark` in the current or the specifi
 - `config`: contains the **JSON configuration** for allmark
 - `templates`: contains all **templates** used for rendering the web pages
 - `theme`: contains all **assets** used by the templates
-- `certs`: contains a generated and self-signed SSL-certificate that can be used for serving HTTPs
+- `certs`: contains a generated and self-signed SSL-certificate that can be used for serving HTTPS
 - `users.htpasswd`: the user file for **[basic-authentication](http://httpd.apache.org/docs/2.2/programs/htpasswd.html)** (default: `<empty>`)
 
 ```
@@ -250,17 +250,17 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 		- `Bindings`: An array of 0..n TCP bindings that will be used to serve HTTP
 			- `Network`: `"tcp4"` for IPv4 or `"tcp6"` for IPv6
 			- `IP`: An IPv4 address (e.g. `"0.0.0.0"`, `"127.0.0.1"`) or an IPv6 address (e.g. `"::"`, `"::1"`)
-			- `Zone`: The [IPv6 zone index](https://en.wikipedia.org/wiki/IPv6_address#Link-local_addresses_and_zone_indices) (e.g. `""`, `"eth0"`, `"eth1"`; (default: `""`)
+			- `Zone`: The [IPv6 zone index](HTTPS://en.wikipedia.org/wiki/IPv6_address#Link-local_addresses_and_zone_indices) (e.g. `""`, `"eth0"`, `"eth1"`; (default: `""`)
 			- `Port`: 0-65535 (0 means that a random port will be allocated)
-	- `HTTPs`
-		- `Enabled`: If set to `true` https is enabled. If set to `false` https is disabled.
+	- `HTTPS`
+		- `Enabled`: If set to `true` HTTPS is enabled. If set to `false` HTTPS is disabled.
 		- `CertFileName`: The filename of the SSL certificate in the `.allmark/certs`-folder (e.g. `"cert.pem"`, `"cert.pem"`)
 		- `KeyFileName`: The filename of the SSL certificate key file in the `.allmark/certs`-folder (e.g. `"cert.key"`)
-		- `Force`: If set to `true` and if http and https are enabled all http requests will be redirected to http. If set to `false` you can use https alongside http.
-		- `Bindings`: An array of 0..n TCP bindings that will be used to serve HTTPs
+		- `Force`: If set to `true` and if http and HTTPS are enabled all http requests will be redirected to http. If set to `false` you can use HTTPS alongside http.
+		- `Bindings`: An array of 0..n TCP bindings that will be used to serve HTTPS
 			- same format (Network, IP, Zone, Port) as for HTTP
 	- `Authentication`
-		- `Enabled`: If set to `true` basic-authentication will be enabled. If set to `false` basic-authentication will be disabled. **Note**: Even if set to `true`, basic authentication will only be enabled if HTTPs is forced.
+		- `Enabled`: If set to `true` basic-authentication will be enabled. If set to `false` basic-authentication will be disabled. **Note**: Even if set to `true`, basic authentication will only be enabled if HTTPS is forced.
 		- `UserStoreFileName`: The filename of the [htpasswd-file](http://httpd.apache.org/docs/2.2/programs/htpasswd.html) that contains all authorized usernames, realms and passwords/hashes (default: `"users.htpasswd"`).
 - `Web`
 	- `DefaultLanguage`: An [ISO 639-1](http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) two-letter language code (e.g. `"en"` → english, `"de"` → german, `"fr"` → french) that is used as the default value for the `<html lang="">` attribute (default: `"en"`).
@@ -268,7 +268,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 	- `Publisher`: Information about the repository-publisher / the owner of an repository.
 		- `Name`: The publisher name or organization (e.g. `"Example Org"`)
 		- `Email`: The publisher email address (e.g. `"webmaster@example.com"`)
-		- `Url`: The URL of the publisher (e.g. `"http://example.com/about"`)
+		- `URL`: The URL of the publisher (e.g. `"http://example.com/about"`)
 		- `GooglePlusHandle`: The Google+ username/handle of the publisher (e.g. `"exampleorg"`)
 		- `TwitterHandle`: The Twitter username/handle of the publisher (e.g. `"exampleorg"`)
 		- `FacebookHandle`: The Facebook username/handle of the publisher (e.g. `"exampleorg"`)
@@ -276,7 +276,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 		- `"John Doe"`
 			- `Name`: `"John Doe"`
 			- `Email`: `"johndoe@example.com"`
-			- `Url`: `"http://example.com/about/johndoe"`
+			- `URL`: `"http://example.com/about/johndoe"`
 			- `GooglePlusHandle`: The Google+ username/handle of the author (e.g. `"johndoe"`)
 			- `TwitterHandle`: The Twitter username/handle of the author (e.g. `"johndoe"`)
 			- `FacebookHandle`: The Facebook username/handle of the author (e.g. `"johndoe"`)
@@ -286,7 +286,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 		- ...
 - `Conversion`
 	- `Rtf`: Rich-text Conversion
-		- `Enabled`: If set to `true` rich-text conversion is enabled. allmark uses [pandoc](http://pandoc.org/) for the rich-text conversion. If the [pandoc binary](https://github.com/jgm/pandoc/releases/latest) is not found in your PATH, rich-text conversion will not be available.
+		- `Enabled`: If set to `true` rich-text conversion is enabled. allmark uses [pandoc](http://pandoc.org/) for the rich-text conversion. If the [pandoc binary](HTTPS://github.com/jgm/pandoc/releases/latest) is not found in your PATH, rich-text conversion will not be available.
 	- `Thumbnails`: Image-Thumbnail creation.
 		- `Enabled`: If set to `true` allmark will create smaller versions (Small: 320x240, Medium: 640x480, Large: 1024x768) for all images in your repository and use the respective version depending on the screen size of your clients (default: `false`).
 	- `IndexFileName`: The name of the file where allmark stores an index of all thumbnails it has created (default: `"thumbnail.index"`).
@@ -298,7 +298,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 	- `Enabled`: If set to `true` analytics is enabled (default: `false`).
 	- `GoogleAnalytics`
 		- `Enabled`: If set to `true` Google Analytics is enabled (default: `false`).
-		- `TrackingId`: Your Google Analytics tracking id (e.g `"UA-000000-01"`).
+		- `TrackingID`: Your Google Analytics tracking id (e.g `"UA-000000-01"`).
 
 
 ```json
@@ -323,7 +323,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 				}
 			]
 		},
-		"HTTPs": {
+		"HTTPS": {
 			"Enabled": true,
 			"Bindings": [
 				{
@@ -354,7 +354,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 		"Publisher": {
 			"Name": "",
 			"Email": "",
-			"Url": "",
+			"URL": "",
 			"GooglePlusHandle": "",
 			"TwitterHandle": "",
 			"FacebookHandle": ""
@@ -363,7 +363,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 			"Unknown": {
 				"Name": "",
 				"Email": "",
-				"Url": "",
+				"URL": "",
 				"GooglePlusHandle": "",
 				"TwitterHandle": "",
 				"FacebookHandle": ""
@@ -388,7 +388,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 		"Enabled": false,
 		"GoogleAnalytics": {
 			"Enabled": false,
-			"TrackingId": ""
+			"TrackingID": ""
 		}
 	}
 }
@@ -398,7 +398,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 
 This is an unordered list of the most prominent features of allmark:
 
-1. Renders [GitHub Flavored MarkDown](https://help.github.com/articles/github-flavored-markdown/)
+1. Renders [GitHub Flavored MarkDown](HTTPS://help.github.com/articles/github-flavored-markdown/)
 2. Full text search (+ Autocomplete)
 3. Live-Reload / Live-Editing (via WebSockets)
 4. Document Tagging
@@ -441,31 +441,31 @@ This is an unordered list of the most prominent features of allmark:
 20. Presentation Mode
 21. Rich Text Conversion (Download documents as .rtf files)
 22. Image Thumbnail Generation
-23. HTTPs Support
+23. HTTPS Support
 	- Reference custom SSL certificates via `.allmark/config` from the `.allmark/certs` folder
 	- Generates self-signed SSL certificates on-the-fly if no certificate is configured
 24. Basic-Authentication
 	- For an additional level of security allmark will only allow basic-authentication over SSL.
 	- You can add users to the `.allmark/users.htpasswd` file using the tool [htpasswd](http://httpd.apache.org/docs/2.2/programs/htpasswd.html)
-25. Parallel hosting of HTTP/HTTPs over IPv4 and/or IPv6
+25. Parallel hosting of HTTP/HTTPS over IPv4 and/or IPv6
 
 I will try to create videos showing you the different features when there is time.
 
 ## Demo / Showcase
 
-If you want to see **allmark in action** you can visit my blog [AndyK Docs](https://andykdocs.de/) at [https://andykdocs.de](https://andykdocs.de):
+If you want to see **allmark in action** you can visit my blog [AndyK Docs](HTTPS://andykdocs.de/) at [HTTPS://andykdocs.de](HTTPS://andykdocs.de):
 
 ![Animation: Demo of allmark hosting andykdocs.de ](files/demo/allmark-demo-andykdocs.gif)
 
 ## Build Status
 
-[![Build Status](https://travis-ci.org/andreaskoch/allmark.png)](https://travis-ci.org/andreaskoch/allmark)
+[![Build Status](HTTPS://travis-ci.org/andreaskoch/allmark.png)](HTTPS://travis-ci.org/andreaskoch/allmark)
 
-There is also an automated docker build at [registry.hub.docker.com/u/andreaskoch/allmark/](https://registry.hub.docker.com/u/andreaskoch/allmark/) which builds the develop and master branch every time a commit is pushed.
+There is also an automated docker build at [registry.hub.docker.com/u/andreaskoch/allmark/](HTTPS://registry.hub.docker.com/u/andreaskoch/allmark/) which builds the develop and master branch every time a commit is pushed.
 
 ## Build
 
-If you have [go](https://golang.org/dl/) (≥ 1.3) installed you can build allmark yourself in two steps:
+If you have [go](HTTPS://golang.org/dl/) (≥ 1.3) installed you can build allmark yourself in two steps:
 
 1. Clone the project from github
 2. Run the `make.go` file with the `-install` flag
@@ -532,7 +532,7 @@ go run make.go -crosscompile
 
 This command will cross-compile for all platforms and architectures directly on your system.
 
-If you have not prepared your golang installation for cross-compilation you can use the the `-crosscompile-with-docker` flag instead. This command will launch a [docker container with go 1.4](https://registry.hub.docker.com/u/library/golang/) that is prepared for cross-compilation and will build allmark for all available platforms and architectures inside the docker-container. The output will be available in the `bin` folder of this project:
+If you have not prepared your golang installation for cross-compilation you can use the the `-crosscompile-with-docker` flag instead. This command will launch a [docker container with go 1.4](HTTPS://registry.hub.docker.com/u/library/golang/) that is prepared for cross-compilation and will build allmark for all available platforms and architectures inside the docker-container. The output will be available in the `bin` folder of this project:
 
 ```
 bin/

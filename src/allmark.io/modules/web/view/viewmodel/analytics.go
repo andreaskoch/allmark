@@ -11,5 +11,5 @@ type Analytics struct {
 
 type GoogleAnalytics struct {
 	Enabled    bool   `json:"enabled"`
-	TrackingId string `json:"trackingId"`
+	TrackingID string `json:"trackingId"`
 }

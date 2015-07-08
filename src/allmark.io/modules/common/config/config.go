@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Package config provides access to the configuration models required by
+// the rest of the modules.
 package config
 
 import (
@@ -21,6 +23,7 @@ import (
 	"github.com/abbot/go-http-auth"
 )
 
+// Global configuration constants.
 const (
 	MetaDataFolderName     = ".allmark"
 	FilesDirectoryName     = "files"
@@ -30,26 +33,24 @@ const (
 	ThumbnailIndexFileName = "thumbnail.index"
 	ThumbnailsFolderName   = "thumbnails"
 	SSLCertsFolderName     = "certs"
+)
 
-	// Global Defaults
+// Global default values.
+const (
 	DefaultDomainName                = "localhost"
-	DefaultHttpPortEnabled           = true
-	DefaultHttpsPortEnabled          = true
-	DefaultHttpsCertName             = "cert.pem"
-	DefaultHttpsKeyName              = "cert.key"
-	DefaultForceHttps                = false
+	DefaultHTTPPortEnabled           = true
+	DefaultHTTPSPortEnabled          = true
+	DefaultHTTPSCertName             = "cert.pem"
+	DefaultHTTPSKeyName              = "cert.key"
+	DefaultForceHTTPS                = false
 	DefaultLanguage                  = "en"
 	DefaultLogLevel                  = loglevel.Debug
 	DefaultIndexingEnabled           = false
 	DefaultIndexingIntervalInSeconds = 60
 	DefaultLiveReloadEnabled         = false
 	DefaultRichTextConversionEnabled = true
-
-	// DefaultAuthenticationEnabled contains the default-state for the authentication feature.
-	DefaultAuthenticationEnabled = false
-
-	// UserStoreFileName defines the default user-store file name.
-	DefaultUserStoreFileName = "users.htpasswd"
+	DefaultAuthenticationEnabled     = false
+	DefaultUserStoreFileName         = "users.htpasswd"
 )
 
 var homeDirectory func() string
@@ -79,6 +80,9 @@ func isHomeDir(directory string) bool {
 	return filepath.Clean(directory) == homeDirectory()
 }
 
+// Get tries to locate a Config in the specified baseFolder and return it.
+// If no configuration was found in the specified folder it will check the users home-directory for a Config.
+// If no configuration was found in the supplied baseFolder and no global config in the users home-directory Get will return a default configuration.
 func Get(baseFolder string) *Config {
 
 	// local
@@ -100,6 +104,7 @@ func Get(baseFolder string) *Config {
 	return Default(baseFolder)
 }
 
+// New creates a new configuration for the given baseFolder.
 func New(baseFolder string) *Config {
 	metaDataFolder := filepath.Join(baseFolder, MetaDataFolderName)
 	templatesFolder := filepath.Join(metaDataFolder, TemplatesFolderName)
@@ -120,6 +125,7 @@ func New(baseFolder string) *Config {
 	}
 }
 
+// Default returns a configuration with default values for the given baseFolder.
 func Default(baseFolder string) *Config {
 
 	// create a new config
@@ -130,7 +136,7 @@ func Default(baseFolder string) *Config {
 	config.Server.DomainName = DefaultDomainName
 
 	// HTTP
-	config.Server.HTTP.Enabled = DefaultHttpPortEnabled
+	config.Server.HTTP.Enabled = DefaultHTTPPortEnabled
 	config.Server.HTTP.Bindings = []*TCPBinding{
 		&TCPBinding{
 			Network: "tcp4",
@@ -147,11 +153,11 @@ func Default(baseFolder string) *Config {
 	}
 
 	// HTTPS
-	config.Server.HTTPs.Enabled = DefaultHttpsPortEnabled
-	config.Server.HTTPs.CertFileName = DefaultHttpsCertName
-	config.Server.HTTPs.KeyFileName = DefaultHttpsKeyName
-	config.Server.HTTPs.Force = DefaultForceHttps
-	config.Server.HTTPs.Bindings = []*TCPBinding{
+	config.Server.HTTPS.Enabled = DefaultHTTPSPortEnabled
+	config.Server.HTTPS.CertFileName = DefaultHTTPSCertName
+	config.Server.HTTPS.KeyFileName = DefaultHTTPSKeyName
+	config.Server.HTTPS.Force = DefaultForceHTTPS
+	config.Server.HTTPS.Bindings = []*TCPBinding{
 		&TCPBinding{
 			Network: "tcp4",
 			IP:      "0.0.0.0",
@@ -219,6 +225,7 @@ func (binding *TCPBinding) GetTCPAddress() net.TCPAddr {
 	}
 }
 
+// AssignFreePort locates a free port and assigns it the the current binding.
 func (binding *TCPBinding) AssignFreePort() {
 	if binding.Port > 0 && binding.Port < math.MaxUint16 {
 		return
@@ -227,12 +234,14 @@ func (binding *TCPBinding) AssignFreePort() {
 	binding.Port = ports.GetFreePort(binding.Network, binding.GetTCPAddress())
 }
 
+// HTTP contains the configuration parameters for HTTP server endpoint.
 type HTTP struct {
 	Enabled  bool
 	Bindings []*TCPBinding
 }
 
-type HTTPs struct {
+// HTTPS contains the configuration parameters for a HTTPS server endpoint.
+type HTTPS struct {
 	HTTP
 
 	CertFileName string
@@ -241,8 +250,8 @@ type HTTPs struct {
 	Force bool
 }
 
-// HttpsIsForced indicates whether HTTPs is forced or not.
-func (https *HTTPs) HTTPsIsForced() bool {
+// HTTPSIsForced indicates whether HTTPS is forced or not.
+func (https *HTTPS) HTTPSIsForced() bool {
 	if https.Enabled == false {
 		return false
 	}
@@ -259,6 +268,7 @@ type Authentication struct {
 	UserStoreFileName string
 }
 
+// Web contains all web-site related properties such as the language, authors and publisher information.
 type Web struct {
 	DefaultLanguage string
 	DefaultAuthor   string
@@ -266,66 +276,80 @@ type Web struct {
 	Authors         map[string]UserInformation
 }
 
+// UserInformation contains user-related properties such as the Name and Email address.
 type UserInformation struct {
 	Name  string
 	Email string
-	Url   string
+	URL   string
 
 	GooglePlusHandle string
 	TwitterHandle    string
 	FacebookHandle   string
 }
 
+// Server contains web-server related parameters such as the domain-name, theme-folder and HTTP/HTTPs bindings.
 type Server struct {
 	ThemeFolderName string
 	DomainName      string
 	HTTP            HTTP
-	HTTPs           HTTPs
+	HTTPS           HTTPS
 	Authentication  Authentication
 }
 
+// Indexing defines the reindexing parameters of the repository.
 type Indexing struct {
 	Enabled           bool
 	IntervalInSeconds int
 }
 
+// LiveReload defines the live-reload capabilities.
 type LiveReload struct {
 	Enabled bool
 }
 
+// Conversion defines the rich-text and thumbnail conversion paramters.
 type Conversion struct {
 	Rtf        RtfConversion
 	Thumbnails ThumbnailConversion
 }
 
+// RtfConversion contains rich-text (RTF) conversion parameters.
 type RtfConversion struct {
 	Enabled bool
 }
 
+// Tool returns the path of the external rich-text conversion tool (pandoc) used
+// to create Rich-text documents from repository items.
 func (rtf RtfConversion) Tool() string {
 	return DefaultConversionToolPath
 }
 
+// IsEnabled returns a flag indicating if rich-text conversion is enabled or not.
+// Rich-text conversion can only be enabled if the conversion tool was found in the PATH on startup.
 func (rtf RtfConversion) IsEnabled() bool {
 	return rtf.Enabled && rtfConversionToolIsAvailable
 }
 
+// ThumbnailConversion defines the image-thumbnail conversion capabilities.
 type ThumbnailConversion struct {
 	Enabled       bool
 	IndexFileName string
 	FolderName    string
 }
 
+// Analytics defines the web-analytics parameters of the web-server.
 type Analytics struct {
 	Enabled         bool
 	GoogleAnalytics GoogleAnalytics
 }
 
+// GoogleAnalytics contains the Google Analytics realted parameters for the web-analytics section.
 type GoogleAnalytics struct {
 	Enabled    bool
-	TrackingId string
+	TrackingID string
 }
 
+// Config is the main configuration model for all parts of allmark.
 type Config struct {
 	Server     Server
 	Web        Web
@@ -341,11 +365,14 @@ type Config struct {
 	templatesFolder string
 }
 
-// CertificateDirectory returns the path of the ssl-certificates directory in the meta-data folder.
+// CertificateDirectory returns the path of the SSL certificates directory in the meta-data folder.
 func (config *Config) CertificateDirectory() string {
 	return filepath.Join(config.MetaDataFolder(), SSLCertsFolderName)
 }
 
+// CertificateFilePaths returns the SSL certificate and key file paths.
+// If none are configured or the configured ones don't exist it will create new
+// ones and return the paths of the newly generates certificate/key pair.
 func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath string) {
 
 	// Determine the domain name
@@ -355,15 +382,15 @@ func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath s
 	}
 
 	// Determine  the cert name
-	certificateFileName := config.Server.HTTPs.CertFileName
+	certificateFileName := config.Server.HTTPS.CertFileName
 	if certificateFileName == "" {
-		certificateFileName = DefaultHttpsCertName
+		certificateFileName = DefaultHTTPSCertName
 	}
 
 	// Determine the key name
-	keyFileName := config.Server.HTTPs.KeyFileName
+	keyFileName := config.Server.HTTPS.KeyFileName
 	if keyFileName == "" {
-		keyFileName = DefaultHttpsKeyName
+		keyFileName = DefaultHTTPSKeyName
 	}
 
 	// Determine the base directory for the certificates
@@ -408,22 +435,27 @@ func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath s
 	return certificateFilePath, keyFilePath
 }
 
+// BaseFolder returns the path of the base folder of the current configuration model.
 func (config *Config) BaseFolder() string {
 	return config.baseFolder
 }
 
+// MetaDataFolder returns the path of the meta-data folder.
 func (config *Config) MetaDataFolder() string {
 	return config.metaDataFolder
 }
 
+// TemplatesFolder returns the path of the templates folder.
 func (config *Config) TemplatesFolder() string {
 	return config.templatesFolder
 }
 
+// Filepath returns the path of the serialized version of the current configuration model.
 func (config *Config) Filepath() string {
 	return filepath.Join(config.MetaDataFolder(), ConfigurationFileName)
 }
 
+// ThemeFolder returns the path of the theme folder.
 func (config *Config) ThemeFolder() string {
 	themeFolderName := ThemeFolderName
 	if config.Server.ThemeFolderName != "" {
@@ -433,6 +465,7 @@ func (config *Config) ThemeFolder() string {
 	return filepath.Join(config.themeFolderBase, themeFolderName)
 }
 
+// ThumbnailIndexFilePath returns the path of the thumbnail index file.
 func (config *Config) ThumbnailIndexFilePath() string {
 	filename := ThumbnailIndexFileName
 	if config.Conversion.Thumbnails.IndexFileName != "" {
@@ -442,6 +475,7 @@ func (config *Config) ThumbnailIndexFilePath() string {
 	return filepath.Join(config.MetaDataFolder(), filename)
 }
 
+// ThumbnailFolder returns the path of the thumbnail folder.
 func (config *Config) ThumbnailFolder() string {
 	folderName := ThumbnailsFolderName
 	if config.Conversion.Thumbnails.FolderName != "" {
@@ -451,6 +485,7 @@ func (config *Config) ThumbnailFolder() string {
 	return filepath.Join(config.MetaDataFolder(), folderName)
 }
 
+// Load reads the configuration-model from disk.
 func (config *Config) Load() (*Config, error) {
 
 	path := config.Filepath()
@@ -481,6 +516,7 @@ func (config *Config) Load() (*Config, error) {
 	return config, nil
 }
 
+// Save persists the current state of the configuration-model to disk.
 func (config *Config) Save() (*Config, error) {
 
 	path := config.Filepath()
@@ -527,6 +563,7 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 	return config, nil
 }
 
+// AuthenticationIsEnabled get a flag indicating if authentication is enabled.
 func (config *Config) AuthenticationIsEnabled() bool {
 
 	if !config.Server.Authentication.Enabled {
@@ -534,8 +571,8 @@ func (config *Config) AuthenticationIsEnabled() bool {
 	}
 
 	// we will only allow basic authentication over https
-	if config.Server.HTTP.Enabled && config.Server.HTTPs.HTTPsIsForced() == false {
-		fmt.Println("Basic-Authentication over HTTP is not available. Please disable HTTP or force HTTPs in order to use basic-authentication.")
+	if config.Server.HTTP.Enabled && config.Server.HTTPS.HTTPSIsForced() == false {
+		fmt.Println("Basic-Authentication over HTTP is not available. Please disable HTTP or force HTTPS in order to use basic-authentication.")
 		os.Exit(1)
 	}
 

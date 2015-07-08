@@ -583,7 +583,7 @@ func (orchestrator *Orchestrator) getAnalyticsSettings() viewmodel.Analytics {
 		Enabled: orchestrator.config.Analytics.Enabled,
 		GoogleAnalytics: viewmodel.GoogleAnalytics{
 			Enabled:    orchestrator.config.Analytics.GoogleAnalytics.Enabled,
-			TrackingId: orchestrator.config.Analytics.GoogleAnalytics.TrackingId,
+			TrackingID: orchestrator.config.Analytics.GoogleAnalytics.TrackingID,
 		},
 	}
 }
