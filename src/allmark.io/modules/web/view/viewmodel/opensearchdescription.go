@@ -7,7 +7,7 @@ package viewmodel
 type OpenSearchDescription struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
-	FavIconUrl  string `json:"favIconUrl"`
-	SearchUrl   string `json:"searchUrl"`
+	FavIconURL  string `json:"favIconURL"`
+	SearchURL   string `json:"searchURL"`
 	Tags        string `json:"tags"`
 }

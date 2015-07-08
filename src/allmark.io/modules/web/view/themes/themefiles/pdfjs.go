@@ -1447,27 +1447,27 @@ function assert(cond, msg) {
     error(msg);
 }
 
-// Combines two URLs. The baseUrl shall be absolute URL. If the url is an
+// Combines two URLs. The baseURL shall be absolute URL. If the url is an
 // absolute URL, it will be returned as is.
-function combineUrl(baseUrl, url) {
+function combineURL(baseURL, url) {
   if (!url)
-    return baseUrl;
+    return baseURL;
   if (url.indexOf(':') >= 0)
     return url;
   if (url.charAt(0) == '/') {
     // absolute path
-    var i = baseUrl.indexOf('://');
-    i = baseUrl.indexOf('/', i + 3);
-    return baseUrl.substring(0, i) + url;
+    var i = baseURL.indexOf('://');
+    i = baseURL.indexOf('/', i + 3);
+    return baseURL.substring(0, i) + url;
   } else {
     // relative path
-    var pathLength = baseUrl.length, i;
-    i = baseUrl.lastIndexOf('#');
+    var pathLength = baseURL.length, i;
+    i = baseURL.lastIndexOf('#');
     pathLength = i >= 0 ? i : pathLength;
-    i = baseUrl.lastIndexOf('?', pathLength);
+    i = baseURL.lastIndexOf('?', pathLength);
     pathLength = i >= 0 ? i : pathLength;
-    var prefixLength = baseUrl.lastIndexOf('/', pathLength);
-    return baseUrl.substring(0, prefixLength + 1) + url;
+    var prefixLength = baseURL.lastIndexOf('/', pathLength);
+    return baseURL.substring(0, prefixLength + 1) + url;
   }
 }
 
@@ -2296,7 +2296,7 @@ PDFJS.getDocument = function getDocument(source,
   var params = {};
   for (var key in source) {
     if (key === 'url' && typeof window !== 'undefined') {
-      params[key] = combineUrl(window.location.href, source[key]);
+      params[key] = combineURL(window.location.href, source[key]);
       continue;
     }
     params[key] = source[key];
@@ -6807,7 +6807,7 @@ var TextAnnotation = (function TextAnnotationClosure() {
 })();
 
 var LinkAnnotation = (function LinkAnnotationClosure() {
-  function isValidUrl(url) {
+  function isValidURL(url) {
     if (!url)
       return false;
     var colon = url.indexOf(':');
@@ -6842,7 +6842,7 @@ var LinkAnnotation = (function LinkAnnotationClosure() {
         var url = action.get('URI');
         // TODO: pdf spec mentions urls can be relative to a Base
         // entry in the dictionary.
-        if (!isValidUrl(url)) {
+        if (!isValidURL(url)) {
           url = '';
         }
         data.url = url;
@@ -6858,7 +6858,7 @@ var LinkAnnotation = (function LinkAnnotationClosure() {
 
         // TODO: pdf reference says that GoToR
         // can also have 'NewWindow' attribute
-        if (!isValidUrl(url)) {
+        if (!isValidURL(url)) {
           url = '';
         }
         data.url = url;
@@ -26346,7 +26346,7 @@ var GlyphsUnicode = {
   Upsilondieresishooksymbolgreek: 0x03D4,
   Upsilonhooksymbol: 0x03D2,
   Upsilontonos: 0x038E,
-  Uring: 0x016E,
+  URIng: 0x016E,
   Ushortcyrillic: 0x040E,
   Usmall: 0xF775,
   Ustraightcyrillic: 0x04AE,
@@ -30533,7 +30533,7 @@ var Metrics = {
     'yacute': 500,
     'scommaaccent': 500,
     'ecircumflex': 556,
-    'Uring': 722,
+    'URIng': 722,
     'Udieresis': 722,
     'aogonek': 556,
     'Uacute': 722,
@@ -30850,7 +30850,7 @@ var Metrics = {
     'yacute': 556,
     'scommaaccent': 556,
     'ecircumflex': 556,
-    'Uring': 722,
+    'URIng': 722,
     'Udieresis': 722,
     'aogonek': 556,
     'Uacute': 722,
@@ -31167,7 +31167,7 @@ var Metrics = {
     'yacute': 556,
     'scommaaccent': 556,
     'ecircumflex': 556,
-    'Uring': 722,
+    'URIng': 722,
     'Udieresis': 722,
     'aogonek': 556,
     'Uacute': 722,
@@ -31484,7 +31484,7 @@ var Metrics = {
     'yacute': 500,
     'scommaaccent': 500,
     'ecircumflex': 556,
-    'Uring': 722,
+    'URIng': 722,
     'Udieresis': 722,
     'aogonek': 556,
     'Uacute': 722,
@@ -31993,7 +31993,7 @@ var Metrics = {
     'yacute': 500,
     'scommaaccent': 389,
     'ecircumflex': 444,
-    'Uring': 722,
+    'URIng': 722,
     'Udieresis': 722,
     'aogonek': 444,
     'Uacute': 722,
@@ -32310,7 +32310,7 @@ var Metrics = {
     'yacute': 500,
     'scommaaccent': 389,
     'ecircumflex': 444,
-    'Uring': 722,
+    'URIng': 722,
     'Udieresis': 722,
     'aogonek': 500,
     'Uacute': 722,
@@ -32627,7 +32627,7 @@ var Metrics = {
     'yacute': 444,
     'scommaaccent': 389,
     'ecircumflex': 444,
-    'Uring': 722,
+    'URIng': 722,
     'Udieresis': 722,
     'aogonek': 500,
     'Uacute': 722,
@@ -32944,7 +32944,7 @@ var Metrics = {
     'yacute': 444,
     'scommaaccent': 389,
     'ecircumflex': 444,
-    'Uring': 722,
+    'URIng': 722,
     'Udieresis': 722,
     'aogonek': 500,
     'Uacute': 722,

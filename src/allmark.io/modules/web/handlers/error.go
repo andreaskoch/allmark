@@ -22,7 +22,7 @@ func Error(headerWriter header.HeaderWriter, templateProvider templates.Provider
 		w.WriteHeader(http.StatusNotFound)
 
 		// get the error template
-		hostname := getBaseUrlFromRequest(r)
+		hostname := getBaseURLFromRequest(r)
 		errorTemplate, err := templateProvider.GetFullTemplate(hostname, templates.ErrorTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)

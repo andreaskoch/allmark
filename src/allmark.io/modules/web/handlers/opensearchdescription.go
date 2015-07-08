@@ -25,7 +25,7 @@ func OpenSearchDescription(headerWriter header.HeaderWriter,
 		headerWriter.Write(w, header.CONTENTTYPE_XML)
 
 		// get the template
-		hostname := getBaseUrlFromRequest(r)
+		hostname := getBaseURLFromRequest(r)
 		openSearchDescriptionTemplate, err := templateProvider.GetSubTemplate(hostname, templates.OpenSearchDescriptionTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)

@@ -74,7 +74,7 @@ func (server *Server) Start() chan error {
 		return result
 	}
 
-	uniqueUrls := make(map[string]string)
+	uniqueURLs := make(map[string]string)
 
 	// http
 	if httpEnabled {
@@ -118,7 +118,7 @@ func (server *Server) Start() chan error {
 			// store the URL for later opening
 			if httpsEnabled == false {
 				endpointURL := httpEndpoint.DefaultURL()
-				uniqueUrls[endpointURL] = endpointURL
+				uniqueURLs[endpointURL] = endpointURL
 			}
 
 		}
@@ -149,14 +149,14 @@ func (server *Server) Start() chan error {
 
 			// store the URL for later opening
 			endpointURL := httpsEndpoint.DefaultURL()
-			uniqueUrls[endpointURL] = endpointURL
+			uniqueURLs[endpointURL] = endpointURL
 		}
 
 	}
 
 	// open HTTP URL(s) in a browser
-	for _, url := range uniqueUrls {
-		server.logger.Info("Open Url: %s", url)
+	for _, url := range uniqueURLs {
+		server.logger.Info("Open URL: %s", url)
 		go open.Run(url)
 	}
 

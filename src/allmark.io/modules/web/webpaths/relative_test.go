@@ -50,7 +50,7 @@ func Test_RelativeWebPathProvider_RootAsBasePath_Path_ParameterIsAbsolute_Return
 	}
 }
 
-// Get an array of route.Route objects from a string array of Uris.
+// Get an array of route.Route objects from a string array of URIs.
 func getRoutesFromStrings(uris []string) []route.Route {
 
 	routes := []route.Route{}

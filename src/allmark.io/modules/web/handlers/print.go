@@ -23,10 +23,10 @@ func Print(logger logger.Logger,
 	templateProvider templates.Provider,
 	error404Handler http.Handler) http.Handler {
 
-	render := func(writer io.Writer, baseUrl string, viewModel viewmodel.ConversionModel) {
+	render := func(writer io.Writer, baseURL string, viewModel viewmodel.ConversionModel) {
 
 		// get a template
-		template, err := templateProvider.GetSubTemplate(baseUrl, templates.ConversionTemplateName)
+		template, err := templateProvider.GetSubTemplate(baseURL, templates.ConversionTemplateName)
 		if err != nil {
 			logger.Error("No template for item of type %q.", viewModel.Type)
 			return
@@ -60,8 +60,8 @@ func Print(logger logger.Logger,
 		defer r.Body.Close()
 
 		// check if there is a item for the request
-		baseUrl := getBaseUrlFromRequest(r)
-		viewModel, found := conversionModelOrchestrator.GetConversionModel(baseUrl, requestRoute)
+		baseURL := getBaseURLFromRequest(r)
+		viewModel, found := conversionModelOrchestrator.GetConversionModel(baseURL, requestRoute)
 		if !found {
 
 			// display a 404 error page
@@ -70,6 +70,6 @@ func Print(logger logger.Logger,
 		}
 
 		// render the view model
-		render(w, baseUrl, viewModel)
+		render(w, baseURL, viewModel)
 	})
 }

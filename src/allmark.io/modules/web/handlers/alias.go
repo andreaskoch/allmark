@@ -29,9 +29,9 @@ func AliasLookup(headerWriter header.HeaderWriter, viewModelOrchestrator *orches
 		}
 
 		// determine the redirect url
-		baseUrl := getBaseUrlFromRequest(r)
-		redirectUrl := baseUrl + viewModel.BaseUrl
-		http.Redirect(w, r, redirectUrl, http.StatusMovedPermanently)
+		baseURL := getBaseURLFromRequest(r)
+		redirectURL := baseURL + viewModel.BaseURL
+		http.Redirect(w, r, redirectURL, http.StatusMovedPermanently)
 	})
 
 }

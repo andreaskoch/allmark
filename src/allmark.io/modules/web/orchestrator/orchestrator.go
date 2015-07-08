@@ -544,7 +544,7 @@ func (orchestrator *Orchestrator) getPublisherInformation() viewmodel.Publisher 
 	return viewmodel.Publisher{
 		Name:  orchestrator.config.Web.Publisher.Name,
 		Email: orchestrator.config.Web.Publisher.Email,
-		Url:   orchestrator.config.Web.Publisher.Url,
+		URL:   orchestrator.config.Web.Publisher.URL,
 
 		GooglePlusHandle: orchestrator.config.Web.Publisher.GooglePlusHandle,
 		TwitterHandle:    orchestrator.config.Web.Publisher.TwitterHandle,
@@ -569,7 +569,7 @@ func (orchestrator *Orchestrator) getAuthorInformation(authorName string) viewmo
 	return viewmodel.Author{
 		Name:  author.Name,
 		Email: author.Email,
-		Url:   author.Url,
+		URL:   author.URL,
 
 		GooglePlusHandle: author.GooglePlusHandle,
 		TwitterHandle:    author.TwitterHandle,

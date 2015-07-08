@@ -144,14 +144,14 @@ func Test_normalize_UniqueResultsForUniquePaths(t *testing.T) {
 	}
 }
 
-// Testing the toUrl function: Replace white space with url safe characters.
-func Test_toUrl_ReplaceWhitespaceWithUrlSafeCharacters(t *testing.T) {
+// Testing the toURL function: Replace white space with url safe characters.
+func Test_toURL_ReplaceWhitespaceWithURLSafeCharacters(t *testing.T) {
 	// arrange
 	inputPath := "documents/A Test"
 	expectedResult := "documents/A+Test"
 
 	// act
-	result := toUrl(inputPath)
+	result := toURL(inputPath)
 
 	// assert
 	if result != expectedResult {

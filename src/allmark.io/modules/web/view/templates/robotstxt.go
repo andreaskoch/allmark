@@ -7,5 +7,5 @@ package templates
 const robotsTxtTemplate = `{{ range .Disallows }}User-agent: {{.UserAgent}}
 {{ range .Paths }}Disallow: {{.}}
 {{ end }}{{ end }}
-Sitemap: {{.SitemapUrl}}
+Sitemap: {{.SitemapURL}}
 `

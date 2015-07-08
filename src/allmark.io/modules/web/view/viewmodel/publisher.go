@@ -7,7 +7,7 @@ package viewmodel
 type Publisher struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
-	Url   string `json:"url"`
+	URL   string `json:"url"`
 
 	GooglePlusHandle string `json:"googlePlusHandle"`
 	TwitterHandle    string `json:"twitterHandle"`

@@ -26,7 +26,7 @@ func XMLSitemap(headerWriter header.HeaderWriter,
 		headerWriter.Write(w, header.CONTENTTYPE_XML)
 
 		// get the current hostname
-		hostname := getBaseUrlFromRequest(r)
+		hostname := getBaseURLFromRequest(r)
 
 		// get the sitemap template
 		xmlSitemapTemplate, err := templateProvider.GetSubTemplate(hostname, templates.XmlSitemapTemplateName)

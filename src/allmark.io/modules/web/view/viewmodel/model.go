@@ -45,7 +45,7 @@ func Error(title, content, route string) *Model {
 			Title:   title,
 			Route:   route,
 			Type:    "error",
-			BaseUrl: "/",
+			BaseURL: "/",
 		},
 		Content: content,
 	}

@@ -11,7 +11,7 @@ import (
 var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 <html lang="{{.LanguageTag}}" itemscope itemtype="http://schema.org/WebPage" prefix="og: http://ogp.me/ns#" prefix="article: http://ogp.me/ns/article#">
 <head>
-	<base href="{{ .BaseUrl }}">
+	<base href="{{ .BaseURL }}">
 
 	<title>{{.PageTitle}}</title>
 	<meta name="description" content="{{.Description}}">
@@ -146,12 +146,12 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 <div class="cleaner"></div>
 
-{{if or .PrintUrl .JsonUrl .RtfUrl}}
+{{if or .PrintURL .JsonURL .RtfURL}}
 <aside class="export">
 <ul>
-	{{if .PrintUrl}}<li><a href="{{.PrintUrl}}">Print</a></li>{{end}}
-	{{if .JsonUrl}}<li><a href="{{.JsonUrl}}">JSON</a></li>{{end}}
-	{{if .RtfUrl}}<li><a href="{{.RtfUrl}}">Rich Text</a></li>{{end}}
+	{{if .PrintURL}}<li><a href="{{.PrintURL}}">Print</a></li>{{end}}
+	{{if .JsonURL}}<li><a href="{{.JsonURL}}">JSON</a></li>{{end}}
+	{{if .RtfURL}}<li><a href="{{.RtfURL}}">Rich Text</a></li>{{end}}
 </ul>
 </aside>
 {{end}}

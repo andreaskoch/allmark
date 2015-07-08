@@ -14,7 +14,7 @@ var (
 )
 
 // Checks if the given uri is absolute or not.
-func isAbsoluteUri(uri string) bool {
+func isAbsoluteURI(uri string) bool {
 	uriHasProtocolPrefix := protocolPrefixPattern.MatchString(uri)
 	return uriHasProtocolPrefix
 }

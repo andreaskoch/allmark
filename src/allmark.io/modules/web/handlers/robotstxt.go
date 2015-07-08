@@ -18,8 +18,8 @@ func RobotsTxt(headerWriter header.HeaderWriter, templateProvider templates.Prov
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// template
-		baseUrl := getBaseUrlFromRequest(r)
-		robotsTxtTemplate, err := templateProvider.GetSubTemplate(baseUrl, templates.RobotsTxtTemplateName)
+		baseURL := getBaseURLFromRequest(r)
+		robotsTxtTemplate, err := templateProvider.GetSubTemplate(baseURL, templates.RobotsTxtTemplateName)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
@@ -42,10 +42,10 @@ func RobotsTxt(headerWriter header.HeaderWriter, templateProvider templates.Prov
 			Paths:     disallowPaths,
 		}
 
-		sitemapUrl := fmt.Sprintf("%s%s", baseUrl, XMLSitemapHandlerRoute)
+		sitemapURL := fmt.Sprintf("%s%s", baseURL, XMLSitemapHandlerRoute)
 		model := viewmodel.RobotsTxt{
 			Disallows:  []viewmodel.RobotsTxtDisallow{disallow},
-			SitemapUrl: sitemapUrl,
+			SitemapURL: sitemapURL,
 		}
 
 		// write

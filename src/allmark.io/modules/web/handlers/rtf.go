@@ -30,10 +30,10 @@ func RTF(logger logger.Logger,
 	templateProvider templates.Provider,
 	error404Handler http.Handler) http.Handler {
 
-	convertToHtml := func(baseUrl string, viewModel viewmodel.ConversionModel) string {
+	convertToHtml := func(baseURL string, viewModel viewmodel.ConversionModel) string {
 
 		// get a template
-		template, err := templateProvider.GetSubTemplate(baseUrl, templates.ConversionTemplateName)
+		template, err := templateProvider.GetSubTemplate(baseURL, templates.ConversionTemplateName)
 		if err != nil {
 			logger.Error("No template for item of type %q.", viewModel.Type)
 			return ""
@@ -72,8 +72,8 @@ func RTF(logger logger.Logger,
 		defer r.Body.Close()
 
 		// get the conversion model
-		baseUrl := getBaseUrlFromRequest(r)
-		model, found := converterModelOrchestrator.GetConversionModel(baseUrl, requestRoute)
+		baseURL := getBaseURLFromRequest(r)
+		model, found := converterModelOrchestrator.GetConversionModel(baseURL, requestRoute)
 		if !found {
 
 			// display a 404 error page
@@ -81,7 +81,7 @@ func RTF(logger logger.Logger,
 			return
 		}
 
-		html := convertToHtml(baseUrl, model)
+		html := convertToHtml(baseURL, model)
 
 		// write the html to a temp file
 		htmlFilePath := fsutil.GetTempFileName("html-source") + ".html"

@@ -25,11 +25,11 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather, config conf
 		Type:    item.Type.String(),
 		Route:   pathProvider.Path(item.Route().Value()),
 		Level:   item.Route().Level(),
-		BaseUrl: GetBaseUrl(item.Route()),
+		BaseURL: GetBaseURL(item.Route()),
 		Alias:   item.MetaData.Alias,
 
-		PrintUrl: GetTypedItemUrl(item.Route(), "print"),
-		JsonUrl:  GetTypedItemUrl(item.Route(), "json"),
+		PrintURL: GetTypedItemURL(item.Route(), "print"),
+		JsonURL:  GetTypedItemURL(item.Route(), "json"),
 
 		PageTitle:   getPageTitleForItem(root, item),
 		Title:       item.Title,
@@ -78,7 +78,7 @@ func getPageTitleForItem(rootItem, item *model.Item) string {
 	return fmt.Sprintf("%s - %s", item.Title, rootItem.Title)
 }
 
-func GetBaseUrl(route route.Route) string {
+func GetBaseURL(route route.Route) string {
 	url := route.Value()
 	if url != "" {
 		return "/" + url + "/"
@@ -87,8 +87,8 @@ func GetBaseUrl(route route.Route) string {
 	return "/"
 }
 
-func GetTypedItemUrl(route route.Route, urlType string) string {
-	itemPath := GetBaseUrl(route)
+func GetTypedItemURL(route route.Route, urlType string) string {
+	itemPath := GetBaseURL(route)
 	itemPath = strings.TrimSuffix(itemPath, "/")
 
 	if len(itemPath) > 0 {

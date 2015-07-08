@@ -11,8 +11,8 @@ import (
 
 func Test_GetThumbnailDimensionsFromRoute(t *testing.T) {
 	// arrange
-	requestUrl := "/collections/Design/Splashscreens/collections/Design/Splashscreens/files/login-Space-Invaders.jpg-maxWidth:400-maxHeight:0"
-	requestRoute := route.NewFromRequest(requestUrl)
+	requestURL := "/collections/Design/Splashscreens/collections/Design/Splashscreens/files/login-Space-Invaders.jpg-maxWidth:400-maxHeight:0"
+	requestRoute := route.NewFromRequest(requestURL)
 
 	// act
 	resultRoute, _ := GetThumbnailDimensionsFromRoute(requestRoute)

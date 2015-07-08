@@ -8,13 +8,13 @@ import (
 	"net/http"
 )
 
-func Redirect(baseUriTarget string) http.Handler {
+func Redirect(baseURITarget string) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestPath := r.URL.Path
-		redirectUrl := baseUriTarget + "/" + requestPath
+		redirectURL := baseURITarget + "/" + requestPath
 
-		http.Redirect(w, r, redirectUrl, http.StatusMovedPermanently)
+		http.Redirect(w, r, redirectURL, http.StatusMovedPermanently)
 	})
 
 }

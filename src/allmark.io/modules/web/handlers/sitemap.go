@@ -28,7 +28,7 @@ func Sitemap(headerWriter header.HeaderWriter,
 		// set headers
 		headerWriter.Write(w, header.CONTENTTYPE_HTML)
 
-		hostname := getBaseUrlFromRequest(r)
+		hostname := getBaseURLFromRequest(r)
 
 		// get the sitemap content template
 		sitemapContentTemplate, err := templateProvider.GetSubTemplate(hostname, templates.SitemapContentTemplateName)

@@ -17,10 +17,10 @@ const presentationTemplate = `
 
 {{if or .Author.Name .CreationDate}}
 <section class="publisher">
-{{if and .Author.Name .Author.Url}}
+{{if and .Author.Name .Author.URL}}
 
 	created by <span class="author" itemprop="author" rel="author">
-	<a href="{{ .Author.Url }}" title="{{ .Author.Name }}" target="_blank">
+	<a href="{{ .Author.URL }}" title="{{ .Author.Name }}" target="_blank">
 	{{ .Author.Name }}
 	</a>
 	</span>

@@ -21,7 +21,7 @@ func TypeAhead(headerWriter header.HeaderWriter, typeAheadOrchestrator *orchestr
 		headerWriter.Write(w, header.CONTENTTYPE_JSON)
 
 		// get the suggestions
-		query, _ := getQueryParameterFromUrl(*r.URL)
+		query, _ := getQueryParameterFromURL(*r.URL)
 		searchResults := typeAheadOrchestrator.GetSuggestions(query)
 
 		// convert to json

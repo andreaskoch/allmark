@@ -30,13 +30,13 @@ func Search(headerWriter header.HeaderWriter,
 		// set headers
 		headerWriter.Write(w, header.CONTENTTYPE_HTML)
 
-		hostname := getBaseUrlFromRequest(r)
+		hostname := getBaseURLFromRequest(r)
 
 		// get the query parameter
-		query, _ := getQueryParameterFromUrl(*r.URL)
+		query, _ := getQueryParameterFromURL(*r.URL)
 
 		// read the page url-parameter
-		page, pageParameterIsAvailable := getPageParameterFromUrl(*r.URL)
+		page, pageParameterIsAvailable := getPageParameterFromURL(*r.URL)
 		if !pageParameterIsAvailable || page == 0 {
 			page = 1
 		}

@@ -21,11 +21,11 @@ func Item(logger logger.Logger,
 	templateProvider templates.Provider,
 	error404Handler http.Handler) http.Handler {
 
-	render := func(writer io.Writer, baseUrl string, viewModel viewmodel.Model) {
+	render := func(writer io.Writer, baseURL string, viewModel viewmodel.Model) {
 
 		// get a template
 		templateName := viewModel.Type
-		template, err := templateProvider.GetFullTemplate(baseUrl, templateName)
+		template, err := templateProvider.GetFullTemplate(baseURL, templateName)
 		if err != nil {
 			logger.Error("No template for item of type %q.", templateName)
 			return
@@ -41,7 +41,7 @@ func Item(logger logger.Logger,
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		baseUrl := getBaseUrlFromRequest(r)
+		baseURL := getBaseURLFromRequest(r)
 
 		// get the request route
 		requestRoute := getRouteFromRequest(r)
@@ -60,7 +60,7 @@ func Item(logger logger.Logger,
 			headerWriter.Write(w, header.CONTENTTYPE_HTML)
 			header.ETag(w, model.Hash)
 
-			render(w, baseUrl, model)
+			render(w, baseURL, model)
 			return
 		}
 

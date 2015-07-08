@@ -32,8 +32,8 @@ func (orchestrator *OpenSearchDescriptionOrchestrator) GetDescriptionModel(hostn
 	descriptionModel := viewmodel.OpenSearchDescription{
 		Title:       fmt.Sprintf("%s Search", rootItem.Title),
 		Description: rootItem.Description,
-		FavIconUrl:  pathProvider.Path("theme/favicon.ico"),
-		SearchUrl:   pathProvider.Path("search?q={searchTerms}"),
+		FavIconURL:  pathProvider.Path("theme/favicon.ico"),
+		SearchURL:   pathProvider.Path("search?q={searchTerms}"),
 		Tags:        strings.Join(tags, " "),
 	}
 

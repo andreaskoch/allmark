@@ -13,5 +13,5 @@ type RobotsTxtDisallow struct {
 // RobotsTxt represents the content of a robots.txt file
 type RobotsTxt struct {
 	Disallows  []RobotsTxtDisallow
-	SitemapUrl string
+	SitemapURL string
 }

@@ -48,7 +48,7 @@ func NewFromItemPath(baseDirectory, itemPath string) Route {
 	routeValue = strings.TrimLeft(routeValue, "/")
 
 	return Route{
-		value:         toUrl(routeValue),
+		value:         toURL(routeValue),
 		originalValue: routeValue,
 		isFileRoute:   true,
 	}
@@ -76,7 +76,7 @@ func NewFromItemDirectory(baseDirectory, itemDirectory string) Route {
 	routeValue = strings.TrimLeft(routeValue, "/")
 
 	return Route{
-		value:         toUrl(routeValue),
+		value:         toURL(routeValue),
 		originalValue: routeValue,
 		isFileRoute:   false,
 	}
@@ -104,7 +104,7 @@ func NewFromFilePath(baseDirectory, itemPath string) Route {
 	routeValue = strings.TrimLeft(routeValue, "/")
 
 	return Route{
-		value:         toUrl(routeValue),
+		value:         toURL(routeValue),
 		originalValue: routeValue,
 		isFileRoute:   true,
 	}
@@ -117,7 +117,7 @@ func NewFromRequest(requestPath string) Route {
 	routeValue := normalize(requestPath)
 
 	return Route{
-		value:         toUrl(routeValue),
+		value:         toURL(routeValue),
 		originalValue: routeValue,
 	}
 }
@@ -129,7 +129,7 @@ func New() Route {
 	routeValue := normalize("")
 
 	return Route{
-		value:         toUrl(routeValue),
+		value:         toURL(routeValue),
 		originalValue: routeValue,
 		isFileRoute:   false,
 	}
@@ -174,7 +174,7 @@ func Intersect(baseRoute, subRoute Route) Route {
 	routeValue = strings.TrimLeft(routeValue, "/")
 
 	return Route{
-		value:         toUrl(routeValue),
+		value:         toURL(routeValue),
 		originalValue: routeValue,
 	}
 }
@@ -292,7 +292,7 @@ func (route Route) SubRoute(level int) (Route, error) {
 
 func (route Route) IsMatch(path string) bool {
 	cleanedRoute := strings.ToLower(route.Value())
-	normalizedPath := strings.ToLower(toUrl(normalize(path)))
+	normalizedPath := strings.ToLower(toURL(normalize(path)))
 
 	// check if the current route ends with the supplied path
 	routeEndsWithSpecifiedPath := strings.HasSuffix(cleanedRoute, normalizedPath)
@@ -375,7 +375,7 @@ func normalize(path string) string {
 		return ""
 	}
 
-	path = fromUrl(path)
+	path = fromURL(path)
 
 	// replace all forbidden characters
 	path = regexpForbiddenCharactersPattern.ReplaceAllString(path, "")
@@ -399,7 +399,7 @@ func normalize(path string) string {
 }
 
 // Returns an "url-safe" version of the supplied path
-func toUrl(path string) string {
+func toURL(path string) string {
 
 	// replace duplicate spaces with a (single) url safe character
 	path = strings.Replace(path, " ", "+", -1)
@@ -412,7 +412,7 @@ func toUrl(path string) string {
 }
 
 // Returns an "url-safe" version of the supplied path
-func fromUrl(path string) string {
+func fromURL(path string) string {
 
 	// replace duplicate spaces with a (single) url safe character
 	path = strings.Replace(path, "+", " ", -1)

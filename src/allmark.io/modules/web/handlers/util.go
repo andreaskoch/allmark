@@ -19,7 +19,7 @@ func getRouteFromRequest(r *http.Request) route.Route {
 	return route.NewFromRequest(r.URL.Path)
 }
 
-func getBaseUrlFromRequest(r *http.Request) string {
+func getBaseURLFromRequest(r *http.Request) string {
 	scheme := "http"
 	if r.TLS != nil {
 		scheme = "https"
@@ -42,7 +42,7 @@ func renderViewModelAsJSON(viewModel viewmodel.Model, writer io.Writer) error {
 	return nil
 }
 
-func getPageParameterFromUrl(url url.URL) (page int, parameterIsAvailable bool) {
+func getPageParameterFromURL(url url.URL) (page int, parameterIsAvailable bool) {
 	pageParam := url.Query().Get("page")
 	if pageParam == "" {
 		return 0, false
@@ -60,7 +60,7 @@ func getPageParameterFromUrl(url url.URL) (page int, parameterIsAvailable bool) 
 	return int(page64), true
 }
 
-func getQueryParameterFromUrl(url url.URL) (query string, parameterIsAvailable bool) {
+func getQueryParameterFromURL(url url.URL) (query string, parameterIsAvailable bool) {
 	queryParam := url.Query().Get("q")
 	if queryParam == "" {
 		return "", false

@@ -8,63 +8,63 @@ import (
 	"testing"
 )
 
-func Test_IsAbsoluteUri_ParameterIsRelativeUri_ResultIsFalse(t *testing.T) {
+func Test_IsAbsoluteURI_ParameterIsRelativeURI_ResultIsFalse(t *testing.T) {
 	// arrange
 	input := "/yadayada.html"
 	expected := false
 
 	// act
-	result := isAbsoluteUri(input)
+	result := isAbsoluteURI(input)
 
 	// assert
 	if result != expected {
-		t.Errorf("The result for IsAbsoluteUri(%q) should be %v but was %v.", input, expected, result)
+		t.Errorf("The result for IsAbsoluteURI(%q) should be %v but was %v.", input, expected, result)
 	}
 }
 
-func Test_IsAbsoluteUri_ParameterIsHTTPUrl_ResultIsTrue(t *testing.T) {
+func Test_IsAbsoluteURI_ParameterIsHTTPURL_ResultIsTrue(t *testing.T) {
 	// arrange
 	input := "http://example.com/yadayada.html"
 	expected := true
 
 	// act
-	result := isAbsoluteUri(input)
+	result := isAbsoluteURI(input)
 
 	// assert
 	if result != expected {
-		t.Errorf("The result for IsAbsoluteUri(%q) should be %v but was %v.", input, expected, result)
+		t.Errorf("The result for IsAbsoluteURI(%q) should be %v but was %v.", input, expected, result)
 	}
 }
 
-func Test_IsAbsoluteUri_ParameterIsHTTPUrl_Uppercase_ResultIsTrue(t *testing.T) {
+func Test_IsAbsoluteURI_ParameterIsHTTPURL_Uppercase_ResultIsTrue(t *testing.T) {
 	// arrange
 	input := "HTTP://example.com/yadayada.html"
 	expected := true
 
 	// act
-	result := isAbsoluteUri(input)
+	result := isAbsoluteURI(input)
 
 	// assert
 	if result != expected {
-		t.Errorf("The result for IsAbsoluteUri(%q) should be %v but was %v.", input, expected, result)
+		t.Errorf("The result for IsAbsoluteURI(%q) should be %v but was %v.", input, expected, result)
 	}
 }
 
-func Test_IsAbsoluteUri_ParameterIsHTTPsUrl_ResultIsTrue(t *testing.T) {
+func Test_IsAbsoluteURI_ParameterIsHTTPsURL_ResultIsTrue(t *testing.T) {
 	// arrange
 	input := "https://example.com/yadayada.html"
 	expected := true
 
 	// act
-	result := isAbsoluteUri(input)
+	result := isAbsoluteURI(input)
 
 	// assert
 	if result != expected {
-		t.Errorf("The result for IsAbsoluteUri(%q) should be %v but was %v.", input, expected, result)
+		t.Errorf("The result for IsAbsoluteURI(%q) should be %v but was %v.", input, expected, result)
 	}
 }
 
-func Test_IsAbsoluteUri_ParametersAreAbsoluteUrls_ResultIsTrue(t *testing.T) {
+func Test_IsAbsoluteURI_ParametersAreAbsoluteURLs_ResultIsTrue(t *testing.T) {
 	// arrange
 	inputs := []string{
 		"ftp://example.com",
@@ -77,11 +77,11 @@ func Test_IsAbsoluteUri_ParametersAreAbsoluteUrls_ResultIsTrue(t *testing.T) {
 
 	for _, input := range inputs {
 		// act
-		result := isAbsoluteUri(input)
+		result := isAbsoluteURI(input)
 
 		// assert
 		if result != expected {
-			t.Errorf("The result for IsAbsoluteUri(%q) should be %v but was %v.", input, expected, result)
+			t.Errorf("The result for IsAbsoluteURI(%q) should be %v but was %v.", input, expected, result)
 		}
 	}
 }

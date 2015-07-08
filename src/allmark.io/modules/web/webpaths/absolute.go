@@ -23,7 +23,7 @@ type AbsoluteWebPathProvider struct {
 func (webPathProvider *AbsoluteWebPathProvider) Path(itemPath string) string {
 
 	// return the supplied item path if it is already absolute
-	if isAbsoluteUri(itemPath) {
+	if isAbsoluteURI(itemPath) {
 		return itemPath
 	}
 

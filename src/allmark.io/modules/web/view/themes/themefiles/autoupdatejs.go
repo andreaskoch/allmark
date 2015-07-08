@@ -26,10 +26,10 @@ var Autoupdate = (function () {
     };
 
     /**
-     * Get the Url for the web socket connection
+     * Get the URL for the web socket connection
      * @return string The url for the web socket connection (e.g. "ws://example.com:8080/documents/Sample-Document.ws")
      */
-    var getWebSocketUrl = function() {
+    var getWebSocketURL = function() {
         var routeParameter = getCurrentRoute();
         var host = document.location.host;
         var protocol = "ws";
@@ -60,11 +60,11 @@ var Autoupdate = (function () {
 
     /**
      * Connect to the server
-     * @param string webSocketUrl The url of the web-socket to connect to
+     * @param string webSocketURL The url of the web-socket to connect to
      */
-    var connect = function(webSocketUrl) {
+    var connect = function(webSocketURL) {
         var reconnectionTimeInSeconds = 3;
-        var connection = new WebSocket(webSocketUrl);
+        var connection = new WebSocket(webSocketURL);
 
         connection.onclose = function(evt) {
             console.log("Connection closed. Trying to reconnect in " + reconnectionTimeInSeconds + " seconds.");
@@ -72,7 +72,7 @@ var Autoupdate = (function () {
             setTimeout(function() {
 
                 console.log("Reconnecting");
-                connect(webSocketUrl);
+                connect(webSocketURL);
 
             }, (reconnectionTimeInSeconds * 1000));
         };
@@ -199,7 +199,7 @@ var Autoupdate = (function () {
         }
 
         // establish the connection
-        connect(getWebSocketUrl());
+        connect(getWebSocketURL());
     };
 
     Autoupdate.prototype.onchange = function(name, callback) {

@@ -16,7 +16,7 @@ type ConversionModelOrchestrator struct {
 	fileOrchestrator *FileOrchestrator
 }
 
-func (orchestrator *ConversionModelOrchestrator) GetConversionModel(baseUrl string, route route.Route) (model viewmodel.ConversionModel, found bool) {
+func (orchestrator *ConversionModelOrchestrator) GetConversionModel(baseURL string, route route.Route) (model viewmodel.ConversionModel, found bool) {
 
 	// get the root item
 	root := orchestrator.rootItem()
@@ -32,8 +32,8 @@ func (orchestrator *ConversionModelOrchestrator) GetConversionModel(baseUrl stri
 	}
 
 	// create the path provider
-	rootPathProvider := orchestrator.absolutePather(fmt.Sprintf("%s/", baseUrl))
-	itemContentPathProvider := orchestrator.absolutePather(fmt.Sprintf("%s/%s/", baseUrl, item.Route().Value()))
+	rootPathProvider := orchestrator.absolutePather(fmt.Sprintf("%s/", baseURL))
+	itemContentPathProvider := orchestrator.absolutePather(fmt.Sprintf("%s/%s/", baseURL, item.Route().Value()))
 
 	// convert content
 	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, rootPathProvider, itemContentPathProvider, item)

@@ -28,7 +28,7 @@ type RelativeWebPathProvider struct {
 func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 
 	// return the supplied item path if it is already absolute
-	if isAbsoluteUri(itemPath) {
+	if isAbsoluteURI(itemPath) {
 		return itemPath
 	}
 

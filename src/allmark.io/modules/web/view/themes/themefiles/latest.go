@@ -11,7 +11,7 @@ $(function() {
 	 * Get the currently opened web route
 	 * @return string The currently opened web route (e.g. "documents/Sample-Document")
 	 */
-	var getUrl = function() {
+	var getURL = function() {
 	    var url = document.location.pathname;
 
 	    // remove leading slash
@@ -30,7 +30,7 @@ $(function() {
 	$.template( "itemTemplate", markup );
 
 	$.ajax({
-		url: getUrl(),
+		url: getURL(),
 		success: function(items) {
 			$.each(items, function(index, item) {
 				$.tmpl( "itemTemplate", item).appendTo( "article>.preview>ul" );

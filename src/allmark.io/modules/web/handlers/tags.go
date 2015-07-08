@@ -27,7 +27,7 @@ func Tags(headerWriter header.HeaderWriter,
 		// set headers
 		headerWriter.Write(w, header.CONTENTTYPE_HTML)
 
-		hostname := getBaseUrlFromRequest(r)
+		hostname := getBaseURLFromRequest(r)
 
 		tagmapTemplate, err := templateProvider.GetFullTemplate(hostname, templates.TagmapTemplateName)
 		if err != nil {

@@ -19,10 +19,10 @@ type Base struct {
 
 	ParentRoute string `json:"parentRoute"`
 
-	BaseUrl  string `json:"baseUrl"`
-	PrintUrl string `json:"printUrl"`
-	JsonUrl  string `json:"jsonUrl"`
-	RtfUrl   string `json:"rtfUrl"`
+	BaseURL  string `json:"baseURL"`
+	PrintURL string `json:"printURL"`
+	JsonURL  string `json:"jsonURL"`
+	RtfURL   string `json:"rtfURL"`
 
 	PageTitle   string `json:"pageTitle"`
 	Title       string `json:"title"`
