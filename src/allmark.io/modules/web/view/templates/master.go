@@ -146,12 +146,12 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 
 <div class="cleaner"></div>
 
-{{if or .PrintURL .JsonURL .RtfURL}}
+{{if or .PrintURL .JsonURL .RTFURL}}
 <aside class="export">
 <ul>
 	{{if .PrintURL}}<li><a href="{{.PrintURL}}">Print</a></li>{{end}}
 	{{if .JsonURL}}<li><a href="{{.JsonURL}}">JSON</a></li>{{end}}
-	{{if .RtfURL}}<li><a href="{{.RtfURL}}">Rich Text</a></li>{{end}}
+	{{if .RTFURL}}<li><a href="{{.RTFURL}}">Rich Text</a></li>{{end}}
 </ul>
 </aside>
 {{end}}

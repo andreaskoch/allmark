@@ -182,7 +182,7 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 	handlers.Add(PrintHandlerRoute, Print(logger, headerWriterFactory.Dynamic(), conversionModelOrchestrator, templateProvider, errorHandler))
 
 	// rtf
-	handlers.Add(RTFHandlerRoute, RTF(logger, config.Conversion.Rtf.Tool(), headerWriterFactory.Dynamic(), conversionModelOrchestrator, templateProvider, errorHandler))
+	handlers.Add(RTFHandlerRoute, RTF(logger, config.Conversion.RTF.Tool(), headerWriterFactory.Dynamic(), conversionModelOrchestrator, templateProvider, errorHandler))
 
 	// update
 	handlers.Add(UpdateHandlerRoute, Update(logger, headerWriterFactory.Dynamic(), updateOrchestrator))

@@ -285,7 +285,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 			- ...
 		- ...
 - `Conversion`
-	- `Rtf`: Rich-text Conversion
+	- `RTF`: Rich-text Conversion
 		- `Enabled`: If set to `true` rich-text conversion is enabled. allmark uses [pandoc](http://pandoc.org/) for the rich-text conversion. If the [pandoc binary](HTTPS://github.com/jgm/pandoc/releases/latest) is not found in your PATH, rich-text conversion will not be available.
 	- `Thumbnails`: Image-Thumbnail creation.
 		- `Enabled`: If set to `true` allmark will create smaller versions (Small: 320x240, Medium: 640x480, Large: 1024x768) for all images in your repository and use the respective version depending on the screen size of your clients (default: `false`).
@@ -371,7 +371,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 		}
 	},
 	"Conversion": {
-		"Rtf": {
+		"RTF": {
 			"Enabled": true
 		},
 		"Thumbnails": {

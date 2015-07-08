@@ -190,8 +190,8 @@ func Default(baseFolder string) *Config {
 	config.Conversion.Thumbnails.IndexFileName = ThumbnailIndexFileName
 	config.Conversion.Thumbnails.FolderName = ThumbnailsFolderName
 
-	// Rtf Conversion
-	config.Conversion.Rtf.Enabled = DefaultRichTextConversionEnabled
+	// RTF Conversion
+	config.Conversion.RTF.Enabled = DefaultRichTextConversionEnabled
 
 	// Logging
 	config.LogLevel = DefaultLogLevel.String()
@@ -309,24 +309,24 @@ type LiveReload struct {
 
 // Conversion defines the rich-text and thumbnail conversion paramters.
 type Conversion struct {
-	Rtf        RtfConversion
+	RTF        RTFConversion
 	Thumbnails ThumbnailConversion
 }
 
-// RtfConversion contains rich-text (RTF) conversion parameters.
-type RtfConversion struct {
+// RTFConversion contains rich-text (RTF) conversion parameters.
+type RTFConversion struct {
 	Enabled bool
 }
 
 // Tool returns the path of the external rich-text conversion tool (pandoc) used
 // to create Rich-text documents from repository items.
-func (rtf RtfConversion) Tool() string {
+func (rtf RTFConversion) Tool() string {
 	return DefaultConversionToolPath
 }
 
 // IsEnabled returns a flag indicating if rich-text conversion is enabled or not.
 // Rich-text conversion can only be enabled if the conversion tool was found in the PATH on startup.
-func (rtf RtfConversion) IsEnabled() bool {
+func (rtf RTFConversion) IsEnabled() bool {
 	return rtf.Enabled && rtfConversionToolIsAvailable
 }
 

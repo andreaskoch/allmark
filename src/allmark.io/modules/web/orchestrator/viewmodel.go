@@ -259,8 +259,8 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *
 		}
 
 		// add rft url if rtf conversion is enabled
-		if orchestrator.config.Conversion.Rtf.IsEnabled() {
-			viewModel.RtfURL = GetTypedItemURL(route, "rtf")
+		if orchestrator.config.Conversion.RTF.IsEnabled() {
+			viewModel.RTFURL = GetTypedItemURL(route, "rtf")
 		}
 
 		orchestrator.viewmodelsByRoute[route.String()] = viewModel
