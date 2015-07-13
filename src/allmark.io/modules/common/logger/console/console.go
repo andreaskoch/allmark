@@ -38,7 +38,7 @@ type ConsoleLogger struct {
 }
 
 func (logger *ConsoleLogger) SetOutput(w io.Writer) {
-	logger.output = w
+	log.SetOutput(w)
 }
 
 func (logger *ConsoleLogger) Debug(format string, v ...interface{}) {
