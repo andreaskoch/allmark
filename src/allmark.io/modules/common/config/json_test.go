@@ -35,7 +35,7 @@ func Test_SerializeConfig_NoErrorIsReturned(t *testing.T) {
 	}
 }
 
-func Test_SerializeConfig_JsonContainsConfigValues(t *testing.T) {
+func Test_SerializeConfig_JSONContainsConfigValues(t *testing.T) {
 	// arrange
 	writeBuffer := new(bytes.Buffer)
 
@@ -69,7 +69,7 @@ func Test_SerializeConfig_JsonContainsConfigValues(t *testing.T) {
 	}
 }
 
-func Test_SerializeConfig_JsonIsFormatted(t *testing.T) {
+func Test_SerializeConfig_JSONIsFormatted(t *testing.T) {
 	// arrange
 	writeBuffer := new(bytes.Buffer)
 
@@ -185,7 +185,7 @@ func Test_DeserializeConfig_EmptyString_ErrorIsReturned(t *testing.T) {
 	}
 }
 
-func Test_DeserializeConfig_InvalidJson_ErrorIsReturned(t *testing.T) {
+func Test_DeserializeConfig_InvalidJSON_ErrorIsReturned(t *testing.T) {
 	// arrange
 	json := `dsajdklasdj/(/)(=7897402
 		38748902

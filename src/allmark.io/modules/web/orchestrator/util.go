@@ -29,7 +29,7 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather, config conf
 		Alias:   item.MetaData.Alias,
 
 		PrintURL: GetTypedItemURL(item.Route(), "print"),
-		JsonURL:  GetTypedItemURL(item.Route(), "json"),
+		JSONURL:  GetTypedItemURL(item.Route(), "json"),
 
 		PageTitle:   getPageTitleForItem(root, item),
 		Title:       item.Title,
