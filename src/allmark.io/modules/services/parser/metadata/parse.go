@@ -13,6 +13,7 @@ import (
 	"allmark.io/modules/services/parser/pattern"
 )
 
+// Parse parses the supplied lines and writes the result to the specified item.
 func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseError error) {
 
 	// find the meta data section
@@ -29,7 +30,6 @@ func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseE
 	remainingLines = parseLastModifiedDate(metaData, lastModifiedDate, remainingLines)
 	remainingLines = parseTags(metaData, remainingLines)
 	remainingLines = parseGeoInformation(metaData, remainingLines)
-	remainingLines = parseLocations(metaData, remainingLines)
 
 	// assign the meta data to the item
 	item.MetaData = *metaData
@@ -84,19 +84,6 @@ func parseTags(metaData *model.MetaData, lines []string) (remainingLines []strin
 	}
 
 	return remainingLines
-}
-
-func parseLocations(metaData *model.MetaData, lines []string) (remainingLines []string) {
-
-	// begin parser multi-line meta data
-	remainingMetaDataText := strings.Join(lines, "\n")
-
-	// parse multi line locations
-	if hasLocations, locations := pattern.IsMultiLineLocationDefinition(remainingMetaDataText); hasLocations {
-		metaData.Locations = model.NewLocationsFromNames(locations)
-	}
-
-	return lines
 }
 
 func parseCreationDate(metaData *model.MetaData, fallbackDate time.Time, lines []string) (remainingLines []string) {

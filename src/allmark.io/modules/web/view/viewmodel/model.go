@@ -28,7 +28,6 @@ type Model struct {
 	Files  []File  `json:"files"`
 	Images []Image `json:"images"`
 
-	Locations   []*Model    `json:"locations"`
 	GeoLocation GeoLocation `json:"geoLocation"`
 
 	Analytics Analytics `json:"-"`

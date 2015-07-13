@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// MetaData defines meta-attributes of repository items.
 type MetaData struct {
 	Language         string
 	CreationDate     time.Time
@@ -15,10 +16,10 @@ type MetaData struct {
 	Tags             Tags
 	Alias            string
 	Author           string
-	Locations        Locations
 	GeoInformation   GeoInformation
 }
 
+// NewMetaData creates a new instance of the the MetaData struct.
 func NewMetaData() *MetaData {
 	return &MetaData{}
 }

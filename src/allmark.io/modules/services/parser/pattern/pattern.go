@@ -33,9 +33,6 @@ var (
 	// Multi-line tags meta data
 	multiLineTagsPattern = regexp.MustCompile(`(?is)tags:\n{0,2}(\n\s?-\s?[^\n]+)+\n*`)
 
-	// Multi-line locations meta data
-	multiLineLocationsPattern = regexp.MustCompile(`(?is)locations:\n{0,2}(\n\s?-\s?[^\n]+)+\n*`)
-
 	// Lines with a meta data label in them syntax
 	metaDataLabelPattern = regexp.MustCompile(`^(\w+[\w\s]+\w+):`)
 
@@ -129,10 +126,6 @@ func IsListItem(line string) (bool, string) {
 
 func IsMultiLineTagDefinition(text string) (bool, []string) {
 	return isMultiLineDefinition(multiLineTagsPattern, text)
-}
-
-func IsMultiLineLocationDefinition(text string) (bool, []string) {
-	return isMultiLineDefinition(multiLineLocationsPattern, text)
 }
 
 func isMultiLineDefinition(pattern *regexp.Regexp, text string) (bool, []string) {
