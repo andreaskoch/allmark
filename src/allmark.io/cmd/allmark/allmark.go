@@ -41,10 +41,11 @@ const (
 )
 
 var (
-	serveFlags = flag.NewFlagSet("serve-flags", flag.ContinueOnError)
-	secure     = serveFlags.Bool("secure", false, "Use HTTPs")
-	reindex    = serveFlags.Bool("reindex", false, "Enable reindexing")
-	livereload = serveFlags.Bool("livereload", false, "Enable live-reload")
+	serveFlags       = flag.NewFlagSet("serve-flags", flag.ContinueOnError)
+	secure           = serveFlags.Bool("secure", false, "Use HTTPs")
+	logLevelOverride = serveFlags.String("loglevel", "", "Log level")
+	reindex          = serveFlags.Bool("reindex", false, "Enable reindexing")
+	livereload       = serveFlags.Bool("livereload", false, "Enable live-reload")
 )
 
 func main() {
@@ -180,6 +181,9 @@ func serve(repositoryPath string) bool {
 
 	// create a logger
 	logger := console.New(loglevel.FromString(configuration.LogLevel))
+	if *logLevelOverride != "" {
+		logger = console.New(loglevel.FromString(*logLevelOverride))
+	}
 
 	// data access
 	repository, err := filesystem.NewRepository(logger, repositoryPath, *configuration)

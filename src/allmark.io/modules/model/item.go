@@ -52,6 +52,7 @@ type Item struct {
 	Title       string
 	Description string
 	Content     string
+	Markdown    string
 
 	Hash string
 

@@ -97,18 +97,6 @@ body>footer {
     display: none;
 }
 
-.pdf .metadata {
-    display: none;
-}
-
-.pdf>a {
-    display: inline;
-}
-
-.pdf .previewarea {
-    overflow: visible;
-}
-
 .video video {
     display: none;
 }

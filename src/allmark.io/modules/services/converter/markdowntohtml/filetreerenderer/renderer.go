@@ -34,49 +34,50 @@ func (r *FileTreeRenderer) Render(title, cssClass, path string) string {
 	fullFolderRoute := route.Combine(r.base, folderRoute)
 
 	// render the filesystem
-	code := fmt.Sprintf(`<section class="%s">`, cssClass)
+	code := ""
 	if strings.TrimSpace(title) != "" {
-		code += fmt.Sprintf("\n<header>%s</header>\n", title)
+		code += fmt.Sprintf("\n**%s**\n\n", title)
 	}
 
 	if rootNode := r.files.GetNode(fullFolderRoute); rootNode != nil {
 
 		// Render the childs of the root node
-		code += "<ul class=\"tree\">\n"
-		code += "<li>\n"
-		code += r.renderFileNode(rootNode)
-		code += "</li>\n"
-		code += "</ul>\n</section>"
+		code += "- " + r.renderFileNode(rootNode, 1)
 
 	}
 
 	return code
 }
 
-func (r *FileTreeRenderer) renderFileNode(node *FileNode) string {
+func (r *FileTreeRenderer) renderFileNode(node *FileNode, indentation int) string {
 
 	html := ""
 
 	if file := node.Value(); file != nil {
 		fileRoute := file.Route()
 		filepath := r.pathProvider.Path(fileRoute.Value())
-		html = fmt.Sprintf(`<a href="%s" title="%s">%s</a>`, filepath, fileRoute.Value(), fileRoute.LastComponentName())
+		html = fmt.Sprintf("[%s](%s)\n", fileRoute.LastComponentName(), filepath)
 	} else {
-		html = node.Name()
+		html = node.Name() + "\n"
 	}
 
 	if childs := node.Childs(); len(childs) > 0 {
 
-		html += "<ul>\n"
-
 		for _, child := range childs {
-			html += fmt.Sprintf("<li>%s</li>\n", r.renderFileNode(child))
+			html += fmt.Sprintf("%s- %s", getIndentation(indentation, "\t"), r.renderFileNode(child, indentation+1))
 		}
 
-		html += "</ul>\n"
 	}
 
 	return html
+}
+
+func getIndentation(depth int, character string) string {
+	indentation := ""
+	for level := 1; level <= depth; level++ {
+		indentation += character
+	}
+	return indentation
 }
 
 func convertFilesToTree(files []*model.File) *FileTree {

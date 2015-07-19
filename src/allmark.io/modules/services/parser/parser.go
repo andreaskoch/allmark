@@ -56,6 +56,10 @@ func (parser *Parser) ParseItem(item dataaccess.Item) (*model.Item, error) {
 		return nil, fmt.Errorf("Cannot get data from item %q. Error: %s", item, err.Error())
 	}
 
+	// capture the markdown
+	itemModel.Markdown = string(data)
+
+	// split the markdown content into separate lines
 	lines := getLines(bytes.NewReader(data))
 	lines = cleanup.Cleanup(lines)
 

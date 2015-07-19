@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package audio
+package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
@@ -17,28 +17,28 @@ import (
 
 var (
 	// audio: [*description text*](*a link to an audio file*)
-	markdownPattern = regexp.MustCompile(`audio: \[([^\]]+)\]\(([^)]+)\)`)
+	audioMarkdownExtensionPattern = regexp.MustCompile(`audio: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func New(pathProvider paths.Pather, files []*model.File) *AudioExtension {
-	return &AudioExtension{
+func newAudioExtension(pathProvider paths.Pather, files []*model.File) *audioExtension {
+	return &audioExtension{
 		pathProvider: pathProvider,
 		files:        files,
 	}
 }
 
-type AudioExtension struct {
+type audioExtension struct {
 	pathProvider paths.Pather
 	files        []*model.File
 }
 
-func (converter *AudioExtension) Convert(markdown string) (convertedContent string, converterError error) {
+func (converter *audioExtension) Convert(markdown string) (convertedContent string, converterError error) {
 
 	convertedContent = markdown
 
 	for {
 
-		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
+		found, matches := pattern.IsMatch(convertedContent, audioMarkdownExtensionPattern)
 		if !found || (found && len(matches) != 3) {
 			break
 		}
@@ -59,7 +59,7 @@ func (converter *AudioExtension) Convert(markdown string) (convertedContent stri
 	return convertedContent, nil
 }
 
-func (converter *AudioExtension) getMatchingFile(path string) *model.File {
+func (converter *audioExtension) getMatchingFile(path string) *model.File {
 	for _, file := range converter.files {
 		if file.Route().IsMatch(path) && util.IsAudioFile(file) {
 			return file
@@ -69,7 +69,7 @@ func (converter *AudioExtension) getMatchingFile(path string) *model.File {
 	return nil
 }
 
-func (converter *AudioExtension) getAudioCode(title, path string) string {
+func (converter *audioExtension) getAudioCode(title, path string) string {
 
 	fallback := util.GetHtmlLinkCode(title, path)
 
@@ -99,12 +99,17 @@ func (converter *AudioExtension) getAudioCode(title, path string) string {
 }
 
 func getAudioFileLink(title, link, mimeType string) string {
-	return fmt.Sprintf(`<section class="audio audio-file">
-		<header><a href="%s" target="_blank" title="%s">%s</a></header>
-		<audio controls>
-			<source src="%s" type="%s">
-		</audio>
-	</section>`, link, title, title, link, mimeType)
+
+	var code string
+	if title != "" {
+		code += fmt.Sprintf("**%s**\n\n", title)
+	}
+
+	code += "<audio controls>"
+	code += fmt.Sprintf("<source src=\"%s\" type=\"%s\">", link, mimeType)
+	code += "</audio>"
+
+	return code
 }
 
 func isAudioFileLink(link string) (isAudioFile bool, mimeType string) {

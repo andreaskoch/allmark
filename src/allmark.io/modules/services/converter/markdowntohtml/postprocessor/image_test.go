@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package image
+package postprocessor
 
 import (
 	"fmt"
@@ -27,10 +27,10 @@ func Test_Convert(t *testing.T) {
 	thumbnailIndex := thumbnail.EmptyIndex()
 	imageProvider := common.NewImageProvider(pathProvider, thumbnailIndex)
 
-	converter := New(pathProvider, baseRoute, files, imageProvider)
+	postprocessor := newImagePostProcessor(pathProvider, baseRoute, files, imageProvider)
 
 	// act
-	result, _ := converter.Convert(input)
+	result, _ := postprocessor.Convert(input)
 
 	// assert
 	if result != expected {

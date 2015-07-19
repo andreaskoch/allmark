@@ -40,7 +40,27 @@ func IsTextFile(file *model.File) bool {
 		return false
 	}
 
-	return strings.HasPrefix(mimetype, "text/")
+	if strings.HasPrefix(mimetype, "text/") {
+		return true
+	}
+
+	if strings.Contains(mimetype, "json") {
+		return true
+	}
+
+	if strings.Contains(mimetype, "javascript") {
+		return true
+	}
+
+	if strings.Contains(mimetype, "xml") {
+		return true
+	}
+
+	if strings.Contains(mimetype, "cert") {
+		return true
+	}
+
+	return false
 }
 
 func IsAudioFile(file *model.File) bool {
@@ -59,15 +79,6 @@ func IsVideoFile(file *model.File) bool {
 	}
 
 	return strings.HasPrefix(mimetype, "video/")
-}
-
-func IsPDFFile(file *model.File) bool {
-	mimetype, err := GetMimeType(file)
-	if err != nil {
-		return false
-	}
-
-	return mimetype == "application/pdf"
 }
 
 func GetMimeType(file *model.File) (string, error) {

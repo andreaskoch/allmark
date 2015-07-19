@@ -1,8 +1,8 @@
-// Copyright 2014 Andreas Koch. All rights reserved.
+// Copyright 2015 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package image
+package postprocessor
 
 import (
 	"allmark.io/modules/common/paths"
@@ -21,22 +21,22 @@ var (
 	markdownPattern = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
 )
 
-func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, imageProvider *common.ImageProvider) *ImageExtension {
-	return &ImageExtension{
+func newImagePostprocessor(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, imageProvider *common.ImageProvider) *imagePostProcessor {
+	return &imagePostProcessor{
 		pathProvider:  pathProvider,
 		files:         files,
 		imageProvider: imageProvider,
 	}
 }
 
-type ImageExtension struct {
+type imagePostProcessor struct {
 	pathProvider  paths.Pather
 	base          route.Route
 	files         []*model.File
 	imageProvider *common.ImageProvider
 }
 
-func (converter *ImageExtension) Convert(markdown string) (convertedContent string, converterError error) {
+func (postprocessor *imagePostProcessor) Convert(markdown string) (convertedContent string, converterError error) {
 
 	convertedContent = markdown
 
@@ -54,10 +54,10 @@ func (converter *ImageExtension) Convert(markdown string) (convertedContent stri
 		path := strings.TrimSpace(matches[2])
 
 		// normalize the path with the current path provider
-		path = converter.pathProvider.Path(path)
+		path = postprocessor.pathProvider.Path(path)
 
 		// get the matching file
-		file := converter.getMatchingFile(path)
+		file := postprocessor.getMatchingFile(path)
 		if file == nil {
 
 			// this is not an internal image reference
@@ -67,7 +67,7 @@ func (converter *ImageExtension) Convert(markdown string) (convertedContent stri
 		}
 
 		// get the image code
-		imageCode := converter.imageProvider.GetImageCodeWithLink(title, file.Route())
+		imageCode := postprocessor.imageProvider.GetImageCodeWithLink(title, file.Route())
 
 		// replace markdown with the image code
 		convertedContent = strings.Replace(convertedContent, originalText, imageCode, 1)
@@ -77,8 +77,8 @@ func (converter *ImageExtension) Convert(markdown string) (convertedContent stri
 	return convertedContent, nil
 }
 
-func (converter *ImageExtension) getMatchingFile(path string) *model.File {
-	for _, file := range converter.files {
+func (postprocessor *imagePostProcessor) getMatchingFile(path string) *model.File {
+	for _, file := range postprocessor.files {
 		if file.Route().IsMatch(path) && util.IsImageFile(file) {
 			return file
 		}

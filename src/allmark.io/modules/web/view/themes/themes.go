@@ -31,10 +31,6 @@ func init() {
 			// web socket auto update
 			newFileFromText("autoupdate.js", themefiles.AutoupdateJs),
 
-			// pdf preview
-			newFileFromText("pdf.js", themefiles.PdfJs),
-			newFileFromText("pdfpreview.js", themefiles.PdfPreviewJs),
-
 			// favicon
 			newFileFromBase64("favicon.ico", themefiles.FaviconIco),
 

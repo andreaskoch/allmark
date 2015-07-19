@@ -76,7 +76,7 @@ type HtmlRendererParameters struct {
 // Do not create this directly, instead use the HtmlRenderer function.
 type Html struct {
 	flags    int    // HTML_* options
-	closeTag string // how to end singleton tags: either " />\n" or ">\n"
+	closeTag string // how to end singleton tags: either " />" or ">"
 	title    string // document title
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
 
@@ -95,8 +95,8 @@ type Html struct {
 }
 
 const (
-	xhtmlClose = " />\n"
-	htmlClose  = ">\n"
+	xhtmlClose = " />"
+	htmlClose  = ">"
 )
 
 // HtmlRenderer creates and configures an Html object, which
@@ -250,6 +250,7 @@ func (options *Html) HRule(out *bytes.Buffer) {
 	doubleSpace(out)
 	out.WriteString("<hr")
 	out.WriteString(options.closeTag)
+	out.WriteByte('\n')
 }
 
 func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string) {
@@ -374,7 +375,9 @@ func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	doubleSpace(out)
 
-	if flags&LIST_TYPE_ORDERED != 0 {
+	if flags&LIST_TYPE_DEFINITION != 0 {
+		out.WriteString("<dl>")
+	} else if flags&LIST_TYPE_ORDERED != 0 {
 		out.WriteString("<ol>")
 	} else {
 		out.WriteString("<ul>")
@@ -383,7 +386,9 @@ func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 		out.Truncate(marker)
 		return
 	}
-	if flags&LIST_TYPE_ORDERED != 0 {
+	if flags&LIST_TYPE_DEFINITION != 0 {
+		out.WriteString("</dl>\n")
+	} else if flags&LIST_TYPE_ORDERED != 0 {
 		out.WriteString("</ol>\n")
 	} else {
 		out.WriteString("</ul>\n")
@@ -391,12 +396,25 @@ func (options *Html) List(out *bytes.Buffer, text func() bool, flags int) {
 }
 
 func (options *Html) ListItem(out *bytes.Buffer, text []byte, flags int) {
-	if flags&LIST_ITEM_CONTAINS_BLOCK != 0 || flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
+	if (flags&LIST_ITEM_CONTAINS_BLOCK != 0 && flags&LIST_TYPE_DEFINITION == 0) ||
+		flags&LIST_ITEM_BEGINNING_OF_LIST != 0 {
 		doubleSpace(out)
 	}
-	out.WriteString("<li>")
+	if flags&LIST_TYPE_TERM != 0 {
+		out.WriteString("<dt>")
+	} else if flags&LIST_TYPE_DEFINITION != 0 {
+		out.WriteString("<dd>")
+	} else {
+		out.WriteString("<li>")
+	}
 	out.Write(text)
-	out.WriteString("</li>\n")
+	if flags&LIST_TYPE_TERM != 0 {
+		out.WriteString("</dt>\n")
+	} else if flags&LIST_TYPE_DEFINITION != 0 {
+		out.WriteString("</dd>\n")
+	} else {
+		out.WriteString("</li>\n")
+	}
 }
 
 func (options *Html) Paragraph(out *bytes.Buffer, text func() bool) {
@@ -512,12 +530,12 @@ func (options *Html) Image(out *bytes.Buffer, link []byte, title []byte, alt []b
 
 	out.WriteByte('"')
 	out.WriteString(options.closeTag)
-	return
 }
 
 func (options *Html) LineBreak(out *bytes.Buffer) {
 	out.WriteString("<br")
 	out.WriteString(options.closeTag)
+	out.WriteByte('\n')
 }
 
 func (options *Html) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
@@ -862,6 +880,14 @@ func skipUntilChar(text []byte, start int, char byte) int {
 
 func skipSpace(tag []byte, i int) int {
 	for i < len(tag) && isspace(tag[i]) {
+		i++
+	}
+	return i
+}
+
+func skipChar(data []byte, start int, char byte) int {
+	i := start
+	for i < len(data) && data[i] == char {
 		i++
 	}
 	return i

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package video
+package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
@@ -26,19 +26,19 @@ var (
 	vimeoVideoPattern = regexp.MustCompile(`http[s]?://vimeo\.com/([\d]+)`)
 )
 
-func New(pathProvider paths.Pather, files []*model.File) *VideoExtension {
-	return &VideoExtension{
+func newVideoExtension(pathProvider paths.Pather, files []*model.File) *videoExtension {
+	return &videoExtension{
 		pathProvider: pathProvider,
 		files:        files,
 	}
 }
 
-type VideoExtension struct {
+type videoExtension struct {
 	pathProvider paths.Pather
 	files        []*model.File
 }
 
-func (converter *VideoExtension) Convert(markdown string) (convertedContent string, converterError error) {
+func (converter *videoExtension) Convert(markdown string) (convertedContent string, converterError error) {
 
 	convertedContent = markdown
 
@@ -65,7 +65,7 @@ func (converter *VideoExtension) Convert(markdown string) (convertedContent stri
 	return convertedContent, nil
 }
 
-func (converter *VideoExtension) getMatchingFile(path string) *model.File {
+func (converter *videoExtension) getMatchingFile(path string) *model.File {
 	for _, file := range converter.files {
 		if file.Route().IsMatch(path) && util.IsVideoFile(file) {
 			return file
@@ -75,7 +75,7 @@ func (converter *VideoExtension) getMatchingFile(path string) *model.File {
 	return nil
 }
 
-func (converter *VideoExtension) getVideoCode(title, path string) string {
+func (converter *videoExtension) getVideoCode(title, path string) string {
 
 	fallback := util.GetHtmlLinkCode(title, path)
 

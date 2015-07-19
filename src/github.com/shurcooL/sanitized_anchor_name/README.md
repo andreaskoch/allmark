@@ -8,7 +8,7 @@ Its logic can be reused by multiple packages to create interoperable anchor name
 At this time, it does not try to ensure that generated anchor names are unique, that responsibility falls on the caller.
 
 Example
-=======
+-------
 
 ```Go
 anchorName := sanitized_anchor_name.Create("This is a header")

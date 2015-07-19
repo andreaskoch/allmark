@@ -30,10 +30,12 @@ func RobotsTxt(headerWriter header.HeaderWriter, templateProvider templates.Prov
 			"/thumbnails",
 			"/rtf$",
 			"/json$",
+			"/markdown$",
 			"/print$",
 			"/ws$",
 			"/*.rtf$",
 			"/*.json$",
+			"/*.markdown$",
 			"/*.print$",
 			"/*.ws$",
 		}

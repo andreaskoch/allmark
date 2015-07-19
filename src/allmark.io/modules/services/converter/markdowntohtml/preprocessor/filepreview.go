@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package filepreview
+package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
@@ -12,7 +12,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"html"
 	"io"
 	"regexp"
 	"strings"
@@ -20,28 +19,28 @@ import (
 
 var (
 	// filepreview: [*description text*](*file path*)
-	markdownPattern = regexp.MustCompile(`filepreview: \[([^\]]+)\]\(([^)]+)\)`)
+	filePreviewMarkdownExtension = regexp.MustCompile(`filepreview: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func New(pathProvider paths.Pather, files []*model.File) *FilePreviewExtension {
-	return &FilePreviewExtension{
+func newFilePreviewExtension(pathProvider paths.Pather, files []*model.File) *filePreviewExtension {
+	return &filePreviewExtension{
 		pathProvider: pathProvider,
 		files:        files,
 	}
 }
 
-type FilePreviewExtension struct {
+type filePreviewExtension struct {
 	pathProvider paths.Pather
 	files        []*model.File
 }
 
-func (converter *FilePreviewExtension) Convert(markdown string) (convertedContent string, converterError error) {
+func (converter *filePreviewExtension) Convert(markdown string) (convertedContent string, converterError error) {
 
 	convertedContent = markdown
 
 	for {
 
-		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
+		found, matches := pattern.IsMatch(convertedContent, filePreviewMarkdownExtension)
 		if !found || (found && len(matches) != 3) {
 			break
 		}
@@ -61,7 +60,7 @@ func (converter *FilePreviewExtension) Convert(markdown string) (convertedConten
 	return convertedContent, nil
 }
 
-func (converter *FilePreviewExtension) getPreviewCode(title, path string) string {
+func (converter *filePreviewExtension) getPreviewCode(title, path string) string {
 
 	// get the file that matches the path
 	file := converter.getMatchingFile(path)
@@ -86,15 +85,12 @@ func (converter *FilePreviewExtension) getPreviewCode(title, path string) string
 
 		if err := file.Data(contentReader); err == nil {
 
-			// escape html entities
-			escapedContent := html.EscapeString(bytesBuffer.String())
+			code := fmt.Sprintf("**[%s](%s)**\n\n", title, filepath)
+			code += fmt.Sprintf("```%s\n", contentType)
+			code += strings.TrimSpace(bytesBuffer.String()) + "\n"
+			code += "```"
 
-			return fmt.Sprintf(`<section class="filepreview filepreview-%s">
-			<header><a href="%s" target="_blank" title="%s">%s</a></header>
-			<pre>
-				<code class="%s">%s</code>
-			</pre>
-			</section>`, contentType, filepath, title, title, contentType, escapedContent)
+			return code
 		}
 
 	}
@@ -103,7 +99,8 @@ func (converter *FilePreviewExtension) getPreviewCode(title, path string) string
 	return util.GetHtmlLinkCode(title, path)
 }
 
-func (converter *FilePreviewExtension) getMatchingFile(path string) *model.File {
+func (converter *filePreviewExtension) getMatchingFile(path string) *model.File {
+
 	for _, file := range converter.files {
 		if file.Route().IsMatch(path) && util.IsTextFile(file) {
 			return file

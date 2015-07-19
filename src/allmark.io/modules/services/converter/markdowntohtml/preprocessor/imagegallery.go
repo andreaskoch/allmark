@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package imagegallery
+package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
@@ -18,11 +18,11 @@ import (
 
 var (
 	// imagegallery: [*description text*](*folder path*)
-	markdownPattern = regexp.MustCompile(`imagegallery: \[([^\]]*)\]\(([^)]+)\)`)
+	imageGalleryExtensionPattern = regexp.MustCompile(`imagegallery: \[([^\]]*)\]\(([^)]+)\)`)
 )
 
-func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, imageProvider *common.ImageProvider) *FilePreviewExtension {
-	return &FilePreviewExtension{
+func newImageGalleryExtension(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, imageProvider *common.ImageProvider) *imageGalleryExtension {
+	return &imageGalleryExtension{
 		pathProvider:  pathProvider,
 		base:          baseRoute,
 		files:         files,
@@ -30,20 +30,20 @@ func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, 
 	}
 }
 
-type FilePreviewExtension struct {
+type imageGalleryExtension struct {
 	pathProvider  paths.Pather
 	base          route.Route
 	files         []*model.File
 	imageProvider *common.ImageProvider
 }
 
-func (converter *FilePreviewExtension) Convert(markdown string) (convertedContent string, converterError error) {
+func (converter *imageGalleryExtension) Convert(markdown string) (convertedContent string, converterError error) {
 
 	convertedContent = markdown
 
 	for {
 
-		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
+		found, matches := pattern.IsMatch(convertedContent, imageGalleryExtensionPattern)
 		if !found || (found && len(matches) != 3) {
 			break
 		}
@@ -63,30 +63,20 @@ func (converter *FilePreviewExtension) Convert(markdown string) (convertedConten
 	return convertedContent, nil
 }
 
-func (converter *FilePreviewExtension) getGalleryCode(galleryTitle, path string) string {
+func (converter *imageGalleryExtension) getGalleryCode(galleryTitle, path string) string {
 
 	imageLinks := converter.getImageLinksByPath(path)
-	if galleryTitle != "" {
-		return fmt.Sprintf(`<section class="imagegallery">
-					<header>%s</header>
-					<ol>
-						<li>
-						%s
-						</li>
-					</ol>
-				</section>`, galleryTitle, strings.Join(imageLinks, "\n</li>\n<li>\n"))
-	}
 
-	return fmt.Sprintf(`<section class="imagegallery">
-					<ol>
-						<li>
-						%s
-						</li>
-					</ol>
-				</section>`, strings.Join(imageLinks, "\n</li>\n<li>\n"))
+	var code string
+	if galleryTitle != "" {
+		code += fmt.Sprintf("**%s**\n\n", galleryTitle)
+	}
+	code += strings.Join(imageLinks, "\n")
+
+	return code
 }
 
-func (converter *FilePreviewExtension) getImageLinksByPath(path string) []string {
+func (converter *imageGalleryExtension) getImageLinksByPath(path string) []string {
 
 	baseRoute := converter.base
 	galleryRoute := route.NewFromRequest(path)

@@ -9,7 +9,6 @@ import (
 
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
-	converter "allmark.io/modules/services/converter/markdowntohtml"
 	"allmark.io/modules/web/view/viewmodel"
 )
 
@@ -210,13 +209,25 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 			continue
 		}
 
-		// prepare lazy loading
-		contentWithLazyLoadingEnabled := converter.LazyLoad(viewModel.Content)
+		content := viewModel.Content
+
+		lazyloadingEnabled := true
+		if lazyloadingEnabled {
+
+			startTime := time.Now()
+
+			// prepare lazy loading
+			content = lazyLoad(content)
+
+			stopTime := time.Now()
+			duration := stopTime.Sub(startTime)
+			orchestrator.logger.Statistics("Added lazy-loading for images for route %q took %v seconds.", item.Route(), duration.Seconds())
+
+		}
 
 		// create a copy (make sure we don't modify the content of the original view model)
 		viewmodelCopy := *viewModel
-		viewmodelCopy.Content = contentWithLazyLoadingEnabled
-
+		viewmodelCopy.Content = content
 		models = append(models, &viewmodelCopy)
 	}
 
@@ -251,6 +262,7 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *
 		viewModel := &viewmodel.Model{
 			Base:             getBaseModel(root, item, orchestrator.itemPather(), orchestrator.config),
 			Content:          convertedContent,
+			Markdown:         item.Markdown,
 			Publisher:        orchestrator.getPublisherInformation(),
 			Author:           orchestrator.getAuthorInformation(item.MetaData.Author),
 			Files:            orchestrator.fileOrchestrator.GetFiles(route),

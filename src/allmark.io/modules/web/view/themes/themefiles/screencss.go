@@ -625,36 +625,6 @@ aside.sidebar>.tagcloud>h1 {
     background: #d0dafd;
 }
 
-.pdf {
-    width: 80%;
-    max-height: 80%;
-    margin: 2em 0;
-}
-
-.pdf>header {
-    font-size: 1.2em;
-}
-
-.pdf .metadata {
-    float: left;
-    font-size: 1.0em;
-    margin: 0 15px 0 0;
-}
-
-.pdf .metadata .entry {
-    margin: 0 0 10px 0;
-}
-
-.pdf .previewarea {
-    display: block;
-    overflow: auto;
-    box-shadow: 0 0 10px #000000;
-}
-
-.pdf .previewarea canvas {
-    float: none;
-}
-
 section.video {
     margin: 2em 0;
 }

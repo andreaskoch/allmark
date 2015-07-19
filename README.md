@@ -211,8 +211,6 @@ This will create a folder with the name `.allmark` in the current or the specifi
     │   ├── jquery.tmpl.js
     │   ├── latest.js
     │   ├── modernizr.js
-    │   ├── pdf.js
-    │   ├── pdfpreview.js
     │   ├── presentation.js
     │   ├── print.css
     │   ├── screen.css
@@ -423,7 +421,6 @@ This is an unordered list of the most prominent features of allmark:
 	- Displaying Folder Contents
 	- Video Player Integration
 	- Audio Player Integration
-	- PDF Document Preview
 	- Repository cross-links by alias
 17. Different Item Types (Repository, Document, Presentation)
 18. Document Meta Data

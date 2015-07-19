@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package csvtable
+package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
@@ -21,28 +21,28 @@ import (
 
 var (
 	// csv: [*description text*](*file path*)
-	markdownPattern = regexp.MustCompile(`csv: \[([^\]]+)\]\(([^)]+)\)`)
+	csvMarkdownExtensionPattern = regexp.MustCompile(`csv: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func New(pathProvider paths.Pather, files []*model.File) *CsvTableExtension {
-	return &CsvTableExtension{
+func newCSVExtension(pathProvider paths.Pather, files []*model.File) *csvTableExtension {
+	return &csvTableExtension{
 		pathProvider: pathProvider,
 		files:        files,
 	}
 }
 
-type CsvTableExtension struct {
+type csvTableExtension struct {
 	pathProvider paths.Pather
 	files        []*model.File
 }
 
-func (converter *CsvTableExtension) Convert(markdown string) (convertedContent string, converterError error) {
+func (converter *csvTableExtension) Convert(markdown string) (convertedContent string, converterError error) {
 
 	convertedContent = markdown
 
 	for {
 
-		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
+		found, matches := pattern.IsMatch(convertedContent, csvMarkdownExtensionPattern)
 		if !found || (found && len(matches) != 3) {
 			break
 		}
@@ -63,7 +63,7 @@ func (converter *CsvTableExtension) Convert(markdown string) (convertedContent s
 	return convertedContent, nil
 }
 
-func (converter *CsvTableExtension) getMatchingFile(path string) *model.File {
+func (converter *csvTableExtension) getMatchingFile(path string) *model.File {
 	for _, file := range converter.files {
 		if file.Route().IsMatch(path) && isCSVFile(path) {
 			return file
@@ -73,7 +73,7 @@ func (converter *CsvTableExtension) getMatchingFile(path string) *model.File {
 	return nil
 }
 
-func (converter *CsvTableExtension) getTableCode(title, path string) string {
+func (converter *csvTableExtension) getTableCode(title, path string) string {
 
 	// internal csv file
 	if csvFile := converter.getMatchingFile(path); csvFile != nil {

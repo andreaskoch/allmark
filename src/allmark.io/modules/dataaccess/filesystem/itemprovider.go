@@ -180,7 +180,9 @@ func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (d
 
 	// content
 	title := filepath.Base(itemDirectory)
-	content := fmt.Sprintf(`# %s`, title)
+	content := fmt.Sprintf(`# %s
+
+files: [Attachments](/)`, title)
 	contentProvider, contentProviderError := newTextContentProvider(content, route)
 	if contentProviderError != nil {
 		return nil, contentProviderError

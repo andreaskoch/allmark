@@ -44,6 +44,9 @@ var (
 	// JSONHandlerRoute defines the route for JSON-handler requests.
 	JSONHandlerRoute = `/{path:.+\.json$|json$}`
 
+	// MarkdownHandlerRoute defines the route for Markdown-handler requests.
+	MarkdownHandlerRoute = `/{path:.+\.markdown$|markdown$}`
+
 	// LatestHandlerRoute defines the route for latest-handler requests.
 	LatestHandlerRoute = `/{path:.+\.latest$|latest$}`
 
@@ -101,7 +104,7 @@ func (list *HandlerList) Add(route string, handler http.Handler) {
 	*list = append(*list, RouteAndHandler{route, handler})
 }
 
-// Get redirect handlers.
+// GetRedirectHandlers returns a list of redirect handlers.
 func GetRedirectHandlers(baseURITarget string) HandlerList {
 	handlers := make(HandlerList, 0)
 	handlers.Add(RedirectHandlerRoute, Redirect(baseURITarget))
@@ -177,6 +180,9 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 
 	// json
 	handlers.Add(JSONHandlerRoute, JSON(headerWriterFactory.Dynamic(), viewModelOrchestrator, itemHandler))
+
+	// markdown
+	handlers.Add(MarkdownHandlerRoute, Markdown(headerWriterFactory.Dynamic(), viewModelOrchestrator, itemHandler))
 
 	// print
 	handlers.Add(PrintHandlerRoute, Print(logger, headerWriterFactory.Dynamic(), conversionModelOrchestrator, templateProvider, errorHandler))

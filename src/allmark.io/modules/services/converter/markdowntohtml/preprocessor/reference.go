@@ -2,13 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package reference
+package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
 	"allmark.io/modules/common/pattern"
 	"allmark.io/modules/model"
-	"allmark.io/modules/services/converter/markdowntohtml/util"
 	"fmt"
 	"regexp"
 	"strings"
@@ -19,19 +18,19 @@ var (
 	referencePattern = regexp.MustCompile(`\[reference:([^\]]+)\]`)
 )
 
-func New(pathProvider paths.Pather, aliasResolver func(alias string) *model.Item) *ReferenceExtension {
-	return &ReferenceExtension{
+func newReferenceExtension(pathProvider paths.Pather, aliasResolver func(alias string) *model.Item) *referenceExtension {
+	return &referenceExtension{
 		pathProvider:  pathProvider,
 		aliasResolver: aliasResolver,
 	}
 }
 
-type ReferenceExtension struct {
+type referenceExtension struct {
 	pathProvider  paths.Pather
 	aliasResolver func(alias string) *model.Item
 }
 
-func (converter *ReferenceExtension) Convert(markdown string) (convertedContent string, converterError error) {
+func (converter *referenceExtension) Convert(markdown string) (convertedContent string, converterError error) {
 
 	convertedContent = markdown
 
@@ -59,7 +58,7 @@ func (converter *ReferenceExtension) Convert(markdown string) (convertedContent 
 		path := converter.pathProvider.Path(item.Route().Value())
 
 		// assemble the link
-		linkCode := util.GetHtmlLinkCode(item.Title, path)
+		linkCode := fmt.Sprintf("[%s](%s)", item.Title, path)
 
 		// replace markdown with link list
 		convertedContent = strings.Replace(convertedContent, originalText, linkCode, 1)

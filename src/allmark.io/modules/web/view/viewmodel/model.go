@@ -11,7 +11,8 @@ import (
 type Model struct {
 	Base
 
-	Content string `json:"content"`
+	Content  string `json:"content"`
+	Markdown string `json:"markdown"`
 
 	Publisher Publisher `json:"publisher"`
 	Author    Author    `json:"author"`

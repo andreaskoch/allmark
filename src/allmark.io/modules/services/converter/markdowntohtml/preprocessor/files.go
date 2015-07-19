@@ -2,45 +2,45 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package files
+package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
 	"allmark.io/modules/common/pattern"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
-	"allmark.io/modules/services/converter/filetreerenderer"
+	"allmark.io/modules/services/converter/markdowntohtml/filetreerenderer"
 	"regexp"
 	"strings"
 )
 
 var (
 	// files: [*description text*](*folder path*)
-	markdownPattern = regexp.MustCompile(`files: \[([^\]]+)\]\(([^)]+)\)`)
+	filesMarkdownExtensionPattern = regexp.MustCompile(`files: \[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func New(pathProvider paths.Pather, baseRoute route.Route, files []*model.File) *FilesExtension {
-	return &FilesExtension{
+func newFilesExtension(pathProvider paths.Pather, baseRoute route.Route, files []*model.File) *filesExtension {
+	return &filesExtension{
 		pathProvider:     pathProvider,
 		base:             baseRoute,
 		fileTreeRenderer: filetreerenderer.New(pathProvider, baseRoute, files),
 	}
 }
 
-type FilesExtension struct {
+type filesExtension struct {
 	pathProvider     paths.Pather
 	base             route.Route
 	fileTreeRenderer *filetreerenderer.FileTreeRenderer
 }
 
-func (converter *FilesExtension) Convert(markdown string) (convertedContent string, converterError error) {
+func (converter *filesExtension) Convert(markdown string) (convertedContent string, converterError error) {
 
 	convertedContent = markdown
 
 	for {
 
 		// search for files-extension code
-		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
+		found, matches := pattern.IsMatch(convertedContent, filesMarkdownExtensionPattern)
 		if !found || (found && len(matches) != 3) {
 			break // abort. no (more) files-extension code found
 		}
