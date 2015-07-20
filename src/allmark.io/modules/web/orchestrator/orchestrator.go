@@ -87,8 +87,6 @@ type CacheUpdateCallback struct {
 
 func newBaseOrchestrator(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
 
-	startTime := time.Now()
-
 	orchestrator := &Orchestrator{
 		logger: logger,
 
@@ -102,13 +100,6 @@ func newBaseOrchestrator(logger logger.Logger, config config.Config, repository 
 		updateSubscribers: make([]chan Update, 0),
 		updateCallbacks:   make(map[UpdateType][]CacheUpdateCallback),
 	}
-
-	// warm up caches
-	orchestrator.blockingCacheWarmup()
-
-	stopTime := time.Now()
-	duration := stopTime.Sub(startTime)
-	logger.Statistics("Priming the base orchestrator cache took %f seconds.", duration.Seconds())
 
 	return orchestrator
 }
@@ -138,14 +129,6 @@ type Orchestrator struct {
 func (orchestrator *Orchestrator) GetPageTitle(headline string) string {
 	rootItem := orchestrator.rootItem()
 	return fmt.Sprintf("%s - %s", headline, rootItem.Title)
-}
-
-// blockingCacheWarmup triggers a cache-warmup.
-func (orchestrator *Orchestrator) blockingCacheWarmup() {
-	orchestrator.index()
-	orchestrator.getAllItems()
-	orchestrator.search("", 5)
-	orchestrator.getItemByAlias("")
 }
 
 func (orchestrator *Orchestrator) Subscribe(update chan Update) {
@@ -335,15 +318,26 @@ func (orchestrator *Orchestrator) search(keywords string, maxiumNumberOfResults 
 		return orchestrator.fulltextIndex.Search(keywords, maxiumNumberOfResults)
 	}
 
-	newFullTextIndex := search.NewItemSearch(orchestrator.logger, orchestrator.getAllItems())
+	// updateFulltextIndex creates a new full-text index and replaces the existing one.
+	updateFulltextIndex := func(r route.Route) {
+		newFullTextIndex := search.NewItemSearch(orchestrator.logger, orchestrator.getAllItems())
 
-	// destroy the old index
-	if orchestrator.fulltextIndex != nil {
-		oldIndex := orchestrator.fulltextIndex
-		go oldIndex.Destroy()
+		// destroy the old index
+		if orchestrator.fulltextIndex != nil {
+			oldIndex := orchestrator.fulltextIndex
+			go oldIndex.Destroy()
+		}
+
+		orchestrator.fulltextIndex = newFullTextIndex
 	}
 
-	orchestrator.fulltextIndex = newFullTextIndex
+	// initialize
+	updateFulltextIndex(route.New())
+
+	// register update callbacks
+	orchestrator.registerUpdateCallback("update fulltext index", UpdateTypeNew, updateFulltextIndex)
+	orchestrator.registerUpdateCallback("update fulltext index", UpdateTypeModified, updateFulltextIndex)
+	orchestrator.registerUpdateCallback("update fulltext index", UpdateTypeDeleted, updateFulltextIndex)
 
 	return orchestrator.fulltextIndex.Search(keywords, maxiumNumberOfResults)
 }

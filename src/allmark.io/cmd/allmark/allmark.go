@@ -25,7 +25,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 )
 
 const (
@@ -158,7 +157,6 @@ func printUsageInformation(args []string) {
 }
 
 func serve(repositoryPath string) bool {
-	serveStart := time.Now()
 
 	// get the configuration
 	configuration := config.Get(repositoryPath)
@@ -224,11 +222,6 @@ func serve(repositoryPath string) bool {
 		logger.Error("Unable to instantiate a server. Error: %s", err.Error())
 		return false
 	}
-
-	// log the time it took to prepare everything for serving
-	serveStop := time.Now()
-	serveDuration := serveStop.Sub(serveStart)
-	logger.Statistics("Preparing %v items took %f seconds. Starting the server now.", len(repository.Items()), serveDuration.Seconds())
 
 	if result := <-server.Start(); result != nil {
 		logger.Error("%s", result)

@@ -30,8 +30,12 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 
 	// return from cache
 	if orchestrator.fullViewmodelsByRoute != nil {
-		viewModel := orchestrator.fullViewmodelsByRoute[itemRoute.String()]
-		if viewModel != nil {
+
+		if viewModel := orchestrator.fullViewmodelsByRoute[itemRoute.String()]; viewModel != nil {
+
+			// append the content
+			viewModel.Content = orchestrator.getHTMLFromRoute(itemRoute)
+
 			return *viewModel, true
 		}
 
@@ -127,8 +131,11 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 
 	vm := orchestrator.getViewModel(itemRoute)
 	if vm == nil {
-		return viewModel, false
+		return viewmodel.Model{}, false
 	}
+
+	// append the content
+	vm.Content = orchestrator.getHTMLFromRoute(itemRoute)
 
 	return *vm, true
 }
@@ -143,8 +150,11 @@ func (orchestrator *ViewModelOrchestrator) GetViewModelByAlias(alias string) (vi
 
 	vm := orchestrator.getViewModel(item.Route())
 	if vm == nil {
-		return viewModel, false
+		return viewmodel.Model{}, false
 	}
+
+	// append the content
+	vm.Content = orchestrator.getHTMLFromRoute(item.Route())
 
 	return *vm, true
 }
@@ -156,7 +166,29 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 	if orchestrator.latestByRoute != nil {
 
 		if models, exists := orchestrator.latestByRoute[itemRoute.Value()]; exists {
-			return pagedViewmodels(models, pageSize, page)
+
+			// get the paged view models
+			latestModels, found := pagedViewmodels(models, pageSize, page)
+			if !found {
+				return []*viewmodel.Model{}, false
+			}
+
+			// convert the content
+			for _, model := range latestModels {
+				itemRoute := route.NewFromRequest(model.Route)
+
+				// convert to html
+				content := orchestrator.getHTMLFromRoute(itemRoute)
+
+				// lazy-load
+				content = lazyLoad(content)
+
+				// attach to model
+				model.Content = content
+			}
+
+			return latestModels, true
+
 		}
 
 		return []*viewmodel.Model{}, false
@@ -176,7 +208,7 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 		// log timing reports
 		endTime := time.Now()
 		duration := endTime.Sub(startTime)
-		orchestrator.logger.Statistics("Priming the latest cache took %f seconds.", duration.Seconds())
+		orchestrator.logger.Statistics("Priming the latest items cache took %f seconds.", duration.Seconds())
 	}
 
 	// asyncUpdateLatest executes updateLatest for the given route in a go routine.
@@ -205,30 +237,11 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 
 		viewModel := orchestrator.getViewModel(item.Route())
 		if viewModel == nil {
-			orchestrator.logger.Error("No view model found for item %q.", item)
+			orchestrator.logger.Error("No view model found for item %q.", item.String())
 			continue
 		}
 
-		content := viewModel.Content
-
-		lazyloadingEnabled := true
-		if lazyloadingEnabled {
-
-			startTime := time.Now()
-
-			// prepare lazy loading
-			content = lazyLoad(content)
-
-			stopTime := time.Now()
-			duration := stopTime.Sub(startTime)
-			orchestrator.logger.Statistics("Added lazy-loading for images for route %q took %v seconds.", item.Route(), duration.Seconds())
-
-		}
-
-		// create a copy (make sure we don't modify the content of the original view model)
-		viewmodelCopy := *viewModel
-		viewmodelCopy.Content = content
-		models = append(models, &viewmodelCopy)
+		models = append(models, viewModel)
 	}
 
 	return models
@@ -251,17 +264,10 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *
 		}
 
 		root := orchestrator.rootItem()
-		rootPathProvider := orchestrator.absolutePather("/")
-		itemContentPathProvider := orchestrator.relativePather(route)
-		convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, rootPathProvider, itemContentPathProvider, item)
-		if err != nil {
-			orchestrator.logger.Warn("Cannot convert content for route %q. Error: %s.", route, err.Error())
-			convertedContent = "<!-- Conversion Error -->"
-		}
 
 		viewModel := &viewmodel.Model{
 			Base:             getBaseModel(root, item, orchestrator.itemPather(), orchestrator.config),
-			Content:          convertedContent,
+			Content:          "", // convert later
 			Markdown:         item.Markdown,
 			Publisher:        orchestrator.getPublisherInformation(),
 			Author:           orchestrator.getAuthorInformation(item.MetaData.Author),
@@ -299,8 +305,6 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *
 
 func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route) []*viewmodel.Base {
 
-	startTime := time.Now()
-
 	rootItem := orchestrator.rootItem()
 	if rootItem == nil {
 		orchestrator.logger.Fatal("No root item found")
@@ -309,7 +313,6 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route)
 	pathProvider := orchestrator.relativePather(itemRoute)
 
 	childModels := make([]*viewmodel.Base, 0)
-
 	childItems := orchestrator.getChilds(itemRoute)
 	for _, childItem := range childItems {
 		baseModel := getBaseModel(rootItem, childItem, pathProvider, orchestrator.config)
@@ -319,9 +322,30 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route)
 	// sort the models
 	viewmodel.SortBaseModelBy(sortBaseModelsByDate).Sort(childModels)
 
-	endTime := time.Now()
-	duration := endTime.Sub(startTime)
-	orchestrator.logger.Statistics("Getting child models for route %q took %f seconds.", itemRoute, duration.Seconds())
-
 	return childModels
+}
+
+// getHTMLFromItem returns the converted HTML code for the given item model.
+func (orchestrator *ViewModelOrchestrator) getHTMLFromItem(item *model.Item) string {
+	if item == nil {
+		return ""
+	}
+
+	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, orchestrator.absolutePather("/"), orchestrator.relativePather(item.Route()), item)
+	if err != nil {
+		orchestrator.logger.Warn("Cannot convert content for route %q. Error: %s.", item.Route(), err.Error())
+		return "<!-- Conversion Error -->"
+	}
+
+	return convertedContent
+}
+
+// getHTMLFromRoute returns the converted HTML code for the item with the given route.
+func (orchestrator *ViewModelOrchestrator) getHTMLFromRoute(route route.Route) string {
+	item := orchestrator.getItem(route)
+	if item == nil {
+		return ""
+	}
+
+	return orchestrator.getHTMLFromItem(item)
 }
