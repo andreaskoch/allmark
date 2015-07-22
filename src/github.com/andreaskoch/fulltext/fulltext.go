@@ -1,3 +1,4 @@
+
 /*
 
 A simple cross-platform, full-text search engine, backed by sqlite.
@@ -7,3 +8,4 @@ See README.md for usage.
 
 */
 package fulltext
+

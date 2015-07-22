@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"fmt"
+	"github.com/spf13/afero"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -61,17 +62,13 @@ func TestTheBardSearch(t *testing.T) {
 
 	fmt.Println("TestTheBardIndexing")
 
-	idx, err := NewIndexer("")
+	idx, err := NewIndexer()
 	if err != nil {
 		panic(err)
 	}
 	defer idx.Close()
 
-	// use English stop words
-	idx.StopWordCheck = EnglishStopWordChecker
-
 	titlere := re.MustCompile("(?i)<title>([^<]+)</title>")
-
 	zr, err := zip.OpenReader("testdata/shakespeare.mit.edu.zip")
 	if err != nil {
 		panic(err)
@@ -112,29 +109,25 @@ func TestTheBardSearch(t *testing.T) {
 	}
 
 	fmt.Println("Writing final index...")
-	f, err := ioutil.TempFile("", "idxout")
+	var indexFs afero.Fs = &afero.MemMapFs{}
+	searchIndexFile, err := indexFs.Create("idxout")
 	if err != nil {
 		panic(err)
 	}
-	err = idx.FinalizeAndWrite(f)
+	err = idx.FinalizeAndWrite(searchIndexFile)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Debug data: \n")
-	idx.DumpStatus(os.Stdout)
+	defer searchIndexFile.Close()
 
-	// panic("DONE")
-
-	f.Close()
-
-	fmt.Printf("Wrote index file: %s\n", f.Name())
+	fmt.Printf("Wrote index file: %s\n", searchIndexFile.Name())
 
 	/////////////////////////////////
 
 	start := time.Now()
 
-	s, err := NewSearcher(f.Name())
+	searcher, err := NewSearcher(searchIndexFile)
 	if err != nil {
 		panic(err)
 	}
@@ -143,13 +136,9 @@ func TestTheBardSearch(t *testing.T) {
 
 	start = time.Now()
 
-	sr, err := s.SimpleSearch("king", 20)
+	sr, err := searcher.SimpleSearch("king", 20)
 	if err != nil {
 		panic(err)
-	}
-
-	if len(sr.Items) == 0 {
-		t.Fatalf("Search for 'king' returned 0 results, but should have gotten something")
 	}
 
 	fmt.Printf("Searching took: %s\n", time.Since(start).String())
@@ -163,17 +152,6 @@ func TestTheBardSearch(t *testing.T) {
 	}
 
 	fmt.Printf("Raw dump: %+v\n", sr)
-
-	// look for a stop word and make sure it's not there
-
-	sr, err = s.SimpleSearch("the", 20)
-	if err != nil {
-		panic(err)
-	}
-	if len(sr.Items) != 0 {
-		t.Fatalf("Search for 'the' returned %d results when it should have been 0 because it's a stop word", len(sr.Items))
-	}
-	fmt.Printf("Check for stop word passed\n")
 
 	///////////////////////////////////////////////////
 
@@ -213,7 +191,7 @@ func TestTheBardSearch(t *testing.T) {
 			q := r.FormValue("q")
 
 			// do search
-			sr, err := s.SimpleSearch(q, 20)
+			sr, err := searcher.SimpleSearch(q, 20)
 			if err != nil {
 				panic(err)
 			}
@@ -281,6 +259,6 @@ func TestTheBardSearch(t *testing.T) {
 		fmt.Printf("err from listen: %s\n", err)
 	}
 
-	s.Close()
+	searcher.Close()
 
 }

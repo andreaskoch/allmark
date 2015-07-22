@@ -1,19 +1,18 @@
 package fulltext
 
 import (
-	"bytes"
 	"encoding/gob"
 	"github.com/jbarham/go-cdb"
+	"github.com/spf13/afero"
 	"io"
 	"io/ioutil"
-	"os"
 	"sort"
 )
 
 // Interface for search.  Not thread-safe, but low overhead
 // so having a separate one per thread should be workable.
 type Searcher struct {
-	file    *os.File
+	file    afero.File
 	docCdb  *cdb.Cdb
 	wordCdb *cdb.Cdb
 }
@@ -39,41 +38,29 @@ type SearchResultItem struct {
 // Implement sort.Interface
 type SearchResultItems []SearchResultItem
 
-func (s SearchResultItems) Len() int      { return len(s) }
-func (s SearchResultItems) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
-func (s SearchResultItems) Less(i, j int) bool {
-	// if same score, then sort by raw bytes comparison of store value -
-	// so we get consistently ordered results, even when score is same
-	if s[i].Score == s[j].Score {
-		return bytes.Compare(s[i].Id, s[j].Id) < 0
-	}
-	return s[i].Score < s[j].Score
-}
+func (s SearchResultItems) Len() int           { return len(s) }
+func (s SearchResultItems) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s SearchResultItems) Less(i, j int) bool { return s[i].Score < s[j].Score }
 
 // What happened during the search
 type SearchResults struct {
 	Items SearchResultItems
 }
 
-// Make a new searcher using the file at the specified path
-// TODO: Make a variation that accepts a ReaderAt
-func NewSearcher(fpath string) (*Searcher, error) {
+// NewSearcher creates a new searcher instance from the given index file.
+func NewSearcher(indexFile afero.File) (*Searcher, error) {
 
 	s := &Searcher{}
 
-	f, err := os.Open(fpath)
-	if err != nil {
-		return s, err
-	}
-	s.file = f
+	s.file = indexFile
 
 	// write out the word data
-	dec := gob.NewDecoder(f)
+	dec := gob.NewDecoder(indexFile)
 	lens := make([]int64, 2, 2)
 	dec.Decode(&lens)
 
-	s.docCdb = cdb.New(&tweakedReaderAt{f, HEADER_SIZE})
-	s.wordCdb = cdb.New(&tweakedReaderAt{f, HEADER_SIZE + lens[0]})
+	s.docCdb = cdb.New(&tweakedReaderAt{indexFile, HEADER_SIZE})
+	s.wordCdb = cdb.New(&tweakedReaderAt{indexFile, HEADER_SIZE + lens[0]})
 
 	return s, nil
 }
@@ -83,6 +70,7 @@ func (s *Searcher) Close() error {
 	s.docCdb = nil
 	s.wordCdb = nil
 	return s.file.Close()
+	return nil
 }
 
 // Perform a search

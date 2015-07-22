@@ -84,7 +84,7 @@ func RTF(logger logger.Logger,
 		html := convertToHtml(baseURL, model)
 
 		// write the html to a temp file
-		htmlFilePath := fsutil.GetTempFileName("html-source") + ".html"
+		htmlFilePath := fsutil.GetTempFileName("source.html")
 		htmlFile, err := os.Create(htmlFilePath)
 		if err != nil {
 			logger.Error("Cannot open HTML file for writing. Error: %s", err.Error())
@@ -93,17 +93,25 @@ func RTF(logger logger.Logger,
 
 		htmlFile.WriteString(html)
 		htmlFile.Sync()
+
+		// close and delete the file at the end of the function
 		htmlFile.Close()
 
+		defer func() {
+			if err := deleteFile(htmlFilePath); err != nil {
+				logger.Error("Could not delete the source file (%q) for the RTF conversion. Error: %s", htmlFilePath, err.Error())
+			}
+		}()
+
 		// get a target file path
-		targetFile := fsutil.GetTempFileName("rtf-target") + ".rtf"
+		targetFilePath := fsutil.GetTempFileName("target.rtf")
 
 		// call pandoc
 		args := []string{
 			"-s",
 			fmt.Sprintf(`%s`, htmlFilePath),
 			"-o",
-			fmt.Sprintf(`%s`, targetFile),
+			fmt.Sprintf(`%s`, targetFilePath),
 		}
 
 		cmd := exec.Command(conversionToolPath, args...)
@@ -116,13 +124,19 @@ func RTF(logger logger.Logger,
 		}
 
 		// rtf file
-		rtfFile, err := fsutil.OpenFile(targetFile)
+		rtfFile, err := fsutil.OpenFile(targetFilePath)
 		if err != nil {
 			logger.Error("Cannot open target file. Error: %s", err.Error())
 			return
 		}
 
-		defer rtfFile.Close()
+		// close and delete the file at the end of the function
+		defer func() {
+			rtfFile.Close()
+			if err := deleteFile(targetFilePath); err != nil {
+				logger.Error("Could not delete the RTF file (%q) that has been created during the conversion. Error: %s", targetFilePath, err.Error())
+			}
+		}()
 
 		w.Header().Add("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, getRichTextFilename(model)))
 
@@ -203,4 +217,9 @@ func redirectCommandIO(cmd *exec.Cmd) (*os.File, error) {
 	//direct. Masked passwords work OK!
 	cmd.Stdin = os.Stdin
 	return nil, err
+}
+
+// deleteFile removes the file with the specified path.
+func deleteFile(filepath string) error {
+	return os.Remove(filepath)
 }

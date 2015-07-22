@@ -2,6 +2,7 @@ package fulltext
 
 import (
 	"fmt"
+	"github.com/spf13/afero"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 func TestIndexer(t *testing.T) {
 	fmt.Printf("TestIndexer\n")
 
-	idx, err := NewIndexer("")
+	idx, err := NewIndexer()
 	if err != nil {
 		panic(err)
 	}
@@ -21,9 +22,9 @@ func TestIndexer(t *testing.T) {
 	idx.AddDoc(IndexDoc{Id: []byte(`blah2`), StoreValue: []byte(`store this stuff too, yeah store it`), IndexValue: []byte(`every good boy does fine`)})
 	idx.AddDoc(IndexDoc{Id: []byte(`blah3`), StoreValue: []byte(`more storage here`), IndexValue: []byte(`a taco in the hand is worth two in the truck`)})
 
-	idx.DumpStatus(os.Stdout)
+	var indexFs afero.Fs = &afero.MemMapFs{}
 
-	f, err := ioutil.TempFile("", "idxout")
+	f, err := indexFs.Create("idxout")
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +43,7 @@ func NoTestTheBardIndexing(t *testing.T) {
 
 	fmt.Println("TestTheBardIndexing")
 
-	idx, err := NewIndexer("")
+	idx, err := NewIndexer()
 	if err != nil {
 		panic(err)
 	}
@@ -71,8 +72,6 @@ func NoTestTheBardIndexing(t *testing.T) {
 		}
 		return nil
 	})
-
-	// idx.DebugDump(os.Stdout)
 
 	fmt.Println("Writing final index...")
 	f, err := ioutil.TempFile("", "idxout")

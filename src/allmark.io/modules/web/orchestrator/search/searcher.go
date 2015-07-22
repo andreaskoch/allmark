@@ -1,4 +1,4 @@
-// Copyright 2014 Andreas Koch. All rights reserved.
+// Copyright 2015 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -11,14 +11,16 @@ import (
 	"strings"
 )
 
+// Result is the model returned by the fulltext index's Search function.
 type Result struct {
-	Number int
+	Route route.Route
 
+	Number     int
 	Score      int64
 	StoreValue string
-	Route      route.Route
 }
 
+// NewItemSearch creates a new repository item searcher.
 func NewItemSearch(logger logger.Logger, items []*model.Item) *ItemSearch {
 
 	return &ItemSearch{
@@ -29,6 +31,8 @@ func NewItemSearch(logger logger.Logger, items []*model.Item) *ItemSearch {
 	}
 }
 
+// itemRouteKeywordProvider returns a list of keywords for the fulltext index
+// from the given items' route.
 func itemRouteKeywordProvider(item *model.Item) []string {
 	if item == nil {
 		return []string{}
@@ -45,18 +49,22 @@ func itemRouteKeywordProvider(item *model.Item) []string {
 	return routeComponents
 }
 
+// itemContentKeywordProvider returns a list of keywords for the fulltext index
+// from the given items' content.
 func itemContentKeywordProvider(item *model.Item) []string {
 
 	if item == nil {
 		return []string{}
 	}
 
-	keywords := make([]string, 0)
+	var keywords []string
 	keywords = append(keywords, getContentFromItem(item))
 
 	return keywords
 }
 
+// ItemSearch creates a fulltext index for given set of repository items and provides
+// the ability to search over this index.
 type ItemSearch struct {
 	logger logger.Logger
 
@@ -64,16 +72,7 @@ type ItemSearch struct {
 	itemContentFullTextIndex *FullTextIndex
 }
 
-func (itemSearch *ItemSearch) Destroy() {
-
-	// destroy the indizes
-	itemSearch.itemContentFullTextIndex.Destroy()
-	itemSearch.routesFullTextIndex.Destroy()
-
-	// self-destruct
-	itemSearch = nil
-}
-
+// Search returns a set of Result models that match specified keywords.
 func (itemSearch *ItemSearch) Search(keywords string, maxiumNumberOfResults int) []Result {
 
 	// routes
@@ -86,11 +85,14 @@ func (itemSearch *ItemSearch) Search(keywords string, maxiumNumberOfResults int)
 	return itemSearch.itemContentFullTextIndex.Search(keywords, maxiumNumberOfResults)
 }
 
+// getContentFromItem returns the content from the given repository item.
 func getContentFromItem(item *model.Item) string {
 
 	return item.Description + " " + item.Content
 }
 
+// isRouteSearch detects based on the given keywords
+// if the search targeted towards a route.
 func isRouteSearch(keywords string) bool {
 	return strings.HasPrefix(keywords, "/")
 }

@@ -423,7 +423,7 @@ This is an unordered list of the most prominent features of allmark:
 	- Audio Player Integration
 	- Repository cross-links by alias
 17. Different Item Types (Repository, Document, Presentation)
-18. Document Meta Data
+18. Document Meta Datagithub.com/spf13/afero
 	- Author
 	- Tags
 	- Document Alias
@@ -500,6 +500,7 @@ allmark relies on a number of third-party libraries:
 - [golang.org/x/net/websocket](src/golang.org/x/net/websocket)
 - [github.com/andreaskoch/go-fswatch](src/github.com/andreaskoch/go-fswatch)
 - [github.com/abbot/go-http-auth](src/github.com/abbot/go-http-auth)
+- [github.com/spf13/afero](src/github.com/spf13/afero)
 
 These dependencies are not covered by the allmark copyright/license. See the respective projects for their copyright & licensing details.
 

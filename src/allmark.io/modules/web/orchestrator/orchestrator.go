@@ -321,13 +321,6 @@ func (orchestrator *Orchestrator) search(keywords string, maxiumNumberOfResults 
 	// updateFulltextIndex creates a new full-text index and replaces the existing one.
 	updateFulltextIndex := func(r route.Route) {
 		newFullTextIndex := search.NewItemSearch(orchestrator.logger, orchestrator.getAllItems())
-
-		// destroy the old index
-		if orchestrator.fulltextIndex != nil {
-			oldIndex := orchestrator.fulltextIndex
-			go oldIndex.Destroy()
-		}
-
 		orchestrator.fulltextIndex = newFullTextIndex
 	}
 

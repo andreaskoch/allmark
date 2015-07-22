@@ -1,11 +1,10 @@
-// Copyright 2014 Andreas Koch. All rights reserved.
+// Copyright 2015 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 package fsutil
 
 import (
-	"allmark.io/modules/common/cleanup"
 	"bufio"
 	"crypto/rand"
 	"encoding/base64"
@@ -187,8 +186,8 @@ func GetModificationTime(path string) (time.Time, error) {
 	return info.ModTime(), nil
 }
 
-func GetTempFileName(prefix string) string {
-	file, err := ioutil.TempFile(os.TempDir(), fmt.Sprintf("%s-index", prefix))
+func GetTempFileName(postfix string) string {
+	file, err := ioutil.TempFile(os.TempDir(), fmt.Sprintf("%s", postfix))
 	if err != nil {
 		panic(err)
 	}
@@ -196,9 +195,6 @@ func GetTempFileName(prefix string) string {
 	defer file.Close()
 
 	filename := file.Name()
-
-	// make sure the file is deleted on shutdown
-	cleanup.OnShutdown(filename)
 
 	return filename
 }
@@ -210,9 +206,6 @@ func GetTempDirectory() string {
 	if !CreateDirectory(tempDir) {
 		panic(fmt.Sprintf("Cannot create temp directory %q.", tempDir))
 	}
-
-	// make sure the file is deleted on shutdown
-	cleanup.OnShutdown(tempDir)
 
 	return tempDir
 }

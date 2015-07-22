@@ -1,29 +1,26 @@
-// Copyright 2014 Andreas Koch. All rights reserved.
+// Copyright 2015 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 package search
 
 import (
-	"allmark.io/modules/common/cleanup"
 	"allmark.io/modules/common/logger"
 	"allmark.io/modules/common/route"
-	"allmark.io/modules/common/util/fsutil"
 	"allmark.io/modules/model"
-	"github.com/bradleypeabody/fulltext"
+	"github.com/andreaskoch/fulltext"
+	"github.com/spf13/afero"
 	"strings"
 )
 
 type indexValueProvider func(item *model.Item) []string
 
+// newIndex creates a new FullTextIndex and initializes it with the given number of items.
 func newIndex(logger logger.Logger, items []*model.Item, name string, indexValueFunc indexValueProvider) *FullTextIndex {
 
 	index := &FullTextIndex{
-		logger: logger,
-
-		filepath:      fsutil.GetTempFileName(name),
-		tempDirectory: fsutil.GetTempDirectory(),
-
+		logger:         logger,
+		filesystem:     &afero.MemMapFs{},
 		indexValueFunc: indexValueFunc,
 	}
 
@@ -32,30 +29,27 @@ func newIndex(logger logger.Logger, items []*model.Item, name string, indexValue
 	return index
 }
 
+// FullTextIndex indexes a given set if repository items and enables a full-text search on these items.
 type FullTextIndex struct {
 	logger logger.Logger
 
-	filepath      string
-	tempDirectory string
+	filesystem afero.Fs
 
 	indexValueFunc indexValueProvider
 }
 
-func (index *FullTextIndex) Destroy() {
-
-	// remove the index file
-	cleanup.Now(index.filepath)
-
-	// remove the temp directory
-	cleanup.Now(index.tempDirectory)
-
-	// self-destruct
-	index = nil
-}
-
+// Search scans the fulltext index for the given keywords and returns any matching search results.
 func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) []Result {
 
-	searcher, err := fulltext.NewSearcher(index.filepath)
+	// open the search index file
+	searchIndexFile, err := index.filesystem.Open("searchindex")
+	if err != nil {
+		index.logger.Error(err.Error())
+		return []Result{}
+	}
+
+	// create a new searcher for the given search index
+	searcher, err := fulltext.NewSearcher(searchIndexFile)
 	if err != nil {
 		index.logger.Error(err.Error())
 		return []Result{}
@@ -63,13 +57,13 @@ func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) [
 
 	defer searcher.Close()
 
+	// peform the search
 	searchResult, err := searcher.SimpleSearch(keywords, maxiumNumberOfResults)
 	if err != nil {
 		index.logger.Error(err.Error())
 	}
 
-	searchResults := make([]Result, 0)
-
+	var searchResults []Result
 	for number, v := range searchResult.Items {
 
 		route := route.NewFromRequest(string(v.Id))
@@ -88,14 +82,17 @@ func (index *FullTextIndex) Search(keywords string, maxiumNumberOfResults int) [
 	return searchResults
 }
 
+// initialize creates a fulltext index from the given repository items.
 func (index *FullTextIndex) initialize(items []*model.Item) {
 
 	// fulltext search
-	idx, err := fulltext.NewIndexer(index.tempDirectory)
+	indexer, err := fulltext.NewIndexer()
 	if err != nil {
-		panic(err)
+		index.logger.Error(err.Error())
+		return
 	}
-	defer idx.Close()
+
+	defer indexer.Close()
 
 	for _, item := range items {
 
@@ -105,21 +102,23 @@ func (index *FullTextIndex) initialize(items []*model.Item) {
 			IndexValue: getIndexValue(index.indexValueFunc(item)), // bytes you want to be split into words and indexed
 		}
 
-		idx.AddDoc(doc)
+		indexer.AddDoc(doc)
 	}
 
-	// when done, write out to final index
-	f, err := fsutil.OpenFile(index.filepath)
+	// create a search index file
+	searchIndexFile, err := index.filesystem.Create("searchindex")
 	if err != nil {
 		index.logger.Error(err.Error())
+		return
 	}
 
-	defer f.Close()
-
-	err = idx.FinalizeAndWrite(f)
-	if err != nil {
+	// save the index to file
+	if err := indexer.FinalizeAndWrite(searchIndexFile); err != nil {
 		index.logger.Error(err.Error())
+		return
 	}
+
+	defer searchIndexFile.Close()
 }
 
 func getIndexValue(values []string) []byte {

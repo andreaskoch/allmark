@@ -5,10 +5,8 @@ import (
 	"encoding/gob"
 	"fmt"
 	"github.com/jbarham/go-cdb"
+	"github.com/spf13/afero"
 	"io"
-	"io/ioutil"
-	"os"
-	"syscall"
 )
 
 // Size of header block to prepend - make it 4k to align disk reads
@@ -16,14 +14,14 @@ const HEADER_SIZE = 4096
 
 // Produces a set of cdb files from a series of AddDoc() calls
 type Indexer struct {
-	docTxtFile    *os.File
-	wordTxtFile   *os.File
-	docCdbFile    *os.File
-	wordCdbFile   *os.File
-	wordMap       map[string]map[string]int // map of [word][docId]count
-	WordSplit     WordSplitter
-	WordClean     WordCleaner
-	StopWordCheck StopWordChecker
+	filesystem  afero.Fs
+	docTxtFile  afero.File
+	wordTxtFile afero.File
+	docCdbFile  afero.File
+	wordCdbFile afero.File
+	wordMap     map[string]map[string]int // map of [word][docId]count
+	WordSplit   WordSplitter
+	WordClean   WordCleaner
 }
 
 // Contents of a single document to be indexed
@@ -33,30 +31,42 @@ type IndexDoc struct {
 	StoreValue []byte // store this data
 }
 
-// Creates a new indexer, using the given temp dir while building
-// the index.
-func NewIndexer(tempDir string) (*Indexer, error) {
+// NewIndexer creates a new indexer.
+func NewIndexer() (*Indexer, error) {
+
+	var indexFs afero.Fs = &afero.MemMapFs{}
+
 	idx := &Indexer{}
-	var err error
-	idx.docTxtFile, err = ioutil.TempFile(tempDir, "doctmp")
+	idx.filesystem = indexFs
+
+	docTxtFile, err := indexFs.Create("doctmp")
 	if err != nil {
 		return nil, err
 	}
-	idx.wordTxtFile, err = ioutil.TempFile(tempDir, "wordtmp")
+
+	wordTxtFile, err := indexFs.Create("wordtmp")
 	if err != nil {
 		return nil, err
 	}
-	idx.docCdbFile, err = ioutil.TempFile(tempDir, "doccdb")
+
+	docCdbFile, err := indexFs.Create("doccdb")
 	if err != nil {
 		return nil, err
 	}
-	idx.wordCdbFile, err = ioutil.TempFile(tempDir, "wordcdb")
+
+	wordCdbFile, err := indexFs.Create("wordcdb")
 	if err != nil {
 		return nil, err
 	}
+
+	idx.docTxtFile = docTxtFile
+	idx.wordTxtFile = wordTxtFile
+	idx.docCdbFile = docCdbFile
+	idx.wordCdbFile = wordCdbFile
 	idx.wordMap = make(map[string]map[string]int)
 	idx.WordSplit = Wordize
 	idx.WordClean = IndexizeWord
+
 	return idx, nil
 }
 
@@ -68,14 +78,6 @@ func (idx *Indexer) AddDoc(idoc IndexDoc) error {
 	words := append(idx.WordSplit(string(idoc.IndexValue)), idx.WordSplit(string(idoc.StoreValue))...)
 	for _, word := range words {
 		word = idx.WordClean(word)
-
-		// skip if stop word
-		if idx.StopWordCheck != nil {
-			if idx.StopWordCheck(word) {
-				continue
-			}
-		}
-
 		// ensure nested map exists
 		if idx.wordMap[word] == nil {
 			idx.wordMap[word] = make(map[string]int)
@@ -126,8 +128,6 @@ func (idx *Indexer) FinalizeAndWrite(w io.Writer) error {
 	}
 
 	// make sure the contents are all settled
-	idx.docCdbFile.Sync()
-	idx.wordCdbFile.Sync()
 	_, err = idx.docCdbFile.Seek(0, 0)
 	if err != nil {
 		return err
@@ -174,21 +174,11 @@ func (idx *Indexer) FinalizeAndWrite(w io.Writer) error {
 	return nil
 }
 
-// Dump some human readable status information
-func (idx *Indexer) DumpStatus(w io.Writer) {
-	fmt.Fprintf(w, "files used:\n\t%s\n\t%s\n\t%s\n\t%s\n", idx.docTxtFile.Name(), idx.wordTxtFile.Name(), idx.docCdbFile.Name(), idx.wordCdbFile.Name())
-	// fmt.Fprintf(w, "wordMap: %+v\n", idx.wordMap)
-}
-
 // close and remove all resources
 func (idx *Indexer) Close() {
-	syscall.Unlink(idx.docTxtFile.Name())
 	idx.docTxtFile.Close()
-	syscall.Unlink(idx.wordTxtFile.Name())
 	idx.wordTxtFile.Close()
-	syscall.Unlink(idx.docCdbFile.Name())
 	idx.docCdbFile.Close()
-	syscall.Unlink(idx.wordCdbFile.Name())
 	idx.wordCdbFile.Close()
 	idx.wordMap = nil
 }
