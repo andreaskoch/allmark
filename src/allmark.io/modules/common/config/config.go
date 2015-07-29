@@ -39,7 +39,7 @@ const (
 const (
 	DefaultDomainName                = "localhost"
 	DefaultHTTPPortEnabled           = true
-	DefaultHTTPSPortEnabled          = true
+	DefaultHTTPSPortEnabled          = false
 	DefaultHTTPSCertName             = "cert.pem"
 	DefaultHTTPSKeyName              = "cert.key"
 	DefaultForceHTTPS                = false

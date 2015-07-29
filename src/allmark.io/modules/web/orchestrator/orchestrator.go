@@ -6,7 +6,6 @@ package orchestrator
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"allmark.io/modules/common/config"
@@ -461,59 +460,55 @@ func (orchestrator *Orchestrator) getChilds(route route.Route) []*model.Item {
 	return childs
 }
 
+// getAliasMap returns the map of all items by their alias.
+func (orchestrator *Orchestrator) getAliasMap() map[string]*model.Item {
+	return orchestrator.itemsByAlias
+}
+
 // Get the item that has the specified alias. Returns nil if there is no matching item.
 func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 
 	// return from cache
-	alias = normalizeAlias(alias)
 	if orchestrator.itemsByAlias != nil {
 		return orchestrator.itemsByAlias[alias]
 	}
 
-	// updateAliasMap updates the alias map for the given route.
-	updateAliasMap := func(route route.Route) {
-		item := orchestrator.getItem(route)
-		alias := normalizeAlias(item.MetaData.Alias)
-		if alias == "" {
-			return
-		}
-
-		// add item to map
-		orchestrator.itemsByAlias[alias] = item
-	}
-
 	// removeItemFromAliasMap removed the item with the given route from the alias map.
 	removeItemFromAliasMap := func(route route.Route) {
-
-		aliasToRemove := ""
+		// get a list of all aliases
+		var aliasesToRemove []string
 		for alias, item := range orchestrator.itemsByAlias {
 			if item.Route().Equals(route) {
-				aliasToRemove = alias
-				break
+				aliasesToRemove = append(aliasesToRemove, alias)
 			}
 		}
 
-		// abort if no alias was found
-		if aliasToRemove == "" {
-			return
-		}
-
 		// remove item from map
-		delete(orchestrator.itemsByAlias, aliasToRemove)
+		for _, alias := range aliasesToRemove {
+			delete(orchestrator.itemsByAlias, alias)
+		}
+	}
+
+	// updateAliasMap updates the alias map for the given route.
+	updateAliasMap := func(route route.Route) {
+
+		// remove any existing aliases
+		removeItemFromAliasMap(route)
+
+		// add the new aliases
+		item := orchestrator.getItem(route)
+		for _, alias := range item.MetaData.Aliases {
+			orchestrator.itemsByAlias[alias] = item
+		}
 	}
 
 	// build cache
 	itemsByAlias := make(map[string]*model.Item)
-
 	for _, item := range orchestrator.getAllItems() {
 
-		// ignore items without an alias
-		if item.MetaData.Alias == "" {
-			continue
+		for _, alias := range item.MetaData.Aliases {
+			itemsByAlias[alias] = item
 		}
-
-		itemAlias := normalizeAlias(item.MetaData.Alias)
-		itemsByAlias[itemAlias] = item
 	}
 
 	orchestrator.itemsByAlias = itemsByAlias
@@ -573,9 +568,4 @@ func (orchestrator *Orchestrator) getAnalyticsSettings() viewmodel.Analytics {
 			TrackingID: orchestrator.config.Analytics.GoogleAnalytics.TrackingID,
 		},
 	}
-}
-
-// normalizeAlias takes the supplied alias and normalizes it.
-func normalizeAlias(alias string) string {
-	return strings.TrimSpace(strings.ToLower(alias))
 }

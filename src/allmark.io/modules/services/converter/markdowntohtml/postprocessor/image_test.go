@@ -27,7 +27,7 @@ func Test_Convert(t *testing.T) {
 	thumbnailIndex := thumbnail.EmptyIndex()
 	imageProvider := common.NewImageProvider(pathProvider, thumbnailIndex)
 
-	postprocessor := newImagePostProcessor(pathProvider, baseRoute, files, imageProvider)
+	postprocessor := newImagePostprocessor(pathProvider, baseRoute, files, imageProvider)
 
 	// act
 	result, _ := postprocessor.Convert(input)

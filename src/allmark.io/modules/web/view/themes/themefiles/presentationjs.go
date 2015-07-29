@@ -38,6 +38,7 @@ $(function() {
 		$("article.presentation>header").toggle();
 		$("article.presentation>nav").toggle();
 		$("article.presentation>.description").toggle();
+		$("article.presentation>.aliases").toggle();
 		$("article.presentation>.tags").toggle();
 		$("aside.export").toggle();
 		$("body>footer").toggle();

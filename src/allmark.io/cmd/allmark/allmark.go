@@ -41,7 +41,7 @@ const (
 
 var (
 	serveFlags       = flag.NewFlagSet("serve-flags", flag.ContinueOnError)
-	secure           = serveFlags.Bool("secure", false, "Use HTTPs")
+	secure           = serveFlags.Bool("secure", false, "Use HTTPs only")
 	logLevelOverride = serveFlags.String("loglevel", "", "Log level")
 	reindex          = serveFlags.Bool("reindex", false, "Enable reindexing")
 	livereload       = serveFlags.Bool("livereload", false, "Enable live-reload")
@@ -163,6 +163,7 @@ func serve(repositoryPath string) bool {
 
 	// check if https shall be forced
 	if *secure {
+		configuration.Server.HTTPS.Enabled = true
 		configuration.Server.HTTPS.Force = true
 	}
 

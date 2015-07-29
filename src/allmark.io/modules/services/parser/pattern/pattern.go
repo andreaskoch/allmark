@@ -33,6 +33,9 @@ var (
 	// Multi-line tags meta data
 	multiLineTagsPattern = regexp.MustCompile(`(?is)tags:\n{0,2}(\n\s?-\s?[^\n]+)+\n*`)
 
+	// Multi-line alias meta data
+	multiLineAliasPattern = regexp.MustCompile(`(?is)alias:\n{0,2}(\n\s?-\s?[^\n]+)+\n*`)
+
 	// Lines with a meta data label in them syntax
 	metaDataLabelPattern = regexp.MustCompile(`^(\w+[\w\s]+\w+):`)
 
@@ -124,8 +127,16 @@ func IsListItem(line string) (bool, string) {
 	return false, "" // no list item was found
 }
 
+// IsMultiLineTagDefinition returns the if the supplied text contains a
+// multi-line tag definition.
 func IsMultiLineTagDefinition(text string) (bool, []string) {
 	return isMultiLineDefinition(multiLineTagsPattern, text)
+}
+
+// IsMultiLineAliasDefinition returns the if the supplied text contains a
+// multi-line alias definition.
+func IsMultiLineAliasDefinition(text string) (bool, []string) {
+	return isMultiLineDefinition(multiLineAliasPattern, text)
 }
 
 func isMultiLineDefinition(pattern *regexp.Regexp, text string) (bool, []string) {

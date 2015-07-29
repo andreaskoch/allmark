@@ -6,7 +6,6 @@ package orchestrator
 
 import (
 	"allmark.io/modules/common/route"
-	"allmark.io/modules/model"
 	"allmark.io/modules/web/view/viewmodel"
 	"fmt"
 	"math"
@@ -46,16 +45,11 @@ func (orchestrator *TagsOrchestrator) GetTags() []*viewmodel.Tag {
 			Base: getBaseModel(rootItem, item, orchestrator.relativePather(rootItem.Route()), orchestrator.config),
 		}
 
-		tags := []model.Tag{}
-		if len(item.MetaData.Tags) > 0 {
-			tags = item.MetaData.Tags
-		}
-
-		for _, tag := range tags {
-			if items, exists := itemsByTag[tag.Name()]; exists {
-				itemsByTag[tag.Name()] = append(items, itemViewModel)
+		for _, tag := range item.MetaData.Tags {
+			if items, exists := itemsByTag[tag]; exists {
+				itemsByTag[tag] = append(items, itemViewModel)
 			} else {
-				itemsByTag[tag.Name()] = []*viewmodel.Model{itemViewModel}
+				itemsByTag[tag] = []*viewmodel.Model{itemViewModel}
 			}
 		}
 
@@ -139,7 +133,7 @@ func (orchestrator *TagsOrchestrator) GetTagCloud() *viewmodel.TagCloud {
 
 func (orchestrator *TagsOrchestrator) getItemTags(route route.Route) []*viewmodel.Tag {
 
-	tags := make([]*viewmodel.Tag, 0)
+	var tags []*viewmodel.Tag
 
 	// abort if the item has no tags
 	item := orchestrator.getItem(route)
@@ -151,9 +145,9 @@ func (orchestrator *TagsOrchestrator) getItemTags(route route.Route) []*viewmode
 
 		// create view model
 		tagModel := &viewmodel.Tag{
-			Name:   tag.Name(),
-			Anchor: url.QueryEscape(tag.Name()),
-			Route:  orchestrator.tagPather().Path(url.QueryEscape(tag.Name())),
+			Name:   tag,
+			Anchor: url.QueryEscape(tag),
+			Route:  orchestrator.tagPather().Path(url.QueryEscape(tag)),
 		}
 
 		// append to list

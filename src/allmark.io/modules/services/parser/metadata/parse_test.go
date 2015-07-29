@@ -16,7 +16,7 @@ import (
 func Test_getFallbackAlias_RouteWithFile_ReturnsItemFolder(t *testing.T) {
 	// arrange
 	expected := "test"
-	inputPath := fmt.Sprintf("/repository/document/%s/document.md", expected)
+	inputPath := fmt.Sprintf("/repository/document/%s", expected)
 	route := route.NewFromFilePath("/repository", inputPath)
 
 	item := model.NewItem(route, []*model.File{}, dataaccess.TypePhysical)
@@ -27,6 +27,20 @@ func Test_getFallbackAlias_RouteWithFile_ReturnsItemFolder(t *testing.T) {
 	// assert
 	if result != expected {
 		t.Errorf("The result was expected to be %q but was %q.", expected, result)
+	}
+}
+
+func Test_normalizeAlias(t *testing.T) {
+	// arrange
+	input := "Some Alias "
+	expected := "some-alias"
+
+	// act
+	result := normalizeAlias(input)
+
+	// assert
+	if result != expected {
+		t.Errorf("normalizeAlias(%q) should return %q but returned %q instead", input, expected, result)
 	}
 }
 

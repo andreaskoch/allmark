@@ -13,8 +13,8 @@ type MetaData struct {
 	Language         string
 	CreationDate     time.Time
 	LastModifiedDate time.Time
-	Tags             Tags
-	Alias            string
+	Tags             []string
+	Aliases          []string
 	Author           string
 	GeoInformation   GeoInformation
 }

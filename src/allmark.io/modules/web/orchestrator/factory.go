@@ -232,3 +232,10 @@ func (factory *Factory) NewUpdateOrchestrator() *UpdateOrchestrator {
 
 	return factory.updateOrchestrator
 }
+
+// NewAliasIndexOrchestrator creates a new alias-index orchestrator.
+func (factory *Factory) NewAliasIndexOrchestrator() *AliasIndexOrchestrator {
+	return &AliasIndexOrchestrator{
+		Orchestrator: factory.baseOrchestrator,
+	}
+}

@@ -5,6 +5,7 @@
 package metadata
 
 import (
+	"regexp"
 	"strings"
 	"time"
 
@@ -12,6 +13,8 @@ import (
 	"allmark.io/modules/model"
 	"allmark.io/modules/services/parser/pattern"
 )
+
+var aliasForbiddenCharacters = regexp.MustCompile(`[^\w\d-_]`)
 
 // Parse parses the supplied lines and writes the result to the specified item.
 func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseError error) {
@@ -25,7 +28,7 @@ func Parse(item *model.Item, lastModifiedDate time.Time, lines []string) (parseE
 	// parse the different attributes
 	remainingLines := parseLanguage(metaData, metaDataLines)
 	remainingLines = parseAuthor(metaData, remainingLines)
-	remainingLines = parseAlias(metaData, getFallbackAlias(item), remainingLines)
+	remainingLines = parseAlias(metaData, remainingLines)
 	remainingLines = parseCreationDate(metaData, lastModifiedDate, remainingLines)
 	remainingLines = parseLastModifiedDate(metaData, lastModifiedDate, remainingLines)
 	remainingLines = parseTags(metaData, remainingLines)
@@ -54,13 +57,24 @@ func parseAuthor(metaData *model.MetaData, lines []string) (remainingLines []str
 	return remainingLines
 }
 
-func parseAlias(metaData *model.MetaData, fallback string, lines []string) (remainingLines []string) {
+func parseAlias(metaData *model.MetaData, lines []string) (remainingLines []string) {
 	found, value, remainingLines := getSingleLineMetaData([]string{"alias"}, lines)
 
 	if found {
-		metaData.Alias = strings.ToLower(strings.TrimSpace(value))
+
+		rawAliases := strings.Split(value, ",")
+		metaData.Aliases = normalizeAliases(rawAliases)
+
 	} else {
-		metaData.Alias = strings.ToLower(strings.TrimSpace(fallback))
+
+		// begin parser multi-line meta data
+		remainingMetaDataText := strings.Join(remainingLines, "\n")
+
+		// parse multi line tags
+		if hasAliases, rawAliases := pattern.IsMultiLineAliasDefinition(remainingMetaDataText); hasAliases {
+			metaData.Aliases = normalizeAliases(rawAliases)
+		}
+
 	}
 
 	return remainingLines
@@ -72,14 +86,14 @@ func parseTags(metaData *model.MetaData, lines []string) (remainingLines []strin
 
 	if found {
 		rawTags := strings.Split(value, ",")
-		metaData.Tags, _ = model.NewTagsFromNames(rawTags)
+		metaData.Tags = normalizeTags(rawTags)
 	} else {
 		// begin parser multi-line meta data
 		remainingMetaDataText := strings.Join(remainingLines, "\n")
 
 		// parse multi line tags
 		if hasTags, tags := pattern.IsMultiLineTagDefinition(remainingMetaDataText); hasTags {
-			metaData.Tags, _ = model.NewTagsFromNames(tags)
+			metaData.Tags = normalizeTags(tags)
 		}
 	}
 
@@ -110,13 +124,61 @@ func parseLastModifiedDate(metaData *model.MetaData, fallbackDate time.Time, lin
 	return remainingLines
 }
 
-// Get a fallback alias from a route.
-func getFallbackAlias(item *model.Item) string {
-	route := item.Route()
-	parent, exists := route.Parent()
-	if !exists {
-		return ""
+// normalizeAliases normalizes the given list of raw aliases.
+func normalizeAliases(rawAliases []string) []string {
+	var normalizedAliases []string
+	for _, rawAlias := range rawAliases {
+
+		normalizedAlias := normalizeAlias(rawAlias)
+
+		// skip empty values
+		if normalizedAlias == "" {
+			continue
+		}
+
+		normalizedAliases = append(normalizedAliases, normalizedAlias)
 	}
 
-	return parent.LastComponentName()
+	return normalizedAliases
+}
+
+// normalizeAlias normalizes any given alias and replaces invalid characters.
+func normalizeAlias(rawAlias string) string {
+
+	// Trim whitespace
+	cleaned := strings.TrimSpace(rawAlias)
+
+	// lowercase
+	cleaned = strings.ToLower(cleaned)
+
+	// Replace spaces with dashes
+	cleaned = strings.Replace(cleaned, " ", "-", -1)
+
+	// Replace forbidden characters
+	cleaned = aliasForbiddenCharacters.ReplaceAllString(cleaned, "")
+
+	return cleaned
+}
+
+// normalizeTags normalizes the given list of raw tags.
+func normalizeTags(rawTags []string) []string {
+	var normalizedTags []string
+	for _, rawTag := range rawTags {
+
+		normalizedTag := normalizeTagName(rawTag)
+
+		// skip empty values
+		if normalizedTag == "" {
+			continue
+		}
+
+		normalizedTags = append(normalizedTags, normalizedTag)
+	}
+
+	return normalizedTags
+}
+
+// normalizeTagName returns a normalized version of the given raw tag name.
+func normalizeTagName(rawTagName string) string {
+	return strings.TrimSpace(rawTagName)
 }

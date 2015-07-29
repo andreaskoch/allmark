@@ -8,14 +8,15 @@ import (
 	"sort"
 )
 
+// Base contains the minimum set of attributes for every view model.
 type Base struct {
 	RepositoryName        string `json:"repositoryName"`
 	RepositoryDescription string `json:"repositoryDescription"`
 
-	Type  string `json:"type"`
-	Level int    `json:"level"`
-	Route string `json:"route"`
-	Alias string `json:"alias"`
+	Type    string  `json:"type"`
+	Level   int     `json:"level"`
+	Route   string  `json:"route"`
+	Aliases []Alias `json:"aliases"`
 
 	ParentRoute string `json:"parentRoute"`
 

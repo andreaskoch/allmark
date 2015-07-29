@@ -37,3 +37,22 @@ const tagmapTemplate = `
 
 </section>
 `
+
+const tagsSnippet = `{{define "tags-snippet"}}
+{{ if .Tags }}
+<div class="cleaner"></div>
+<section class="tags">
+	<header>
+		Tags:
+	</header>
+
+	<ul>
+	{{range .Tags}}
+	<li>
+		<a href="{{.Route}}" rel="tag">{{.Name}}</a>
+	</li>
+	{{end}}
+	</ul>
+</section>
+{{end}}
+{{end}}`

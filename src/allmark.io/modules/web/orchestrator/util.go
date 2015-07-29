@@ -26,7 +26,7 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather, config conf
 		Route:   pathProvider.Path(item.Route().Value()),
 		Level:   item.Route().Level(),
 		BaseURL: GetBaseURL(item.Route()),
-		Alias:   item.MetaData.Alias,
+		Aliases: getAliasViewModels(pathProvider, item),
 
 		PrintURL:    GetTypedItemURL(item.Route(), "print"),
 		JSONURL:     GetTypedItemURL(item.Route(), "json"),
@@ -145,4 +145,17 @@ func pagedItems(models []*model.Item, pageSize, page int) (items []*model.Item, 
 	}
 
 	return models[startIndex:endIndex], true
+}
+
+// getAliasViewModels returns a list of alias view-models for each alias of the specified item.
+func getAliasViewModels(pathProvider paths.Pather, item *model.Item) []viewmodel.Alias {
+	var viewModels []viewmodel.Alias
+	for _, alias := range item.MetaData.Aliases {
+		viewModels = append(viewModels, viewmodel.Alias{
+			Name:        alias,
+			Route:       pathProvider.Path("!" + alias), // Todo: Don't use a magic string for the alias prefix
+			TargetRoute: pathProvider.Path(item.Route().Value()),
+		})
+	}
+	return viewModels
 }

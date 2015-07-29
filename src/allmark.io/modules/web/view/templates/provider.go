@@ -34,10 +34,17 @@ const (
 	TagmapTemplateName        = "tagmap"
 	TagmapContentTemplateName = "tagmapcontent"
 
+	AliasIndexTemplateName        = "aliasindex"
+	AliasIndexContentTemplateName = "aliasindexcontent"
+
 	SearchTemplateName        = "search"
 	SearchContentTemplateName = "searchcontent"
 
 	ConversionTemplateName = "converter"
+
+	AliasesSnippetTemplateName   = "aliases-snippet"
+	TagsSnippetTemplateName      = "tags-snippet"
+	PublisherSnippetTemplateName = "publisher-snippet"
 
 	// RobotsTxtTemplateName defines the name of the robots.txt template.
 	RobotsTxtTemplateName = "robotstxt"
@@ -48,46 +55,46 @@ type Provider struct {
 
 	folder    string
 	templates map[string]*Template
+	snippets  map[string]*Template
 	cache     map[string]*template.Template
 }
 
 func NewProvider(templateFolder string) Provider {
 
-	// intialize the templates
+	// register all templates
 	templates := make(map[string]*Template)
-
 	templates[MasterTemplateName] = NewTemplate(templateFolder, MasterTemplateName, masterTemplate)
 	templates[ErrorTemplateName] = NewTemplate(templateFolder, ErrorTemplateName, errorTemplate)
-
 	templates[OpenSearchDescriptionTemplateName] = NewTemplate(templateFolder, OpenSearchDescriptionTemplateName, openSearchDescriptionTemplate)
-
 	templates[TagmapTemplateName] = NewTemplate(templateFolder, TagmapTemplateName, tagmapTemplate)
 	templates[TagmapContentTemplateName] = NewTemplate(templateFolder, TagmapContentTemplateName, tagmapContentTemplate)
-
+	templates[AliasIndexTemplateName] = NewTemplate(templateFolder, AliasIndexTemplateName, aliasIndexTemplate)
+	templates[AliasIndexContentTemplateName] = NewTemplate(templateFolder, AliasIndexContentTemplateName, aliasIndexContentTemplate)
 	templates[SitemapTemplateName] = NewTemplate(templateFolder, SitemapTemplateName, sitemapTemplate)
 	templates[SitemapContentTemplateName] = NewTemplate(templateFolder, SitemapContentTemplateName, sitemapContentTemplate)
-
 	templates[XmlSitemapTemplateName] = NewTemplate(templateFolder, XmlSitemapTemplateName, xmlSitemapTemplate)
 	templates[XmlSitemapContentTemplateName] = NewTemplate(templateFolder, XmlSitemapContentTemplateName, xmlSitemapContentTemplate)
-
 	templates[RssFeedTemplateName] = NewTemplate(templateFolder, RssFeedTemplateName, rssFeedTemplate)
 	templates[RssFeedContentTemplateName] = NewTemplate(templateFolder, RssFeedContentTemplateName, rssFeedContentTemplate)
-
 	templates[SearchTemplateName] = NewTemplate(templateFolder, SearchTemplateName, searchTemplate)
 	templates[SearchContentTemplateName] = NewTemplate(templateFolder, SearchContentTemplateName, searchContentTemplate)
-
 	templates[model.TypeDocument.String()] = NewTemplate(templateFolder, model.TypeDocument.String(), documentTemplate)
 	templates[model.TypeRepository.String()] = NewTemplate(templateFolder, model.TypeRepository.String(), repositoryTemplate)
 	templates[model.TypePresentation.String()] = NewTemplate(templateFolder, model.TypePresentation.String(), presentationTemplate)
-
 	templates[ConversionTemplateName] = NewTemplate(templateFolder, ConversionTemplateName, converterTemplate)
-
 	templates[RobotsTxtTemplateName] = NewTemplate(templateFolder, RobotsTxtTemplateName, robotsTxtTemplate)
+
+	// register snippets
+	snippets := make(map[string]*Template)
+	snippets[AliasesSnippetTemplateName] = NewTemplate(templateFolder, AliasesSnippetTemplateName, aliasesSnippet)
+	snippets[TagsSnippetTemplateName] = NewTemplate(templateFolder, TagsSnippetTemplateName, tagsSnippet)
+	snippets[PublisherSnippetTemplateName] = NewTemplate(templateFolder, PublisherSnippetTemplateName, publisherSnippet)
 
 	// create the provider
 	provider := Provider{
 		folder:    templateFolder,
 		templates: templates,
+		snippets:  snippets,
 		cache:     make(map[string]*template.Template),
 	}
 
@@ -153,6 +160,15 @@ func (provider *Provider) getTemplateFunctions(hostname string) map[string]inter
 }
 
 func (provider *Provider) StoreTemplatesOnDisc() (success bool, err error) {
+
+	// store snippets on disk
+	for _, template := range provider.snippets {
+		if savedToDisc, err := template.StoreOnDisc(); !savedToDisc {
+			return false, err
+		}
+	}
+
+	// store templates on disk
 	for _, template := range provider.templates {
 		if savedToDisc, err := template.StoreOnDisc(); !savedToDisc {
 			return false, err
@@ -199,6 +215,16 @@ func (provider *Provider) getParsedTemplate(templateName string, includeMaster b
 	template, err := template.New(templateName).Funcs(provider.getTemplateFunctions("")).Parse(templateText)
 	if err != nil {
 		return nil, err
+	}
+
+	// parse the snippets
+	for _, snippet := range provider.snippets {
+
+		template, err = template.Parse(snippet.Text())
+		if err != nil {
+			return nil, fmt.Errorf("Error while parsing snippet %q. Error: %s", snippet.Name(), err.Error())
+		}
+
 	}
 
 	// add template to cache

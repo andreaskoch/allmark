@@ -1,6 +1,6 @@
 # allmark - the markdown server
 
-allmark is a standalone markdown web server for Linux, Mac OS and Windows written in go.
+allmark is a fast, standalone markdown web server for Linux, Mac OS and Windows written in go.
 
 ![allmark logo (128x128px)](files/design/logo/PNG8/allmark-logo-128x128.png)
 
@@ -445,6 +445,7 @@ This is an unordered list of the most prominent features of allmark:
 	- For an additional level of security allmark will only allow basic-authentication over SSL.
 	- You can add users to the `.allmark/users.htpasswd` file using the tool [htpasswd](http://httpd.apache.org/docs/2.2/programs/htpasswd.html)
 25. Parallel hosting of HTTP/HTTPS over IPv4 and/or IPv6
+26. Short links: If you assign an alias to a document you can reach that document via short/direct link (e.g. `http://repo.com/!an-alias`). An overview of all available short links can be reached under `http://repo.com/!`.
 
 I will try to create videos showing you the different features when there is time.
 
@@ -578,7 +579,8 @@ Here are some of the ideas and todos I would like to add in the future. Contribu
 
 ### Architecture & Features
 
-- Expose the markdown source
+- Emoji support
+- Allow localization/internationalization
 - Web Editor for Markdown Documents
 - Data Access
     - Dropbox support
@@ -593,6 +595,8 @@ Here are some of the ideas and todos I would like to add in the future. Contribu
     - User management pages
 - Support for Folders with multiple Markdown Files
 - Support for custom-rewrites
+- Deamon mode
+- Create `install` actions for Windows, Linux and Mac OS which handle the OS integration
 
 ### Theming
 

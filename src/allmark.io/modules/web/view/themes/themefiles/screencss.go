@@ -461,31 +461,55 @@ article .attachments ul.tree li a {
     font-weight: bold;
 }
 
+article>.aliases {
+  margin: 7.0em 0 0 0;
+}
+
+article>.aliases>header {
+  font-size: 1.0em;
+}
+
+article>.aliases>ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+article>.aliases>ul>li {
+  margin: 8px 0 0 0;
+}
+
+article>.aliases>ul>li>input {
+  width: 25em;
+  padding: 4px;
+  color: #767676;
+}
+
 article>.tags {
    margin: 1.5em 0 0 0;
 }
 
 article>.tags>header {
-    float: left;
-    font-size: 1.2em;
+  font-size: 1.0em;
 }
 
-article>.tags>.tags {
-    list-style-type: none;
-
+article>.tags>ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
 }
 
-article>.tags>.tags>.tag {
-    display: inline-block;
-    margin: 0 0 0 0.5em;
+article>.tags>ul>li {
+  display: inline-block;
+  margin: 0.5em 0 0 0.5em;
 }
 
-article>.tags>.tags>.tag>a {
-    color: #FFF;
-    background-color: #000;
-    line-height: 1.0em;
-    font-size: 1.0em;
-    padding: 3px 6px;
+article>.tags>ul>li>a {
+  color: #FFF;
+  background-color: #000;
+  line-height: 1.0em;
+  font-size: 1.0em;
+  padding: 3px 6px;
 }
 
 article>.preview {
@@ -761,6 +785,17 @@ article.presentation .slide {
 
 .tagmap>.content>.tags>.tag>.childs>.child {
     margin: 0.7em 0 0;
+}
+
+.aliasindex>.content>.shortlinks {
+    margin: 10px 0 0 0;
+}
+
+.aliasindex>.content>.shortlinks>.shortlink {
+  margin: 0 0 5px 10px;
+}
+
+.aliasindex>.content>.shortlinks>.shortlink>a {
 }
 
 .search>.content>header {

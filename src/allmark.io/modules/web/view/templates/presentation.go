@@ -15,28 +15,7 @@ const presentationTemplate = `
 {{.Description}}
 </section>
 
-{{if or .Author.Name .CreationDate}}
-<section class="publisher">
-{{if and .Author.Name .Author.URL}}
-
-	created by <span class="author" itemprop="author" rel="author">
-	<a href="{{ .Author.URL }}" title="{{ .Author.Name }}" target="_blank">
-	{{ .Author.Name }}
-	</a>
-	</span>
-
-{{else if .Author.Name}}
-
-	created by <span class="author" itemprop="author" rel="author">{{ .Author.Name }}</span>
-
-{{end}}
-{{if .CreationDate}}
-
-	{{if not .Author.Name}}created{{end}} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>
-
-{{end}}
-</section>
-{{end}}
+{{template "publisher-snippet" .}}
 
 <nav>
 	<div class="nav-element pager deck-status">
@@ -62,21 +41,6 @@ const presentationTemplate = `
 {{.Content}}
 </section>
 
-{{ if .Tags }}
-<div class="cleaner"></div>
-
-<section class="tags">
-	<header>
-		Tags:
-	</header>
-
-	<ul class="tags">
-	{{range .Tags}}
-	<li class="tag">
-		<a href="{{.Route}}" rel="tag">{{.Name}}</a>
-	</li>
-	{{end}}
-	</ul>
-</section>
-{{end}}
+{{template "aliases-snippet" .}}
+{{template "tags-snippet" .}}
 `

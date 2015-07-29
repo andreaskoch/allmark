@@ -87,7 +87,10 @@ var (
 	RedirectHandlerRoute = "/{path:.*$}"
 
 	// AliasLookupHandlerRoute defines the route for alias-lookup-handler requests.
-	AliasLookupHandlerRoute = "/>{alias:.*$}"
+	AliasLookupHandlerRoute = "/!{alias:.+$}"
+
+	// AliasIndexHandlerRoute defines the route for alias-lookup-handler requests.
+	AliasIndexHandlerRoute = "/!"
 )
 
 // RouteAndHandler combines routes and http-handlers.
@@ -117,87 +120,179 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 
 	// orchestrators
 	navigationOrchestrator := orchestratorFactory.NewNavigationOrchestrator()
-	sitemapOrchestrator := orchestratorFactory.NewSitemapOrchestrator()
-	tagsOrchestrator := orchestratorFactory.NewTagsOrchestrator()
-	xmlSitemapOrchestrator := orchestratorFactory.NewXMLSitemapOrchestrator()
-	openSearchDescriptionOrchestrator := orchestratorFactory.NewOpenSearchDescriptionOrchestrator()
-	titlesOrchestrator := orchestratorFactory.NewTitlesOrchestrator()
-	typeAheadOrchestrator := orchestratorFactory.NewTypeAheadOrchestrator()
-	fileOrchestrator := orchestratorFactory.NewFileOrchestrator()
 	viewModelOrchestrator := orchestratorFactory.NewViewModelOrchestrator()
-	conversionModelOrchestrator := orchestratorFactory.NewConversionModelOrchestrator()
-	feedOrchestrator := orchestratorFactory.NewFeedOrchestrator()
-	searchOrchestrator := orchestratorFactory.NewSearchOrchestrator()
-	updateOrchestrator := orchestratorFactory.NewUpdateOrchestrator()
 
 	// global handlers
 	errorHandler := Error(headerWriterFactory.Static(), templateProvider, navigationOrchestrator)
-	itemHandler := Item(logger, headerWriterFactory.Dynamic(), fileOrchestrator, viewModelOrchestrator, templateProvider, errorHandler)
+
+	itemHandler := Item(
+		logger,
+		headerWriterFactory.Dynamic(),
+		orchestratorFactory.NewFileOrchestrator(),
+		viewModelOrchestrator,
+		templateProvider, errorHandler)
 
 	// theme
 	if themeFolder := config.ThemeFolder(); fsutil.DirectoryExists(themeFolder) {
 		requestPrefixToStripFromRequestURI := "/" + config.Server.ThemeFolderName
-		handlers.Add(ThemeHandlerRoute, AddETAgToStaticFileHandler(Static(themeFolder, ThemeRoutePrefix), headerWriterFactory.Static(), themeFolder, requestPrefixToStripFromRequestURI))
+
+		handlers.Add(
+			ThemeHandlerRoute,
+			AddETAgToStaticFileHandler(
+				Static(
+					themeFolder,
+					ThemeRoutePrefix),
+				headerWriterFactory.Static(), themeFolder, requestPrefixToStripFromRequestURI))
+
 	} else {
-		handlers.Add(ThemeHandlerRoute, InMemoryTheme(headerWriterFactory.Static(), errorHandler))
+
+		handlers.Add(
+			ThemeHandlerRoute,
+			InMemoryTheme(headerWriterFactory.Static(),
+				errorHandler))
 	}
 
 	// thumbnails
 	if thumbnailsFolder := config.ThumbnailFolder(); fsutil.DirectoryExists(thumbnailsFolder) {
 		requestPrefixToStripFromRequestURI := "/" + config.Conversion.Thumbnails.FolderName
-		handlers.Add(ThumbnailHandlerRoute, AddETAgToStaticFileHandler(Static(thumbnailsFolder, ThumbnailRoutePrefix), headerWriterFactory.Static(), thumbnailsFolder, requestPrefixToStripFromRequestURI))
+
+		handlers.Add(
+			ThumbnailHandlerRoute,
+			AddETAgToStaticFileHandler(Static(thumbnailsFolder,
+				ThumbnailRoutePrefix),
+				headerWriterFactory.Static(),
+				thumbnailsFolder,
+				requestPrefixToStripFromRequestURI))
 	}
 
 	// robots.txt
 	handlers.Add(RobotsTxtHandlerRoute, RobotsTxt(headerWriterFactory.Static(), templateProvider))
 
 	// sitemap.html
-	handlers.Add(SitemapHandlerRoute, Sitemap(headerWriterFactory.Dynamic(), navigationOrchestrator, sitemapOrchestrator, templateProvider))
+	handlers.Add(
+		SitemapHandlerRoute,
+		Sitemap(headerWriterFactory.Dynamic(),
+			navigationOrchestrator,
+			orchestratorFactory.NewSitemapOrchestrator(),
+			templateProvider))
 
 	// tags.html
-	handlers.Add(TagmapHandlerRoute, Tags(headerWriterFactory.Dynamic(), navigationOrchestrator, tagsOrchestrator, templateProvider))
+	handlers.Add(
+		TagmapHandlerRoute,
+		Tags(headerWriterFactory.Dynamic(),
+			navigationOrchestrator,
+			orchestratorFactory.NewTagsOrchestrator(),
+			templateProvider))
 
 	// search
-	handlers.Add(SearchHandlerRoute, Search(headerWriterFactory.Dynamic(), navigationOrchestrator, searchOrchestrator, templateProvider, errorHandler))
+	handlers.Add(
+		SearchHandlerRoute,
+		Search(
+			headerWriterFactory.Dynamic(),
+			navigationOrchestrator,
+			orchestratorFactory.NewSearchOrchestrator(),
+			templateProvider,
+			errorHandler))
 
 	// sitemap.xml
-	handlers.Add(XMLSitemapHandlerRoute, XMLSitemap(headerWriterFactory.Dynamic(), xmlSitemapOrchestrator, templateProvider))
+	handlers.Add(
+		XMLSitemapHandlerRoute,
+		XMLSitemap(headerWriterFactory.Dynamic(),
+			orchestratorFactory.NewXMLSitemapOrchestrator(),
+			templateProvider))
 
 	// opensearch.xml
-	handlers.Add(OpenSearchDescriptionHandlerRoute, OpenSearchDescription(headerWriterFactory.Static(), openSearchDescriptionOrchestrator, templateProvider))
+	handlers.Add(
+		OpenSearchDescriptionHandlerRoute,
+		OpenSearchDescription(headerWriterFactory.Static(),
+			orchestratorFactory.NewOpenSearchDescriptionOrchestrator(),
+			templateProvider))
 
 	// titles.json
-	handlers.Add(TypeAheadTitlesHandlerRoute, Titles(headerWriterFactory.Dynamic(), titlesOrchestrator))
+	handlers.Add(
+		TypeAheadTitlesHandlerRoute,
+		Titles(headerWriterFactory.Dynamic(),
+			orchestratorFactory.NewTitlesOrchestrator()))
 
 	// search.json
-	handlers.Add(TypeAheadSearchHandlerRoute, TypeAhead(headerWriterFactory.Dynamic(), typeAheadOrchestrator))
+	handlers.Add(
+		TypeAheadSearchHandlerRoute,
+		TypeAhead(headerWriterFactory.Dynamic(),
+			orchestratorFactory.NewTypeAheadOrchestrator()))
 
 	// latest.json
 	handlers.Add(LatestHandlerRoute, Latest(logger, headerWriterFactory.Dynamic(), viewModelOrchestrator, itemHandler))
 
 	// rss
-	handlers.Add(RSSHandlerRoute, RSS(headerWriterFactory.Dynamic(), feedOrchestrator, templateProvider, errorHandler))
+	handlers.Add(
+		RSSHandlerRoute,
+		RSS(headerWriterFactory.Dynamic(),
+			orchestratorFactory.NewFeedOrchestrator(),
+			templateProvider,
+			errorHandler))
 
 	// json
-	handlers.Add(JSONHandlerRoute, JSON(headerWriterFactory.Dynamic(), viewModelOrchestrator, itemHandler))
+	handlers.Add(JSONHandlerRoute,
+		JSON(headerWriterFactory.Dynamic(),
+			viewModelOrchestrator,
+			itemHandler))
 
 	// markdown
-	handlers.Add(MarkdownHandlerRoute, Markdown(headerWriterFactory.Dynamic(), viewModelOrchestrator, itemHandler))
+	handlers.Add(MarkdownHandlerRoute,
+		Markdown(headerWriterFactory.Dynamic(),
+			viewModelOrchestrator,
+			itemHandler))
+
+	// conversion
+	conversionModelOrchestrator := orchestratorFactory.NewConversionModelOrchestrator()
 
 	// print
-	handlers.Add(PrintHandlerRoute, Print(logger, headerWriterFactory.Dynamic(), conversionModelOrchestrator, templateProvider, errorHandler))
+	handlers.Add(
+		PrintHandlerRoute,
+		Print(logger,
+			headerWriterFactory.Dynamic(),
+			conversionModelOrchestrator,
+			templateProvider,
+			errorHandler))
 
 	// rtf
-	handlers.Add(RTFHandlerRoute, RTF(logger, config.Conversion.RTF.Tool(), headerWriterFactory.Dynamic(), conversionModelOrchestrator, templateProvider, errorHandler))
+	handlers.Add(
+		RTFHandlerRoute,
+		RTF(logger,
+			config.Conversion.RTF.Tool(),
+			headerWriterFactory.Dynamic(),
+			conversionModelOrchestrator,
+			templateProvider,
+			errorHandler))
 
 	// update
-	handlers.Add(UpdateHandlerRoute, Update(logger, headerWriterFactory.Dynamic(), updateOrchestrator))
+	handlers.Add(
+		UpdateHandlerRoute,
+		Update(
+			logger,
+			headerWriterFactory.Dynamic(),
+			orchestratorFactory.NewUpdateOrchestrator()))
 
 	// alias lookup
-	handlers.Add(AliasLookupHandlerRoute, AliasLookup(headerWriterFactory.Dynamic(), viewModelOrchestrator, itemHandler))
+	handlers.Add(
+		AliasLookupHandlerRoute,
+		AliasLookup(headerWriterFactory.Dynamic(),
+			viewModelOrchestrator,
+			itemHandler))
+
+	// alias index
+	handlers.Add(
+		AliasIndexHandlerRoute,
+		AliasIndex(
+			headerWriterFactory.Dynamic(),
+			navigationOrchestrator,
+			orchestratorFactory.NewAliasIndexOrchestrator(),
+			templateProvider))
 
 	// items
-	handlers.Add(ItemHandlerRoute, itemHandler)
+	handlers.Add(
+		ItemHandlerRoute,
+		itemHandler)
 
 	return handlers
 }

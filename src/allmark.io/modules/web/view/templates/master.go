@@ -164,6 +164,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 			<li><a href="/tags.html">Tags</a></li>
 			<li><a href="/sitemap.html">Sitemap</a></li>
 			<li><a href="/feed.rss">RSS Feed</a></li>
+			<li><a href="/!">Shortlinks</a></li>
 		</ul>
 	</nav>
 </footer>
