@@ -59,7 +59,7 @@ func (converter *audioExtension) Convert(markdown string) (convertedContent stri
 
 func (converter *audioExtension) getMatchingFile(path string) *model.File {
 	for _, file := range converter.files {
-		if file.Route().IsMatch(path) && util.IsAudioFile(file) {
+		if file.Route().IsMatch(path) && model.IsAudioFile(file) {
 			return file
 		}
 	}
@@ -76,7 +76,7 @@ func (converter *audioExtension) getAudioCode(title, path string) string {
 
 		if audioFile := converter.getMatchingFile(path); audioFile != nil {
 
-			if mimeType, err := util.GetMimeType(audioFile); err == nil {
+			if mimeType, err := model.GetMimeType(audioFile); err == nil {
 				filepath := converter.pathProvider.Path(audioFile.Route().Value())
 				return getAudioFileLink(title, filepath, mimeType)
 			}

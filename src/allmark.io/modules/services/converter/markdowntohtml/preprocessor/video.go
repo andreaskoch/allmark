@@ -65,7 +65,7 @@ func (converter *videoExtension) Convert(markdown string) (convertedContent stri
 
 func (converter *videoExtension) getMatchingFile(path string) *model.File {
 	for _, file := range converter.files {
-		if file.Route().IsMatch(path) && util.IsVideoFile(file) {
+		if file.Route().IsMatch(path) && model.IsVideoFile(file) {
 			return file
 		}
 	}
@@ -82,7 +82,7 @@ func (converter *videoExtension) getVideoCode(title, path string) string {
 
 		if videoFile := converter.getMatchingFile(path); videoFile != nil {
 
-			if mimeType, err := util.GetMimeType(videoFile); err == nil {
+			if mimeType, err := model.GetMimeType(videoFile); err == nil {
 				filepath := converter.pathProvider.Path(videoFile.Route().Value())
 				return renderVideoFileLink(title, filepath, mimeType)
 			}

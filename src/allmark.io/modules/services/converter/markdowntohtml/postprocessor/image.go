@@ -9,7 +9,6 @@ import (
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
 	"allmark.io/modules/services/converter/markdowntohtml/common"
-	"allmark.io/modules/services/converter/markdowntohtml/util"
 	"regexp"
 	"strings"
 )
@@ -72,7 +71,7 @@ func (postprocessor *imagePostProcessor) Convert(markdown string) (convertedCont
 
 func (postprocessor *imagePostProcessor) getMatchingFile(path string) *model.File {
 	for _, file := range postprocessor.files {
-		if file.Route().IsMatch(path) && util.IsImageFile(file) {
+		if file.Route().IsMatch(path) && model.IsImageFile(file) {
 			return file
 		}
 	}

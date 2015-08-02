@@ -9,7 +9,6 @@ import (
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
 	"allmark.io/modules/services/converter/markdowntohtml/common"
-	"allmark.io/modules/services/converter/markdowntohtml/util"
 	"fmt"
 	"regexp"
 	"strings"
@@ -91,7 +90,7 @@ func (converter *imageGalleryExtension) getImageLinksByPath(path string) []strin
 		}
 
 		// skip files which are not images
-		if !util.IsImageFile(file) {
+		if !model.IsImageFile(file) {
 			continue
 		}
 

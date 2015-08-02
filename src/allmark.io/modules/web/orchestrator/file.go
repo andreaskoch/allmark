@@ -11,7 +11,6 @@ import (
 	"allmark.io/modules/model"
 	"allmark.io/modules/web/view/viewmodel"
 	"fmt"
-	"strings"
 )
 
 type FileOrchestrator struct {
@@ -74,7 +73,7 @@ func (orchestrator *FileOrchestrator) GetImages(itemRoute route.Route) []viewmod
 	for _, file := range files {
 
 		// skip all files that are not images
-		if !strings.HasPrefix(file.MimeType, "image/") {
+		if !model.IsImage(file.MimeType) {
 			continue
 		}
 
