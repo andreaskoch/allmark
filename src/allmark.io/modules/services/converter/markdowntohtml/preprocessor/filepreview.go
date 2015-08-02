@@ -6,7 +6,6 @@ package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
-	"allmark.io/modules/common/pattern"
 	"allmark.io/modules/model"
 	"allmark.io/modules/services/converter/markdowntohtml/util"
 	"bufio"
@@ -38,17 +37,16 @@ func (converter *filePreviewExtension) Convert(markdown string) (convertedConten
 
 	convertedContent = markdown
 
-	for {
+	for _, match := range filePreviewMarkdownExtension.FindAllStringSubmatch(convertedContent, -1) {
 
-		found, matches := pattern.IsMatch(convertedContent, filePreviewMarkdownExtension)
-		if !found || (found && len(matches) != 3) {
-			break
+		if len(match) != 3 {
+			continue
 		}
 
 		// parameters
-		originalText := strings.TrimSpace(matches[0])
-		title := strings.TrimSpace(matches[1])
-		path := strings.TrimSpace(matches[2])
+		originalText := strings.TrimSpace(match[0])
+		title := strings.TrimSpace(match[1])
+		path := strings.TrimSpace(match[2])
 
 		// get the code
 		renderedCode := converter.getPreviewCode(title, path)

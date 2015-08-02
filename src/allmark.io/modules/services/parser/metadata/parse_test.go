@@ -5,30 +5,10 @@
 package metadata
 
 import (
-	"fmt"
 	"testing"
 
-	"allmark.io/modules/common/route"
-	"allmark.io/modules/dataaccess"
 	"allmark.io/modules/model"
 )
-
-func Test_getFallbackAlias_RouteWithFile_ReturnsItemFolder(t *testing.T) {
-	// arrange
-	expected := "test"
-	inputPath := fmt.Sprintf("/repository/document/%s", expected)
-	route := route.NewFromFilePath("/repository", inputPath)
-
-	item := model.NewItem(route, []*model.File{}, dataaccess.TypePhysical)
-
-	// act
-	result := getFallbackAlias(item)
-
-	// assert
-	if result != expected {
-		t.Errorf("The result was expected to be %q but was %q.", expected, result)
-	}
-}
 
 func Test_normalizeAlias(t *testing.T) {
 	// arrange

@@ -6,7 +6,6 @@ package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
-	"allmark.io/modules/common/pattern"
 	"allmark.io/modules/model"
 	"allmark.io/modules/services/converter/markdowntohtml/util"
 	"fmt"
@@ -42,17 +41,16 @@ func (converter *videoExtension) Convert(markdown string) (convertedContent stri
 
 	convertedContent = markdown
 
-	for {
+	for _, match := range markdownPattern.FindAllStringSubmatch(convertedContent, -1) {
 
-		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
-		if !found || (found && len(matches) != 3) {
-			break
+		if len(match) != 3 {
+			continue
 		}
 
 		// parameters
-		originalText := strings.TrimSpace(matches[0])
-		title := strings.TrimSpace(matches[1])
-		path := strings.TrimSpace(matches[2])
+		originalText := strings.TrimSpace(match[0])
+		title := strings.TrimSpace(match[1])
+		path := strings.TrimSpace(match[2])
 
 		// get the code
 		renderedCode := converter.getVideoCode(title, path)
@@ -115,7 +113,7 @@ func (converter *videoExtension) getVideoCode(title, path string) string {
 }
 
 func isYouTubeLink(link string) (isYouTubeLink bool, videoId string) {
-	if found, matches := pattern.IsMatch(link, youTubeVideoPattern); found && len(matches) == 2 {
+	if matches := youTubeVideoPattern.FindStringSubmatch(link); len(matches) == 2 {
 		return true, matches[1]
 	}
 
@@ -130,7 +128,7 @@ func renderYouTubeVideo(title, videoId string) string {
 }
 
 func isVimeoLink(link string) (isVimeoLink bool, videoId string) {
-	if found, matches := pattern.IsMatch(link, vimeoVideoPattern); found && len(matches) == 2 {
+	if matches := vimeoVideoPattern.FindStringSubmatch(link); len(matches) == 2 {
 		return true, matches[1]
 	}
 
@@ -161,8 +159,6 @@ func isVideoFileLink(link string) (isVideoFile bool, mimeType string) {
 	default:
 		return false, ""
 	}
-
-	panic("Unreachable")
 }
 
 func renderVideoFileLink(title, link, mimetype string) string {

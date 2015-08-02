@@ -6,19 +6,16 @@ package postprocessor
 
 import (
 	"allmark.io/modules/common/paths"
-	"allmark.io/modules/common/pattern"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
 	"allmark.io/modules/services/converter/markdowntohtml/common"
 	"allmark.io/modules/services/converter/markdowntohtml/util"
-	"fmt"
 	"regexp"
 	"strings"
 )
 
 var (
-	// ![*image title (optional)*](*image path*)
-	markdownPattern = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
+	imageSourcePattern = regexp.MustCompile(`src="([^"]+)"`)
 )
 
 func newImagePostprocessor(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, imageProvider *common.ImageProvider) *imagePostProcessor {
@@ -40,18 +37,15 @@ func (postprocessor *imagePostProcessor) Convert(markdown string) (convertedCont
 
 	convertedContent = markdown
 
-	for {
+	for _, match := range imageSourcePattern.FindAllStringSubmatch(convertedContent, -1) {
 
-		// search for files-extension code
-		found, matches := pattern.IsMatch(convertedContent, markdownPattern)
-		if !found || (found && len(matches) != 3) {
-			break
+		if len(match) != 2 {
+			continue
 		}
 
 		// parameters
-		originalText := strings.TrimSpace(matches[0])
-		title := strings.TrimSpace(matches[1])
-		path := strings.TrimSpace(matches[2])
+		originalText := strings.TrimSpace(match[0])
+		path := strings.TrimSpace(match[1])
 
 		// normalize the path with the current path provider
 		path = postprocessor.pathProvider.Path(path)
@@ -61,16 +55,15 @@ func (postprocessor *imagePostProcessor) Convert(markdown string) (convertedCont
 		if file == nil {
 
 			// this is not an internal image reference
-			imageCode := fmt.Sprintf(`<img src="%s" alt="%s"/>`, path, title)
-			convertedContent = strings.Replace(convertedContent, originalText, imageCode, 1)
 			continue
+
 		}
 
-		// get the image code
-		imageCode := postprocessor.imageProvider.GetImageCodeWithLink(title, file.Route())
+		// get the image path (src="...", srcset="...")
+		imagePath := postprocessor.imageProvider.GetImagePath(file.Route())
 
 		// replace markdown with the image code
-		convertedContent = strings.Replace(convertedContent, originalText, imageCode, 1)
+		convertedContent = strings.Replace(convertedContent, originalText, imagePath, 1)
 
 	}
 

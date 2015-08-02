@@ -6,7 +6,6 @@ package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
-	"allmark.io/modules/common/pattern"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
 	"allmark.io/modules/services/converter/markdowntohtml/filetreerenderer"
@@ -37,18 +36,16 @@ func (converter *filesExtension) Convert(markdown string) (convertedContent stri
 
 	convertedContent = markdown
 
-	for {
+	for _, match := range filesMarkdownExtensionPattern.FindAllStringSubmatch(convertedContent, -1) {
 
-		// search for files-extension code
-		found, matches := pattern.IsMatch(convertedContent, filesMarkdownExtensionPattern)
-		if !found || (found && len(matches) != 3) {
-			break // abort. no (more) files-extension code found
+		if len(match) != 3 {
+			continue
 		}
 
 		// extract the parameters from the pattern matches
-		originalText := strings.TrimSpace(matches[0])
-		title := strings.TrimSpace(matches[1])
-		path := strings.TrimSpace(matches[2])
+		originalText := strings.TrimSpace(match[0])
+		title := strings.TrimSpace(match[1])
+		path := strings.TrimSpace(match[2])
 
 		// normalize the path with the current path provider
 		path = converter.pathProvider.Path(path)

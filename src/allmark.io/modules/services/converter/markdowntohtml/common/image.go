@@ -24,13 +24,10 @@ type ImageProvider struct {
 	thumbnailIndex *thumbnail.Index
 }
 
-func (provider *ImageProvider) GetImageCodeWithLink(imageTitle string, fileRoute route.Route) string {
-	fullSizeImagePath := provider.getImagePath(fileRoute)
-	imageCode := provider.GetImageCode(imageTitle, fileRoute)
-	return fmt.Sprintf(`<a href="%s" title="%s">%s</a>`, fullSizeImagePath, imageTitle, imageCode)
-}
-
-func (provider *ImageProvider) GetImageCode(imageTitle string, fileRoute route.Route) string {
+// GetImagePath returns the image path for the given file route.
+// If one or more thumbnais exist it will return the thumbnail path (e.g. srcset="/thumbnails/105-D6134C1B-320-240.png 320w, /thumbnails/105-D6134C1B-640-480.png 640w, /thumbnails/105-D6134C1B-1024-768.png 1024w").
+// If there is no thumbnail is will just return the canonical image path (e.g. src="document/files/sample.png")
+func (provider *ImageProvider) GetImagePath(fileRoute route.Route) string {
 
 	fullSizeImagePath := provider.getImagePath(fileRoute)
 
@@ -40,7 +37,7 @@ func (provider *ImageProvider) GetImageCode(imageTitle string, fileRoute route.R
 	large, largeExists := provider.getThumbnailPath(fileRoute, thumbnail.SizeLarge)
 
 	// assemble the image code
-	image := "<img"
+	imagePath := ""
 
 	// assemble the src sets
 	if smallExists || mediumExists || largeExists {
@@ -59,26 +56,14 @@ func (provider *ImageProvider) GetImageCode(imageTitle string, fileRoute route.R
 		}
 
 		if len(srcSets) > 0 {
-			image += fmt.Sprintf(` srcset="%s"`, strings.Join(srcSets, `, `))
+			imagePath += fmt.Sprintf(` srcset="%s"`, strings.Join(srcSets, `, `))
 		}
 	}
 
-	// default image
-	if smallExists || mediumExists || largeExists {
+	// use the full image as the defaults
+	imagePath += fmt.Sprintf(` src="%s"`, fullSizeImagePath)
 
-		// use the small image as the default
-		image += fmt.Sprintf(` src="%s"`, small)
-
-	} else {
-
-		// use the full image as the defaults
-		image += fmt.Sprintf(` src="%s"`, fullSizeImagePath)
-
-	}
-
-	image += fmt.Sprintf(` alt="%s" />`, imageTitle)
-
-	return image
+	return imagePath
 }
 
 func (provider *ImageProvider) getThumbnailPath(fileRoute route.Route, dimensions thumbnail.ThumbDimension) (thumbnailPath string, thumbnailAvailable bool) {

@@ -19,7 +19,7 @@ func Test_Convert(t *testing.T) {
 	title := "Build Status"
 	imagePath := "https://travis-ci.org/andreaskoch/allmark.png"
 	expected := fmt.Sprintf(`<img src="%s" alt="%s"/>`, imagePath, title)
-	input := fmt.Sprintf("![%s](%s)", title, imagePath)
+	input := fmt.Sprintf(`<img src="%s" alt="%s"/>`, imagePath, title)
 
 	pathProvider := DummyPather{}
 	baseRoute := route.New()

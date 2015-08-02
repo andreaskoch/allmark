@@ -6,7 +6,6 @@ package thumbnail
 
 import (
 	"allmark.io/modules/common/logger"
-	"allmark.io/modules/common/pattern"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/common/shutdown"
 	"allmark.io/modules/common/util/fsutil"
@@ -156,7 +155,7 @@ func (thumbs Thumbs) GetThumbBySize(dimensions ThumbDimension) (Thumb, bool) {
 
 type Index struct {
 	Thumbs          map[string]Thumbs `json:"thumbs"`
-	thumbnailFolder string            `json:-`
+	thumbnailFolder string
 }
 
 func (i *Index) GetThumbs(thumbnailRoute string) (thumbs Thumbs, exists bool) {
@@ -177,8 +176,8 @@ func (i *Index) GetThumbnailFilepath(thumb Thumb) string {
 }
 
 func GetThumbnailDimensionsFromRoute(routeWithDimensions route.Route) (baseRoute route.Route, dimensions ThumbDimension) {
-	isMatch, matches := pattern.IsMatch(routeWithDimensions.Value(), dimensionPattern)
-	if !isMatch || len(matches) < 3 {
+	matches := dimensionPattern.FindStringSubmatch(routeWithDimensions.Value())
+	if len(matches) < 3 {
 		return routeWithDimensions, ThumbDimension{}
 	}
 

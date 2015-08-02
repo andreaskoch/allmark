@@ -6,7 +6,6 @@ package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
-	"allmark.io/modules/common/pattern"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
 	"allmark.io/modules/services/converter/markdowntohtml/common"
@@ -41,17 +40,16 @@ func (converter *imageGalleryExtension) Convert(markdown string) (convertedConte
 
 	convertedContent = markdown
 
-	for {
+	for _, match := range imageGalleryExtensionPattern.FindAllStringSubmatch(convertedContent, -1) {
 
-		found, matches := pattern.IsMatch(convertedContent, imageGalleryExtensionPattern)
-		if !found || (found && len(matches) != 3) {
-			break
+		if len(match) != 3 {
+			continue
 		}
 
 		// parameters
-		originalText := strings.TrimSpace(matches[0])
-		title := strings.TrimSpace(matches[1])
-		path := strings.TrimSpace(matches[2])
+		originalText := strings.TrimSpace(match[0])
+		title := strings.TrimSpace(match[1])
+		path := strings.TrimSpace(match[2])
 
 		// get the code
 		renderedCode := converter.getGalleryCode(title, path)
@@ -101,8 +99,14 @@ func (converter *imageGalleryExtension) getImageLinksByPath(path string) []strin
 		imageTitle := file.Route().LastComponentName() // use the file name for the title
 
 		// calculate the image code
-		imageCode := converter.imageProvider.GetImageCodeWithLink(imageTitle, file.Route())
-		imagelinks = append(imagelinks, imageCode)
+		imagePath := converter.imageProvider.GetImagePath(file.Route())
+		imageCode := fmt.Sprintf(`<img %s alt="%s"/>`, imagePath, imageTitle)
+
+		// link the image to the original
+		fullSizeImagePath := converter.pathProvider.Path(file.Route().Value())
+		imageWithLink := fmt.Sprintf(`<a href="%s" title="%s">%s</a>`, fullSizeImagePath, imageTitle, imageCode)
+
+		imagelinks = append(imagelinks, imageWithLink)
 	}
 
 	return imagelinks

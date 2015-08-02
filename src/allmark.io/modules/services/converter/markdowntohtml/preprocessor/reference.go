@@ -6,7 +6,6 @@ package preprocessor
 
 import (
 	"allmark.io/modules/common/paths"
-	"allmark.io/modules/common/pattern"
 	"allmark.io/modules/model"
 	"fmt"
 	"regexp"
@@ -34,17 +33,15 @@ func (converter *referenceExtension) Convert(markdown string) (convertedContent 
 
 	convertedContent = markdown
 
-	for {
+	for _, match := range referencePattern.FindAllStringSubmatch(convertedContent, -1) {
 
-		// search for references
-		found, matches := pattern.IsMatch(convertedContent, referencePattern)
-		if !found || (found && len(matches) != 2) {
-			break // abort. no (more) references found
+		if len(match) != 2 {
+			continue
 		}
 
 		// extract the parameters from the pattern matches
-		originalText := strings.TrimSpace(matches[0])
-		alias := strings.TrimSpace(matches[1])
+		originalText := strings.TrimSpace(match[0])
+		alias := strings.TrimSpace(match[1])
 
 		// lookup the item
 		item := converter.aliasResolver(alias)
