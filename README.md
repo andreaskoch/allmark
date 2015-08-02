@@ -423,7 +423,7 @@ This is an unordered list of the most prominent features of allmark:
 	- Audio Player Integration
 	- Repository cross-links by alias
 17. Different Item Types (Repository, Document, Presentation)
-18. Document Meta Datagithub.com/spf13/afero
+18. Document Meta Data
 	- Author
 	- Tags
 	- Document Alias
@@ -446,6 +446,7 @@ This is an unordered list of the most prominent features of allmark:
 	- You can add users to the `.allmark/users.htpasswd` file using the tool [htpasswd](http://httpd.apache.org/docs/2.2/programs/htpasswd.html)
 25. Parallel hosting of HTTP/HTTPS over IPv4 and/or IPv6
 26. Short links: If you assign an alias to a document you can reach that document via short/direct link (e.g. `http://repo.com/!an-alias`). An overview of all available short links can be reached under `http://repo.com/!`.
+27. You can use [Emojis](http://www.emoji-cheat-sheet.com/) in your markdown code :dancers:
 
 I will try to create videos showing you the different features when there is time.
 
@@ -502,6 +503,7 @@ allmark relies on a number of third-party libraries:
 - [github.com/andreaskoch/go-fswatch](src/github.com/andreaskoch/go-fswatch)
 - [github.com/abbot/go-http-auth](src/github.com/abbot/go-http-auth)
 - [github.com/spf13/afero](src/github.com/spf13/afero)
+- [github.com/kyokomi/emoji](src/github.com/kyokomi/emoji)
 
 These dependencies are not covered by the allmark copyright/license. See the respective projects for their copyright & licensing details.
 
@@ -579,7 +581,6 @@ Here are some of the ideas and todos I would like to add in the future. Contribu
 
 ### Architecture & Features
 
-- Emoji support
 - Allow localization/internationalization
 - Web Editor for Markdown Documents
 - Data Access
