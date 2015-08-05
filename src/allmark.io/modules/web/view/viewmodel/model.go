@@ -23,8 +23,8 @@ type Model struct {
 	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
 	ItemNavigation       *ItemNavigation       `json:"itemNavigation"`
 
-	Tags     []*Tag    `json:"tags"`
-	TagCloud *TagCloud `json:"tagCloud"`
+	Tags     []Tag    `json:"tags"`
+	TagCloud TagCloud `json:"tagCloud"`
 
 	Files  []File  `json:"files"`
 	Images []Image `json:"images"`

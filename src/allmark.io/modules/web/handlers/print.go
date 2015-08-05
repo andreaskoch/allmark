@@ -26,7 +26,7 @@ func Print(logger logger.Logger,
 	render := func(writer io.Writer, baseURL string, viewModel viewmodel.ConversionModel) {
 
 		// get a template
-		template, err := templateProvider.GetSubTemplate(baseURL, templates.ConversionTemplateName)
+		template, err := templateProvider.GetConversionTemplate(baseURL)
 		if err != nil {
 			logger.Error("No template for item of type %q.", viewModel.Type)
 			return

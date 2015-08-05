@@ -46,10 +46,10 @@ type Hub struct {
 	unsubscribe chan *connection
 }
 
-func (hub *Hub) Message(viewModel viewmodel.Model) {
+func (hub *Hub) Message(updateModel viewmodel.Update) {
 	go func() {
-		hub.logger.Debug("Broadcasting meesage %#v", viewModel)
-		hub.broadcast <- NewMessage(viewModel)
+		hub.logger.Debug("Broadcasting message for route %s", updateModel.Route)
+		hub.broadcast <- NewMessage(updateModel)
 	}()
 }
 
@@ -120,7 +120,7 @@ func (hub *Hub) run() {
 			{
 				affectedConnections := hub.connectionsByRoute(broadcastMsg.Route)
 
-				hub.logger.Debug("Revieved a broadcast message\n%#v", broadcastMsg)
+				hub.logger.Debug("Received a broadcast message for route %s", broadcastMsg.Route)
 				hub.logger.Debug("Connections affected: %v", len(affectedConnections))
 
 				for _, connection := range affectedConnections {

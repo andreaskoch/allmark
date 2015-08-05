@@ -1,12 +1,10 @@
-// Copyright 2014 Andreas Koch. All rights reserved.
+// Copyright 2015 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 package themefiles
 
-const AutoupdateJs = `
-
-var Autoupdate = (function () {
+const AutoupdateJs = `var Autoupdate = (function () {
     function Autoupdate() { }
 
     var self = this;
@@ -56,6 +54,51 @@ var Autoupdate = (function () {
             console.log("Executing on change callback: " + callbackName);
             self.changeCallbacks[callbackName]();
         }
+    };
+
+    /**
+     * cleanupSnippetCode removes newline characters from the given snippet code
+     * @param string snippetCode Code of a snippet that might contain newline characters
+     * @return string
+     */
+    var cleanupSnippetCode = function(snippetCode) {
+      return snippetCode.replace('\\n', "");
+    };
+
+    /**
+     * getCSSSelectorFromSnippetName returns the proper CSS selector for the snippet with the given name.
+     * @param string snippetName The name of a snippet (e.g. "toplevelnavigation")
+     * @return string A CSS selector that matches the snippet with the given snippetName.
+     */
+    var getCSSSelectorFromSnippetName = function(snippetName) {
+      switch(snippetName) {
+        case "aliases":
+          return "body > article > section.aliases";
+
+        case "tags":
+          return "body > article > section.tags";
+
+        case "publisher":
+          return "body > article > section.publisher";
+
+        case "toplevelnavigation":
+          return "body>nav.toplevel";
+
+        case "breadcrumbnavigation":
+          return "body>nav.breadcrumb";
+
+        case "itemnavigation":
+          return "aside.sidebar>nav.navigation";
+
+        case "childs":
+          return "aside.sidebar>.childs";
+
+        case "tagcloud":
+          return "aside.sidebar>.tagcloud";
+
+        default:
+          return "#" + snippetName;
+      }
     };
 
     /**
@@ -115,77 +158,28 @@ var Autoupdate = (function () {
             // update the content
             $('.content').html(model.content);
 
-            // stop here if there are no childs
-            if (model.childs === null || typeof(model.childs) !== 'object' || model.childs.length == 0) {
-
-                // execute the on change callbacks
-                executeOnChangeCallbacks();
-
-                return;
+            // snippets
+            if (typeof(model.snippets) !== 'object') {
+              return;
             }
 
-            /**
-             * Update an existing item list entry
-             * @param Element entryToUpdate The node which shall be updated
-             * @param Object model The model containing values to use for the update
-             */
-            var updateEntry = function(entryToUpdate, model) {
-                // update the title text
-                $(entryToUpdate).find(".child-link:first").html(model.title);
+            for (var snippetName in model.snippets) {
 
-                // update the title link
-                $(entryToUpdate).find(".child-link:first").attr("href", model.route);
+              // the new snippet content
+              var snippetContent = cleanupSnippetCode(model.snippets[snippetName]);
 
-                // update the description
-                $(entryToUpdate).find(".child-description:first").html(model.description);
-            };
+              // get the CSS selector of the snippet
+              var cssSelector = getCSSSelectorFromSnippetName(snippetName);
 
-            var entries = model.childs;
-            var numberOfNewEntries = entries.length;
+              // check if the snippet exists
+              var elementExists = $(cssSelector).length > 0;
+              if (elementExists == false) {
+                continue;
+              }
 
-            // check if the childs container exists
-            if ($(".childs").length === 0) {
-
-                // This indicates that the document type has changed.
-                // Reload the page if the container does not exists yet
-                document.location.reload();
-                return;
-
+              // replace the existing snippet
+              $(cssSelector).replaceWith(snippetContent);
             }
-
-            var existingEntries = $(".childs>.list>.child");
-            var numberOfExistingEntries = existingEntries.length;
-
-            var entryTemplate = "<li class=\"child\"><a href=\"#\" class=\"child-title child-link\"></a><p class=\"child-description\"></p></li>";
-
-            if (numberOfExistingEntries > numberOfNewEntries) {
-
-                for (var x = (numberOfNewEntries-1); x < numberOfNewEntries; x++) {
-                    $(existingEntries[x]).remove();
-                }
-
-            }
-
-            // update or add
-            for (var i = 0; i < numberOfNewEntries; i++) {
-                var index = i + 1;
-                var newEntry = entries[i];
-
-                // get the item to update
-                if (index <= numberOfExistingEntries) {
-
-                    // update the existing entry
-                    updateEntry(existingEntries[i], newEntry);
-
-                } else {
-
-                    // append and update a new entry
-                    updateEntry($(".childs>.list").append(entryTemplate).find(".child:last"), newEntry);
-                }
-            }
-
-            // execute the on change callbacks
-            executeOnChangeCallbacks();
 
         };
     };

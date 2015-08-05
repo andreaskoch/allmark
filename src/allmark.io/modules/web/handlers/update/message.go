@@ -10,17 +10,17 @@ import (
 )
 
 type Message struct {
-	Route     string          `json:"route"`
-	Name      string          `json:"name"`
-	ViewModel viewmodel.Model `json:"model"`
+	Route       string           `json:"route"`
+	Name        string           `json:"name"`
+	UpdateModel viewmodel.Update `json:"model"`
 }
 
-func NewMessage(viewModel viewmodel.Model) Message {
-	route := route.NewFromRequest(viewModel.Route)
+func NewMessage(updateModel viewmodel.Update) Message {
+	route := route.NewFromRequest(updateModel.Route)
 
 	return Message{
-		Route:     route.Value(),
-		Name:      "update",
-		ViewModel: viewModel,
+		Route:       route.Value(),
+		Name:        "update",
+		UpdateModel: updateModel,
 	}
 }

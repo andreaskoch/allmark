@@ -1,4 +1,4 @@
-// Copyright 2014 Andreas Koch. All rights reserved.
+// Copyright 2015 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -13,40 +13,51 @@ type SitemapOrchestrator struct {
 	*Orchestrator
 
 	// caches
-	sitemap *viewmodel.Sitemap
+	sitemap *viewmodel.SitemapEntry
 }
 
-func (orchestrator *SitemapOrchestrator) GetSitemap() viewmodel.Sitemap {
+func (orchestrator *SitemapOrchestrator) GetSitemap() viewmodel.SitemapEntry {
 
 	if orchestrator.sitemap != nil {
 		return *orchestrator.sitemap
 	}
 
-	rootItem := orchestrator.rootItem()
-	if rootItem == nil {
-		orchestrator.logger.Fatal("No root item found")
+	// updateSitemap creates a new sitemap model and assigns it to the orchestrator cache.
+	updateSitemap := func(route route.Route) {
+		rootItem := orchestrator.rootItem()
+		if rootItem == nil {
+			orchestrator.logger.Fatal("No root item found")
+		}
+
+		sitemapModel := viewmodel.SitemapEntry{
+			Title:       rootItem.Title,
+			Description: rootItem.Description,
+			Childs:      orchestrator.getSitemapEntries(rootItem.Route()),
+			Path:        "/",
+		}
+
+		orchestrator.sitemap = &sitemapModel
 	}
 
-	sitemapModel := viewmodel.Sitemap{
-		Title:       rootItem.Title,
-		Description: rootItem.Description,
-		Childs:      orchestrator.getSitemapEntries(rootItem.Route()),
-		Path:        "/",
-	}
+	// register update callbacks
+	orchestrator.registerUpdateCallback("update sitemap", UpdateTypeNew, updateSitemap)
+	orchestrator.registerUpdateCallback("update sitemap", UpdateTypeModified, updateSitemap)
+	orchestrator.registerUpdateCallback("update sitemap", UpdateTypeDeleted, updateSitemap)
 
-	orchestrator.sitemap = &sitemapModel
+	// build the first sitemap
+	updateSitemap(route.New())
 
 	return *orchestrator.sitemap
 }
 
-func (orchestrator *SitemapOrchestrator) getSitemapEntries(startRoute route.Route) []viewmodel.Sitemap {
+func (orchestrator *SitemapOrchestrator) getSitemapEntries(startRoute route.Route) []viewmodel.SitemapEntry {
 
-	childs := make([]viewmodel.Sitemap, 0)
+	childs := make([]viewmodel.SitemapEntry, 0)
 	for _, child := range orchestrator.getChilds(startRoute) {
 
 		childRoute := child.Route()
 
-		childModel := viewmodel.Sitemap{
+		childModel := viewmodel.SitemapEntry{
 			Title:       child.Title,
 			Description: child.Description,
 			Childs:      orchestrator.getSitemapEntries(childRoute),

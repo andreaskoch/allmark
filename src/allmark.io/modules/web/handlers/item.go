@@ -25,7 +25,7 @@ func Item(logger logger.Logger,
 
 		// get a template
 		templateName := viewModel.Type
-		template, err := templateProvider.GetFullTemplate(baseURL, templateName)
+		template, err := templateProvider.GetItemTemplate(templateName, baseURL)
 		if err != nil {
 			logger.Error("No template for item of type %q.", templateName)
 			return

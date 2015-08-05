@@ -8,6 +8,11 @@ import (
 	"sort"
 )
 
+type Tags struct {
+	Model
+	Tags []Tag
+}
+
 type Tag struct {
 	Name   string   `json:"name"`
 	Anchor string   `json:"anchor"`
@@ -15,9 +20,9 @@ type Tag struct {
 	Childs []*Model `json:"childs"`
 }
 
-type SortTagBy func(tag1, tag2 *Tag) bool
+type SortTagBy func(tag1, tag2 Tag) bool
 
-func (by SortTagBy) Sort(tags []*Tag) {
+func (by SortTagBy) Sort(tags []Tag) {
 	sorter := &tagSorter{
 		tags: tags,
 		by:   by,
@@ -27,7 +32,7 @@ func (by SortTagBy) Sort(tags []*Tag) {
 }
 
 type tagSorter struct {
-	tags []*Tag
+	tags []Tag
 	by   SortTagBy
 }
 

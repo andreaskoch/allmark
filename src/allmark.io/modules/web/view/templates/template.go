@@ -16,33 +16,38 @@ const (
 	TemplateFileExtension = ".gohtml"
 )
 
-func NewTemplate(templateFolder, name, text string) *Template {
+// newTemplateDefinition creates a new template definition with the given parameters.
+func newTemplateDefinition(templateFolder, name, text string) *templateDefinition {
 
 	// assemble the file path
 	templateFilename := name + TemplateFileExtension
 	templateFilePath := filepath.Join(templateFolder, templateFilename)
 
-	// create a new template
-	template := &Template{
+	// create a new template definition
+	templateDefinition := &templateDefinition{
 		name: name,
 		text: text,
 		path: templateFilePath,
 	}
 
-	return template
+	return templateDefinition
 }
 
-type Template struct {
+// A templateDefinition contains template code, its name and the path on disc.
+type templateDefinition struct {
 	name string
 	text string
 	path string
 }
 
-func (template *Template) Name() string {
+// Name returns the template name
+func (template *templateDefinition) Name() string {
 	return template.name
 }
 
-func (template *Template) Text() string {
+// Text returns the template code. If the template was found on disc it will return the code from disc.
+// Otherwise it will return the default template code.
+func (template *templateDefinition) Text() string {
 
 	if !fsutil.FileExists(template.path) {
 		return template.text
@@ -63,7 +68,8 @@ func (template *Template) Text() string {
 	return string(bytes)
 }
 
-func (template *Template) StoreOnDisc() (success bool, err error) {
+// StoreOnDisc stores the current template definition to it's target path on disc.
+func (template *templateDefinition) StoreOnDisc() (success bool, err error) {
 
 	path := template.path
 

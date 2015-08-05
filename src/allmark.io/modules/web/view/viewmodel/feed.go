@@ -4,6 +4,11 @@
 
 package viewmodel
 
+type Feed struct {
+	FeedEntry
+	Items []FeedEntry
+}
+
 type FeedEntry struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`

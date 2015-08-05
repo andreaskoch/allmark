@@ -33,7 +33,7 @@ func RTF(logger logger.Logger,
 	convertToHtml := func(baseURL string, viewModel viewmodel.ConversionModel) string {
 
 		// get a template
-		template, err := templateProvider.GetSubTemplate(baseURL, templates.ConversionTemplateName)
+		template, err := templateProvider.GetConversionTemplate(baseURL)
 		if err != nil {
 			logger.Error("No template for item of type %q.", viewModel.Type)
 			return ""

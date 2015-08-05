@@ -1,16 +1,18 @@
-// Copyright 2015 Andreas Koch. All rights reserved.
+// Copyright 2014 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package templates
+package defaulttheme
 
-var aliasIndexContentTemplate = `
-<li class="shortlink">
-	<a href="{{.Route}}" title="► {{.TargetRoute}}">{{.Name}}</a>
-</li>
-`
+import (
+	"allmark.io/modules/web/view/templates/templatenames"
+)
 
-const aliasIndexTemplate = `
+func init() {
+	templates[templatenames.Error] = errorTemplate
+}
+
+const errorTemplate = `
 <header>
 <h1 class="title">
 {{.Title}}
@@ -22,10 +24,6 @@ const aliasIndexTemplate = `
 </section>
 
 <section class="content">
-
-<ol class="shortlinks">
 {{.Content}}
-</ol>
-
 </section>
 `

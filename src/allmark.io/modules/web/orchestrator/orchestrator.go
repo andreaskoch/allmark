@@ -70,6 +70,7 @@ func (update *Update) Type() UpdateType {
 	return update.updateType
 }
 
+// cacheUpdate creates a new instance of the CacheUpdateCallback type.
 func cacheUpdate(name string, updateType UpdateType, callback func(updatedRoute route.Route)) CacheUpdateCallback {
 	return CacheUpdateCallback{
 		name,
@@ -78,10 +79,38 @@ func cacheUpdate(name string, updateType UpdateType, callback func(updatedRoute 
 	}
 }
 
+// CacheUpdateCallback is a wrapper model for cache update callback functions.
 type CacheUpdateCallback struct {
-	Name   string
-	Type   UpdateType
-	Update func(updatedRoute route.Route)
+	name       string
+	updateType UpdateType
+	update     func(updatedRoute route.Route)
+}
+
+// Name returns the name of the callback.
+func (updateCallback *CacheUpdateCallback) Name() string {
+	return updateCallback.name
+}
+
+// UpdateType returns the type of the callback.
+func (updateCallback *CacheUpdateCallback) UpdateType() UpdateType {
+	return updateCallback.updateType
+}
+
+// String returns a string representation of the current CacheUpdateCallback.
+func (updateCallback *CacheUpdateCallback) String() string {
+	return fmt.Sprintf("%s (%s)", updateCallback.Name(), updateCallback.UpdateType())
+}
+
+// Execute safely executes the callback and return any error that occured during execution.
+func (updateCallback *CacheUpdateCallback) Execute(route route.Route) (err error) {
+	defer func() {
+		if exception := recover(); exception != nil { //catch
+			err = fmt.Errorf("Error while executing callback %q. Error: %s", updateCallback.String(), exception)
+		}
+	}()
+
+	updateCallback.update(route)
+	return err
 }
 
 func newBaseOrchestrator(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter, webPathProvider webpaths.WebPathProvider) *Orchestrator {
@@ -116,8 +145,7 @@ type Orchestrator struct {
 	// caches and indizes (do not initialize!)
 	fulltextIndex   *search.ItemSearch
 	repositoryIndex *index.Index
-	items           []*model.Item
-	itemsByAlias    map[string]*model.Item
+	itemsByAlias    ItemCache
 
 	// update handling
 	updateCallbacks   map[UpdateType][]CacheUpdateCallback
@@ -137,13 +165,20 @@ func (orchestrator *Orchestrator) Subscribe(update chan Update) {
 // Update all caches
 func (orchestrator *Orchestrator) UpdateCache(dataaccessLayerUpdate dataaccess.Update) {
 
+	orchestrator.logger.Info("Received an update. Updating caches: %s", dataaccessLayerUpdate.String())
+
 	// inform subscribers ...
 	// ... about new items
 	for _, newItemRoute := range dataaccessLayerUpdate.New() {
 
+		orchestrator.logger.Info("Updating cache for route %q", newItemRoute.String())
+
 		// execute cache update callbacks
 		for _, callbackDefinition := range orchestrator.updateCallbacks[UpdateTypeNew] {
-			callbackDefinition.Update(newItemRoute)
+			orchestrator.logger.Debug("Executing cache update callback: %q", callbackDefinition.String())
+			if err := callbackDefinition.Execute(newItemRoute); err != nil {
+				orchestrator.logger.Error("%s", err.Error())
+			}
 		}
 
 		// notify subscribers
@@ -155,9 +190,14 @@ func (orchestrator *Orchestrator) UpdateCache(dataaccessLayerUpdate dataaccess.U
 	// ... about modified items
 	for _, modifiedItemRoute := range dataaccessLayerUpdate.Modified() {
 
+		orchestrator.logger.Info("Updating cache for route %q", modifiedItemRoute.String())
+
 		// execute cache update callbacks
 		for _, callbackDefinition := range orchestrator.updateCallbacks[UpdateTypeModified] {
-			callbackDefinition.Update(modifiedItemRoute)
+			orchestrator.logger.Debug("Executing cache update callback: %q", callbackDefinition.String())
+			if err := callbackDefinition.Execute(modifiedItemRoute); err != nil {
+				orchestrator.logger.Error("%s", err.Error())
+			}
 		}
 
 		// notify subscribers
@@ -169,9 +209,14 @@ func (orchestrator *Orchestrator) UpdateCache(dataaccessLayerUpdate dataaccess.U
 	// ... about deleted items
 	for _, deletedItemRoute := range dataaccessLayerUpdate.Deleted() {
 
+		orchestrator.logger.Info("Removing cache for route %q", deletedItemRoute.String())
+
 		// execute cache update callbacks
 		for _, callbackDefinition := range orchestrator.updateCallbacks[UpdateTypeDeleted] {
-			callbackDefinition.Update(deletedItemRoute)
+			orchestrator.logger.Debug("Executing cache update callback: %q", callbackDefinition.String())
+			if err := callbackDefinition.Execute(deletedItemRoute); err != nil {
+				orchestrator.logger.Error("%s", err.Error())
+			}
 		}
 
 		// notify subscribers
@@ -179,6 +224,15 @@ func (orchestrator *Orchestrator) UpdateCache(dataaccessLayerUpdate dataaccess.U
 			subscriber <- NewUpdate(UpdateTypeDeleted, deletedItemRoute)
 		}
 	}
+
+	// update the parents
+	parentUpdate := getParentUpdate(dataaccessLayerUpdate)
+	if parentUpdate.IsEmpty() == false {
+		orchestrator.logger.Debug("Also updating the parents: %s", parentUpdate.String())
+		orchestrator.UpdateCache(parentUpdate)
+	}
+
+	orchestrator.logger.Debug("Finished update (%s)", dataaccessLayerUpdate.String())
 }
 
 // registerUpdateCallback registers callbacks for new, modified and deleted items.
@@ -266,11 +320,15 @@ func (orchestrator *Orchestrator) index() *index.Index {
 
 		// get the updated item from the repository
 		updatedRepositoryItem := orchestrator.repository.Item(updatedRoute)
+		if updatedRepositoryItem == nil {
+			orchestrator.logger.Warn("The item with the route %q was not found in the repository.", updatedRoute.String())
+			return
+		}
 
 		// parse the item
 		parsedItem := orchestrator.parseItem(updatedRepositoryItem)
 		if parsedItem == nil {
-			orchestrator.logger.Warn("Unable to parse item %q", parsedItem.String())
+			orchestrator.logger.Warn("Unable to parse item %q", updatedRepositoryItem.String())
 			return
 		}
 
@@ -461,7 +519,7 @@ func (orchestrator *Orchestrator) getChilds(route route.Route) []*model.Item {
 }
 
 // getAliasMap returns the map of all items by their alias.
-func (orchestrator *Orchestrator) getAliasMap() map[string]*model.Item {
+func (orchestrator *Orchestrator) getAliasMap() ItemCache {
 	return orchestrator.itemsByAlias
 }
 
@@ -470,14 +528,19 @@ func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 
 	// return from cache
 	if orchestrator.itemsByAlias != nil {
-		return orchestrator.itemsByAlias[alias]
+		if item, exists := orchestrator.itemsByAlias.Get(alias); exists {
+			return item
+		}
+		return nil
 	}
 
 	// removeItemFromAliasMap removed the item with the given route from the alias map.
 	removeItemFromAliasMap := func(route route.Route) {
 		// get a list of all aliases
 		var aliasesToRemove []string
-		for alias, item := range orchestrator.itemsByAlias {
+		for entry := range orchestrator.itemsByAlias.Iter() {
+			alias := entry.Key
+			item := entry.Val
 			if item.Route().Equals(route) {
 				aliasesToRemove = append(aliasesToRemove, alias)
 			}
@@ -485,7 +548,7 @@ func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 
 		// remove item from map
 		for _, alias := range aliasesToRemove {
-			delete(orchestrator.itemsByAlias, alias)
+			orchestrator.itemsByAlias.Remove(alias)
 		}
 	}
 
@@ -498,16 +561,16 @@ func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 		// add the new aliases
 		item := orchestrator.getItem(route)
 		for _, alias := range item.MetaData.Aliases {
-			orchestrator.itemsByAlias[alias] = item
+			orchestrator.itemsByAlias.Set(alias, item)
 		}
 	}
 
 	// build cache
-	itemsByAlias := make(map[string]*model.Item)
+	itemsByAlias := newItemCache()
 	for _, item := range orchestrator.getAllItems() {
 
 		for _, alias := range item.MetaData.Aliases {
-			itemsByAlias[alias] = item
+			itemsByAlias.Set(alias, item)
 		}
 	}
 
@@ -518,7 +581,11 @@ func (orchestrator *Orchestrator) getItemByAlias(alias string) *model.Item {
 	orchestrator.registerUpdateCallback("update alias map", UpdateTypeModified, updateAliasMap)
 	orchestrator.registerUpdateCallback("update alias map", UpdateTypeDeleted, removeItemFromAliasMap)
 
-	return orchestrator.itemsByAlias[alias]
+	if item, exists := orchestrator.itemsByAlias.Get(alias); exists {
+		return item
+	}
+
+	return nil
 }
 
 // Get the publisher information view model.
@@ -568,4 +635,48 @@ func (orchestrator *Orchestrator) getAnalyticsSettings() viewmodel.Analytics {
 			TrackingID: orchestrator.config.Analytics.GoogleAnalytics.TrackingID,
 		},
 	}
+}
+
+// getParentUpdate returns a new Update instance that contains the parent of each item
+// contained in the supplied update and marks them as "modified".
+func getParentUpdate(update dataaccess.Update) dataaccess.Update {
+
+	parentsModifiedMap := make(map[string]route.Route)
+
+	// modified
+	for _, route := range update.Modified() {
+		parentRoute, exists := route.Parent()
+		if !exists {
+			continue
+		}
+
+		parentsModifiedMap[parentRoute.Value()] = parentRoute
+	}
+
+	// new
+	for _, route := range update.New() {
+		parentRoute, exists := route.Parent()
+		if !exists {
+			continue
+		}
+
+		parentsModifiedMap[parentRoute.Value()] = parentRoute
+	}
+
+	// deleted
+	for _, route := range update.Deleted() {
+		parentRoute, exists := route.Parent()
+		if !exists {
+			continue
+		}
+
+		parentsModifiedMap[parentRoute.Value()] = parentRoute
+	}
+
+	parentsModified := make([]route.Route, 0)
+	for _, route := range parentsModifiedMap {
+		parentsModified = append(parentsModified, route)
+	}
+
+	return dataaccess.NewUpdate([]route.Route{}, parentsModified, []route.Route{})
 }

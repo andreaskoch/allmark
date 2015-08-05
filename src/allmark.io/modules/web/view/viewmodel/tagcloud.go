@@ -8,7 +8,7 @@ import (
 	"sort"
 )
 
-type TagCloud []*TagCloudEntry
+type TagCloud []TagCloudEntry
 
 type TagCloudEntry struct {
 	Name           string `json:"name"`
@@ -18,7 +18,7 @@ type TagCloudEntry struct {
 	NumberOfChilds int    `json:"numberofchilds"`
 }
 
-type SortTagCloudBy func(tagCloudEntry1, tagCloudEntry2 *TagCloudEntry) bool
+type SortTagCloudBy func(tagCloudEntry1, tagCloudEntry2 TagCloudEntry) bool
 
 func (by SortTagCloudBy) Sort(tagCloud TagCloud) {
 	sorter := &tagCloudSorter{

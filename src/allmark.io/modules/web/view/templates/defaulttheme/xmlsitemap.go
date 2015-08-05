@@ -2,18 +2,20 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package templates
+package defaulttheme
 
 import (
-	"fmt"
+	"allmark.io/modules/web/view/templates/templatenames"
 )
 
-var xmlSitemapTemplate = fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-%s
-</urlset>`, ChildTemplatePlaceholder)
+func init() {
+	templates[templatenames.XMLSitemap] = xmlSitemapTemplate
+}
 
-var xmlSitemapContentTemplate = `<url>
+var xmlSitemapTemplate = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+{{ range .Entries }}
+<url>
 	<loc>{{.Loc}}</loc>
 	{{if .LastModified}}<lastmod>{{.LastModified}}</lastmod>{{end}}
 	<changefreq>never</changefreq>
@@ -23,4 +25,6 @@ var xmlSitemapContentTemplate = `<url>
 		<image:loc>{{.Loc}}</image:loc>
 	</image:image>
 	{{end}}
-</url>`
+</url>
+{{ end }}
+</urlset>`

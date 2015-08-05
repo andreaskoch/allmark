@@ -22,7 +22,10 @@ func (orchestrator *AliasIndexOrchestrator) GetIndexEntries(hostname, prefix str
 
 	var aliasIndexEntries []viewmodel.Alias
 
-	for alias, item := range orchestrator.getAliasMap() {
+	for entry := range orchestrator.getAliasMap().Iter() {
+		alias := entry.Key
+		item := entry.Val
+
 		aliasIndexEntries = append(aliasIndexEntries, viewmodel.Alias{
 			Name:        fmt.Sprintf("%s%s", prefix, alias),
 			Route:       aliasPathProvider.Path(alias),

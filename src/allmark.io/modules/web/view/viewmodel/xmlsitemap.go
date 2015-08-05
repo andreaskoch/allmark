@@ -4,6 +4,10 @@
 
 package viewmodel
 
+type XMLSitemap struct {
+	Entries []XmlSitemapEntry
+}
+
 type XmlSitemapEntry struct {
 	Loc          string                 `json:"loc"`
 	LastModified string                 `json:"lastModified"`

@@ -7,6 +7,8 @@ package handlers
 import (
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/web/view/viewmodel"
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -26,6 +28,14 @@ func getBaseURLFromRequest(r *http.Request) string {
 	}
 
 	return scheme + "://" + r.Host
+}
+
+func getRenderedCode(template *template.Template, model interface{}) (string, error) {
+	buffer := new(bytes.Buffer)
+	writer := bufio.NewWriter(buffer)
+	err := renderTemplate(template, model, writer)
+	writer.Flush()
+	return buffer.String(), err
 }
 
 func renderTemplate(template *template.Template, model interface{}, writer io.Writer) error {

@@ -5,8 +5,13 @@
 package viewmodel
 
 type Sitemap struct {
-	Path        string    `json:"path"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Childs      []Sitemap `json:"childs"`
+	Model
+	Tree string
+}
+
+type SitemapEntry struct {
+	Path        string         `json:"path"`
+	Title       string         `json:"title"`
+	Description string         `json:"description"`
+	Childs      []SitemapEntry `json:"childs"`
 }

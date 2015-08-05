@@ -12,7 +12,6 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
-	"strings"
 	"text/template"
 )
 
@@ -29,30 +28,18 @@ func XMLSitemap(headerWriter header.HeaderWriter,
 		hostname := getBaseURLFromRequest(r)
 
 		// get the sitemap template
-		xmlSitemapTemplate, err := templateProvider.GetSubTemplate(hostname, templates.XmlSitemapTemplateName)
+		xmlSitemapTemplate, err := templateProvider.GetXMLSitemapTemplate(hostname)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
-		sitemapWrapper := renderSitemapWrapper(xmlSitemapTemplate)
-
-		// get the sitemap content template
-		xmlSitemapContentTemplate, err := templateProvider.GetSubTemplate(hostname, templates.XmlSitemapContentTemplateName)
-		if err != nil {
-			fmt.Fprintf(w, "Content template not found. Error: %s", err)
-			return
+		xmlSitemapViewModel := viewmodel.XMLSitemap{
+			Entries: xmlSitemapOrchestrator.GetSitemapEntires(hostname),
 		}
 
-		// render the sitemap content
-		entries := xmlSitemapOrchestrator.GetSitemapEntires(hostname)
-		sitemapContent := renderSitemapEntries(xmlSitemapContentTemplate, entries)
+		renderTemplate(xmlSitemapTemplate, xmlSitemapViewModel, w)
 
-		// combine wrapper and content
-		sitemapWrapper = strings.Replace(sitemapWrapper, templates.ChildTemplatePlaceholder, sitemapContent, 1)
-
-		// print the result
-		fmt.Fprintf(w, "%s", sitemapWrapper)
 	})
 }
 

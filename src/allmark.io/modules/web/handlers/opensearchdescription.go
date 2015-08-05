@@ -8,13 +8,11 @@ import (
 	"allmark.io/modules/web/header"
 	"allmark.io/modules/web/orchestrator"
 	"allmark.io/modules/web/view/templates"
-	"allmark.io/modules/web/view/viewmodel"
-	"bytes"
 	"fmt"
 	"net/http"
-	"text/template"
 )
 
+// OpenSearchDescription returns a opensearch description http handler.
 func OpenSearchDescription(headerWriter header.HeaderWriter,
 	openSearchDescriptionOrchestrator *orchestrator.OpenSearchDescriptionOrchestrator,
 	templateProvider templates.Provider) http.Handler {
@@ -26,21 +24,13 @@ func OpenSearchDescription(headerWriter header.HeaderWriter,
 
 		// get the template
 		hostname := getBaseURLFromRequest(r)
-		openSearchDescriptionTemplate, err := templateProvider.GetSubTemplate(hostname, templates.OpenSearchDescriptionTemplateName)
+		openSearchDescriptionTemplate, err := templateProvider.GetOpenSearchDescriptionTemplate(hostname)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
 		descriptionModel := openSearchDescriptionOrchestrator.GetDescriptionModel(hostname)
-		openSearchDescription := getRenderedTemplateText(openSearchDescriptionTemplate, descriptionModel)
-
-		fmt.Fprintf(w, "%s", openSearchDescription)
+		renderTemplate(openSearchDescriptionTemplate, descriptionModel, w)
 	})
-}
-
-func getRenderedTemplateText(templ *template.Template, model viewmodel.OpenSearchDescription) string {
-	buffer := new(bytes.Buffer)
-	renderTemplate(templ, model, buffer)
-	return buffer.String()
 }

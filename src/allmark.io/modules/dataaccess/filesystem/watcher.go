@@ -14,6 +14,7 @@ import (
 type watcherPather interface {
 	Path() string
 	IsDirectory() bool
+	Recurse() bool
 }
 
 // A file path
@@ -29,9 +30,14 @@ func (w watcherFilePath) IsDirectory() bool {
 	return false
 }
 
+func (w watcherFilePath) Recurse() bool {
+	return false
+}
+
 // A directory path
 type watcherDirectoryPath struct {
-	path string
+	path    string
+	recurse bool
 }
 
 func (w watcherDirectoryPath) Path() string {
@@ -40,6 +46,10 @@ func (w watcherDirectoryPath) Path() string {
 
 func (w watcherDirectoryPath) IsDirectory() bool {
 	return true
+}
+
+func (w watcherDirectoryPath) Recurse() bool {
+	return w.recurse
 }
 
 func newFilesystemWatcher(logger logger.Logger) *filesystemWatcher {
@@ -72,7 +82,7 @@ func (watcher *filesystemWatcher) Start(route route.Route, watcherPaths []watche
 		// create a filesystem watcher
 		var pathWatcher fswatch.Watcher
 		if watcherPath.IsDirectory() {
-			pathWatcher = watcher.createDirectoryWatcher(watcherPath.Path(), backChannel)
+			pathWatcher = watcher.createDirectoryWatcher(watcherPath.Path(), watcherPath.Recurse(), backChannel)
 		} else {
 			pathWatcher = watcher.createFileWatcher(watcherPath.Path(), backChannel)
 		}
@@ -137,10 +147,9 @@ func (watcher *filesystemWatcher) createFileWatcher(filePath string, backChannel
 	return filewatcher
 }
 
-func (watcher *filesystemWatcher) createDirectoryWatcher(directoryPath string, backChannel chan bool) fswatch.Watcher {
+func (watcher *filesystemWatcher) createDirectoryWatcher(directoryPath string, recurse bool, backChannel chan bool) fswatch.Watcher {
 	checkIntervalInSeconds := 1
 
-	recurse := true
 	skipNoFiles := func(path string) bool {
 		return false
 	}

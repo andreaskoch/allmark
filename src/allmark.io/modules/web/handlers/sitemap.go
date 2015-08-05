@@ -5,17 +5,17 @@
 package handlers
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
-	"strings"
-	"text/template"
 
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/web/header"
 	"allmark.io/modules/web/orchestrator"
 	"allmark.io/modules/web/view/templates"
 	"allmark.io/modules/web/view/viewmodel"
+
+	"strings"
+	"text/template"
 )
 
 func Sitemap(headerWriter header.HeaderWriter,
@@ -30,15 +30,15 @@ func Sitemap(headerWriter header.HeaderWriter,
 
 		hostname := getBaseURLFromRequest(r)
 
-		// get the sitemap content template
-		sitemapContentTemplate, err := templateProvider.GetSubTemplate(hostname, templates.SitemapContentTemplateName)
+		// get the sitemap template
+		sitemapTemplate, err := templateProvider.GetSitemapTemplate(hostname)
 		if err != nil {
-			fmt.Fprintf(w, "Content template not found. Error: %s", err)
+			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
-		// get the sitemap template
-		sitemapTemplate, err := templateProvider.GetFullTemplate(hostname, templates.SitemapTemplateName)
+		// get the sitemap-entry template
+		sitemapEntryTemplate, childPlaceholder, err := templateProvider.GetSitemapEntryTemplate(hostname)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
@@ -49,51 +49,35 @@ func Sitemap(headerWriter header.HeaderWriter,
 		pageType := "sitemap"
 		descriptionText := "A list of all items in this repository."
 
-		// Page content
-		sitemapContentModel := sitemapOrchestrator.GetSitemap()
-		sitemapContent := renderSitemapEntry(sitemapContentTemplate, sitemapContentModel)
-
 		// Page model
-		sitemapPageModel := viewmodel.Model{
-			Content: sitemapContent,
-		}
+		viewModel := viewmodel.Model{}
+		viewModel.Type = pageType
+		viewModel.Title = pageTitle
+		viewModel.PageTitle = sitemapOrchestrator.GetPageTitle(pageTitle)
+		viewModel.Description = descriptionText
+		viewModel.ToplevelNavigation = navigationOrchestrator.GetToplevelNavigation()
+		viewModel.BreadcrumbNavigation = navigationOrchestrator.GetBreadcrumbNavigation(route.New())
 
-		sitemapPageModel.Type = pageType
-		sitemapPageModel.Title = pageTitle
-		sitemapPageModel.PageTitle = sitemapOrchestrator.GetPageTitle(pageTitle)
-		sitemapPageModel.Description = descriptionText
-		sitemapPageModel.ToplevelNavigation = navigationOrchestrator.GetToplevelNavigation()
-		sitemapPageModel.BreadcrumbNavigation = navigationOrchestrator.GetBreadcrumbNavigation(route.New())
+		sitemapPageModel := viewmodel.Sitemap{}
+		sitemapPageModel.Model = viewModel
+		sitemapPageModel.Tree = renderSitemapEntryTemplate(sitemapEntryTemplate, sitemapOrchestrator.GetSitemap(), childPlaceholder)
 
 		renderTemplate(sitemapTemplate, sitemapPageModel, w)
 	})
 }
 
-func renderSitemapEntry(templ *template.Template, sitemapModel viewmodel.Sitemap) string {
-
-	// render
-	buffer := new(bytes.Buffer)
-	renderTemplate(templ, sitemapModel, buffer)
-
-	// get the produced html code
-	rootCode := buffer.String()
-
-	if len(sitemapModel.Childs) > 0 {
-
-		// render all childs
-		childCode := ""
-		for _, child := range sitemapModel.Childs {
-			childCode += "\n" + renderSitemapEntry(templ, child)
-		}
-
-		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, childCode, 1)
-
-	} else {
-
-		// no childs
-		rootCode = strings.Replace(rootCode, templates.ChildTemplatePlaceholder, "", 1)
-
+func renderSitemapEntryTemplate(template *template.Template, entry viewmodel.SitemapEntry, childPlaceholder string) string {
+	content, err := getRenderedCode(template, entry)
+	if err != nil {
+		return err.Error()
 	}
 
-	return rootCode
+	childCode := ""
+	for _, child := range entry.Childs {
+		childCode += renderSitemapEntryTemplate(template, child, childPlaceholder)
+	}
+
+	content = strings.Replace(content, childPlaceholder, childCode, -1)
+
+	return content
 }

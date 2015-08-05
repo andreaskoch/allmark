@@ -23,16 +23,14 @@ func Error(headerWriter header.HeaderWriter, templateProvider templates.Provider
 
 		// get the error template
 		hostname := getBaseURLFromRequest(r)
-		errorTemplate, err := templateProvider.GetFullTemplate(hostname, templates.ErrorTemplateName)
+		errorTemplate, err := templateProvider.GetErrorTemplate(hostname)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
 		// create the view model
-		errorModel := viewmodel.Model{
-			Content: "",
-		}
+		errorModel := viewmodel.Model{}
 
 		errorModel.Type = "error"
 		errorModel.Title = "Not found"

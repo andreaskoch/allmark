@@ -2,13 +2,17 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package templates
+package defaulttheme
 
 import (
-	"fmt"
+	"allmark.io/modules/web/view/templates/templatenames"
 )
 
-var rssFeedTemplate = fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
+func init() {
+	templates[templatenames.RSSFeed] = rssFeedTemplate
+}
+
+var rssFeedTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
 <channel>
 
@@ -18,14 +22,14 @@ var rssFeedTemplate = fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 <pubDate>{{.PubDate}}</pubDate>
 <ttl>1800</ttl>
 
-%s
-
-</channel>
-</rss>`, ChildTemplatePlaceholder)
-
-var rssFeedContentTemplate = `<item>
+{{ range .Items }}
+<item>
 	<title><![CDATA[ {{.Title}} ]]></title>
 	<description><![CDATA[ {{.Description}} ]]></description>
 	<link>{{.Link}}</link>
 	<pubDate>{{.PubDate}}</pubDate>
-</item>`
+</item>
+{{ end}}
+
+</channel>
+</rss>`

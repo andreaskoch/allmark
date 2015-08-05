@@ -5,6 +5,11 @@
 package viewmodel
 
 type Search struct {
+	Model
+	Results SearchResults
+}
+
+type SearchResults struct {
 	Query   string         `json:"query"`
 	Results []SearchResult `json:"results"`
 

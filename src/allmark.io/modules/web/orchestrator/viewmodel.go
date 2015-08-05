@@ -20,9 +20,9 @@ type ViewModelOrchestrator struct {
 	fileOrchestrator       *FileOrchestrator
 
 	// caches (do not initialize!)
-	latestByRoute         map[string][]*viewmodel.Model
-	viewmodelsByRoute     map[string]*viewmodel.Model
-	fullViewmodelsByRoute map[string]*viewmodel.Model
+	latestByRoute         ViewModelListCache
+	viewmodelsByRoute     ViewModelCache
+	fullViewmodelsByRoute ViewModelCache
 }
 
 // GetFullViewModel returns a fully-initialized viewmodel for the given route.
@@ -31,7 +31,7 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	// return from cache
 	if orchestrator.fullViewmodelsByRoute != nil {
 
-		if viewModel := orchestrator.fullViewmodelsByRoute[itemRoute.String()]; viewModel != nil {
+		if viewModel, exists := orchestrator.fullViewmodelsByRoute.Get(itemRoute.String()); exists {
 
 			// append the content
 			viewModel.Content = orchestrator.getHTMLFromRoute(itemRoute)
@@ -43,7 +43,7 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 	}
 
 	// initialize the cache
-	orchestrator.fullViewmodelsByRoute = make(map[string]*viewmodel.Model)
+	orchestrator.fullViewmodelsByRoute = newViewmodelCache()
 
 	// updateViewModel update the viewmodel cache for the given route.
 	updateViewModel := func(route route.Route) {
@@ -95,34 +95,37 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 
 		}
 
-		orchestrator.fullViewmodelsByRoute[route.String()] = viewModel
+		orchestrator.fullViewmodelsByRoute.Set(route.String(), viewModel)
 	}
 
-	// deleteViewModel removed the viewmodel with the given route from the cache.
-	deleteViewModel := func(route route.Route) {
-		delete(orchestrator.fullViewmodelsByRoute, route.String())
+	// buildCache writes the cache for all routes
+	buildCache := func(route route.Route) {
+		for _, childRoute := range orchestrator.repository.Routes() {
+			updateViewModel(childRoute)
+		}
+	}
+
+	// deleteRouteFromCache deletes the given route from cache
+	// and rebuilds the whole cache because other view models
+	// might contain references to this route.
+	deleteRouteFromCache := func(route route.Route) {
+		if orchestrator.fullViewmodelsByRoute.Has(route.String()) {
+			orchestrator.fullViewmodelsByRoute.Remove(route.String())
+		}
+
+		buildCache(route)
 	}
 
 	// write the cache for the requested route directly
 	updateViewModel(itemRoute)
 
 	// write cache for all other routes async
-	go func() {
-		startTime := time.Now()
-
-		for _, childRoute := range orchestrator.repository.Routes() {
-			updateViewModel(childRoute)
-		}
-
-		endTime := time.Now()
-		duration := endTime.Sub(startTime)
-		orchestrator.logger.Statistics("Priming the full view model cache took %f seconds.", duration.Seconds())
-	}()
+	go buildCache(route.New())
 
 	// register update callbacks
 	orchestrator.registerUpdateCallback("update full viewmodel", UpdateTypeNew, updateViewModel)
 	orchestrator.registerUpdateCallback("update full viewmodel", UpdateTypeModified, updateViewModel)
-	orchestrator.registerUpdateCallback("update full viewmodel", UpdateTypeDeleted, deleteViewModel)
+	orchestrator.registerUpdateCallback("update full viewmodel", UpdateTypeDeleted, deleteRouteFromCache)
 
 	return orchestrator.GetFullViewModel(itemRoute)
 }
@@ -165,7 +168,7 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 	// return from cache if cache has been initialized
 	if orchestrator.latestByRoute != nil {
 
-		if models, exists := orchestrator.latestByRoute[itemRoute.Value()]; exists {
+		if models, exists := orchestrator.latestByRoute.Get(itemRoute.Value()); exists {
 
 			// get the paged view models
 			latestModels, found := pagedViewmodels(models, pageSize, page)
@@ -199,10 +202,10 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 	updateLatest := func(route route.Route) {
 		startTime := time.Now()
 
-		orchestrator.latestByRoute = make(map[string][]*viewmodel.Model)
+		orchestrator.latestByRoute = newViewModelListCache()
 		for _, childRoute := range orchestrator.repository.Routes() {
 			latestItems := orchestrator.getLatestItems(childRoute)
-			orchestrator.latestByRoute[childRoute.Value()] = orchestrator.getLastesViewModelsFromItemList(latestItems)
+			orchestrator.latestByRoute.Set(childRoute.Value(), orchestrator.getLastesViewModelsFromItemList(latestItems))
 		}
 
 		// log timing reports
@@ -232,7 +235,7 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items []*model.Item) []*viewmodel.Model {
 
 	// create viewmodels
-	models := make([]*viewmodel.Model, 0, len(items))
+	models := make([]*viewmodel.Model, 0)
 	for _, item := range items {
 
 		viewModel := orchestrator.getViewModel(item.Route())
@@ -250,7 +253,12 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *viewmodel.Model {
 
 	if orchestrator.viewmodelsByRoute != nil {
-		return orchestrator.viewmodelsByRoute[itemRoute.String()]
+		model, exists := orchestrator.viewmodelsByRoute.Get(itemRoute.String())
+		if !exists {
+			return nil
+		}
+
+		return model
 	}
 
 	// updateViewModel stores the view model for the given route to the cache
@@ -281,26 +289,30 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *
 			viewModel.RTFURL = GetTypedItemURL(route, "rtf")
 		}
 
-		orchestrator.viewmodelsByRoute[route.String()] = viewModel
+		orchestrator.viewmodelsByRoute.Set(route.String(), viewModel)
 	}
 
-	// deleteViewModel stores the view model for the given route from the cache
-	deleteViewModel := func(route route.Route) {
-		delete(orchestrator.viewmodelsByRoute, route.String())
-	}
-
-	// build the cache
-	orchestrator.viewmodelsByRoute = make(map[string]*viewmodel.Model)
-	for _, item := range orchestrator.index().GetAllItems() {
-		updateViewModel(item.Route())
+	// buildCache rebuilds the complete cache
+	buildCache := func(route route.Route) {
+		orchestrator.viewmodelsByRoute = newViewmodelCache()
+		for _, item := range orchestrator.index().GetAllItems() {
+			updateViewModel(item.Route())
+		}
 	}
 
 	// register update callbacks
 	orchestrator.registerUpdateCallback("update viewmodel", UpdateTypeNew, updateViewModel)
 	orchestrator.registerUpdateCallback("update viewmodel", UpdateTypeModified, updateViewModel)
-	orchestrator.registerUpdateCallback("update viewmodel", UpdateTypeDeleted, deleteViewModel)
+	orchestrator.registerUpdateCallback("update viewmodel", UpdateTypeDeleted, buildCache)
 
-	return orchestrator.viewmodelsByRoute[itemRoute.String()]
+	// initialize
+	buildCache(route.New())
+	model, exists := orchestrator.viewmodelsByRoute.Get(itemRoute.String())
+	if !exists {
+		return nil
+	}
+
+	return model
 }
 
 func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route) []*viewmodel.Base {

@@ -24,5 +24,10 @@ func (orchestrator *UpdateOrchestrator) StopWatching(route route.Route) {
 }
 
 func (orchestrator *UpdateOrchestrator) GetUpdatedModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
-	return orchestrator.viewModelOrchestrator.GetViewModel(itemRoute)
+	model, found := orchestrator.viewModelOrchestrator.GetViewModel(itemRoute)
+	if !found {
+		return viewmodel.Model{}, false
+	}
+
+	return model, true
 }

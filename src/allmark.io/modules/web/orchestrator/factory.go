@@ -23,10 +23,8 @@ func NewFactory(logger logger.Logger, config config.Config, repository dataacces
 
 	go func() {
 		for update := range repositoryUpdates {
-
 			logger.Info("Received and update (%s). Resetting the the cache.", update.String())
 			baseOrchestrator.UpdateCache(update)
-
 		}
 	}()
 

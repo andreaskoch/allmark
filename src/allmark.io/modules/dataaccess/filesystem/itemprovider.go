@@ -100,7 +100,7 @@ func (itemProvider *itemProvider) getChildItemsFromDirectory(itemDirectory strin
 
 func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string) (dataaccess.Item, error) {
 
-	route := route.NewFromItemPath(itemProvider.repositoryPath, filePath)
+	route := itemProvider.GetRouteFromFilePath(filePath)
 	itemProvider.logger.Debug("Creating a physical item from route %q", route)
 
 	// content
@@ -129,7 +129,8 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 		itemDirectory,
 		[]watcherPather{
 			watcherFilePath{filePath},
-			watcherDirectoryPath{filesDirectory},
+			watcherDirectoryPath{itemDirectory, false},
+			watcherDirectoryPath{filesDirectory, true},
 		},
 	)
 	return item, nil
@@ -137,7 +138,7 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 
 func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (dataaccess.Item, error) {
 
-	route := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
+	route := itemProvider.GetRouteFromDirectory(itemDirectory)
 	itemProvider.logger.Debug("Creating a virtual item from route %q", route)
 
 	// content
@@ -167,7 +168,7 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (dataacce
 		childs,
 		itemDirectory,
 		[]watcherPather{
-			watcherDirectoryPath{itemDirectory},
+			watcherDirectoryPath{itemDirectory, false},
 		})
 
 	return item, nil
@@ -175,7 +176,7 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (dataacce
 
 func (itemProvider *itemProvider) newFileCollectionItem(itemDirectory string) (dataaccess.Item, error) {
 
-	route := route.NewFromItemDirectory(itemProvider.repositoryPath, itemDirectory)
+	route := itemProvider.GetRouteFromDirectory(itemDirectory)
 	itemProvider.logger.Debug("Creating a file collection item from route %q", route)
 
 	// content
@@ -201,9 +202,19 @@ files: [Attachments](/)`, title)
 		files,
 		itemDirectory,
 		[]watcherPather{
-			watcherDirectoryPath{itemDirectory},
+			watcherDirectoryPath{itemDirectory, true},
 		},
 	)
 
 	return item, nil
+}
+
+// GetRouteFromDirectory creates a route from the given directory path.
+func (itemProvider *itemProvider) GetRouteFromDirectory(directory string) route.Route {
+	return route.NewFromItemDirectory(itemProvider.repositoryPath, directory)
+}
+
+// GetRouteFromFilePath creates a route from the given file path.
+func (itemProvider *itemProvider) GetRouteFromFilePath(filepath string) route.Route {
+	return route.NewFromItemPath(itemProvider.repositoryPath, filepath)
 }

@@ -2,9 +2,31 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package templates
+package defaulttheme
 
-var searchContentTemplate = `
+import (
+	"allmark.io/modules/web/view/templates/templatenames"
+)
+
+func init() {
+	templates[templatenames.Search] = searchTemplate
+}
+
+const searchTemplate = `
+<header>
+<h1 class="title">
+{{.Title}}
+</h1>
+</header>
+
+<section class="description">
+{{.Description}}
+</section>
+
+{{ if .Results }}
+{{ with .Results}}
+
+<section class="content">
 <nav>
 	<form action="/search" method="GET">
 		<input type="text" name="q" placeholder="search" value="{{.Query}}" autocomplete="off">
@@ -30,20 +52,9 @@ var searchContentTemplate = `
 	{{if .Query}}
 	No results found for "{{.Query}}".
 	{{end}}
-{{end}}`
-
-const searchTemplate = `
-<header>
-<h1 class="title">
-{{.Title}}
-</h1>
-</header>
-
-<section class="description">
-{{.Description}}
+{{end}}
 </section>
 
-<section class="content">
-{{.Content}}
-</section>
+{{ end }}
+{{ end }}
 `

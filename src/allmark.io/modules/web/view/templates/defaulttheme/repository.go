@@ -2,7 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package templates
+package defaulttheme
+
+import (
+	"allmark.io/modules/web/view/templates/templatenames"
+)
+
+func init() {
+	templates[templatenames.Repository] = repositoryTemplate
+}
 
 const repositoryTemplate = `
 <header>

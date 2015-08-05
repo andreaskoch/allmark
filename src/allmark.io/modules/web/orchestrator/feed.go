@@ -10,44 +10,64 @@ import (
 	"fmt"
 )
 
+// A FeedOrchestrator provides feed models.
 type FeedOrchestrator struct {
 	*Orchestrator
 }
 
-func (orchestrator *FeedOrchestrator) GetRootEntry(baseURL string) viewmodel.FeedEntry {
+// GetFeed returns a feed model for the given base URL, items per page and page.
+func (orchestrator *FeedOrchestrator) GetFeed(baseURL string, itemsPerPage, page int) (viewmodel.Feed, error) {
+	root, err := orchestrator.getRootEntry(baseURL)
+	if err != nil {
+		return viewmodel.Feed{}, err
+	}
+
+	items, err := orchestrator.getItems(baseURL, itemsPerPage, page)
+	if err != nil {
+		return viewmodel.Feed{}, err
+	}
+
+	feedModel := viewmodel.Feed{}
+	feedModel.FeedEntry = root
+	feedModel.Items = items
+
+	return feedModel, nil
+}
+
+func (orchestrator *FeedOrchestrator) getRootEntry(baseURL string) (viewmodel.FeedEntry, error) {
 
 	rootItem := orchestrator.rootItem()
 	if rootItem == nil {
-		orchestrator.logger.Fatal("No root item found.")
+		return viewmodel.FeedEntry{}, fmt.Errorf("No root item found.")
 	}
 
-	return orchestrator.createFeedEntryModel(baseURL, rootItem)
+	return orchestrator.createFeedEntryModel(baseURL, rootItem), nil
 }
 
-func (orchestrator *FeedOrchestrator) GetEntries(baseURL string, itemsPerPage, page int) (entries []viewmodel.FeedEntry, found bool) {
+func (orchestrator *FeedOrchestrator) getItems(baseURL string, itemsPerPage, page int) ([]viewmodel.FeedEntry, error) {
 
 	// validate page number
 	if page < 1 {
-		orchestrator.logger.Fatal("Invalid page number (%v).", page)
+		return []viewmodel.FeedEntry{}, fmt.Errorf("Invalid page number: %v.", page)
 	}
 
 	rootItem := orchestrator.rootItem()
 	if rootItem == nil {
-		orchestrator.logger.Fatal("No root item found")
+		return []viewmodel.FeedEntry{}, fmt.Errorf("No root item found.")
 	}
 
-	feedEntries := make([]viewmodel.FeedEntry, 0)
+	var feedEntries []viewmodel.FeedEntry
 
 	latestItems, found := pagedItems(orchestrator.getLatestItems(rootItem.Route()), itemsPerPage, page)
 	if !found {
-		return feedEntries, false
+		return feedEntries, fmt.Errorf("No items found (Items per page: %v, Page: %v)", itemsPerPage, page)
 	}
 
 	for _, item := range latestItems {
 		feedEntries = append(feedEntries, orchestrator.createFeedEntryModel(baseURL, item))
 	}
 
-	return feedEntries, true
+	return feedEntries, nil
 }
 
 func (orchestrator *FeedOrchestrator) createFeedEntryModel(baseURL string, item *model.Item) viewmodel.FeedEntry {

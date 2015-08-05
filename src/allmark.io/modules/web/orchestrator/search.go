@@ -18,7 +18,7 @@ type SearchOrchestrator struct {
 	*Orchestrator
 }
 
-func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page int) viewmodel.Search {
+func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page int) viewmodel.SearchResults {
 
 	// validate page number
 	if page < 1 {
@@ -58,7 +58,7 @@ func (orchestrator *SearchOrchestrator) GetSearchResults(keywords string, page i
 
 	}
 
-	return viewmodel.Search{
+	return viewmodel.SearchResults{
 		Query:   keywords,
 		Results: searchResultModels,
 

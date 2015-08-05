@@ -10,11 +10,9 @@ import (
 	"allmark.io/modules/web/orchestrator"
 	"allmark.io/modules/web/view/templates"
 	"allmark.io/modules/web/view/viewmodel"
-	"bytes"
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
-	"text/template"
 )
 
 // AliasLookup creates a http handler which redirects aliases to their documents.
@@ -59,44 +57,28 @@ func AliasIndex(
 
 		hostname := getBaseURLFromRequest(r)
 
-		aliasIndexTemplate, err := templateProvider.GetFullTemplate(hostname, templates.AliasIndexTemplateName)
+		aliasIndexTemplate, err := templateProvider.GetAliasIndexTemplate(hostname)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
-		// Page conent
-		aliasIndexContentTemplate, err := templateProvider.GetSubTemplate(hostname, templates.AliasIndexContentTemplateName)
-		if err != nil {
-			fmt.Fprintf(w, "Content template not found. Error: %s", err)
-			return
-		}
-
-		aliasIndexContent := ""
-		aliasIndexEntries := aliasIndexOrchestrator.GetIndexEntries(hostname, "!")
-
-		if len(aliasIndexEntries) > 0 {
-			for _, aliasIndexEntry := range aliasIndexEntries {
-				aliasIndexContent += renderAliasIndexEntry(aliasIndexContentTemplate, aliasIndexEntry)
-			}
-		} else {
-			aliasIndexContent = "-- There are currently not items with aliases in this repository --"
-		}
-
-		// Page model
-		aliasIndexViewModel := viewmodel.Model{
-			Content: aliasIndexContent,
-		}
-
+		// assemble the base view model
 		title := "Shortlinks"
 		description := "A list of all short links to different items in this repository."
+		viewModel := viewmodel.Model{}
 
-		aliasIndexViewModel.Type = "aliasindex"
-		aliasIndexViewModel.Title = title
-		aliasIndexViewModel.Description = description
-		aliasIndexViewModel.PageTitle = aliasIndexOrchestrator.GetPageTitle(title)
-		aliasIndexViewModel.ToplevelNavigation = navigationOrchestrator.GetToplevelNavigation()
-		aliasIndexViewModel.BreadcrumbNavigation = navigationOrchestrator.GetBreadcrumbNavigation(route.New())
+		viewModel.Type = "aliasindex"
+		viewModel.Title = title
+		viewModel.Description = description
+		viewModel.PageTitle = aliasIndexOrchestrator.GetPageTitle(title)
+		viewModel.ToplevelNavigation = navigationOrchestrator.GetToplevelNavigation()
+		viewModel.BreadcrumbNavigation = navigationOrchestrator.GetBreadcrumbNavigation(route.New())
+
+		// assemble the specialized alias index viewmodel
+		aliasIndexViewModel := viewmodel.AliasIndex{}
+		aliasIndexViewModel.Model = viewModel
+		aliasIndexViewModel.Aliases = aliasIndexOrchestrator.GetIndexEntries(hostname, "!")
 
 		renderTemplate(aliasIndexTemplate, aliasIndexViewModel, w)
 
@@ -104,8 +86,7 @@ func AliasIndex(
 
 }
 
-func renderAliasIndexEntry(templ *template.Template, model interface{}) string {
-	buffer := new(bytes.Buffer)
-	renderTemplate(templ, model, buffer)
-	return buffer.String()
+type aliasIndexViewModel struct {
+	viewmodel.Model
+	Entries []viewmodel.Alias
 }

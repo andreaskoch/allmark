@@ -1,14 +1,35 @@
-// Copyright 2014 Andreas Koch. All rights reserved.
+// Copyright 2015 Andreas Koch. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package templates
+package defaulttheme
 
 import (
-	"fmt"
+	"allmark.io/modules/web/view/templates/templatenames"
 )
 
-var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
+func init() {
+	templates[templatenames.Master] = masterTemplate +
+		toplevelNavigationSnippet +
+		breadcrumbNavigationSnippet +
+		itemNavigationSnippet +
+		childsSnippet +
+		tagcloudSnippet +
+		tagsSnippet +
+		publisherSnippet +
+		aliasesSnippet
+
+	templates[templatenames.ToplevelNavigation] = toplevelNavigationSnippet
+	templates[templatenames.BreadcrumbNavigation] = breadcrumbNavigationSnippet
+	templates[templatenames.ItemNavigation] = itemNavigationSnippet
+	templates[templatenames.Childs] = childsSnippet
+	templates[templatenames.TagCloud] = tagcloudSnippet
+	templates[templatenames.Tags] = tagsSnippet
+	templates[templatenames.Publisher] = publisherSnippet
+	templates[templatenames.Aliases] = aliasesSnippet
+}
+
+const masterTemplate = `<!DOCTYPE HTML>
 <html lang="{{.LanguageTag}}" itemscope itemtype="http://schema.org/WebPage" prefix="og: http://ogp.me/ns#" prefix="article: http://ogp.me/ns/article#">
 <head>
 	<base href="{{ .BaseURL }}">
@@ -58,17 +79,7 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 </head>
 <body>
 
-{{ if .ToplevelNavigation}}
-<nav class="toplevel">
-	<ul>
-	{{range .ToplevelNavigation.Entries}}
-	<li>
-		<a href="{{.Path}}">{{.Title}}</a>
-	</li>
-	{{end}}
-	</ul>
-</nav>
-{{end}}
+{{template "toplevelnavigation-snippet" .}}
 
 <nav class="search">
 	<form action="/search" method="GET">
@@ -77,70 +88,19 @@ var masterTemplate = fmt.Sprintf(`<!DOCTYPE HTML>
 	</form>
 </nav>
 
-{{ if .BreadcrumbNavigation}}
-<nav class="breadcrumb" itemprop="breadcrumb">
-	{{range .BreadcrumbNavigation.Entries}}
-		<a href="{{.Path}}">{{.Title}}</a>{{if not .IsLast}} » {{end}}
-	{{end}}
-</nav>
-{{end}}
+{{template "breadcrumbnavigation-snippet" .}}
 
 <article class="{{.Type}} level-{{.Level}}" itemprop="mainContentOfPage" itemscope itemtype=http://schema.org/BlogPosting>
-%s
+{{template "content" .}}
 </article>
 
 <aside class="sidebar">
 
-	{{if .ItemNavigation}}
-	<nav class="navigation">
-		<div class="navelement parent">
-			{{if .ItemNavigation.Parent}}
-			<a href="{{.ItemNavigation.Parent.Path}}" title="{{.ItemNavigation.Parent.Title}}">↑ Parent</a>
-			{{end}}
-		</div>
+	{{template "itemnavigation-snippet" .}}
 
-		<div class="navelement previous">
-			{{if .ItemNavigation.Previous}}
-			<a class="previous" href="{{.ItemNavigation.Previous.Path}}" title="{{.ItemNavigation.Previous.Title}}">← Previous</a>
-			{{end}}
-		</div>
+	{{template "childs-snippet" .}}
 
-		<div class="navelement next">
-			{{if .ItemNavigation.Next}}
-			<a class="next" href="{{.ItemNavigation.Next.Path}}" title="{{.ItemNavigation.Next.Title}}">Next →</a>
-			{{end}}
-		</div>
-	</nav>
-	{{end}}
-
-	{{ if .Childs }}
-	<section class="childs">
-	<h1>Childs</h1>
-
-	<ol class="list">
-	{{range .Childs}}
-	<li class="child">
-		<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
-		<p class="child-description">{{.Description}}</p>
-	</li>
-	{{end}}
-	</ol>
-	</section>
-	{{end}}
-
-	{{if .TagCloud}}
-	<section class="tagcloud">
-		<h1>Tag Cloud</h1>
-
-		<div class="tags">
-		{{range .TagCloud}}
-		<span class="level-{{.Level}}">
-			<a href="{{.Route}}">{{.Name}}</a>
-		</span>
-		{{end}}
-		</div>
-	</section>
-	{{end}}
+	{{template "tagcloud-snippet" .}}
 
 </aside>
 
@@ -217,4 +177,162 @@ $(function() {
 {{end}}
 
 </body>
-</html>`, ChildTemplatePlaceholder)
+</html>`
+
+const toplevelNavigationSnippet = `{{define "toplevelnavigation-snippet"}}
+<nav class="toplevel">
+{{ if .ToplevelNavigation}}
+	<ul>
+	{{range .ToplevelNavigation.Entries}}
+	<li>
+		<a href="{{.Path}}">{{.Title}}</a>
+	</li>
+	{{end}}
+	</ul>
+{{end}}
+</nav>
+{{end}}
+`
+
+const breadcrumbNavigationSnippet = `{{define "breadcrumbnavigation-snippet"}}
+<nav class="breadcrumb" itemprop="breadcrumb">
+{{ if .BreadcrumbNavigation}}
+	{{range .BreadcrumbNavigation.Entries}}
+		<a href="{{.Path}}">{{.Title}}</a>{{if not .IsLast}} » {{end}}
+	{{end}}
+{{end}}
+</nav>
+{{end}}`
+
+const itemNavigationSnippet = `{{define "itemnavigation-snippet"}}
+<nav class="navigation">
+{{if .ItemNavigation}}
+	<div class="navelement parent">
+		{{if .ItemNavigation.Parent}}
+		<a href="{{.ItemNavigation.Parent.Path}}" title="{{.ItemNavigation.Parent.Title}}">↑ Parent</a>
+		{{end}}
+	</div>
+
+	<div class="navelement previous">
+		{{if .ItemNavigation.Previous}}
+		<a class="previous" href="{{.ItemNavigation.Previous.Path}}" title="{{.ItemNavigation.Previous.Title}}">← Previous</a>
+		{{end}}
+	</div>
+
+	<div class="navelement next">
+		{{if .ItemNavigation.Next}}
+		<a class="next" href="{{.ItemNavigation.Next.Path}}" title="{{.ItemNavigation.Next.Title}}">Next →</a>
+		{{end}}
+	</div>
+{{end}}
+</nav>
+{{end}}
+`
+
+const childsSnippet = `{{define "childs-snippet"}}
+<section class="childs">
+{{ if .Childs }}
+<h1>Childs</h1>
+
+<ol class="list">
+{{range .Childs}}
+<li class="child">
+	<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
+	<p class="child-description">{{.Description}}</p>
+</li>
+{{end}}
+</ol>
+{{end}}
+</section>
+{{end}}
+`
+
+const tagcloudSnippet = `{{define "tagcloud-snippet"}}
+<section class="tagcloud">
+{{if .TagCloud}}
+	<h1>Tag Cloud</h1>
+
+	<div class="tags">
+	{{range .TagCloud}}
+	<span class="level-{{.Level}}">
+		<a href="{{.Route}}">{{.Name}}</a>
+	</span>
+	{{end}}
+	</div>
+{{end}}
+</section>
+{{end}}
+`
+
+const tagsSnippet = `{{define "tags-snippet"}}
+<div class="cleaner"></div>
+<section class="tags">
+{{ if .Tags }}
+	<header>
+		Tags:
+	</header>
+
+	<ul>
+	{{range .Tags}}
+	<li>
+		<a href="{{.Route}}" rel="tag">{{.Name}}</a>
+	</li>
+	{{end}}
+	</ul>
+{{end}}
+</section>
+{{end}}`
+
+const publisherSnippet = `{{define "publisher-snippet"}}
+<section class="publisher">
+{{if or .Author.Name .CreationDate}}
+{{if and .Author.Name .Author.URL}}
+
+	created by <span class="author" itemprop="author" rel="author">
+	<a href="{{ .Author.URL }}" title="{{ .Author.Name }}" target="_blank">
+	{{ .Author.Name }}
+	</a>
+	</span>
+
+{{else if .Author.Name}}
+
+	created by <span class="author" itemprop="author" rel="author">{{ .Author.Name }}</span>
+
+{{end}}
+{{if .CreationDate}}
+
+	{{if not .Author.Name}}created{{end}} on <span class="creationdate" itemprop="dateCreated">{{ .CreationDate }}</span>
+
+{{end}}
+{{end}}
+</section>
+{{end}}
+`
+
+// aliasesSnippet defines the templates for the aliases section of repository items.
+const aliasesSnippet = `{{define "aliases-snippet"}}
+<div class="cleaner"></div>
+<section class="aliases">
+{{ if .Aliases }}
+
+{{ if gt (len .Aliases) 1 }}
+	<header title="Direct links to this document">
+		Shortlinks:
+	</header>
+{{else}}
+	<header title="A direct link to this document">
+		Shortlink:
+	</header>
+{{end}}
+
+<ul>
+{{range .Aliases}}
+<li>
+	<input type="text" value="{{.Route | absolute}}" title="Redirects to {{.TargetRoute | absolute}}" readonly="readonly" />
+</li>
+{{end}}
+</ul>
+
+{{end}}
+</section>
+{{end}}`

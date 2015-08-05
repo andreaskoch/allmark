@@ -42,7 +42,7 @@ func Search(headerWriter header.HeaderWriter,
 		}
 
 		// get the search template
-		searchTemplate, err := templateProvider.GetFullTemplate(hostname, templates.SearchTemplateName)
+		searchTemplate, err := templateProvider.GetSearchTemplate(hostname)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
@@ -55,33 +55,29 @@ func Search(headerWriter header.HeaderWriter,
 		description := getDescription(query)
 
 		// Page model
-		viewModel := viewmodel.Model{}
-		viewModel.Type = pageType
-		viewModel.Title = headline
-		viewModel.PageTitle = pageTitle
-		viewModel.Description = description
-		viewModel.ToplevelNavigation = navigationOrchestrator.GetToplevelNavigation()
-		viewModel.BreadcrumbNavigation = navigationOrchestrator.GetBreadcrumbNavigation(route.New())
-
-		// get the search result content template
-		searchResultContentTemplate, err := templateProvider.GetSubTemplate(hostname, templates.SearchContentTemplateName)
-		if err != nil {
-			fmt.Fprintf(w, "Template not found. Error: %s", err)
-			return
-		}
+		pageModel := viewmodel.Model{}
+		pageModel.Type = pageType
+		pageModel.Title = headline
+		pageModel.PageTitle = pageTitle
+		pageModel.Description = description
+		pageModel.ToplevelNavigation = navigationOrchestrator.GetToplevelNavigation()
+		pageModel.BreadcrumbNavigation = navigationOrchestrator.GetBreadcrumbNavigation(route.New())
 
 		// get the search results
-		searchResultModel := searchOrchestrator.GetSearchResults(query, page)
+		searchResultsModel := searchOrchestrator.GetSearchResults(query, page)
 
 		// display error 404 non-existing page has been requested
-		if searchResultModel.ResultCount == 0 && page > 1 {
+		if searchResultsModel.ResultCount == 0 && page > 1 {
 			error404Handler.ServeHTTP(w, r)
 			return
 		}
 
-		viewModel.Content = renderSearchResultModel(searchResultContentTemplate, searchResultModel)
+		// assemble the page model
+		searchResultPage := viewmodel.Search{}
+		searchResultPage.Model = pageModel
+		searchResultPage.Results = searchResultsModel
 
-		renderTemplate(searchTemplate, viewModel, w)
+		renderTemplate(searchTemplate, searchResultPage, w)
 	})
 
 }

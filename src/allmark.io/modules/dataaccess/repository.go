@@ -39,14 +39,12 @@ type Repository interface {
 	LiveReload
 }
 
-func NewModifiedItemUpdate(modifiedRoute route.Route) Update {
-	return NewUpdate([]route.Route{}, []route.Route{modifiedRoute}, []route.Route{})
-}
-
+// NewUpdate creates a new Update instance from the given new, modified and deleted routes.
 func NewUpdate(newItemRoutes, modifiedItemRoutes, deletedItemRoutes []route.Route) Update {
 	return Update{newItemRoutes, modifiedItemRoutes, deletedItemRoutes}
 }
 
+// Update contains a list of new, modified and deleted routes.
 type Update struct {
 	newItemRoutes      []route.Route
 	modifiedItemRoutes []route.Route
@@ -58,18 +56,22 @@ func (update *Update) String() string {
 		len(update.newItemRoutes), len(update.modifiedItemRoutes), len(update.deletedItemRoutes))
 }
 
+// IsEmpty indicates whether this Update is empty or not.
 func (update *Update) IsEmpty() bool {
-	return len(update.newItemRoutes) == 00 && len(update.modifiedItemRoutes) == 0 && len(update.deletedItemRoutes) == 0
+	return len(update.newItemRoutes) == 0 && len(update.modifiedItemRoutes) == 0 && len(update.deletedItemRoutes) == 0
 }
 
+// New returns the routes of new items.
 func (update *Update) New() []route.Route {
 	return update.newItemRoutes
 }
 
+// Modified returns the routes of modified items.
 func (update *Update) Modified() []route.Route {
 	return update.modifiedItemRoutes
 }
 
+// Deleted returns the routes of releted items.
 func (update *Update) Deleted() []route.Route {
 	return update.deletedItemRoutes
 }

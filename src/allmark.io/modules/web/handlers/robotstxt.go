@@ -19,7 +19,7 @@ func RobotsTxt(headerWriter header.HeaderWriter, templateProvider templates.Prov
 
 		// template
 		baseURL := getBaseURLFromRequest(r)
-		robotsTxtTemplate, err := templateProvider.GetSubTemplate(baseURL, templates.RobotsTxtTemplateName)
+		robotsTxtTemplate, err := templateProvider.GetRobotsTxtTemplate(baseURL)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return

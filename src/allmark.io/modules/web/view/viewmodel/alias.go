@@ -8,6 +8,12 @@ import (
 	"sort"
 )
 
+type AliasIndex struct {
+	Model
+
+	Aliases []Alias
+}
+
 // Alias represents an alias-index entry with a name, route and target route.
 type Alias struct {
 	Name        string

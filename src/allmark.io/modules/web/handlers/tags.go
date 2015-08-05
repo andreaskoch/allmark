@@ -5,10 +5,8 @@
 package handlers
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
-	"text/template"
 
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/web/header"
@@ -29,28 +27,10 @@ func Tags(headerWriter header.HeaderWriter,
 
 		hostname := getBaseURLFromRequest(r)
 
-		tagmapTemplate, err := templateProvider.GetFullTemplate(hostname, templates.TagmapTemplateName)
+		tagmapTemplate, err := templateProvider.GetTagMapTemplate(hostname)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
-		}
-
-		// Page conent
-		tagmapContentTemplate, err := templateProvider.GetSubTemplate(hostname, templates.TagmapContentTemplateName)
-		if err != nil {
-			fmt.Fprintf(w, "Content template not found. Error: %s", err)
-			return
-		}
-
-		tagMapItems := ""
-		tags := tagsOrchestrator.GetTags()
-
-		if len(tags) > 0 {
-			for _, tag := range tags {
-				tagMapItems += renderTagmapEntry(tagmapContentTemplate, tag)
-			}
-		} else {
-			tagMapItems = "-- There are currently not tagged items --"
 		}
 
 		// Page parameters
@@ -58,24 +38,18 @@ func Tags(headerWriter header.HeaderWriter,
 		headline := "Tags"
 		pageTitle := tagsOrchestrator.GetPageTitle(headline)
 
-		// Page model
-		tagmapViewModel := viewmodel.Model{
-			Content: tagMapItems,
-		}
+		pageModel := viewmodel.Model{}
+		pageModel.Type = pageType
+		pageModel.Title = headline
+		pageModel.PageTitle = pageTitle
+		pageModel.ToplevelNavigation = navigationOrchestrator.GetToplevelNavigation()
+		pageModel.BreadcrumbNavigation = navigationOrchestrator.GetBreadcrumbNavigation(route.New())
+		pageModel.TagCloud = tagsOrchestrator.GetTagCloud()
 
-		tagmapViewModel.Type = pageType
-		tagmapViewModel.Title = headline
-		tagmapViewModel.PageTitle = pageTitle
-		tagmapViewModel.ToplevelNavigation = navigationOrchestrator.GetToplevelNavigation()
-		tagmapViewModel.BreadcrumbNavigation = navigationOrchestrator.GetBreadcrumbNavigation(route.New())
-		tagmapViewModel.TagCloud = tagsOrchestrator.GetTagCloud()
+		tagsPageModel := viewmodel.Tags{}
+		tagsPageModel.Model = pageModel
+		tagsPageModel.Tags = tagsOrchestrator.GetTags()
 
-		renderTemplate(tagmapTemplate, tagmapViewModel, w)
+		renderTemplate(tagmapTemplate, tagsPageModel, w)
 	})
-}
-
-func renderTagmapEntry(templ *template.Template, tagModel *viewmodel.Tag) string {
-	buffer := new(bytes.Buffer)
-	renderTemplate(templ, tagModel, buffer)
-	return buffer.String()
 }

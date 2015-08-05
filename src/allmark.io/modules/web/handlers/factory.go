@@ -271,6 +271,7 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 		Update(
 			logger,
 			headerWriterFactory.Dynamic(),
+			templateProvider,
 			orchestratorFactory.NewUpdateOrchestrator()))
 
 	// alias lookup
