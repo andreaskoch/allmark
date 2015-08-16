@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -65,13 +66,7 @@ func (converter *filePreviewExtension) getPreviewCode(title, path string) string
 	if file != nil {
 
 		filepath := converter.pathProvider.Path(file.Route().Value())
-
-		// determine the content type
-		contentType, err := file.MimeType()
-		if err != nil {
-			// could not determine the mime type
-			return util.GetHtmlLinkCode(title, path)
-		}
+		contentLanguage := getContentLanguageFromFile(file)
 
 		// prepare reading the file data
 		bytesBuffer := new(bytes.Buffer)
@@ -84,7 +79,7 @@ func (converter *filePreviewExtension) getPreviewCode(title, path string) string
 		if err := file.Data(contentReader); err == nil {
 
 			code := fmt.Sprintf("**[%s](%s)**\n\n", title, filepath)
-			code += fmt.Sprintf("```%s\n", contentType)
+			code += fmt.Sprintf("```%s\n", contentLanguage)
 			code += strings.TrimSpace(bytesBuffer.String()) + "\n"
 			code += "```"
 
@@ -106,4 +101,9 @@ func (converter *filePreviewExtension) getMatchingFile(path string) *model.File 
 	}
 
 	return nil
+}
+
+// getContentLanguageFromFile derives the file content language (e.g. go, php, js, ...)
+func getContentLanguageFromFile(file *model.File) string {
+	return filepath.Ext(file.Route().Value())
 }

@@ -571,10 +571,6 @@ bin/
 
 ## Known Bugs
 
-### File Preview Mime-Type
-
-The `filepreview` markdown extension does work since my last refactoring.
-
 ### Windows
 
 - Filesystem links: Serving folders that are filesystem junctions/links is no longer possible with go 1.4 (it did work with go 1.3)
