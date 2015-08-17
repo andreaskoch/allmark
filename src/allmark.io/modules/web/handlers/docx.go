@@ -20,12 +20,14 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
-func RTF(logger logger.Logger,
+func DOCX(logger logger.Logger,
 	conversionToolPath string,
 	headerWriter header.HeaderWriter,
+	fileOrchestrator *orchestrator.FileOrchestrator,
 	converterModelOrchestrator *orchestrator.ConversionModelOrchestrator,
 	templateProvider templates.Provider,
 	error404Handler http.Handler) http.Handler {
@@ -61,8 +63,8 @@ func RTF(logger logger.Logger,
 		vars := mux.Vars(r)
 		path := vars["path"]
 
-		// strip the "rtf" or ".rtf" suffix from the path
-		path = strings.TrimSuffix(path, "rtf")
+		// strip the "docx" or ".docx" suffix from the path
+		path = strings.TrimSuffix(path, "docx")
 		path = strings.TrimSuffix(path, ".")
 
 		// get the request route
@@ -71,8 +73,13 @@ func RTF(logger logger.Logger,
 		// make sure the request body is closed
 		defer r.Body.Close()
 
+		// the temporary working directory
+		targetDirectory := fsutil.GetTempDirectory()
+
 		// get the conversion model
+		// baseURL := fmt.Sprintf(`file://%s`, targetDirectory)
 		baseURL := getBaseURLFromRequest(r)
+
 		model, found := converterModelOrchestrator.GetConversionModel(baseURL, requestRoute)
 		if !found {
 
@@ -83,8 +90,8 @@ func RTF(logger logger.Logger,
 
 		html := convertToHtml(baseURL, model)
 
-		// write the html to a temp file
-		htmlFilePath := fsutil.GetTempFileName("source.html")
+		// write the html to a temp file (Note: the file extension .html is important for pandoc)
+		htmlFilePath := filepath.Join(targetDirectory, "source.html")
 		htmlFile, err := os.Create(htmlFilePath)
 		if err != nil {
 			logger.Error("Cannot open HTML file for writing. Error: %s", err.Error())
@@ -97,14 +104,8 @@ func RTF(logger logger.Logger,
 		// close and delete the file at the end of the function
 		htmlFile.Close()
 
-		defer func() {
-			if err := deleteFile(htmlFilePath); err != nil {
-				logger.Error("Could not delete the source file (%q) for the RTF conversion. Error: %s", htmlFilePath, err.Error())
-			}
-		}()
-
-		// get a target file path
-		targetFilePath := fsutil.GetTempFileName("target.rtf")
+		// get a target file path (Note: the file extension .docx is important for pandoc)
+		targetFilePath := filepath.Join(targetDirectory, "target.docx")
 
 		// call pandoc
 		args := []string{
@@ -117,30 +118,72 @@ func RTF(logger logger.Logger,
 		cmd := exec.Command(conversionToolPath, args...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
+		cmd.Dir = targetDirectory
 
 		if err := cmd.Run(); err != nil {
 			logger.Error("Could not run pandoc: %v", err)
 			return
 		}
 
-		// rtf file
-		rtfFile, err := fsutil.OpenFile(targetFilePath)
+		logger.Debug("Saving conversion files to directory: %q", targetDirectory)
+
+		// // saves files to disc
+		// for _, file := range model.Files {
+		//
+		// 	fileRoute := route.NewFromRequest(file.Route)
+		// 	filePath := strings.TrimLeft(file.Path, "/") + "/" + file.Name
+		// 	fullPath := filepath.Join(targetDirectory, filePath)
+		//
+		// 	logger.Debug("Saving file %q", filePath)
+		//
+		// 	if _, err := fsutil.CreateFile(fullPath); err != nil {
+		// 		logger.Error("Could not create file %q. Error: %s", fullPath, err.Error())
+		// 		continue
+		// 	}
+		//
+		// 	file, err := os.OpenFile(fullPath, os.O_RDWR, 0600)
+		// 	if err != nil {
+		// 		logger.Error("Could not create file %q. Error: %s", fullPath, err.Error())
+		// 		continue
+		// 	}
+		//
+		// 	contentProvider := fileOrchestrator.GetFileContentProvider(fileRoute)
+		// 	if contentProvider == nil {
+		// 		file.Close()
+		// 		logger.Error("There is no content provider for file %q", requestRoute)
+		// 		continue
+		// 	}
+		//
+		// 	contentProvider.Data(func(content io.ReadSeeker) error {
+		// 		io.Copy(file, content)
+		// 		return nil
+		// 	})
+		//
+		// 	file.Close()
+		//
+		// }
+
+		// docx file
+		docxFile, err := fsutil.OpenFile(targetFilePath)
 		if err != nil {
 			logger.Error("Cannot open target file. Error: %s", err.Error())
 			return
 		}
 
 		// close and delete the file at the end of the function
+		defer docxFile.Close()
+
+		// remove the temp directory at the end
 		defer func() {
-			rtfFile.Close()
-			if err := deleteFile(targetFilePath); err != nil {
-				logger.Error("Could not delete the RTF file (%q) that has been created during the conversion. Error: %s", targetFilePath, err.Error())
+			logger.Debug("Deleting conversion file directory: %q", targetDirectory)
+			if err := deleteFile(targetDirectory); err != nil {
+				logger.Error("Could not delete the temporary working directory (%q) that has been created during the conversion. Error: %s", targetDirectory, err.Error())
 			}
 		}()
 
 		w.Header().Add("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, getRichTextFilename(model)))
 
-		io.Copy(w, rtfFile)
+		io.Copy(w, docxFile)
 
 		return
 	})
@@ -155,71 +198,11 @@ func getRichTextFilename(model viewmodel.ConversionModel) string {
 		fileNameRoute = route.NewFromRequest(model.Title)
 	}
 
-	return fmt.Sprintf("%s.rtf", fileNameRoute.Value())
-}
-
-func execute(directory, commandText string) error {
-
-	// get the command
-	command := getCmd(directory, commandText)
-
-	// execute the command
-	if err := command.Start(); err != nil {
-		return err
-	}
-
-	// wait for the command to finish
-	return command.Wait()
-}
-
-func getCmd(directory, commandText string) *exec.Cmd {
-	if commandText == "" {
-		return nil
-	}
-
-	components := strings.Split(commandText, " ")
-
-	// get the command name
-	commandName := components[0]
-
-	// get the command arguments
-	arguments := make([]string, 0)
-	if len(components) > 1 {
-		arguments = components[1:]
-	}
-
-	// create the command
-	command := exec.Command(commandName, arguments...)
-
-	// set the working directory
-	command.Dir = directory
-
-	// redirect command io
-	redirectCommandIO(command)
-
-	return command
-}
-
-func redirectCommandIO(cmd *exec.Cmd) (*os.File, error) {
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	go io.Copy(os.Stdout, stdout)
-	go io.Copy(os.Stderr, stderr)
-
-	//direct. Masked passwords work OK!
-	cmd.Stdin = os.Stdin
-	return nil, err
+	return fmt.Sprintf("%s.docx", fileNameRoute.Value())
 }
 
 // deleteFile removes the file with the specified path.
 func deleteFile(filepath string) error {
-	return os.Remove(filepath)
+	return os.RemoveAll(filepath)
+	// return nil
 }

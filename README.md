@@ -283,7 +283,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 			- ...
 		- ...
 - `Conversion`
-	- `RTF`: Rich-text Conversion
+	- `DOCX`: Rich-text Conversion
 		- `Enabled`: If set to `true` rich-text conversion is enabled. allmark uses [pandoc](http://pandoc.org/) for the rich-text conversion. If the [pandoc binary](HTTPS://github.com/jgm/pandoc/releases/latest) is not found in your PATH, rich-text conversion will not be available.
 	- `Thumbnails`: Image-Thumbnail creation.
 		- `Enabled`: If set to `true` allmark will create smaller versions (Small: 320x240, Medium: 640x480, Large: 1024x768) for all images in your repository and use the respective version depending on the screen size of your clients (default: `false`).
@@ -369,7 +369,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 		}
 	},
 	"Conversion": {
-		"RTF": {
+		"DOCX": {
 			"Enabled": true
 		},
 		"Thumbnails": {
@@ -436,7 +436,7 @@ This is an unordered list of the most prominent features of allmark:
 	- Lazy Loading for images and videos
 	- Syntax Highlighting
 20. Presentation Mode
-21. Rich Text Conversion (Download documents as .rtf files)
+21. Rich Text Conversion (Download documents as .docx files)
 22. Image Thumbnail Generation
 23. HTTPS Support
 	- Reference custom SSL certificates via `.allmark/config` from the `.allmark/certs` folder

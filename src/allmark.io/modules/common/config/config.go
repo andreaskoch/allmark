@@ -55,8 +55,8 @@ const (
 
 var homeDirectory func() string
 
-// A flag indicating whether the RTF conversion tool is available
-var rtfConversionToolIsAvailable bool
+// A flag indicating whether the DOCX conversion tool is available
+var docxConversionToolIsAvailable bool
 
 func init() {
 
@@ -72,7 +72,7 @@ func init() {
 	// check if pandoc is available in the path
 	command := exec.Command(DefaultConversionToolPath, "--help")
 	if err := command.Run(); err == nil {
-		rtfConversionToolIsAvailable = true
+		docxConversionToolIsAvailable = true
 	}
 }
 
@@ -190,8 +190,8 @@ func Default(baseFolder string) *Config {
 	config.Conversion.Thumbnails.IndexFileName = ThumbnailIndexFileName
 	config.Conversion.Thumbnails.FolderName = ThumbnailsFolderName
 
-	// RTF Conversion
-	config.Conversion.RTF.Enabled = DefaultRichTextConversionEnabled
+	// DOCX Conversion
+	config.Conversion.DOCX.Enabled = DefaultRichTextConversionEnabled
 
 	// Logging
 	config.LogLevel = DefaultLogLevel.String()
@@ -309,25 +309,25 @@ type LiveReload struct {
 
 // Conversion defines the rich-text and thumbnail conversion paramters.
 type Conversion struct {
-	RTF        RTFConversion
+	DOCX       DOCXConversion
 	Thumbnails ThumbnailConversion
 }
 
-// RTFConversion contains rich-text (RTF) conversion parameters.
-type RTFConversion struct {
+// DOCXConversion contains rich-text (DOCX) conversion parameters.
+type DOCXConversion struct {
 	Enabled bool
 }
 
 // Tool returns the path of the external rich-text conversion tool (pandoc) used
 // to create Rich-text documents from repository items.
-func (rtf RTFConversion) Tool() string {
+func (docx DOCXConversion) Tool() string {
 	return DefaultConversionToolPath
 }
 
 // IsEnabled returns a flag indicating if rich-text conversion is enabled or not.
 // Rich-text conversion can only be enabled if the conversion tool was found in the PATH on startup.
-func (rtf RTFConversion) IsEnabled() bool {
-	return rtf.Enabled && rtfConversionToolIsAvailable
+func (docx DOCXConversion) IsEnabled() bool {
+	return docx.Enabled && docxConversionToolIsAvailable
 }
 
 // ThumbnailConversion defines the image-thumbnail conversion capabilities.

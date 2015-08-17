@@ -24,7 +24,7 @@ type Base struct {
 	PrintURL    string `json:"printURL"`
 	JSONURL     string `json:"jsonURL"`
 	MarkdownURL string `json:"markdownURL"`
-	RTFURL      string `json:"rtfURL"`
+	DOCXURL      string `json:"docxURL"`
 
 	PageTitle   string `json:"pageTitle"`
 	Title       string `json:"title"`

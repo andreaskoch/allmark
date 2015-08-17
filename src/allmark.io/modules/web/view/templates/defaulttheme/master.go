@@ -106,13 +106,13 @@ const masterTemplate = `<!DOCTYPE HTML>
 
 <div class="cleaner"></div>
 
-{{if or .PrintURL .JSONURL .MarkdownURL .RTFURL}}
+{{if or .PrintURL .JSONURL .MarkdownURL .DOCXURL}}
 <aside class="export">
 <ul>
 	{{if .PrintURL}}<li><a href="{{.PrintURL}}">Print</a></li>{{end}}
 	{{if .JSONURL}}<li><a href="{{.JSONURL}}">JSON</a></li>{{end}}
 	{{if .MarkdownURL}}<li><a href="{{.MarkdownURL}}">Markdown</a></li>{{end}}
-	{{if .RTFURL}}<li><a href="{{.RTFURL}}">Rich Text</a></li>{{end}}
+	{{if .DOCXURL}}<li><a href="{{.DOCXURL}}">DOCX</a></li>{{end}}
 </ul>
 </aside>
 {{end}}

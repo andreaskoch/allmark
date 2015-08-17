@@ -284,9 +284,9 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *
 			IsRepositoryItem: true,
 		}
 
-		// add rft url if rtf conversion is enabled
-		if orchestrator.config.Conversion.RTF.IsEnabled() {
-			viewModel.RTFURL = GetTypedItemURL(route, "rtf")
+		// add docx url if docx conversion is enabled
+		if orchestrator.config.Conversion.DOCX.IsEnabled() {
+			viewModel.DOCXURL = GetTypedItemURL(route, "docx")
 		}
 
 		orchestrator.viewmodelsByRoute.Set(route.String(), viewModel)

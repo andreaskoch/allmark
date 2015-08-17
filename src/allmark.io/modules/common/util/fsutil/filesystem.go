@@ -186,19 +186,7 @@ func GetModificationTime(path string) (time.Time, error) {
 	return info.ModTime(), nil
 }
 
-func GetTempFileName(postfix string) string {
-	file, err := ioutil.TempFile(os.TempDir(), fmt.Sprintf("%s", postfix))
-	if err != nil {
-		panic(err)
-	}
-
-	defer file.Close()
-
-	filename := file.Name()
-
-	return filename
-}
-
+// GetTempDirectory returns the path to a new temparory directory.
 func GetTempDirectory() string {
 	randomString := rand_str()
 	tempDir := filepath.Join(os.TempDir(), randomString)

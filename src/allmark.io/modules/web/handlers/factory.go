@@ -50,8 +50,8 @@ var (
 	// LatestHandlerRoute defines the route for latest-handler requests.
 	LatestHandlerRoute = `/{path:.+\.latest$|latest$}`
 
-	// RTFHandlerRoute defines the route for rich-text-handler requests.
-	RTFHandlerRoute = `/{path:.+\.rtf$|rtf$}`
+	// DOCXHandlerRoute defines the route for rich-text-handler requests.
+	DOCXHandlerRoute = `/{path:.+\.docx$|docx$}`
 
 	// UpdateHandlerRoute defines the route for update-handler requests.
 	UpdateHandlerRoute = `/{path:.+\.ws$|ws$}`
@@ -121,6 +121,7 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 	// orchestrators
 	navigationOrchestrator := orchestratorFactory.NewNavigationOrchestrator()
 	viewModelOrchestrator := orchestratorFactory.NewViewModelOrchestrator()
+	fileOrchestrator := orchestratorFactory.NewFileOrchestrator()
 
 	// global handlers
 	errorHandler := Error(headerWriterFactory.Static(), templateProvider, navigationOrchestrator)
@@ -128,7 +129,7 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 	itemHandler := Item(
 		logger,
 		headerWriterFactory.Dynamic(),
-		orchestratorFactory.NewFileOrchestrator(),
+		fileOrchestrator,
 		viewModelOrchestrator,
 		templateProvider, errorHandler)
 
@@ -255,12 +256,13 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 			templateProvider,
 			errorHandler))
 
-	// rtf
+	// docx
 	handlers.Add(
-		RTFHandlerRoute,
-		RTF(logger,
-			config.Conversion.RTF.Tool(),
+		DOCXHandlerRoute,
+		DOCX(logger,
+			config.Conversion.DOCX.Tool(),
 			headerWriterFactory.Dynamic(),
+			fileOrchestrator,
 			conversionModelOrchestrator,
 			templateProvider,
 			errorHandler))

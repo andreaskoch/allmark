@@ -28,12 +28,12 @@ func RobotsTxt(headerWriter header.HeaderWriter, templateProvider templates.Prov
 		// view model
 		disallowPaths := []string{
 			"/thumbnails",
-			"/rtf$",
+			"/docx$",
 			"/json$",
 			"/markdown$",
 			"/print$",
 			"/ws$",
-			"/*.rtf$",
+			"/*.docx$",
 			"/*.json$",
 			"/*.markdown$",
 			"/*.print$",
