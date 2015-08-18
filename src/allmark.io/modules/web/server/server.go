@@ -21,6 +21,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skratchdot/open-golang/open"
 	"net/http"
+	"strings"
 )
 
 // New creates a new Server instance for the given repository.
@@ -283,7 +284,13 @@ func (endpoint *HTTPEndpoint) Bindings() []*config.TCPBinding {
 // URL return the formatted URL (e.g. "https://127.0.0.1:8080") for the given TCP binding, using the IP address as the hostname.
 func (endpoint *HTTPEndpoint) URL(tcpBinding config.TCPBinding) string {
 	tcpAddress := tcpBinding.GetTCPAddress()
-	return fmt.Sprintf("%s://%s", endpoint.Protocol(), tcpAddress.String())
+	hostname := tcpAddress.String()
+
+	// don't use default tcp addresses for the URL
+	hostname = strings.Replace(hostname, "0.0.0.0", "localhost", 1)
+	hostname = strings.Replace(hostname, "::", "localhost", 1)
+
+	return fmt.Sprintf("%s://%s", endpoint.Protocol(), hostname)
 }
 
 // DefaultURL return the default url for the current HTTP endpoint. It will include the domain name if one is configured.
