@@ -287,8 +287,8 @@ func (endpoint *HTTPEndpoint) URL(tcpBinding config.TCPBinding) string {
 	hostname := tcpAddress.String()
 
 	// don't use default tcp addresses for the URL
-	hostname = strings.Replace(hostname, "0.0.0.0", "localhost", 1)
-	hostname = strings.Replace(hostname, "::", "localhost", 1)
+	hostname = strings.Replace(hostname, "[0.0.0.0]", "localhost", 1)
+	hostname = strings.Replace(hostname, "[::]", "localhost", 1)
 
 	return fmt.Sprintf("%s://%s", endpoint.Protocol(), hostname)
 }

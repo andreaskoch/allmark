@@ -23,7 +23,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -50,8 +49,6 @@ var (
 func main() {
 
 	// defer profile.Start(profile.CPUProfile).Stop()
-
-	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Handle CTRL-C
 	c := make(chan os.Signal, 1)

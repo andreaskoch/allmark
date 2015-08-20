@@ -572,7 +572,7 @@ func gitVersion() string {
 
 // Get the build version flag for the go linker (e.g. -X allmark.io/cmd/allmark 2015-01-11-284c030+).
 func getBuildVersionFlag() string {
-	return fmt.Sprintf(`--ldflags=-X %s.GitInfo %s`, "allmark.io/modules/common/buildinfo", version)
+	return fmt.Sprintf(`--ldflags=-X %s.GitInfo=%s`, "allmark.io/modules/common/buildinfo", version)
 }
 
 // Get the paths of all source control folders in the specified base path.
