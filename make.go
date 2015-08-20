@@ -72,28 +72,20 @@ var (
 	// The git version pattern.
 	gitVersionPattern = regexp.MustCompile(`\b\d\d\d\d-\d\d-\d\d-[0-9a-f]{7,7}\b`)
 
-	// A list of all supported compilation targets (e.g. "windows/386")
+	// A list of all supported compilation targets (e.g. "windows/amd64")
 	compilationTargets = []compilationTarget{
-		compilationTarget{"darwin", "386"},
 		compilationTarget{"darwin", "amd64"},
-		compilationTarget{"dragonfly", "386"},
 		compilationTarget{"dragonfly", "amd64"},
-		compilationTarget{"freebsd", "386"},
 		compilationTarget{"freebsd", "amd64"},
 		compilationTarget{"freebsd", "arm"},
-		compilationTarget{"linux", "386"},
 		compilationTarget{"linux", "amd64"},
 		compilationTarget{"linux", "arm"},
-		compilationTarget{"nacl", "386"},
 		compilationTarget{"nacl", "amd64p32"},
 		compilationTarget{"nacl", "arm"},
-		compilationTarget{"netbsd", "386"},
 		compilationTarget{"netbsd", "amd64"},
 		compilationTarget{"netbsd", "arm"},
-		compilationTarget{"openbsd", "386"},
 		compilationTarget{"openbsd", "amd64"},
 		compilationTarget{"solaris", "amd64"},
-		compilationTarget{"windows", "386"},
 		compilationTarget{"windows", "amd64"},
 	}
 
@@ -184,7 +176,7 @@ func crossCompile() {
 	// prepare the environment variables
 	environmentVariables := cleanGoEnv()
 	environmentVariables = setEnv(environmentVariables, GOPATH_ENVIRONMENT_VARIABLE, goPath)
-	environmentVariables = setEnv(environmentVariables, GOBIN_ENVIRONMENT_VARIBALE, goBin)
+	// environmentVariables = setEnv(environmentVariables, GOBIN_ENVIRONMENT_VARIBALE, goBin)
 
 	// iterate over all supported compilation targets
 	for _, target := range compilationTargets {
@@ -199,7 +191,24 @@ func crossCompile() {
 
 			// build the package for the specified os and arch
 			fmt.Printf("Compiling %s for %s\n", packageName, target.String())
-			runCommand(os.Stdout, os.Stderr, goPath, crossCompileEnvironemntVariables, "go", "install", getBuildVersionFlag(), packageName)
+
+			// assemble the target path
+			targetFile := filepath.Join(goBin, target.OperatingSystem, target.Architecture, "allmark")
+			if target.OperatingSystem == "windows" {
+				targetFile += ".exe"
+			}
+
+			runCommand(os.Stdout,
+				os.Stderr,
+				goPath,
+				crossCompileEnvironemntVariables,
+				"go",
+				"build",
+				"-o",
+				targetFile,
+				"-x",
+				getBuildVersionFlag(),
+				packageName)
 		}
 	}
 
@@ -207,7 +216,7 @@ func crossCompile() {
 
 // Cross-compile all parts of allmark for all supported platforms using docker.
 func crossCompileWithDocker() {
-	dockerImageName := "golang:1.4.2-cross"
+	dockerImageName := "golang:1.5"
 	projectPathInDocker := "/usr/src/allmark"
 	binPath := filepath.Join(projectPathInDocker, "bin")
 	command := `docker`
@@ -221,6 +230,12 @@ func crossCompileWithDocker() {
 		// iterate over all build packages
 		for _, packageName := range buildPackages {
 
+			// assemble the target path
+			targetFile := filepath.Join(binPath, target.OperatingSystem, target.Architecture, "allmark")
+			if target.OperatingSystem == "windows" {
+				targetFile += ".exe"
+			}
+
 			// assemble the build command
 			args := []string{
 				"run",
@@ -233,7 +248,10 @@ func crossCompileWithDocker() {
 				"-e=" + envPair(GOBIN_ENVIRONMENT_VARIBALE, binPath),
 				dockerImageName,
 				"go",
-				"install",
+				"build",
+				"-o",
+				targetFile,
+				"-x",
 				getBuildVersionFlag(),
 				packageName,
 			}

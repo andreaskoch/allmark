@@ -1,4 +1,4 @@
-FROM golang:1.4.2-cross
+FROM golang:1.5
 MAINTAINER Andreas Koch <andy@allmark.io>
 
 # Install pandoc for RTF conversion
