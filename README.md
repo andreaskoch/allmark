@@ -571,10 +571,6 @@ bin/
 
 ## Known Bugs
 
-### Windows
-
-- Filesystem links: Serving folders that are filesystem junctions/links is no longer possible with go 1.4 (it did work with go 1.3)
-
 ## Roadmap / To Dos
 
 Here are some of the ideas and todos I would like to add in the future. Contributions are welcome!
