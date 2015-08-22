@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/skratchdot/open-golang/open"
+	"net"
 	"net/http"
 	"strings"
 )
@@ -258,6 +259,10 @@ type HTTPEndpoint struct {
 	tcpBindings []*config.TCPBinding
 }
 
+func (endpoint *HTTPEndpoint) String() string {
+	return fmt.Sprintf("Domain: %q, IsSecure: %v, ForeceHTTPs: %v", endpoint.domain, endpoint.isSecure, endpoint.forceHTTPS)
+}
+
 // IsSecure returns a flag indicating whether the current HTTPEndpoint is secure (HTTPS) or not.
 func (endpoint *HTTPEndpoint) IsSecure() bool {
 	return endpoint.isSecure
@@ -281,18 +286,6 @@ func (endpoint *HTTPEndpoint) Bindings() []*config.TCPBinding {
 	return endpoint.tcpBindings
 }
 
-// URL return the formatted URL (e.g. "https://127.0.0.1:8080") for the given TCP binding, using the IP address as the hostname.
-func (endpoint *HTTPEndpoint) URL(tcpBinding config.TCPBinding) string {
-	tcpAddress := tcpBinding.GetTCPAddress()
-	hostname := tcpAddress.String()
-
-	// don't use default tcp addresses for the URL
-	hostname = strings.Replace(hostname, "[0.0.0.0]", "localhost", 1)
-	hostname = strings.Replace(hostname, "[::]", "localhost", 1)
-
-	return fmt.Sprintf("%s://%s", endpoint.Protocol(), hostname)
-}
-
 // DefaultURL return the default url for the current HTTP endpoint. It will include the domain name if one is configured.
 // If none is configured it will use the IP address as the host name.
 func (endpoint *HTTPEndpoint) DefaultURL() string {
@@ -307,7 +300,7 @@ func (endpoint *HTTPEndpoint) DefaultURL() string {
 
 	// create an URL from the tcp binding if no domain is configured
 	if endpoint.domain == "" {
-		return endpoint.URL(defaultBinding)
+		return getURL(*endpoint, defaultBinding)
 	}
 
 	// determine the port suffix (e.g. ":8080")
@@ -337,4 +330,44 @@ func (endpoint *HTTPSEndpoint) CertFilePath() string {
 // KeyFilePath returns the SSL certificate key file name (e.g. "cert.key") of this HTTPSEndpoint.
 func (endpoint *HTTPSEndpoint) KeyFilePath() string {
 	return endpoint.keyFilePath
+}
+
+// getURL returns the formatted URL (e.g. "https://localhost:8080") for the given TCP binding,
+// using the IP address as the hostname.
+func getURL(endpoint HTTPEndpoint, tcpBinding config.TCPBinding) string {
+	tcpAddress := tcpBinding.GetTCPAddress()
+	hostname := tcpAddress.String()
+
+	// don't use wildcard addresses for the URL, use localhost instead
+	if isWildcardAddress(tcpAddress.IP) {
+		if isIPv6Address(tcpAddress.IP) {
+			// IPv6 addresses are wrapped in brackets
+			hostname = strings.Replace(hostname, fmt.Sprintf("[%s]", tcpAddress.IP.String()), "localhost", 1)
+		} else {
+			hostname = strings.Replace(hostname, tcpAddress.IP.String(), "localhost", 1)
+		}
+	}
+
+	return fmt.Sprintf("%s://%s", endpoint.Protocol(), hostname)
+}
+
+// isIPv6Address checks if the given IP address is a IPv6 address or not.
+func isIPv6Address(ip net.IP) bool {
+	// if the ip cannot be converted to IPv4 it must be an IPv6 address
+	return ip.To4() == nil
+}
+
+// isWildcardAddress checks if the supplied ip is a "source address for this host on this network"
+// (see: RFC 5735, Section 3, example: 0.0.0.0)
+func isWildcardAddress(ip net.IP) bool {
+	switch ip.String() {
+	case "0.0.0.0":
+		return true
+
+	case "::":
+		return true
+
+	default:
+		return false
+	}
 }

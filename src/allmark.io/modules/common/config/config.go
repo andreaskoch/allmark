@@ -215,6 +215,14 @@ type TCPBinding struct {
 	Port int
 }
 
+func (binding *TCPBinding) String() string {
+	return fmt.Sprintf("Network: %s, IP: %s, Zone: %s, Port: %v",
+		binding.Network,
+		binding.IP,
+		binding.Zone,
+		binding.Port)
+}
+
 // GetTCPAddress returns a net.TCPAddress object of the current TCP binding.
 func (binding *TCPBinding) GetTCPAddress() net.TCPAddr {
 	ip := net.ParseIP(binding.IP)
