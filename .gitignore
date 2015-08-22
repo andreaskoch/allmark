@@ -1,4 +1,3 @@
-bin/*
-pkg/*
+pkg
 .allmark
 .DS_Store
