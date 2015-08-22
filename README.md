@@ -8,6 +8,8 @@ allmark is a file-system-centric markdown web server. You can **point it at any 
 
 And it will not only render the markdown files in your directory as HTML, but it will also add everything that it needed for a complete website: Navigation, Full-text Search, Theming, Sitemap, RSS, Tags, ... on-the-fly with websocket-based live-reload.
 
+[![Animation: Cloning allmark from github, building it and taking it out for a test run on the allmark repository itself](files/animation-clone-installation-and-test.gif)](files/animation-clone-installation-and-test.gif)
+
 And thanks to the power of [go](http://golang.org/) all of this is super fast and done with a single standalone application.
 
 ## Usage
