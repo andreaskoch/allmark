@@ -16,4 +16,4 @@ VOLUME ["/data"]
 
 EXPOSE 8080
 
-CMD ["/go/bin/allmark", "serve", "/data"]
+CMD ["/go/bin/linux/amd64/allmark", "serve", "/data"]
