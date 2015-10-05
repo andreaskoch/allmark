@@ -519,6 +519,7 @@ func (config *Config) Load() (*Config, error) {
 	config.Conversion = loadedConfig.Conversion
 	config.LogLevel = loadedConfig.LogLevel
 	config.Indexing = loadedConfig.Indexing
+	config.LiveReload = loadedConfig.LiveReload
 	config.Analytics = loadedConfig.Analytics
 
 	return config, nil
