@@ -566,6 +566,7 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 	config.Conversion = newConfig.Conversion
 	config.LogLevel = newConfig.LogLevel
 	config.Indexing = newConfig.Indexing
+	config.LiveReload = newConfig.LiveReload
 	config.Analytics = newConfig.Analytics
 
 	return config, nil
