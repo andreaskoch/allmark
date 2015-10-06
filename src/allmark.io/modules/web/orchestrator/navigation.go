@@ -26,7 +26,18 @@ func (orchestrator *NavigationOrchestrator) GetToplevelNavigation() *viewmodel.T
 		root := route.New()
 		toplevelEntries := make([]*viewmodel.ToplevelEntry, 0)
 
-		for _, child := range orchestrator.getChilds(root) {
+		topLevelChilds := orchestrator.getChilds(root)
+
+		// abort if there are more than 5 childs
+		if len(topLevelChilds) > 4 {
+			orchestrator.toplevelNavigation = &viewmodel.ToplevelNavigation{
+				Entries: toplevelEntries,
+			}
+
+			return
+		}
+
+		for _, child := range topLevelChilds {
 
 			toplevelEntries = append(toplevelEntries, &viewmodel.ToplevelEntry{
 				Title: child.Title,
