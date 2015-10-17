@@ -13,7 +13,7 @@ func init() {
 		toplevelNavigationSnippet +
 		breadcrumbNavigationSnippet +
 		itemNavigationSnippet +
-		childsSnippet +
+		childrenSnippet +
 		tagcloudSnippet +
 		tagsSnippet +
 		publisherSnippet +
@@ -22,7 +22,7 @@ func init() {
 	templates[templatenames.ToplevelNavigation] = toplevelNavigationSnippet
 	templates[templatenames.BreadcrumbNavigation] = breadcrumbNavigationSnippet
 	templates[templatenames.ItemNavigation] = itemNavigationSnippet
-	templates[templatenames.Childs] = childsSnippet
+	templates[templatenames.Children] = childrenSnippet
 	templates[templatenames.TagCloud] = tagcloudSnippet
 	templates[templatenames.Tags] = tagsSnippet
 	templates[templatenames.Publisher] = publisherSnippet
@@ -98,7 +98,7 @@ const masterTemplate = `<!DOCTYPE HTML>
 
 	{{template "itemnavigation-snippet" .}}
 
-	{{template "childs-snippet" .}}
+	{{template "children-snippet" .}}
 
 	{{template "tagcloud-snippet" .}}
 
@@ -229,13 +229,13 @@ const itemNavigationSnippet = `{{define "itemnavigation-snippet"}}
 {{end}}
 `
 
-const childsSnippet = `{{define "childs-snippet"}}
-<section class="childs">
-{{ if .Childs }}
-<h1>Childs</h1>
+const childrenSnippet = `{{define "children-snippet"}}
+<section class="children">
+{{ if .Children }}
+<h1>Child Documents</h1>
 
 <ol class="list">
-{{range .Childs}}
+{{range .Children}}
 <li class="child">
 	<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
 	<p class="child-description">{{.Description}}</p>

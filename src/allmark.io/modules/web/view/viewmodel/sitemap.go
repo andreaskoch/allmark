@@ -13,5 +13,5 @@ type SitemapEntry struct {
 	Path        string         `json:"path"`
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
-	Childs      []SitemapEntry `json:"childs"`
+	Children      []SitemapEntry `json:"children"`
 }

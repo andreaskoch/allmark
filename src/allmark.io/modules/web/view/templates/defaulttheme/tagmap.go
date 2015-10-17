@@ -29,9 +29,9 @@ const tagmapTemplate = `
 <ul class="tags">
 <li class="tag">
 	<a name="{{.Anchor}}" href={{.Route}}>{{.Name}}</a>
-	{{ if .Childs }}
-	<ol class="childs">
-		{{range .Childs}}
+	{{ if .Children }}
+	<ol class="children">
+		{{range .Children}}
 		<li class="child">
 			<a href="{{.Route}}" class="child-title child-link">{{.Title}}</a>
 			<p class="child-description">{{.Description}}</p>

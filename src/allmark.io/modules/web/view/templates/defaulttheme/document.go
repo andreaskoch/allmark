@@ -31,7 +31,7 @@ const documentTemplate = `
 
 <div class="cleaner"></div>
 
-{{ if .Childs }}
+{{ if .Children }}
 <section class="preview">
 	<ul>
 	</ul>

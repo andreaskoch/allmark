@@ -101,8 +101,8 @@ func (tree *Tree) GetNode(path Path) *Node {
 		return tree.Root()
 	}
 
-	// skip the root node itself and go for its childs
-	for _, child := range tree.Root().Childs() {
+	// skip the root node itself and go for its children
+	for _, child := range tree.Root().Children() {
 		if matchingNode := child.GetNode(path); matchingNode != nil {
 			return matchingNode
 		}
@@ -112,7 +112,7 @@ func (tree *Tree) GetNode(path Path) *Node {
 	return nil
 }
 
-// Walk visits every node in the current tree. Starting with the root, every child of the root and then recurses down the childs.
+// Walk visits every node in the current tree. Starting with the root, every child of the root and then recurses down the children.
 func (tree *Tree) Walk(expression func(node *Node)) {
 	if tree.Root() == nil {
 		return

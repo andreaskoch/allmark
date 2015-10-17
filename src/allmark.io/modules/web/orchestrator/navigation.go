@@ -26,7 +26,7 @@ func (orchestrator *NavigationOrchestrator) GetToplevelNavigation() *viewmodel.T
 		root := route.New()
 		toplevelEntries := make([]*viewmodel.ToplevelEntry, 0)
 
-		for _, child := range orchestrator.getChilds(root) {
+		for _, child := range orchestrator.getChildren(root) {
 
 			toplevelEntries = append(toplevelEntries, &viewmodel.ToplevelEntry{
 				Title: child.Title,

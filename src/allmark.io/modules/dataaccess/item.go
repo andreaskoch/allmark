@@ -53,7 +53,7 @@ type Item interface {
 	String() string
 	Id() string
 	Type() ItemType
-	CanHaveChilds() bool
+	CanHaveChildren() bool
 	Route() route.Route
 	Files() []File
 	LastHash() string

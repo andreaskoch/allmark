@@ -25,7 +25,7 @@ func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(hostname string) [
 
 	zeroTime := time.Time{}
 
-	childs := make([]viewmodel.XmlSitemapEntry, 0)
+	children := make([]viewmodel.XmlSitemapEntry, 0)
 	for _, item := range orchestrator.getAllItems() {
 
 		// skip virtual items
@@ -47,14 +47,14 @@ func (orchestrator *XmlSitemapOrchestrator) GetSitemapEntires(hostname string) [
 		// images
 		images := getImageModels(pathProvider, item)
 
-		childs = append(childs, viewmodel.XmlSitemapEntry{
+		children = append(children, viewmodel.XmlSitemapEntry{
 			Loc:          location,
 			LastModified: lastModifiedDate,
 			Images:       images,
 		})
 	}
 
-	return childs
+	return children
 }
 
 func getImageModels(pathProvider paths.Pather, item *model.Item) []viewmodel.XmlSitemapEntryImage {

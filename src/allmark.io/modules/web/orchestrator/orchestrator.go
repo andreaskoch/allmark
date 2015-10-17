@@ -507,15 +507,15 @@ func (orchestrator *Orchestrator) getNext(currentRoute route.Route) *model.Item 
 	return latestItems[previousIndex]
 }
 
-func (orchestrator *Orchestrator) getChilds(route route.Route) []*model.Item {
+func (orchestrator *Orchestrator) getChildren(route route.Route) []*model.Item {
 
-	// get all childs
-	childs := orchestrator.index().GetDirectChilds(route)
+	// get all children
+	children := orchestrator.index().GetDirectChildren(route)
 
-	// sort the childs by date
-	model.SortItemsBy(sortItemsByDate).Sort(childs)
+	// sort the children by date
+	model.SortItemsBy(sortItemsByDate).Sort(children)
 
-	return childs
+	return children
 }
 
 // getAliasMap returns the map of all items by their alias.

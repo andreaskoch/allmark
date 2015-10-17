@@ -554,30 +554,30 @@ aside.sidebar {
     width: 20%;
 }
 
-aside.sidebar>.childs {
+aside.sidebar>.children {
     margin: 0 0 15px 0;
 }
 
-aside.sidebar>.childs>h1 {
+aside.sidebar>.children>h1 {
     font-size: 1.5em;
 }
 
-aside.sidebar>.childs>.list {
+aside.sidebar>.children>.list {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-aside.sidebar>.childs>.list>.child {
+aside.sidebar>.children>.list>.child {
     margin: 0;
     margin: 0 0 1.2em 0;
 }
 
-aside.sidebar>.childs>.list>.child:nth-child(odd) {
+aside.sidebar>.children>.list>.child:nth-child(odd) {
     background-color:#eee;
 }
 
-aside.sidebar>.childs>.list>.child:nth-child(even) {
+aside.sidebar>.children>.list>.child:nth-child(even) {
     background-color:transparent;
 }
 
@@ -779,11 +779,11 @@ article.presentation .slide {
     padding: 3px 6px;
 }
 
-.tagmap>.content>.tags>.tag>.childs {
+.tagmap>.content>.tags>.tag>.children {
     list-style-type: none;
 }
 
-.tagmap>.content>.tags>.tag>.childs>.child {
+.tagmap>.content>.tags>.tag>.children>.child {
     margin: 0.7em 0 0;
 }
 

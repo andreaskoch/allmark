@@ -17,7 +17,7 @@ type Tag struct {
 	Name   string   `json:"name"`
 	Anchor string   `json:"anchor"`
 	Route  string   `json:"route"`
-	Childs []*Model `json:"childs"`
+	Children []*Model `json:"children"`
 }
 
 type SortTagBy func(tag1, tag2 Tag) bool

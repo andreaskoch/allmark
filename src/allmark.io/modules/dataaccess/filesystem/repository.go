@@ -229,8 +229,8 @@ func (repository *Repository) getItemsFromDirectory(itemDirectory string, limitD
 	// append the item
 	items = append(items, item)
 
-	// abort if the item cannot have childs
-	if !item.CanHaveChilds() {
+	// abort if the item cannot have children
+	if !item.CanHaveChildren() {
 		return
 	}
 

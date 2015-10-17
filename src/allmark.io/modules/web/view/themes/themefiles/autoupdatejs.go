@@ -90,8 +90,8 @@ const AutoupdateJs = `var Autoupdate = (function () {
         case "itemnavigation":
           return "aside.sidebar>nav.navigation";
 
-        case "childs":
-          return "aside.sidebar>.childs";
+        case "children":
+          return "aside.sidebar>.children";
 
         case "tagcloud":
           return "aside.sidebar>.tagcloud";

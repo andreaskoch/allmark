@@ -15,7 +15,7 @@ type TagCloudEntry struct {
 	Anchor         string `json:"anchor"`
 	Route          string `json:"route"`
 	Level          int    `json:"level"`
-	NumberOfChilds int    `json:"numberofchilds"`
+	NumberOfChildren int    `json:"numberofchildren"`
 }
 
 type SortTagCloudBy func(tagCloudEntry1, tagCloudEntry2 TagCloudEntry) bool

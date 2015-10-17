@@ -32,7 +32,7 @@ func (orchestrator *SitemapOrchestrator) GetSitemap() viewmodel.SitemapEntry {
 		sitemapModel := viewmodel.SitemapEntry{
 			Title:       rootItem.Title,
 			Description: rootItem.Description,
-			Childs:      orchestrator.getSitemapEntries(rootItem.Route()),
+			Children:      orchestrator.getSitemapEntries(rootItem.Route()),
 			Path:        "/",
 		}
 
@@ -52,20 +52,20 @@ func (orchestrator *SitemapOrchestrator) GetSitemap() viewmodel.SitemapEntry {
 
 func (orchestrator *SitemapOrchestrator) getSitemapEntries(startRoute route.Route) []viewmodel.SitemapEntry {
 
-	childs := make([]viewmodel.SitemapEntry, 0)
-	for _, child := range orchestrator.getChilds(startRoute) {
+	children := make([]viewmodel.SitemapEntry, 0)
+	for _, child := range orchestrator.getChildren(startRoute) {
 
 		childRoute := child.Route()
 
 		childModel := viewmodel.SitemapEntry{
 			Title:       child.Title,
 			Description: child.Description,
-			Childs:      orchestrator.getSitemapEntries(childRoute),
+			Children:      orchestrator.getSitemapEntries(childRoute),
 			Path:        orchestrator.itemPather().Path(childRoute.Value()),
 		}
 
-		childs = append(childs, childModel)
+		children = append(children, childModel)
 	}
 
-	return childs
+	return children
 }

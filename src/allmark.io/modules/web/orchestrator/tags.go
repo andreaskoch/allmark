@@ -68,7 +68,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []viewmodel.Tag {
 				Name:   tag,
 				Anchor: url.QueryEscape(tag),
 				Route:  orchestrator.tagPather().Path(url.QueryEscape(tag)),
-				Childs: items,
+				Children: items,
 			}
 
 			// append to list
@@ -113,7 +113,7 @@ func (orchestrator *TagsOrchestrator) GetTagCloud() viewmodel.TagCloud {
 		for _, tag := range orchestrator.GetTags() {
 
 			// calculate the number of items per tag
-			numberItemsPerTag := len(tag.Childs)
+			numberItemsPerTag := len(tag.Children)
 
 			// update the maximum number of items per tag
 			if numberItemsPerTag > maxNumberOfItems {
@@ -130,7 +130,7 @@ func (orchestrator *TagsOrchestrator) GetTagCloud() viewmodel.TagCloud {
 				Name:           tag.Name,
 				Anchor:         url.QueryEscape(tag.Name),
 				Route:          orchestrator.tagPather().Path(url.QueryEscape(tag.Name)),
-				NumberOfChilds: numberItemsPerTag,
+				NumberOfChildren: numberItemsPerTag,
 			}
 
 			cloud = append(cloud, tagCloudEntry)
@@ -140,7 +140,7 @@ func (orchestrator *TagsOrchestrator) GetTagCloud() viewmodel.TagCloud {
 		// to the recorded min and max number of items
 		for index, entry := range cloud {
 			// calculate the entry level
-			cloud[index].Level = getTagCloudEntryLevel(entry.NumberOfChilds, minNumberOfItems, maxNumberOfItems, tagCloudEntryLevels)
+			cloud[index].Level = getTagCloudEntryLevel(entry.NumberOfChildren, minNumberOfItems, maxNumberOfItems, tagCloudEntryLevels)
 		}
 
 		// sort tags by name
@@ -190,21 +190,21 @@ func (orchestrator *TagsOrchestrator) getItemTags(route route.Route) []viewmodel
 	return tags
 }
 
-func getTagCloudEntryLevel(numberOfChilds, minNumberOfChilds, maxNumberOfChilds, levelCount int) int {
+func getTagCloudEntryLevel(numberOfChildren, minNumberOfChildren, maxNumberOfChildren, levelCount int) int {
 
-	// check the number of childs for negative numbers
-	if numberOfChilds < 1 {
-		panic(fmt.Sprintf("The number of childs '%v' cannot be less than 1.", numberOfChilds))
+	// check the number of children for negative numbers
+	if numberOfChildren < 1 {
+		panic(fmt.Sprintf("The number of children '%v' cannot be less than 1.", numberOfChildren))
 	}
 
 	// check max boundary
-	if numberOfChilds > maxNumberOfChilds {
-		panic(fmt.Sprintf("The number of childs '%v' cannot be greater than the maximum number of childs '%v'.", numberOfChilds, maxNumberOfChilds))
+	if numberOfChildren > maxNumberOfChildren {
+		panic(fmt.Sprintf("The number of children '%v' cannot be greater than the maximum number of children '%v'.", numberOfChildren, maxNumberOfChildren))
 	}
 
 	// check min boundary
-	if numberOfChilds < minNumberOfChilds {
-		panic(fmt.Sprintf("The number of childs '%v' cannot be smaller than the minimum number of childs '%v'.", numberOfChilds, minNumberOfChilds))
+	if numberOfChildren < minNumberOfChildren {
+		panic(fmt.Sprintf("The number of children '%v' cannot be smaller than the minimum number of children '%v'.", numberOfChildren, minNumberOfChildren))
 	}
 
 	// check the level count
@@ -212,9 +212,9 @@ func getTagCloudEntryLevel(numberOfChilds, minNumberOfChilds, maxNumberOfChilds,
 		panic(fmt.Sprintf("The level count must be greater than 0.", levelCount))
 	}
 
-	// calculate the ratio between the "number of childs" to the "maximum number" of childs (0, 1]
-	ratioNumberOfChildsToMaxNumberOfChilds := float64(numberOfChilds) / float64(maxNumberOfChilds)
-	inverseRation := 1 - ratioNumberOfChildsToMaxNumberOfChilds
+	// calculate the ratio between the "number of children" to the "maximum number" of children (0, 1]
+	ratioNumberOfChildrenToMaxNumberOfChildren := float64(numberOfChildren) / float64(maxNumberOfChildren)
+	inverseRation := 1 - ratioNumberOfChildrenToMaxNumberOfChildren
 
 	// calculate the level
 	level := int(math.Floor(inverseRation*float64(levelCount))) + 1

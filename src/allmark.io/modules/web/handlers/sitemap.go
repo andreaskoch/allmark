@@ -73,7 +73,7 @@ func renderSitemapEntryTemplate(template *template.Template, entry viewmodel.Sit
 	}
 
 	childCode := ""
-	for _, child := range entry.Childs {
+	for _, child := range entry.Children {
 		childCode += renderSitemapEntryTemplate(template, child, childPlaceholder)
 	}
 

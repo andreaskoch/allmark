@@ -71,7 +71,7 @@ func (itemTree *ItemTree) GetChildItems(route route.Route) []*model.Item {
 		return childItems
 	}
 
-	for _, childNode := range node.Childs() {
+	for _, childNode := range node.Children() {
 		item := nodeToItem(childNode)
 		if item == nil {
 			itemTree.logger.Warn("The item of child node %q is nil.", childNode)
@@ -98,7 +98,7 @@ func (itemTree *ItemTree) getNode(route route.Route) *tree.Node {
 	return node
 }
 
-// Walk visits every node in the current tree. Starting with the root, every child of the root and then recurses down the childs.
+// Walk visits every node in the current tree. Starting with the root, every child of the root and then recurses down the children.
 func (itemTree *ItemTree) Walk(expression func(item *model.Item)) {
 	itemTree.Tree.Walk(func(node *tree.Node) {
 		item := nodeToItem(node)

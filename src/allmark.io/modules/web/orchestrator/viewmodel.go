@@ -65,8 +65,8 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 		viewModel.BreadcrumbNavigation = orchestrator.navigationOrchestrator.GetBreadcrumbNavigation(route)
 		viewModel.ItemNavigation = orchestrator.navigationOrchestrator.GetItemNavigation(route)
 
-		// childs
-		viewModel.Childs = orchestrator.getChildModels(route)
+		// children
+		viewModel.Children = orchestrator.getChildModels(route)
 
 		// tags
 		viewModel.Tags = orchestrator.tagOrchestrator.getItemTags(route)
@@ -325,7 +325,7 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route)
 	pathProvider := orchestrator.relativePather(itemRoute)
 
 	childModels := make([]*viewmodel.Base, 0)
-	childItems := orchestrator.getChilds(itemRoute)
+	childItems := orchestrator.getChildren(itemRoute)
 	for _, childItem := range childItems {
 		baseModel := getBaseModel(rootItem, childItem, pathProvider, orchestrator.config)
 		childModels = append(childModels, &baseModel)

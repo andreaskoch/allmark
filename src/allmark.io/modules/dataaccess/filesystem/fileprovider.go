@@ -39,11 +39,11 @@ type fileProvider struct {
 
 func (provider *fileProvider) GetFilesFromDirectory(itemDirectory, filesDirectory string) []dataaccess.File {
 
-	childs := make([]dataaccess.File, 0)
+	children := make([]dataaccess.File, 0)
 
 	filesDirectoryEntries, err := ioutil.ReadDir(filesDirectory)
 	if err != nil {
-		return childs
+		return children
 	}
 
 	for _, directoryEntry := range filesDirectoryEntries {
@@ -52,7 +52,7 @@ func (provider *fileProvider) GetFilesFromDirectory(itemDirectory, filesDirector
 
 		// recurse if the path is a directory
 		if isDir, _ := fsutil.IsDirectory(filePath); isDir {
-			childs = append(childs, provider.GetFilesFromDirectory(itemDirectory, filePath)...)
+			children = append(children, provider.GetFilesFromDirectory(itemDirectory, filePath)...)
 			continue
 		}
 
@@ -63,10 +63,10 @@ func (provider *fileProvider) GetFilesFromDirectory(itemDirectory, filesDirector
 			continue
 		}
 
-		childs = append(childs, file)
+		children = append(children, file)
 	}
 
-	return childs
+	return children
 }
 
 func createFileFromFilesystem(repositoryPath, itemDirectory, filePath string) (dataaccess.File, error) {

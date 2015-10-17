@@ -91,16 +91,16 @@ func (index *Index) GetAllItems() []dataaccess.Item {
 	return items
 }
 
-// Get all childs that match the given expression
-func (index *Index) GetAllChilds(route route.Route, limitDepth bool, maxDepth int) []dataaccess.Item {
+// Get all children that match the given expression
+func (index *Index) GetAllChildren(route route.Route, limitDepth bool, maxDepth int) []dataaccess.Item {
 
-	childs := make([]dataaccess.Item, 0)
+	children := make([]dataaccess.Item, 0)
 
 	if limitDepth {
 
 		// abort if the max depth level has been reached
 		if maxDepth == 0 {
-			return childs
+			return children
 		}
 
 		// count down the max depth
@@ -108,20 +108,20 @@ func (index *Index) GetAllChilds(route route.Route, limitDepth bool, maxDepth in
 
 	}
 
-	// get all direct childs of the supplied route
-	directChilds := index.GetDirectChilds(route)
+	// get all direct children of the supplied route
+	directChildren := index.GetDirectChildren(route)
 
-	for _, child := range directChilds {
+	for _, child := range directChildren {
 
 		// append child
-		childs = append(childs, child)
+		children = append(children, child)
 
 		// recurse
-		childs = append(childs, index.GetAllChilds(child.Route(), limitDepth, maxDepth)...)
+		children = append(children, index.GetAllChildren(child.Route(), limitDepth, maxDepth)...)
 
 	}
 
-	return childs
+	return children
 }
 
 func (index *Index) GetLeafes(route route.Route) []dataaccess.Item {
@@ -134,14 +134,14 @@ func (index *Index) GetLeafes(route route.Route) []dataaccess.Item {
 	}
 
 	// leaf found
-	childs := index.GetDirectChilds(route)
-	if len(childs) == 0 {
+	children := index.GetDirectChildren(route)
+	if len(children) == 0 {
 		return []dataaccess.Item{item}
 	}
 
 	// recurse
 	leafes := make([]dataaccess.Item, 0)
-	for _, child := range childs {
+	for _, child := range children {
 		childLeafes := index.GetLeafes(child.Route())
 		if len(childLeafes) == 0 {
 			continue
@@ -167,18 +167,18 @@ func (index *Index) GetSubIndex(subIndexStartRoute route.Route, limitDepth bool,
 
 	subindex.Add(root)
 
-	for _, child := range index.GetAllChilds(subIndexStartRoute, limitDepth, maxDepth) {
+	for _, child := range index.GetAllChildren(subIndexStartRoute, limitDepth, maxDepth) {
 		subindex.Add(child)
 	}
 
 	return subindex
 }
 
-func (index *Index) GetDirectChilds(route route.Route) []dataaccess.Item {
-	// get all mathching childs
-	childs := index.itemTree.GetChildItems(route)
+func (index *Index) GetDirectChildren(route route.Route) []dataaccess.Item {
+	// get all mathching children
+	children := index.itemTree.GetChildItems(route)
 
-	return childs
+	return children
 }
 
 func (index *Index) Add(item dataaccess.Item) (bool, error) {

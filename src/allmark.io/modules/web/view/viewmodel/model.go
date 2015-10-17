@@ -17,7 +17,7 @@ type Model struct {
 	Publisher Publisher `json:"publisher"`
 	Author    Author    `json:"author"`
 
-	Childs []*Base `json:"childs"`
+	Children []*Base `json:"children"`
 
 	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
 	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`

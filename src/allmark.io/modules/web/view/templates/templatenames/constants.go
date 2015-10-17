@@ -31,6 +31,6 @@ const (
 	ToplevelNavigation   = "toplevelnavigation-snippet"
 	BreadcrumbNavigation = "breadcrumbnavigation-snippet"
 	ItemNavigation       = "itemnavigation-snippet"
-	Childs               = "childs-snippet"
+	Children               = "children-snippet"
 	TagCloud             = "tagcloud-snippet"
 )

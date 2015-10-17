@@ -21,11 +21,11 @@ func newNode(parent *Node, name string, value interface{}) *Node {
 		name:  name,
 		value: value,
 
-		childs:       make(map[string]*Node),
-		childsSorted: make([]*Node, 0),
+		children:       make(map[string]*Node),
+		childrenSorted: make([]*Node, 0),
 	}
 
-	// add the new node to the parents' childs
+	// add the new node to the parents' children
 	if parent != nil {
 		parent.Insert(node)
 	}
@@ -39,15 +39,15 @@ type Node struct {
 
 	parent *Node
 
-	childs       map[string]*Node
-	childsSorted []*Node
+	children       map[string]*Node
+	childrenSorted []*Node
 }
 
 func (node *Node) String() string {
 	markdownListIdentifier := "- "
 	text := getIndent(node.Level()) + markdownListIdentifier + node.Name()
 
-	for _, child := range node.Childs() {
+	for _, child := range node.Children() {
 		text += "\n" + child.String()
 	}
 
@@ -82,8 +82,8 @@ func (node *Node) Level() int {
 	return getNodeLevel(node)
 }
 
-func (node *Node) Childs() []*Node {
-	return node.childsSorted
+func (node *Node) Children() []*Node {
+	return node.childrenSorted
 }
 
 func (parentNode *Node) Insert(nodeToInsert *Node) (bool, error) {
@@ -99,18 +99,18 @@ func (parentNode *Node) Insert(nodeToInsert *Node) (bool, error) {
 	key := nodeToInsert.Name()
 
 	// check if the given node already exists
-	existingNode, exists := parentNode.childs[key]
+	existingNode, exists := parentNode.children[key]
 	if !exists {
 
 		// insert the child node as a new entry
-		parentNode.childs[key] = nodeToInsert
-		parentNode.childsSorted = append(parentNode.childsSorted, nodeToInsert)
+		parentNode.children[key] = nodeToInsert
+		parentNode.childrenSorted = append(parentNode.childrenSorted, nodeToInsert)
 
 		return true, nil // success
 	}
 
 	// insert all sub nodes of the supplied child node
-	for _, subNode := range nodeToInsert.Childs() {
+	for _, subNode := range nodeToInsert.Children() {
 		if childInserted, childInsertErr := existingNode.Insert(subNode); !childInserted {
 			return false, childInsertErr
 		}
@@ -128,7 +128,7 @@ func (parentNode *Node) Delete(path Path) (bool, error) {
 	firstComponent := path[0]
 
 	// find a matching child
-	matchingChild, matchingChildExists := parentNode.childs[firstComponent]
+	matchingChild, matchingChildExists := parentNode.children[firstComponent]
 	if !matchingChildExists {
 		return false, fmt.Errorf("The node %q was not found.", path)
 	}
@@ -138,9 +138,9 @@ func (parentNode *Node) Delete(path Path) (bool, error) {
 		return matchingChild.Delete(path[1:])
 	}
 
-	// remove the node from the childs
-	delete(parentNode.childs, firstComponent)
-	parentNode.childsSorted = deleteFromSlice(matchingChild, parentNode.childsSorted)
+	// remove the node from the children
+	delete(parentNode.children, firstComponent)
+	parentNode.childrenSorted = deleteFromSlice(matchingChild, parentNode.childrenSorted)
 
 	return true, nil
 }
@@ -170,7 +170,7 @@ func (currentNode *Node) GetNode(path Path) *Node {
 
 	// recurse
 	subPath := path[1:]
-	for _, childNode := range currentNode.Childs() { // todo: make more efficient. lookup instead of iterate.
+	for _, childNode := range currentNode.Children() { // todo: make more efficient. lookup instead of iterate.
 		if matchingNode := childNode.GetNode(subPath); matchingNode != nil {
 			return matchingNode
 		}
@@ -180,16 +180,16 @@ func (currentNode *Node) GetNode(path Path) *Node {
 	return nil
 }
 
-// Walk visits the current node, then every child of the current node and then recurses down the childs.
+// Walk visits the current node, then every child of the current node and then recurses down the children.
 func (currentNode *Node) Walk(expression func(node *Node)) {
 
-	// childs first
-	for _, child := range currentNode.Childs() {
+	// children first
+	for _, child := range currentNode.Children() {
 		expression(child)
 	}
 
 	// recurse
-	for _, child := range currentNode.Childs() {
+	for _, child := range currentNode.Children() {
 		child.Walk(expression)
 	}
 }

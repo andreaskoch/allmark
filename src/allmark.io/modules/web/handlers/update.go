@@ -52,7 +52,7 @@ func Update(logger logger.Logger,
 				snippets["toplevelnavigation"] = renderSnippet(templateProvider, templatenames.ToplevelNavigation, viewModel)
 				snippets["breadcrumbnavigation"] = renderSnippet(templateProvider, templatenames.BreadcrumbNavigation, viewModel)
 				snippets["itemnavigation"] = renderSnippet(templateProvider, templatenames.ItemNavigation, viewModel)
-				snippets["childs"] = renderSnippet(templateProvider, templatenames.Childs, viewModel)
+				snippets["children"] = renderSnippet(templateProvider, templatenames.Children, viewModel)
 				snippets["tagcloud"] = renderSnippet(templateProvider, templatenames.TagCloud, viewModel)
 
 				updateModel.Snippets = snippets

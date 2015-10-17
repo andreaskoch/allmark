@@ -41,7 +41,7 @@ func (r *FileTreeRenderer) Render(title, cssClass, path string) string {
 
 	if rootNode := r.files.GetNode(fullFolderRoute); rootNode != nil {
 
-		// Render the childs of the root node
+		// Render the children of the root node
 		code += "- " + r.renderFileNode(rootNode, 1)
 
 	}
@@ -61,9 +61,9 @@ func (r *FileTreeRenderer) renderFileNode(node *FileNode, indentation int) strin
 		html = node.Name() + "\n"
 	}
 
-	if childs := node.Childs(); len(childs) > 0 {
+	if children := node.Children(); len(children) > 0 {
 
-		for _, child := range childs {
+		for _, child := range children {
 			html += fmt.Sprintf("%s- %s", getIndentation(indentation, "\t"), r.renderFileNode(child, indentation+1))
 		}
 

@@ -16,11 +16,11 @@ import (
 func newPhysicalItem(route route.Route,
 	contentProvider *content.ContentProvider,
 	files func() []dataaccess.File,
-	childs func() []dataaccess.Item,
+	children func() []dataaccess.Item,
 	directory string,
 	watcherPaths []watcherPather) dataaccess.Item {
 
-	return newItem(dataaccess.TypePhysical, route, contentProvider, files, childs, directory, watcherPaths)
+	return newItem(dataaccess.TypePhysical, route, contentProvider, files, children, directory, watcherPaths)
 
 }
 
@@ -28,11 +28,11 @@ func newPhysicalItem(route route.Route,
 func newVirtualItem(route route.Route,
 	contentProvider *content.ContentProvider,
 	files func() []dataaccess.File,
-	childs func() []dataaccess.Item,
+	children func() []dataaccess.Item,
 	directory string,
 	watcherPaths []watcherPather) dataaccess.Item {
 
-	return newItem(dataaccess.TypeVirtual, route, contentProvider, files, childs, directory, watcherPaths)
+	return newItem(dataaccess.TypeVirtual, route, contentProvider, files, children, directory, watcherPaths)
 
 }
 
@@ -52,7 +52,7 @@ func newItem(itemType dataaccess.ItemType,
 	route route.Route,
 	contentProvider *content.ContentProvider,
 	files func() []dataaccess.File,
-	childs func() []dataaccess.Item,
+	children func() []dataaccess.Item,
 	directory string,
 	watcherPaths []watcherPather) dataaccess.Item {
 
@@ -61,7 +61,7 @@ func newItem(itemType dataaccess.ItemType,
 		itemType,
 		route,
 		files,
-		childs,
+		children,
 
 		directory,
 
@@ -77,7 +77,7 @@ type Item struct {
 	itemType   dataaccess.ItemType
 	route      route.Route
 	filesFunc  func() []dataaccess.File
-	childsFunc func() []dataaccess.Item
+	childrenFunc func() []dataaccess.Item
 
 	directory string
 
@@ -99,15 +99,15 @@ func (item *Item) Type() dataaccess.ItemType {
 	return item.itemType
 }
 
-// Gets a flag inidicating whether this item can have childs or not.
-func (item *Item) CanHaveChilds() bool {
+// Gets a flag inidicating whether this item can have children or not.
+func (item *Item) CanHaveChildren() bool {
 	switch item.Type() {
 
 	// each child directory which is not the "files" folder can be a child
 	case dataaccess.TypePhysical, dataaccess.TypeVirtual:
 		return true
 
-		// file collection items cannot have childs because all items in the directory are "files" and not items
+		// file collection items cannot have children because all items in the directory are "files" and not items
 	case dataaccess.TypeFileCollection:
 		return false
 

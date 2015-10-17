@@ -18,12 +18,12 @@ func (f *FileNode) Value() *model.File {
 	return nodeToFile(f.Node)
 }
 
-func (f *FileNode) Childs() []*FileNode {
-	childs := make([]*FileNode, 0)
-	for _, child := range f.Node.Childs() {
-		childs = append(childs, &FileNode{child})
+func (f *FileNode) Children() []*FileNode {
+	children := make([]*FileNode, 0)
+	for _, child := range f.Node.Children() {
+		children = append(children, &FileNode{child})
 	}
-	return childs
+	return children
 }
 
 func newTree() *FileTree {

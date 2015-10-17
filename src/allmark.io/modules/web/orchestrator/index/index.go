@@ -125,15 +125,15 @@ func (index *Index) GetAllItems() []*model.Item {
 	return items
 }
 
-// Get all childs that match the given expression
-func (index *Index) GetAllChilds(route route.Route, expression func(item *model.Item) bool) []*model.Item {
+// Get all children that match the given expression
+func (index *Index) GetAllChildren(route route.Route, expression func(item *model.Item) bool) []*model.Item {
 
-	childs := make([]*model.Item, 0)
+	children := make([]*model.Item, 0)
 
-	// get all direct childs of the supplied route
-	directChilds := index.GetDirectChilds(route)
+	// get all direct children of the supplied route
+	directChildren := index.GetDirectChildren(route)
 
-	for _, child := range directChilds {
+	for _, child := range directChildren {
 
 		// evaluate expression
 		if !expression(child) {
@@ -141,27 +141,27 @@ func (index *Index) GetAllChilds(route route.Route, expression func(item *model.
 		}
 
 		// append child
-		childs = append(childs, child)
+		children = append(children, child)
 
 		// recurse
-		childs = append(childs, index.GetAllChilds(child.Route(), expression)...)
+		children = append(children, index.GetAllChildren(child.Route(), expression)...)
 
 	}
 
 	// sort the items by ascending by route
-	model.SortItemsBy(sortItemsByDate).Sort(childs)
+	model.SortItemsBy(sortItemsByDate).Sort(children)
 
-	return childs
+	return children
 }
 
-func (index *Index) GetDirectChilds(route route.Route) []*model.Item {
-	// get all mathching childs
-	childs := index.itemTree.GetChildItems(route)
+func (index *Index) GetDirectChildren(route route.Route) []*model.Item {
+	// get all mathching children
+	children := index.itemTree.GetChildItems(route)
 
 	// sort the items by ascending by route
-	model.SortItemsBy(sortItemsByDate).Sort(childs)
+	model.SortItemsBy(sortItemsByDate).Sort(children)
 
-	return childs
+	return children
 }
 
 func (index *Index) GetLeafes(route route.Route) []*model.Item {
@@ -174,14 +174,14 @@ func (index *Index) GetLeafes(route route.Route) []*model.Item {
 	}
 
 	// leaf found
-	childs := index.GetDirectChilds(route)
-	if len(childs) == 0 {
+	children := index.GetDirectChildren(route)
+	if len(children) == 0 {
 		return []*model.Item{item}
 	}
 
 	// recurse
 	leafes := make([]*model.Item, 0)
-	for _, child := range childs {
+	for _, child := range children {
 		childLeafes := index.GetLeafes(child.Route())
 		if len(childLeafes) == 0 {
 			continue

@@ -115,8 +115,8 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 		return itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 	}
 
-	// childs
-	childs := func() []dataaccess.Item {
+	// children
+	children := func() []dataaccess.Item {
 		return itemProvider.getChildItemsFromDirectory(itemDirectory)
 	}
 
@@ -125,7 +125,7 @@ func (itemProvider *itemProvider) newItemFromFile(itemDirectory, filePath string
 		route,
 		contentProvider,
 		files,
-		childs,
+		children,
 		itemDirectory,
 		[]watcherPather{
 			watcherFilePath{filePath},
@@ -155,8 +155,8 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (dataacce
 		return itemProvider.fileProvider.GetFilesFromDirectory(itemDirectory, filesDirectory)
 	}
 
-	// childs
-	childs := func() []dataaccess.Item {
+	// children
+	children := func() []dataaccess.Item {
 		return itemProvider.getChildItemsFromDirectory(itemDirectory)
 	}
 
@@ -165,7 +165,7 @@ func (itemProvider *itemProvider) newVirtualItem(itemDirectory string) (dataacce
 		route,
 		contentProvider,
 		files,
-		childs,
+		children,
 		itemDirectory,
 		[]watcherPather{
 			watcherDirectoryPath{itemDirectory, false},
