@@ -15,7 +15,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"net/http"
 	"os"
@@ -59,11 +58,8 @@ func DOCX(logger logger.Logger,
 		// set headers
 		headerWriter.Write(w, header.CONTENTTYPE_RTF)
 
-		// get the path from the request variables
-		vars := mux.Vars(r)
-		path := vars["path"]
-
 		// strip the "docx" or ".docx" suffix from the path
+		path := r.URL.Path
 		path = strings.TrimSuffix(path, "docx")
 		path = strings.TrimSuffix(path, ".")
 

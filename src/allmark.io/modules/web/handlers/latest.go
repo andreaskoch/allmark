@@ -11,7 +11,6 @@ import (
 	"allmark.io/modules/web/header"
 	"allmark.io/modules/web/orchestrator"
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
 )
@@ -22,11 +21,8 @@ func Latest(logger logger.Logger, headerWriter header.HeaderWriter, viewModelOrc
 		// set headers
 		headerWriter.Write(w, header.CONTENTTYPE_JSON)
 
-		// get the path from the request variables
-		vars := mux.Vars(r)
-		path := vars["path"]
-
 		// strip the "latest" or ".latest" suffix from the path
+		path := r.URL.Path
 		path = strings.TrimSuffix(path, "latest")
 		path = strings.TrimSuffix(path, ".")
 

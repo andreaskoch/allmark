@@ -8,7 +8,6 @@ import (
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/web/header"
 	"allmark.io/modules/web/orchestrator"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
 )
@@ -20,11 +19,8 @@ func JSON(headerWriter header.HeaderWriter, viewModelOrchestrator *orchestrator.
 		// set headers
 		headerWriter.Write(w, header.CONTENTTYPE_JSON)
 
-		// get the path from the request variables
-		vars := mux.Vars(r)
-		path := vars["path"]
-
 		// strip the "json" or ".json" suffix from the path
+		path := r.URL.Path
 		path = strings.TrimSuffix(path, "json")
 		path = strings.TrimSuffix(path, ".")
 

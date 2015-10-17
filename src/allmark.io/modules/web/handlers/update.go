@@ -13,7 +13,6 @@ import (
 	"allmark.io/modules/web/view/templates"
 	"allmark.io/modules/web/view/templates/templatenames"
 	"allmark.io/modules/web/view/viewmodel"
-	"github.com/gorilla/mux"
 	"golang.org/x/net/websocket"
 	"strings"
 )
@@ -76,11 +75,8 @@ func Update(logger logger.Logger,
 
 	return websocket.Handler(func(ws *websocket.Conn) {
 
-		// get the path from the request variables
-		vars := mux.Vars(ws.Request())
-		path := vars["path"]
-
 		// strip the "ws" or ".ws" suffix from the path
+		path := ws.Request().URL.Path
 		path = strings.TrimSuffix(path, "ws")
 		path = strings.TrimSuffix(path, ".")
 

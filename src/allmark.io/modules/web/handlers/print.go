@@ -11,7 +11,6 @@ import (
 	"allmark.io/modules/web/orchestrator"
 	"allmark.io/modules/web/view/templates"
 	"allmark.io/modules/web/view/viewmodel"
-	"github.com/gorilla/mux"
 	"io"
 	"net/http"
 	"strings"
@@ -45,11 +44,8 @@ func Print(logger logger.Logger,
 		// set headers
 		headerWriter.Write(w, header.CONTENTTYPE_HTML)
 
-		// get the path from the request variables
-		vars := mux.Vars(r)
-		path := vars["path"]
-
 		// strip the "print" or ".print" suffix from the path
+		path := r.URL.Path
 		path = strings.TrimSuffix(path, "print")
 		path = strings.TrimSuffix(path, ".")
 

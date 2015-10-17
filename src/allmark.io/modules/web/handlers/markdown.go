@@ -9,7 +9,6 @@ import (
 	"allmark.io/modules/web/header"
 	"allmark.io/modules/web/orchestrator"
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
 )
@@ -22,11 +21,8 @@ func Markdown(headerWriter header.HeaderWriter, viewModelOrchestrator *orchestra
 		// set headers
 		headerWriter.Write(w, header.CONTENTTYPE_JSON)
 
-		// get the path from the request variables
-		vars := mux.Vars(r)
-		path := vars["path"]
-
 		// strip the "md" or ".md" suffix from the path
+		path := r.URL.Path
 		path = strings.TrimSuffix(path, "markdown")
 		path = strings.TrimSuffix(path, ".")
 

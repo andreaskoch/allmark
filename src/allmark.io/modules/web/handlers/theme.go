@@ -9,7 +9,6 @@ import (
 	"allmark.io/modules/web/header"
 	"allmark.io/modules/web/view/themes"
 	"fmt"
-	"github.com/gorilla/mux"
 	"mime"
 	"net/http"
 	"path/filepath"
@@ -22,10 +21,7 @@ func InMemoryTheme(headerWriter header.HeaderWriter, error404Handler http.Handle
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		// get the path from the request variables
-		vars := mux.Vars(r)
-		path := vars["path"]
-
+		path := r.URL.Path
 		themeFile := defaultTheme.Get(path)
 		if themeFile == nil {
 
