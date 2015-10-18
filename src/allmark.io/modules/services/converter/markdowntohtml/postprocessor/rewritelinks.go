@@ -6,7 +6,6 @@ package postprocessor
 
 import (
 	"allmark.io/modules/common/paths"
-	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
 	"fmt"
 	"regexp"
@@ -40,8 +39,7 @@ func rewireLinks(itemContentPathProvider paths.Pather, files []*model.File, html
 		}
 
 		// assemble the new link path
-		fullFileRoute := route.Combine(matchingFile.Parent(), matchingFile.Route())
-		matchingFilePath := itemContentPathProvider.Path(fullFileRoute.Value())
+		matchingFilePath := itemContentPathProvider.Path(matchingFile.Route().Value())
 
 		// assemble the new link
 		newLinkText := fmt.Sprintf("%s=\"%s\"", linkType, matchingFilePath)

@@ -73,8 +73,10 @@ func DOCX(logger logger.Logger,
 		targetDirectory := fsutil.GetTempDirectory()
 
 		// get the conversion model
-		// baseURL := fmt.Sprintf(`file://%s`, targetDirectory)
 		baseURL := getBaseURLFromRequest(r)
+
+		// make the baseURL HTTP because pandoc has problems with HTTPS
+		baseURL = strings.Replace(baseURL, "https://", "http://", 1)
 
 		model, found := converterModelOrchestrator.GetConversionModel(baseURL, requestRoute)
 		if !found {
@@ -123,42 +125,6 @@ func DOCX(logger logger.Logger,
 
 		logger.Debug("Saving conversion files to directory: %q", targetDirectory)
 
-		// // saves files to disc
-		// for _, file := range model.Files {
-		//
-		// 	fileRoute := route.NewFromRequest(file.Route)
-		// 	filePath := strings.TrimLeft(file.Path, "/") + "/" + file.Name
-		// 	fullPath := filepath.Join(targetDirectory, filePath)
-		//
-		// 	logger.Debug("Saving file %q", filePath)
-		//
-		// 	if _, err := fsutil.CreateFile(fullPath); err != nil {
-		// 		logger.Error("Could not create file %q. Error: %s", fullPath, err.Error())
-		// 		continue
-		// 	}
-		//
-		// 	file, err := os.OpenFile(fullPath, os.O_RDWR, 0600)
-		// 	if err != nil {
-		// 		logger.Error("Could not create file %q. Error: %s", fullPath, err.Error())
-		// 		continue
-		// 	}
-		//
-		// 	contentProvider := fileOrchestrator.GetFileContentProvider(fileRoute)
-		// 	if contentProvider == nil {
-		// 		file.Close()
-		// 		logger.Error("There is no content provider for file %q", requestRoute)
-		// 		continue
-		// 	}
-		//
-		// 	contentProvider.Data(func(content io.ReadSeeker) error {
-		// 		io.Copy(file, content)
-		// 		return nil
-		// 	})
-		//
-		// 	file.Close()
-		//
-		// }
-
 		// docx file
 		docxFile, err := fsutil.OpenFile(targetFilePath)
 		if err != nil {
@@ -200,5 +166,4 @@ func getRichTextFilename(model viewmodel.ConversionModel) string {
 // deleteFile removes the file with the specified path.
 func deleteFile(filepath string) error {
 	return os.RemoveAll(filepath)
-	// return nil
 }

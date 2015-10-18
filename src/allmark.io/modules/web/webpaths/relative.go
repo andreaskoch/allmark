@@ -28,7 +28,7 @@ type RelativeWebPathProvider struct {
 func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 
 	// return the supplied item path if it is already absolute
-	if isAbsoluteURI(itemPath) {
+	if IsAbsoluteURI(itemPath) {
 		return itemPath
 	}
 
@@ -54,7 +54,7 @@ func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 
 	if !matchingRouteHasBeenFound {
 		// path could not be resolved, return fallback
-		return "/" + itemPath
+		return strings.TrimPrefix(strings.Replace(itemPath, webPathProvider.baseRoute.Value(), "", 1), "/")
 	}
 
 	// intersect the child route with the base route to get full path

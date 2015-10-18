@@ -34,7 +34,7 @@ func (orchestrator *FileOrchestrator) GetFile(fileRoute route.Route) (fileModel 
 		return fileModel, false
 	}
 
-	convertedModel, err := toViewModel(orchestrator.itemPather(), file)
+	convertedModel, err := toViewModel(orchestrator.relativePather(file.Parent()), file)
 	if err != nil {
 		orchestrator.logger.Warn(err.Error())
 		return fileModel, false
@@ -54,7 +54,7 @@ func (orchestrator *FileOrchestrator) GetFiles(itemRoute route.Route) []viewmode
 	}
 
 	for _, file := range item.Files() {
-		fileModel, err := toViewModel(orchestrator.itemPather(), file)
+		fileModel, err := toViewModel(orchestrator.relativePather(file.Parent()), file)
 		if err != nil {
 			orchestrator.logger.Warn(err.Error())
 			continue

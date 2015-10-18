@@ -13,8 +13,8 @@ var (
 	protocolPrefixPattern = regexp.MustCompile(`^\w+:`)
 )
 
-// Checks if the given uri is absolute or not.
-func isAbsoluteURI(uri string) bool {
+// IsAbsoluteURI checks if the given uri is absolute or not.
+func IsAbsoluteURI(uri string) bool {
 	uriHasProtocolPrefix := protocolPrefixPattern.MatchString(uri)
 	return uriHasProtocolPrefix
 }

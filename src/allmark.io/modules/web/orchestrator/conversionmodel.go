@@ -33,7 +33,7 @@ func (orchestrator *ConversionModelOrchestrator) GetConversionModel(baseURL stri
 
 	// create the path provider
 	rootPathProvider := orchestrator.absolutePather(fmt.Sprintf("%s/", baseURL))
-	itemContentPathProvider := orchestrator.absolutePather(fmt.Sprintf("%s/%s/", baseURL, item.Route().Value()))
+	itemContentPathProvider := orchestrator.absolutePather(fmt.Sprintf("%s/", baseURL))
 
 	// convert content
 	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, rootPathProvider, itemContentPathProvider, item)

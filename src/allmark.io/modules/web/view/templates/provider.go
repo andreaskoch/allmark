@@ -11,6 +11,7 @@ import (
 
 	"allmark.io/modules/web/view/templates/defaulttheme"
 	"allmark.io/modules/web/view/templates/templatenames"
+	"allmark.io/modules/web/webpaths"
 )
 
 // A Provider gives access to all required templates.
@@ -221,6 +222,10 @@ func getTemplateHelpers(hostname string) map[string]interface{} {
 
 	// get the absolute url for a given (relative) uri
 	getAbsoluteURL := func(uri string) string {
+
+		if webpaths.IsAbsoluteURI(uri) {
+			return uri
+		}
 
 		// sanatize
 		uri = strings.TrimSpace(uri)

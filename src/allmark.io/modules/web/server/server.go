@@ -96,7 +96,7 @@ func (server *Server) Start() chan error {
 
 					// Redirect HTTP → HTTPS
 					redirectTarget := httpsEndpoint.DefaultURL()
-					httpsRedirectRouter := server.getRedirectRouter(redirectTarget)
+					httpsRedirectRouter := server.getRedirectRouter(redirectTarget, standardRequestRouter)
 
 					if err := http.ListenAndServe(address, httpsRedirectRouter); err != nil {
 						result <- fmt.Errorf("Server failed with error: %v", err)
@@ -166,10 +166,10 @@ func (server *Server) Start() chan error {
 }
 
 // getRedirectRouter returns a router which redirects all requests to the url with the given base.
-func (server *Server) getRedirectRouter(baseURITarget string) *mux.Router {
+func (server *Server) getRedirectRouter(baseURITarget string, baseHandler http.Handler) *mux.Router {
 	redirectRouter := mux.NewRouter()
 
-	for _, requestHandler := range handlers.GetRedirectHandlers(baseURITarget) {
+	for _, requestHandler := range handlers.GetRedirectHandlers(server.logger, baseURITarget, baseHandler) {
 		requestRoute := requestHandler.Route
 		requestHandler := requestHandler.Handler
 
@@ -202,7 +202,7 @@ func (server *Server) getStandardRequestRouter() *mux.Router {
 				panic("Authentication is enabled but the supplied secret provider is nil.")
 			}
 
-			requestHandler = handlers.RequireDigestAuthentication(requestHandler, secretProvider)
+			requestHandler = handlers.RequireDigestAuthentication(server.logger, requestHandler, secretProvider)
 		}
 
 		requestRouter.Handle(requestRoute, requestHandler)

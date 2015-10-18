@@ -108,9 +108,9 @@ func (list *HandlerList) Add(route string, handler http.Handler) {
 }
 
 // GetRedirectHandlers returns a list of redirect handlers.
-func GetRedirectHandlers(baseURITarget string) HandlerList {
+func GetRedirectHandlers(logger logger.Logger, baseURITarget string, baseHandler http.Handler) HandlerList {
 	handlers := make(HandlerList, 0)
-	handlers.Add(RedirectHandlerRoute, Redirect(baseURITarget))
+	handlers.Add(RedirectHandlerRoute, Redirect(logger, baseURITarget, baseHandler))
 	return handlers
 }
 
