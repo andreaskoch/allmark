@@ -144,7 +144,12 @@ hr {
     border: 0;
     border-top: 1px solid #aaa;
     border-bottom: 1px solid #eee;
-    margin: 1em 0;
+    margin: 1em 0;a.deeplink {
+    float: left;
+    line-height: 0;
+    font-size: 0;
+    color: transparent;
+}
     padding: 0;
 }
 
@@ -257,6 +262,13 @@ table {
 
 td {
     vertical-align: top;
+}
+
+a.deeplink {
+    float: left;
+    line-height: 0;
+    font-size: 0;
+    color: transparent;
 }
 
 body>article {

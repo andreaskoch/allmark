@@ -143,9 +143,13 @@ const masterTemplate = `<!DOCTYPE HTML>
 <script src="/theme/codehighlighting/highlight.js"></script>
 <script type="text/javascript">
 $(function() {
+	// code highligting
 	$('pre code').each(function(i, block) {
 		hljs.highlightBlock(block);
 	});
+
+	// deep linking
+	addDeepLinksToElements('section.content > h1, h2, h3, h4, h5, h6');
 
 	// register a on change listener
 	if (typeof(autoupdate) === 'object' && typeof(autoupdate.onchange) === 'function') {

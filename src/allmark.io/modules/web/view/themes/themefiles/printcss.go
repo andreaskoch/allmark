@@ -73,6 +73,10 @@ h2, h3, h4, h5, h6 {
     page-break-after: avoid;
 }
 
+a.deeplink {
+    display: none;
+}
+
 body>nav.toplevel {
     display: none;
 }
