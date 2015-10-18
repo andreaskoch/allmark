@@ -239,7 +239,7 @@ func (server *Server) httpsEndpoint() (httpsEndpoint HTTPSEndpoint, enabled bool
 		tcpBindings: server.config.Server.HTTPS.Bindings,
 	}
 
-	certFilePath, keyFilePath := server.config.CertificateFilePaths()
+	certFilePath, keyFilePath, _ := server.config.CertificateFilePaths()
 
 	httpsEndpoint = HTTPSEndpoint{
 		HTTPEndpoint: httpEndpoint,

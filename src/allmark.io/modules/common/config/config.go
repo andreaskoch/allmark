@@ -381,7 +381,7 @@ func (config *Config) CertificateDirectory() string {
 // CertificateFilePaths returns the SSL certificate and key file paths.
 // If none are configured or the configured ones don't exist it will create new
 // ones and return the paths of the newly generates certificate/key pair.
-func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath string) {
+func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath string, created bool) {
 
 	// Determine the domain name
 	domainname := config.Server.DomainName
@@ -412,7 +412,7 @@ func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath s
 	if fsutil.FileExists(certificateFilePath) && fsutil.FileExists(keyFilePath) {
 
 		// return the existing paths
-		return certificateFilePath, keyFilePath
+		return certificateFilePath, keyFilePath, false
 	}
 
 	// determine the target location for the dummy cert
@@ -440,7 +440,7 @@ func (config *Config) CertificateFilePaths() (certificateFilePath, keyFilePath s
 		panic(fmt.Sprintf("Could not create dummy certificates %q and %q for domainname %q. Error: %s", certificateFilePath, keyFilePath, domainname, err.Error()))
 	}
 
-	return certificateFilePath, keyFilePath
+	return certificateFilePath, keyFilePath, true
 }
 
 // BaseFolder returns the path of the base folder of the current configuration model.

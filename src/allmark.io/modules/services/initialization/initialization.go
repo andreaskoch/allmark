@@ -37,21 +37,31 @@ func Initialize(baseFolder string) (success bool, err error) {
 	}
 	fmt.Printf("Templates stored in folder %q.\n", templateFolder)
 
-	// empty digest-authentication file
-	if _, err := fsutil.CreateFile(config.AuthenticationFilePath()); err != nil {
-		return false, fmt.Errorf("Could not create a authentication user store. Error: %s", err.Error())
+	// empty basic-authentication file
+	htpasswdFile := config.AuthenticationFilePath()
+	if !fsutil.FileExists(htpasswdFile) {
+		if _, err := fsutil.CreateFile(htpasswdFile); err != nil {
+			return false, fmt.Errorf("Could not create a authentication user store. Error: %s", err.Error())
+		}
+
+		fmt.Printf("Created an empty authentication user store file: %q\n", config.AuthenticationFilePath())
 	}
-	fmt.Printf("Created an empty authentication user store file: %q\n", config.AuthenticationFilePath())
 
 	// certs directory
-	if created := fsutil.CreateDirectory(config.CertificateDirectory()); !created {
-		return false, fmt.Errorf("Could not create the certifcates directory: %q", config.CertificateDirectory())
+	certificateDirectory := config.CertificateDirectory()
+	if !fsutil.DirectoryExists(certificateDirectory) {
+		if created := fsutil.CreateDirectory(certificateDirectory); !created {
+			return false, fmt.Errorf("Could not create the certifcates directory: %q", config.CertificateDirectory())
+		}
+
+		fmt.Printf("Created the certifcates directory: %q\n", config.CertificateDirectory())
 	}
-	fmt.Printf("Created the certifcates directory: %q\n", config.CertificateDirectory())
 
 	// ssl-certificates
-	certFilePath, keyFilePath := config.CertificateFilePaths()
-	fmt.Printf("Created a certificate (%s, %s)\n", certFilePath, keyFilePath)
+	certFilePath, keyFilePath, created := config.CertificateFilePaths()
+	if created {
+		fmt.Printf("Created a certificate (%s, %s)\n", certFilePath, keyFilePath)
+	}
 
 	return true, nil
 }
