@@ -11,8 +11,8 @@ import (
 	"allmark.io/modules/web/view/templates"
 	"allmark.io/modules/web/view/viewmodel"
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
+	"strings"
 )
 
 // AliasLookup creates a http handler which redirects aliases to their documents.
@@ -23,9 +23,9 @@ func AliasLookup(
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		// get the path from the request variables
-		vars := mux.Vars(r)
-		alias := vars["alias"]
+		// strip the "/!" prefix from the path
+		path := r.URL.Path
+		alias := strings.TrimPrefix(path, "/!")
 
 		// locate the correct viewmodel for the given alias
 		viewModel, found := viewModelOrchestrator.GetViewModelByAlias(alias)

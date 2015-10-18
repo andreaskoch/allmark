@@ -153,6 +153,22 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 				errorHandler))
 	}
 
+	// alias lookup
+	handlers.Add(
+		AliasLookupHandlerRoute,
+		AliasLookup(headerWriterFactory.Dynamic(),
+			viewModelOrchestrator,
+			itemHandler))
+
+	// alias index
+	handlers.Add(
+		AliasIndexHandlerRoute,
+		AliasIndex(
+			headerWriterFactory.Dynamic(),
+			navigationOrchestrator,
+			orchestratorFactory.NewAliasIndexOrchestrator(),
+			templateProvider))
+
 	// thumbnails
 	if thumbnailsFolder := config.ThumbnailFolder(); fsutil.DirectoryExists(thumbnailsFolder) {
 		requestPrefixToStripFromRequestURI := "/" + config.Conversion.Thumbnails.FolderName
@@ -275,22 +291,6 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 			headerWriterFactory.Dynamic(),
 			templateProvider,
 			orchestratorFactory.NewUpdateOrchestrator()))
-
-	// alias lookup
-	handlers.Add(
-		AliasLookupHandlerRoute,
-		AliasLookup(headerWriterFactory.Dynamic(),
-			viewModelOrchestrator,
-			itemHandler))
-
-	// alias index
-	handlers.Add(
-		AliasIndexHandlerRoute,
-		AliasIndex(
-			headerWriterFactory.Dynamic(),
-			navigationOrchestrator,
-			orchestratorFactory.NewAliasIndexOrchestrator(),
-			templateProvider))
 
 	// items
 	handlers.Add(

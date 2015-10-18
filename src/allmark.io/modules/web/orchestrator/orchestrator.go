@@ -520,6 +520,12 @@ func (orchestrator *Orchestrator) getChildren(route route.Route) []*model.Item {
 
 // getAliasMap returns the map of all items by their alias.
 func (orchestrator *Orchestrator) getAliasMap() ItemCache {
+
+	// force a cache warumup if the list is not initialized yet
+	if orchestrator.itemsByAlias == nil {
+		orchestrator.getItemByAlias("")
+	}
+
 	return orchestrator.itemsByAlias
 }
 
