@@ -78,6 +78,9 @@ func DOCX(logger logger.Logger,
 		// make the baseURL HTTP because pandoc has problems with HTTPS
 		baseURL = strings.Replace(baseURL, "https://", "http://", 1)
 
+		// make sure pandoc only performs local requests
+		baseURL = strings.Replace(baseURL, r.Host, "localhost", 1)
+
 		model, found := converterModelOrchestrator.GetConversionModel(baseURL, requestRoute)
 		if !found {
 
