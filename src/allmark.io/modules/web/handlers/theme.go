@@ -12,21 +12,25 @@ import (
 	"mime"
 	"net/http"
 	"path/filepath"
+	"strings"
 )
 
 // InMemoryTheme creates a theme-handler that serves the theme-files from memory.
-func InMemoryTheme(headerWriter header.HeaderWriter, error404Handler http.Handler) http.Handler {
+func InMemoryTheme(themeFolderPath string, headerWriter header.HeaderWriter, error404Handler http.Handler) http.Handler {
 
 	defaultTheme := themes.GetTheme()
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		path := r.URL.Path
+		path = strings.TrimPrefix(path, themeFolderPath)
+
 		themeFile := defaultTheme.Get(path)
 		if themeFile == nil {
 
 			// display a 404 error page
 			error404Handler.ServeHTTP(w, r)
+			return
 
 		}
 

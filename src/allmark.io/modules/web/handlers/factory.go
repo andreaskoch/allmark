@@ -149,7 +149,9 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 
 		handlers.Add(
 			ThemeHandlerRoute,
-			InMemoryTheme(headerWriterFactory.Static(),
+			InMemoryTheme(
+				"/"+config.Server.ThemeFolderName+"/",
+				headerWriterFactory.Static(),
 				errorHandler))
 	}
 
