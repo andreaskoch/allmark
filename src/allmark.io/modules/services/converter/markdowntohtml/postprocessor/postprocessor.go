@@ -9,41 +9,39 @@ import (
 	"allmark.io/modules/common/paths"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
-	"allmark.io/modules/services/converter/markdowntohtml/common"
-	"allmark.io/modules/services/thumbnail"
+	"allmark.io/modules/services/converter/markdowntohtml/imageprovider"
 )
 
 // Postprocessor provides post-processing capabilities for HTML code.
 type Postprocessor struct {
-	logger         logger.Logger
-	thumbnailIndex *thumbnail.Index
+	logger        logger.Logger
+	imageProvider *imageprovider.ImageProvider
 }
 
 // New creates a new Postprocessor.
-func New(logger logger.Logger, thumbnailIndex *thumbnail.Index) *Postprocessor {
+func New(logger logger.Logger, imageProvider *imageprovider.ImageProvider) *Postprocessor {
 	return &Postprocessor{
-		logger:         logger,
-		thumbnailIndex: thumbnailIndex,
+		logger:        logger,
+		imageProvider: imageProvider,
 	}
 }
 
 // Convert applies post-processing to the supplied HTML code.
 func (postprocessor *Postprocessor) Convert(
-	rootPathProvider, itemContentPathProvider paths.Pather,
+	pathProvider paths.Pather,
 	itemRoute route.Route,
 	files []*model.File,
 	html string) (convertedContent string, converterError error) {
 
 	// Thumbnails
-	imageProvider := common.NewImageProvider(rootPathProvider, postprocessor.thumbnailIndex)
-	imagePostProcessor := newImagePostprocessor(itemContentPathProvider, itemRoute, files, imageProvider)
+	imagePostProcessor := newImagePostprocessor(pathProvider, itemRoute, files, postprocessor.imageProvider)
 	html, imageConversionError := imagePostProcessor.Convert(html)
 	if imageConversionError != nil {
 		postprocessor.logger.Warn("Error while converting images/thumbnails. Error: %s", imageConversionError)
 	}
 
 	// Rewrite Links
-	html = rewireLinks(itemContentPathProvider, files, html)
+	html = rewireLinks(pathProvider, files, html)
 
 	// Add Emojis
 	html = addEmojis(html)

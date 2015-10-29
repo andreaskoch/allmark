@@ -73,13 +73,12 @@ func (orchestrator *FeedOrchestrator) getItems(baseURL string, itemsPerPage, pag
 func (orchestrator *FeedOrchestrator) createFeedEntryModel(baseURL string, item *model.Item) viewmodel.FeedEntry {
 
 	rootPathProvider := orchestrator.absolutePather(fmt.Sprintf("%s/", baseURL))
-	itemContentPathProvider := orchestrator.absolutePather(fmt.Sprintf("%s/%s/", baseURL, item.Route().Value()))
 
 	// item location
 	location := rootPathProvider.Path(item.Route().Value())
 
 	// content
-	content, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, rootPathProvider, itemContentPathProvider, item)
+	content, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, rootPathProvider, item)
 	if err != nil {
 		content = err.Error()
 	}

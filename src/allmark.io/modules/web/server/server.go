@@ -10,8 +10,10 @@ import (
 	"allmark.io/modules/common/config"
 	"allmark.io/modules/common/logger"
 	"allmark.io/modules/dataaccess"
-	"allmark.io/modules/services/converter"
+	"allmark.io/modules/services/converter/markdowntohtml"
+	"allmark.io/modules/services/converter/markdowntohtml/imageprovider"
 	"allmark.io/modules/services/parser"
+	"allmark.io/modules/services/thumbnail"
 	"allmark.io/modules/web/handlers"
 	"allmark.io/modules/web/header"
 	"allmark.io/modules/web/orchestrator"
@@ -26,17 +28,21 @@ import (
 )
 
 // New creates a new Server instance for the given repository.
-func New(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, converter converter.Converter) (*Server, error) {
+func New(logger logger.Logger, config config.Config, repository dataaccess.Repository, parser parser.Parser, thumbnailIndex *thumbnail.Index) (*Server, error) {
 
-	// create the request handlers
 	patherFactory := webpaths.NewFactory(logger, repository)
-	itemPathProvider := patherFactory.Absolute(handlers.BasePath)
-	tagPathProvider := patherFactory.Absolute(handlers.TagPathPrefix)
-	webPathProvider := webpaths.NewWebPathProvider(patherFactory, itemPathProvider, tagPathProvider)
-	templateProvider := templates.NewProvider(config.TemplatesFolder())
+	webPathProvider := webpaths.NewWebPathProvider(patherFactory, handlers.BasePath, handlers.TagPathPrefix)
+
+	// image provider
+	imageProvider := imageprovider.NewImageProvider(webPathProvider.AbsolutePather("/"), thumbnailIndex)
+
+	// converter
+	converter := markdowntohtml.New(logger, imageProvider)
+
 	orchestratorFactory := orchestrator.NewFactory(logger, config, repository, parser, converter, webPathProvider)
 	reindexInterval := config.Indexing.IntervalInSeconds
 	headerWriterFactory := header.NewHeaderWriterFactory(reindexInterval)
+	templateProvider := templates.NewProvider(config.TemplatesFolder())
 	requestHandlers := handlers.GetBaseHandlers(logger, config, templateProvider, *orchestratorFactory, headerWriterFactory)
 
 	return &Server{

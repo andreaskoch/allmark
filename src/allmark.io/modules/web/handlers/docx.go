@@ -16,6 +16,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -79,7 +80,14 @@ func DOCX(logger logger.Logger,
 		baseURL = strings.Replace(baseURL, "https://", "http://", 1)
 
 		// make sure pandoc only performs local requests
-		baseURL = strings.Replace(baseURL, r.Host, "localhost", 1)
+		originalHostname := r.Host
+		newHostname := "localhost"
+		_, port, _ := net.SplitHostPort(originalHostname)
+		if port != "" {
+			newHostname = newHostname + ":" + port
+		}
+
+		baseURL = strings.Replace(baseURL, originalHostname, newHostname, 1)
 
 		model, found := converterModelOrchestrator.GetConversionModel(baseURL, requestRoute)
 		if !found {

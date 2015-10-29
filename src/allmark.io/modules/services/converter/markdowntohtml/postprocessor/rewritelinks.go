@@ -16,7 +16,7 @@ var (
 	htmlLinkPattern = regexp.MustCompile(`(src|href)="([^"]+)"`)
 )
 
-func rewireLinks(itemContentPathProvider paths.Pather, files []*model.File, html string) string {
+func rewireLinks(pathProvider paths.Pather, files []*model.File, html string) string {
 
 	allMatches := htmlLinkPattern.FindAllStringSubmatch(html, -1)
 	for _, matches := range allMatches {
@@ -39,7 +39,7 @@ func rewireLinks(itemContentPathProvider paths.Pather, files []*model.File, html
 		}
 
 		// assemble the new link path
-		matchingFilePath := itemContentPathProvider.Path(matchingFile.Route().Value())
+		matchingFilePath := pathProvider.Path(matchingFile.Route().Value())
 
 		// assemble the new link
 		newLinkText := fmt.Sprintf("%s=\"%s\"", linkType, matchingFilePath)

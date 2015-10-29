@@ -10,23 +10,22 @@ import (
 	"time"
 
 	"allmark.io/modules/common/config"
-	"allmark.io/modules/common/paths"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
 	"allmark.io/modules/web/view/viewmodel"
 )
 
-func getBaseModel(root, item *model.Item, pathProvider paths.Pather, config config.Config) viewmodel.Base {
+func getBaseModel(root, item *model.Item, config config.Config) viewmodel.Base {
 
 	baseModel := viewmodel.Base{
 		RepositoryName:        root.Title,
 		RepositoryDescription: root.Description,
 
 		Type:    item.Type.String(),
-		Route:   pathProvider.Path(item.Route().Value()),
+		Route:   item.Route().Value(),
 		Level:   item.Route().Level(),
 		BaseURL: GetBaseURL(item.Route()),
-		Aliases: getAliasViewModels(pathProvider, item),
+		Aliases: getAliasViewModels(item),
 
 		PrintURL:    GetTypedItemURL(item.Route(), "print"),
 		JSONURL:     GetTypedItemURL(item.Route(), "json"),
@@ -45,7 +44,7 @@ func getBaseModel(root, item *model.Item, pathProvider paths.Pather, config conf
 
 	if item.Route().Level() > 0 {
 		if parentRoute, exists := item.Route().Parent(); exists {
-			baseModel.ParentRoute = pathProvider.Path(parentRoute.Value())
+			baseModel.ParentRoute = parentRoute.Value()
 		}
 	}
 
@@ -148,13 +147,13 @@ func pagedItems(models []*model.Item, pageSize, page int) (items []*model.Item, 
 }
 
 // getAliasViewModels returns a list of alias view-models for each alias of the specified item.
-func getAliasViewModels(pathProvider paths.Pather, item *model.Item) []viewmodel.Alias {
+func getAliasViewModels(item *model.Item) []viewmodel.Alias {
 	var viewModels []viewmodel.Alias
 	for _, alias := range item.MetaData.Aliases {
 		viewModels = append(viewModels, viewmodel.Alias{
 			Name:        alias,
-			Route:       pathProvider.Path("!" + alias), // Todo: Don't use a magic string for the alias prefix
-			TargetRoute: pathProvider.Path(item.Route().Value()),
+			Route:       "!" + alias, // Todo: Don't use a magic string for the alias prefix
+			TargetRoute: item.Route().Value(),
 		})
 	}
 	return viewModels

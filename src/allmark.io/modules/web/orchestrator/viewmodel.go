@@ -244,6 +244,11 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 			continue
 		}
 
+		// make the routes absolute
+		absolutePathProvider := orchestrator.absolutePather("/")
+		viewModel.Route = absolutePathProvider.Path(viewModel.Route)
+		viewModel.ParentRoute = absolutePathProvider.Path(viewModel.ParentRoute)
+
 		models = append(models, viewModel)
 	}
 
@@ -274,7 +279,7 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *
 		root := orchestrator.rootItem()
 
 		viewModel := &viewmodel.Model{
-			Base:             getBaseModel(root, item, orchestrator.itemPather(), orchestrator.config),
+			Base:             getBaseModel(root, item, orchestrator.config),
 			Content:          "", // convert later
 			Markdown:         item.Markdown,
 			Publisher:        orchestrator.getPublisherInformation(),
@@ -322,12 +327,10 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route)
 		orchestrator.logger.Fatal("No root item found")
 	}
 
-	pathProvider := orchestrator.relativePather(itemRoute)
-
 	childModels := make([]*viewmodel.Base, 0)
 	childItems := orchestrator.getChildren(itemRoute)
 	for _, childItem := range childItems {
-		baseModel := getBaseModel(rootItem, childItem, pathProvider, orchestrator.config)
+		baseModel := getBaseModel(rootItem, childItem, orchestrator.config)
 		childModels = append(childModels, &baseModel)
 	}
 
@@ -343,7 +346,7 @@ func (orchestrator *ViewModelOrchestrator) getHTMLFromItem(item *model.Item) str
 		return ""
 	}
 
-	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, orchestrator.absolutePather("/"), orchestrator.relativePather(item.Route()), item)
+	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, orchestrator.relativePather(item.Route()), item)
 	if err != nil {
 		orchestrator.logger.Warn("Cannot convert content for route %q. Error: %s.", item.Route(), err.Error())
 		return "<!-- Conversion Error -->"

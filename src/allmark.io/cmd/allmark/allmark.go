@@ -12,7 +12,6 @@ import (
 	"allmark.io/modules/common/shutdown"
 	"allmark.io/modules/common/util/fsutil"
 	"allmark.io/modules/dataaccess/filesystem"
-	"allmark.io/modules/services/converter/markdowntohtml"
 	"allmark.io/modules/services/initialization"
 	"allmark.io/modules/services/parser"
 	"allmark.io/modules/services/thumbnail"
@@ -211,11 +210,8 @@ func serve(repositoryPath string) bool {
 		logger.Fatal("Unable to instantiate a parser. Error: %s", err)
 	}
 
-	// converter
-	converter := markdowntohtml.New(logger, thumbnailIndex)
-
 	// server
-	server, err := server.New(logger, *configuration, repository, itemParser, converter)
+	server, err := server.New(logger, *configuration, repository, itemParser, thumbnailIndex)
 	if err != nil {
 		logger.Error("Unable to instantiate a server. Error: %s", err.Error())
 		return false

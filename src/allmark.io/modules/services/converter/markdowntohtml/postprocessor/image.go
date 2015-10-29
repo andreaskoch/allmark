@@ -8,7 +8,7 @@ import (
 	"allmark.io/modules/common/paths"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
-	"allmark.io/modules/services/converter/markdowntohtml/common"
+	"allmark.io/modules/services/converter/markdowntohtml/imageprovider"
 	"regexp"
 	"strings"
 )
@@ -17,7 +17,7 @@ var (
 	imageSourcePattern = regexp.MustCompile(`src="([^"]+)"`)
 )
 
-func newImagePostprocessor(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, imageProvider *common.ImageProvider) *imagePostProcessor {
+func newImagePostprocessor(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, imageProvider *imageprovider.ImageProvider) *imagePostProcessor {
 	return &imagePostProcessor{
 		pathProvider:  pathProvider,
 		files:         files,
@@ -29,7 +29,7 @@ type imagePostProcessor struct {
 	pathProvider  paths.Pather
 	base          route.Route
 	files         []*model.File
-	imageProvider *common.ImageProvider
+	imageProvider *imageprovider.ImageProvider
 }
 
 func (postprocessor *imagePostProcessor) Convert(markdown string) (convertedContent string, converterError error) {

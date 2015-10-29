@@ -8,34 +8,36 @@ import (
 	"allmark.io/modules/common/logger"
 	"allmark.io/modules/common/paths"
 	"allmark.io/modules/model"
+	"allmark.io/modules/services/converter/markdowntohtml/imageprovider"
 	"allmark.io/modules/services/converter/markdowntohtml/postprocessor"
 	"allmark.io/modules/services/converter/markdowntohtml/preprocessor"
-	"allmark.io/modules/services/thumbnail"
 	"github.com/russross/blackfriday"
 )
 
+// Converter converts markdown to HTML
 type Converter struct {
 	logger        logger.Logger
 	preprocessor  *preprocessor.Preprocessor
 	postprocessor *postprocessor.Postprocessor
 }
 
-func New(logger logger.Logger, thumbnailIndex *thumbnail.Index) *Converter {
+// New creates a new Markdown-to-HTML converter instance.
+func New(logger logger.Logger, imageProvider *imageprovider.ImageProvider) *Converter {
 	return &Converter{
 		logger:        logger,
-		preprocessor:  preprocessor.New(logger, thumbnailIndex),
-		postprocessor: postprocessor.New(logger, thumbnailIndex),
+		preprocessor:  preprocessor.New(logger, imageProvider),
+		postprocessor: postprocessor.New(logger, imageProvider),
 	}
 }
 
 // Convert the supplied item with all paths relative to the supplied base route
-func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item, rootPathProvider, itemContentPathProvider paths.Pather, item *model.Item) (convertedContent string, converterError error) {
+func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item, pathProvider paths.Pather, item *model.Item) (convertedContent string, converterError error) {
 
 	converter.logger.Debug("Converting markdown for item %q.", item)
 
 	// preprocessor
 	rawMarkdownContent := item.Content
-	preprocessedMarkdownContent, err := converter.preprocessor.Convert(aliasResolver, rootPathProvider, itemContentPathProvider, item.Route(), item.Files(), rawMarkdownContent)
+	preprocessedMarkdownContent, err := converter.preprocessor.Convert(aliasResolver, pathProvider, item.Route(), item.Files(), rawMarkdownContent)
 	if err != nil {
 		return "", err
 	}
@@ -44,7 +46,7 @@ func (converter *Converter) Convert(aliasResolver func(alias string) *model.Item
 	htmlContent := markdownToHTML(preprocessedMarkdownContent)
 
 	// postprocessing
-	postProcessedHTMLContent, err := converter.postprocessor.Convert(rootPathProvider, itemContentPathProvider, item.Route(), item.Files(), htmlContent)
+	postProcessedHTMLContent, err := converter.postprocessor.Convert(pathProvider, item.Route(), item.Files(), htmlContent)
 	if err != nil {
 		return "", err
 	}

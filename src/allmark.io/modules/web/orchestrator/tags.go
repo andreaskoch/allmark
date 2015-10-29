@@ -46,7 +46,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []viewmodel.Tag {
 		for _, item := range orchestrator.getAllItems() {
 
 			itemViewModel := &viewmodel.Model{
-				Base: getBaseModel(rootItem, item, orchestrator.relativePather(rootItem.Route()), orchestrator.config),
+				Base: getBaseModel(rootItem, item, orchestrator.config),
 			}
 
 			for _, tag := range item.MetaData.Tags {
@@ -65,9 +65,9 @@ func (orchestrator *TagsOrchestrator) GetTags() []viewmodel.Tag {
 
 			// create view model
 			tagModel := viewmodel.Tag{
-				Name:   tag,
-				Anchor: url.QueryEscape(tag),
-				Route:  orchestrator.tagPather().Path(url.QueryEscape(tag)),
+				Name:     tag,
+				Anchor:   url.QueryEscape(tag),
+				Route:    orchestrator.tagPather().Path(url.QueryEscape(tag)),
 				Children: items,
 			}
 
@@ -127,9 +127,9 @@ func (orchestrator *TagsOrchestrator) GetTagCloud() viewmodel.TagCloud {
 
 			// create a new tag cloud entry
 			tagCloudEntry := viewmodel.TagCloudEntry{
-				Name:           tag.Name,
-				Anchor:         url.QueryEscape(tag.Name),
-				Route:          orchestrator.tagPather().Path(url.QueryEscape(tag.Name)),
+				Name:             tag.Name,
+				Anchor:           url.QueryEscape(tag.Name),
+				Route:            orchestrator.tagPather().Path(url.QueryEscape(tag.Name)),
 				NumberOfChildren: numberItemsPerTag,
 			}
 

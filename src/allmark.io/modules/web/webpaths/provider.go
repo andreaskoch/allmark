@@ -15,11 +15,11 @@ type WebPathProvider struct {
 	tagPather     paths.Pather
 }
 
-func NewWebPathProvider(patherFactory paths.PatherFactory, itemPather, tagPather paths.Pather) WebPathProvider {
+func NewWebPathProvider(patherFactory paths.PatherFactory, basePath, tagPathPrefix string) WebPathProvider {
 	return WebPathProvider{
 		patherFactory: patherFactory,
-		itemPather:    itemPather,
-		tagPather:     tagPather,
+		itemPather:    patherFactory.Absolute(basePath),
+		tagPather:     patherFactory.Absolute(tagPathPrefix),
 	}
 }
 

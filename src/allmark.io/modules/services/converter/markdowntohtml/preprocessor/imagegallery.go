@@ -8,7 +8,7 @@ import (
 	"allmark.io/modules/common/paths"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
-	"allmark.io/modules/services/converter/markdowntohtml/common"
+	"allmark.io/modules/services/converter/markdowntohtml/imageprovider"
 	"fmt"
 	"regexp"
 	"strings"
@@ -19,7 +19,7 @@ var (
 	imageGalleryExtensionPattern = regexp.MustCompile(`imagegallery: \[([^\]]*)\]\(([^)]+)\)`)
 )
 
-func newImageGalleryExtension(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, imageProvider *common.ImageProvider) *imageGalleryExtension {
+func newImageGalleryExtension(pathProvider paths.Pather, baseRoute route.Route, files []*model.File, imageProvider *imageprovider.ImageProvider) *imageGalleryExtension {
 	return &imageGalleryExtension{
 		pathProvider:  pathProvider,
 		base:          baseRoute,
@@ -32,7 +32,7 @@ type imageGalleryExtension struct {
 	pathProvider  paths.Pather
 	base          route.Route
 	files         []*model.File
-	imageProvider *common.ImageProvider
+	imageProvider *imageprovider.ImageProvider
 }
 
 func (converter *imageGalleryExtension) Convert(markdown string) (convertedContent string, converterError error) {

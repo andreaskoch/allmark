@@ -6,6 +6,7 @@ package webpaths
 
 import (
 	"allmark.io/modules/common/route"
+	"strings"
 )
 
 // Create a new absolute web path provider
@@ -24,6 +25,11 @@ func (webPathProvider *AbsoluteWebPathProvider) Path(itemPath string) string {
 
 	// return the supplied item path if it is already absolute
 	if IsAbsoluteURI(itemPath) {
+		return itemPath
+	}
+
+	// don't do it twice
+	if strings.HasPrefix(itemPath, webPathProvider.prefix) {
 		return itemPath
 	}
 
