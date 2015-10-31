@@ -42,10 +42,10 @@ func (orchestrator *TagsOrchestrator) GetTags() []viewmodel.Tag {
 		}
 
 		// items by tag
-		itemsByTag := make(map[string][]*viewmodel.Model)
+		itemsByTag := make(map[string][]viewmodel.Model)
 		for _, item := range orchestrator.getAllItems() {
 
-			itemViewModel := &viewmodel.Model{
+			itemViewModel := viewmodel.Model{
 				Base: getBaseModel(rootItem, item, orchestrator.config),
 			}
 
@@ -53,7 +53,7 @@ func (orchestrator *TagsOrchestrator) GetTags() []viewmodel.Tag {
 				if items, exists := itemsByTag[tag]; exists {
 					itemsByTag[tag] = append(items, itemViewModel)
 				} else {
-					itemsByTag[tag] = []*viewmodel.Model{itemViewModel}
+					itemsByTag[tag] = []viewmodel.Model{itemViewModel}
 				}
 			}
 

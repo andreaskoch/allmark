@@ -15,11 +15,11 @@ import (
 
 var VIEWMODELLISTCACHE_SHARD_COUNT = 32
 
-// A "thread" safe map of type string:[]*viewmodel.Model.
+// A "thread" safe map of type string:[]viewmodel.Model.
 // To avoid lock bottlenecks this map is dived to several (VIEWMODELLISTCACHE_SHARD_COUNT) map shards.
 type ViewModelListCache []*ConcurrentViewModelListMapShared
 type ConcurrentViewModelListMapShared struct {
-	items        map[string][]*viewmodel.Model
+	items        map[string][]viewmodel.Model
 	sync.RWMutex // Read Write mutex, guards access to internal map.
 }
 
@@ -27,7 +27,7 @@ type ConcurrentViewModelListMapShared struct {
 func newViewModelListCache() ViewModelListCache {
 	m := make(ViewModelListCache, VIEWMODELLISTCACHE_SHARD_COUNT)
 	for i := 0; i < VIEWMODELLISTCACHE_SHARD_COUNT; i++ {
-		m[i] = &ConcurrentViewModelListMapShared{items: make(map[string][]*viewmodel.Model)}
+		m[i] = &ConcurrentViewModelListMapShared{items: make(map[string][]viewmodel.Model)}
 	}
 	return m
 }
@@ -40,7 +40,7 @@ func (m ViewModelListCache) GetShard(key string) *ConcurrentViewModelListMapShar
 }
 
 // Sets the given value under the specified key.
-func (m *ViewModelListCache) Set(key string, value []*viewmodel.Model) {
+func (m *ViewModelListCache) Set(key string, value []viewmodel.Model) {
 	// Get map shard.
 	shard := m.GetShard(key)
 	shard.Lock()
@@ -49,7 +49,7 @@ func (m *ViewModelListCache) Set(key string, value []*viewmodel.Model) {
 }
 
 // Retrieves an element from map under given key.
-func (m ViewModelListCache) Get(key string) ([]*viewmodel.Model, bool) {
+func (m ViewModelListCache) Get(key string) ([]viewmodel.Model, bool) {
 	// Get shard
 	shard := m.GetShard(key)
 	shard.RLock()
@@ -101,7 +101,7 @@ func (m *ViewModelListCache) IsEmpty() bool {
 // Used by the Iter & IterBuffered functions to wrap two variables together over a channel,
 type ViewModelListCacheTuple struct {
 	Key string
-	Val []*viewmodel.Model
+	Val []viewmodel.Model
 }
 
 // Returns an iterator which could be used in a for range loop.

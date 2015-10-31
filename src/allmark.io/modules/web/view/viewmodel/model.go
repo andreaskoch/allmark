@@ -17,11 +17,11 @@ type Model struct {
 	Publisher Publisher `json:"publisher"`
 	Author    Author    `json:"author"`
 
-	Children []*Base `json:"children"`
+	Children []Base `json:"children"`
 
-	ToplevelNavigation   *ToplevelNavigation   `json:"toplevelNavigation"`
-	BreadcrumbNavigation *BreadcrumbNavigation `json:"breadcrumbNavigation"`
-	ItemNavigation       *ItemNavigation       `json:"itemNavigation"`
+	ToplevelNavigation   ToplevelNavigation   `json:"toplevelNavigation"`
+	BreadcrumbNavigation BreadcrumbNavigation `json:"breadcrumbNavigation"`
+	ItemNavigation       ItemNavigation       `json:"itemNavigation"`
 
 	Tags     []Tag    `json:"tags"`
 	TagCloud TagCloud `json:"tagCloud"`
@@ -38,8 +38,8 @@ type Model struct {
 	IsRepositoryItem bool
 }
 
-func Error(title, content, route string) *Model {
-	return &Model{
+func Error(title, content, route string) Model {
+	return Model{
 		Base: Base{
 			Level:   0,
 			Title:   title,
@@ -51,9 +51,9 @@ func Error(title, content, route string) *Model {
 	}
 }
 
-type SortModelBy func(model1, model2 *Model) bool
+type SortModelBy func(model1, model2 Model) bool
 
-func (by SortModelBy) Sort(models []*Model) {
+func (by SortModelBy) Sort(models []Model) {
 	sorter := &modelSorter{
 		models: models,
 		by:     by,
@@ -63,7 +63,7 @@ func (by SortModelBy) Sort(models []*Model) {
 }
 
 type modelSorter struct {
-	models []*Model
+	models []Model
 	by     SortModelBy
 }
 

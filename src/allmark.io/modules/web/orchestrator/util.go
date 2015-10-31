@@ -99,7 +99,7 @@ func GetTypedItemURL(route route.Route, urlType string) string {
 }
 
 // sort the models by date and name
-func sortBaseModelsByDate(model1, model2 *viewmodel.Base) bool {
+func sortBaseModelsByDate(model1, model2 viewmodel.Base) bool {
 
 	return model1.CreationDate > model2.CreationDate
 
@@ -112,12 +112,12 @@ func sortItemsByDate(model1, model2 *model.Item) bool {
 
 }
 
-func pagedViewmodels(viewmodels []*viewmodel.Model, pageSize, page int) (latest []*viewmodel.Model, found bool) {
+func pagedViewmodels(viewmodels []viewmodel.Model, pageSize, page int) (latest []viewmodel.Model, found bool) {
 
 	// determine the start index
 	startIndex := pageSize * (page - 1)
 	if startIndex >= len(viewmodels) {
-		return []*viewmodel.Model{}, false
+		return []viewmodel.Model{}, false
 	}
 
 	// determine the end index

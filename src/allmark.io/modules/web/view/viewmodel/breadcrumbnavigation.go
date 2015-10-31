@@ -5,7 +5,7 @@
 package viewmodel
 
 type BreadcrumbNavigation struct {
-	Entries []*Breadcrumb `json:"entries"`
+	Entries []Breadcrumb `json:"entries"`
 }
 
 func (navigation *BreadcrumbNavigation) IsAvailable() bool {

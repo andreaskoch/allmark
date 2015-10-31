@@ -36,7 +36,7 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 			// append the content
 			viewModel.Content = orchestrator.getHTMLFromRoute(itemRoute)
 
-			return *viewModel, true
+			return viewModel, true
 		}
 
 		return viewmodel.Model{}, false
@@ -55,8 +55,8 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 		}
 
 		// get the base view model
-		viewModel := orchestrator.getViewModel(route)
-		if viewModel == nil {
+		viewModel, found := orchestrator.getViewModel(route)
+		if !found {
 			return
 		}
 
@@ -132,15 +132,15 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 
 func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (viewModel viewmodel.Model, found bool) {
 
-	vm := orchestrator.getViewModel(itemRoute)
-	if vm == nil {
+	vm, found := orchestrator.getViewModel(itemRoute)
+	if !found {
 		return viewmodel.Model{}, false
 	}
 
 	// append the content
 	vm.Content = orchestrator.getHTMLFromRoute(itemRoute)
 
-	return *vm, true
+	return vm, true
 }
 
 // GetViewModelByAlias returns the viewmodel by its alias.
@@ -151,19 +151,19 @@ func (orchestrator *ViewModelOrchestrator) GetViewModelByAlias(alias string) (vi
 		return viewmodel.Model{}, false
 	}
 
-	vm := orchestrator.getViewModel(item.Route())
-	if vm == nil {
+	vm, found := orchestrator.getViewModel(item.Route())
+	if !found {
 		return viewmodel.Model{}, false
 	}
 
 	// append the content
 	vm.Content = orchestrator.getHTMLFromRoute(item.Route())
 
-	return *vm, true
+	return vm, true
 }
 
 // GetLatest returns the latest items (sorted by creation date) for the given route.
-func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (latest []*viewmodel.Model, found bool) {
+func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, pageSize, page int) (latest []viewmodel.Model, found bool) {
 
 	// return from cache if cache has been initialized
 	if orchestrator.latestByRoute != nil {
@@ -171,9 +171,10 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 		if models, exists := orchestrator.latestByRoute.Get(itemRoute.Value()); exists {
 
 			// get the paged view models
+			latest = make([]viewmodel.Model, 0)
 			latestModels, found := pagedViewmodels(models, pageSize, page)
 			if !found {
-				return []*viewmodel.Model{}, false
+				return []viewmodel.Model{}, false
 			}
 
 			// convert the content
@@ -188,13 +189,15 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 
 				// attach to model
 				model.Content = content
+
+				latest = append(latest, model)
 			}
 
-			return latestModels, true
+			return latest, true
 
 		}
 
-		return []*viewmodel.Model{}, false
+		return []viewmodel.Model{}, false
 
 	}
 
@@ -232,14 +235,14 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 }
 
 // Converts a list of model.Item elements into a view models for the latest-items controller
-func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items []*model.Item) []*viewmodel.Model {
+func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items []*model.Item) []viewmodel.Model {
 
 	// create viewmodels
-	models := make([]*viewmodel.Model, 0)
+	models := make([]viewmodel.Model, 0)
 	for _, item := range items {
 
-		viewModel := orchestrator.getViewModel(item.Route())
-		if viewModel == nil {
+		viewModel, found := orchestrator.getViewModel(item.Route())
+		if !found {
 			orchestrator.logger.Error("No view model found for item %q.", item.String())
 			continue
 		}
@@ -255,15 +258,15 @@ func (orchestrator *ViewModelOrchestrator) getLastesViewModelsFromItemList(items
 	return models
 }
 
-func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *viewmodel.Model {
+func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) (viewmodel.Model, bool) {
 
 	if orchestrator.viewmodelsByRoute != nil {
 		model, exists := orchestrator.viewmodelsByRoute.Get(itemRoute.String())
 		if !exists {
-			return nil
+			return viewmodel.Model{}, false
 		}
 
-		return model
+		return model, true
 	}
 
 	// updateViewModel stores the view model for the given route to the cache
@@ -278,7 +281,7 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *
 
 		root := orchestrator.rootItem()
 
-		viewModel := &viewmodel.Model{
+		viewModel := viewmodel.Model{
 			Base:             getBaseModel(root, item, orchestrator.config),
 			Content:          "", // convert later
 			Markdown:         item.Markdown,
@@ -314,24 +317,24 @@ func (orchestrator *ViewModelOrchestrator) getViewModel(itemRoute route.Route) *
 	buildCache(route.New())
 	model, exists := orchestrator.viewmodelsByRoute.Get(itemRoute.String())
 	if !exists {
-		return nil
+		return viewmodel.Model{}, false
 	}
 
-	return model
+	return model, true
 }
 
-func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route) []*viewmodel.Base {
+func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route) []viewmodel.Base {
 
 	rootItem := orchestrator.rootItem()
 	if rootItem == nil {
 		orchestrator.logger.Fatal("No root item found")
 	}
 
-	childModels := make([]*viewmodel.Base, 0)
+	childModels := make([]viewmodel.Base, 0)
 	childItems := orchestrator.getChildren(itemRoute)
 	for _, childItem := range childItems {
 		baseModel := getBaseModel(rootItem, childItem, orchestrator.config)
-		childModels = append(childModels, &baseModel)
+		childModels = append(childModels, baseModel)
 	}
 
 	// sort the models

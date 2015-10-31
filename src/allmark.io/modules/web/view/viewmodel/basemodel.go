@@ -24,7 +24,7 @@ type Base struct {
 	PrintURL    string `json:"printURL"`
 	JSONURL     string `json:"jsonURL"`
 	MarkdownURL string `json:"markdownURL"`
-	DOCXURL      string `json:"docxURL"`
+	DOCXURL     string `json:"docxURL"`
 
 	PageTitle   string `json:"pageTitle"`
 	Title       string `json:"title"`
@@ -37,9 +37,9 @@ type Base struct {
 	LiveReloadEnabled bool
 }
 
-type SortBaseModelBy func(model1, model2 *Base) bool
+type SortBaseModelBy func(model1, model2 Base) bool
 
-func (by SortBaseModelBy) Sort(models []*Base) {
+func (by SortBaseModelBy) Sort(models []Base) {
 	sorter := &baseModelSorter{
 		models: models,
 		by:     by,
@@ -49,7 +49,7 @@ func (by SortBaseModelBy) Sort(models []*Base) {
 }
 
 type baseModelSorter struct {
-	models []*Base
+	models []Base
 	by     SortBaseModelBy
 }
 

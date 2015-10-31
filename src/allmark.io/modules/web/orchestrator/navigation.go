@@ -15,20 +15,20 @@ type NavigationOrchestrator struct {
 	toplevelNavigation *viewmodel.ToplevelNavigation
 }
 
-func (orchestrator *NavigationOrchestrator) GetToplevelNavigation() *viewmodel.ToplevelNavigation {
+func (orchestrator *NavigationOrchestrator) GetToplevelNavigation() viewmodel.ToplevelNavigation {
 
 	if orchestrator.toplevelNavigation != nil {
-		return orchestrator.toplevelNavigation
+		return *orchestrator.toplevelNavigation
 	}
 
 	// updateToplevelNavigation creates a new toplevel navigation and stores it in the cache
 	updateToplevelNavigation := func(r route.Route) {
 		root := route.New()
-		toplevelEntries := make([]*viewmodel.ToplevelEntry, 0)
+		toplevelEntries := make([]viewmodel.ToplevelEntry, 0)
 
 		for _, child := range orchestrator.getChildren(root) {
 
-			toplevelEntries = append(toplevelEntries, &viewmodel.ToplevelEntry{
+			toplevelEntries = append(toplevelEntries, viewmodel.ToplevelEntry{
 				Title: child.Title,
 				Path:  orchestrator.itemPather().Path(child.Route().Value()),
 			})
@@ -51,11 +51,11 @@ func (orchestrator *NavigationOrchestrator) GetToplevelNavigation() *viewmodel.T
 	return orchestrator.GetToplevelNavigation()
 }
 
-func (orchestrator *NavigationOrchestrator) GetBreadcrumbNavigation(route route.Route) *viewmodel.BreadcrumbNavigation {
+func (orchestrator *NavigationOrchestrator) GetBreadcrumbNavigation(route route.Route) viewmodel.BreadcrumbNavigation {
 
 	// create a new bread crumb navigation
-	navigation := &viewmodel.BreadcrumbNavigation{
-		Entries: make([]*viewmodel.Breadcrumb, 0),
+	navigation := viewmodel.BreadcrumbNavigation{
+		Entries: make([]viewmodel.Breadcrumb, 0),
 	}
 
 	// get the item for the supplied route
@@ -71,7 +71,7 @@ func (orchestrator *NavigationOrchestrator) GetBreadcrumbNavigation(route route.
 	}
 
 	// append a new navigation entry and return it
-	navigation.Entries = append(navigation.Entries, &viewmodel.Breadcrumb{
+	navigation.Entries = append(navigation.Entries, viewmodel.Breadcrumb{
 		Title: item.Title,
 		Level: item.Route().Level(),
 		Path:  orchestrator.itemPather().Path(item.Route().Value()),
@@ -89,10 +89,10 @@ func (orchestrator *NavigationOrchestrator) GetBreadcrumbNavigation(route route.
 	return navigation
 }
 
-func (orchestrator *NavigationOrchestrator) GetItemNavigation(route route.Route) *viewmodel.ItemNavigation {
+func (orchestrator *NavigationOrchestrator) GetItemNavigation(route route.Route) viewmodel.ItemNavigation {
 
 	// create a new item navigation
-	navigation := &viewmodel.ItemNavigation{}
+	navigation := viewmodel.ItemNavigation{}
 
 	// get the item for the supplied route
 	item := orchestrator.getItem(route)
@@ -102,7 +102,7 @@ func (orchestrator *NavigationOrchestrator) GetItemNavigation(route route.Route)
 
 	// get the parent
 	if parent := orchestrator.getParent(item.Route()); parent != nil {
-		navigation.Parent = &viewmodel.NavEntry{
+		navigation.Parent = viewmodel.NavEntry{
 			Title:       parent.Title,
 			Description: parent.Description,
 			Path:        orchestrator.itemPather().Path(parent.Route().Value()),
@@ -111,7 +111,7 @@ func (orchestrator *NavigationOrchestrator) GetItemNavigation(route route.Route)
 
 	// previous
 	if previous := orchestrator.getPrevious(item.Route()); previous != nil {
-		navigation.Previous = &viewmodel.NavEntry{
+		navigation.Previous = viewmodel.NavEntry{
 			Title:       previous.Title,
 			Description: previous.Description,
 			Path:        orchestrator.itemPather().Path(previous.Route().Value()),
@@ -120,7 +120,7 @@ func (orchestrator *NavigationOrchestrator) GetItemNavigation(route route.Route)
 
 	// next
 	if next := orchestrator.getNext(item.Route()); next != nil {
-		navigation.Next = &viewmodel.NavEntry{
+		navigation.Next = viewmodel.NavEntry{
 			Title:       next.Title,
 			Description: next.Description,
 			Path:        orchestrator.itemPather().Path(next.Route().Value()),

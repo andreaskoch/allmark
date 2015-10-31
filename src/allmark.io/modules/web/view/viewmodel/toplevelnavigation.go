@@ -5,7 +5,7 @@
 package viewmodel
 
 type ToplevelNavigation struct {
-	Entries []*ToplevelEntry `json:"entries"`
+	Entries []ToplevelEntry `json:"entries"`
 }
 
 func (navigation *ToplevelNavigation) IsAvailable() bool {
