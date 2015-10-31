@@ -127,6 +127,10 @@ const masterTemplate = `<!DOCTYPE HTML>
 			<li><a href="/!">Shortlinks</a></li>
 		</ul>
 	</nav>
+
+	<section class="allmark-promo">
+		powered by <a href="https://github.com/andreaskoch/allmark">allmark - the markdown webserver</a>
+	</section>
 </footer>
 
 <script src="/theme/jquery.js"></script>
