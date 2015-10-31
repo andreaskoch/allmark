@@ -14,7 +14,7 @@ const (
 	CONTENTTYPE_TEXT = "text/plain; charset=utf-8"
 	CONTENTTYPE_XML  = "text/xml; charset=utf-8"
 	CONTENTTYPE_JSON = "application/json; charset=utf-8"
-	CONTENTTYPE_RTF  = "application/docx; charset=utf-8"
+	CONTENTTYPE_DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=utf-8"
 )
 
 func Cache(w http.ResponseWriter, seconds int) {

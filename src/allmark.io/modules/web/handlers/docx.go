@@ -25,8 +25,8 @@ import (
 
 func DOCX(logger logger.Logger,
 	conversionToolPath string,
+	conversionEndpointHostname string,
 	headerWriter header.HeaderWriter,
-	fileOrchestrator *orchestrator.FileOrchestrator,
 	converterModelOrchestrator *orchestrator.ConversionModelOrchestrator,
 	templateProvider templates.Provider,
 	error404Handler http.Handler) http.Handler {
@@ -56,7 +56,7 @@ func DOCX(logger logger.Logger,
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// set headers
-		headerWriter.Write(w, header.CONTENTTYPE_RTF)
+		headerWriter.Write(w, header.CONTENTTYPE_DOCX)
 
 		// strip the "docx" or ".docx" suffix from the path
 		path := r.URL.Path
@@ -79,7 +79,7 @@ func DOCX(logger logger.Logger,
 		baseURL = strings.Replace(baseURL, "https://", "http://", 1)
 
 		// make sure pandoc only performs local requests
-		baseURL = strings.Replace(baseURL, r.Host, "localhost", 1)
+		baseURL = strings.Replace(baseURL, r.Host, conversionEndpointHostname, 1)
 
 		model, found := converterModelOrchestrator.GetConversionModel(baseURL, requestRoute)
 		if !found {
@@ -146,7 +146,7 @@ func DOCX(logger logger.Logger,
 			}
 		}()
 
-		w.Header().Add("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, getRichTextFilename(model)))
+		w.Header().Add("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, getTargetFilename(model)))
 
 		io.Copy(w, docxFile)
 
@@ -155,7 +155,8 @@ func DOCX(logger logger.Logger,
 
 }
 
-func getRichTextFilename(model viewmodel.ConversionModel) string {
+// getTargetFilename returns a filename from the given conversion model.
+func getTargetFilename(model viewmodel.ConversionModel) string {
 	originalRoute := route.NewFromRequest(model.Route)
 	fileNameRoute := route.NewFromRequest(originalRoute.LastComponentName())
 

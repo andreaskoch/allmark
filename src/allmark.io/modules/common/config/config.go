@@ -48,7 +48,7 @@ const (
 	DefaultIndexingEnabled           = false
 	DefaultIndexingIntervalInSeconds = 60
 	DefaultLiveReloadEnabled         = false
-	DefaultRichTextConversionEnabled = true
+	DefaultConversionDocxEnabled     = true
 	DefaultAuthenticationEnabled     = false
 	DefaultUserStoreFileName         = "users.htpasswd"
 )
@@ -57,6 +57,8 @@ var homeDirectory func() string
 
 // A flag indicating whether the DOCX conversion tool is available
 var docxConversionToolIsAvailable bool
+
+var conversionEndpointBinding *TCPBinding
 
 func init() {
 
@@ -74,6 +76,16 @@ func init() {
 	if err := command.Run(); err == nil {
 		docxConversionToolIsAvailable = true
 	}
+
+	// conversion endpoint binding
+	conversionEndpointBinding = &TCPBinding{
+		Network: "tcp4",
+		IP:      "127.0.0.1",
+		Zone:    "",
+		Port:    0,
+	}
+
+	conversionEndpointBinding.AssignFreePort()
 }
 
 func isHomeDir(directory string) bool {
@@ -191,7 +203,7 @@ func Default(baseFolder string) *Config {
 	config.Conversion.Thumbnails.FolderName = ThumbnailsFolderName
 
 	// DOCX Conversion
-	config.Conversion.DOCX.Enabled = DefaultRichTextConversionEnabled
+	config.Conversion.DOCX.Enabled = DefaultConversionDocxEnabled
 
 	// Logging
 	config.LogLevel = DefaultLogLevel.String()
@@ -319,6 +331,11 @@ type LiveReload struct {
 type Conversion struct {
 	DOCX       DOCXConversion
 	Thumbnails ThumbnailConversion
+}
+
+// EndpointBinding returns the TCPBinding of the conversion endpoint
+func (c Conversion) EndpointBinding() *TCPBinding {
+	return conversionEndpointBinding
 }
 
 // DOCXConversion contains rich-text (DOCX) conversion parameters.

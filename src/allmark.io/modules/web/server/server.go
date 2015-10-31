@@ -162,6 +162,27 @@ func (server *Server) Start() chan error {
 
 	}
 
+	// docx conversion endpoint (unencrypted, no authentication)
+	if server.config.Conversion.DOCX.IsEnabled() {
+
+		// start listening
+		go func() {
+			conversionEndpointTCPAddress := server.config.Conversion.EndpointBinding().GetTCPAddress()
+			conversionEndpointAddress := conversionEndpointTCPAddress.String()
+
+			server.logger.Info("Docx Conversion Endpoint: %s", conversionEndpointAddress)
+
+			// Standard HTTPS Request Router
+			if err := http.ListenAndServe(conversionEndpointAddress, server.getLocalRequestRouter()); err != nil {
+				result <- fmt.Errorf("Docx Conversion endpoint failed with error: %v", err)
+			} else {
+				result <- nil
+			}
+
+		}()
+
+	}
+
 	// open HTTP URL(s) in a browser
 	for _, url := range uniqueURLs {
 		server.logger.Info("Open URL: %s", url)
@@ -210,6 +231,25 @@ func (server *Server) getStandardRequestRouter() *mux.Router {
 
 			requestHandler = handlers.RequireDigestAuthentication(server.logger, requestHandler, secretProvider)
 		}
+
+		requestRouter.Handle(requestRoute, requestHandler)
+	}
+
+	return requestRouter
+}
+
+// getLocalRequestRouter returns a local request router without compression and without authentication.
+func (server *Server) getLocalRequestRouter() *mux.Router {
+
+	// register requst routers
+	requestRouter := mux.NewRouter()
+
+	for _, requestHandler := range server.requestHandlers {
+		requestRoute := requestHandler.Route
+		requestHandler := requestHandler.Handler
+
+		// add logging
+		requestHandler = handlers.LogRequests(requestHandler)
 
 		requestRouter.Handle(requestRoute, requestHandler)
 	}

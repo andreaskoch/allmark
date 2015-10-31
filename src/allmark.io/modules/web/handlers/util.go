@@ -17,15 +17,6 @@ import (
 	"text/template"
 )
 
-// isLocalRequest checks if the given request is local or not.
-func isLocalRequest(r *http.Request) bool {
-	if r.Host != "localhost" {
-		return false
-	}
-
-	return true
-}
-
 func getRouteFromRequest(r *http.Request) route.Route {
 	return route.NewFromRequest(r.URL.Path)
 }

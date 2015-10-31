@@ -110,7 +110,7 @@ func (list *HandlerList) Add(route string, handler http.Handler) {
 // GetRedirectHandlers returns a list of redirect handlers.
 func GetRedirectHandlers(logger logger.Logger, baseURITarget string, baseHandler http.Handler) HandlerList {
 	handlers := make(HandlerList, 0)
-	handlers.Add(RedirectHandlerRoute, Redirect(logger, baseURITarget, baseHandler))
+	handlers.Add(RedirectHandlerRoute, Redirect(logger, baseURITarget))
 	return handlers
 }
 
@@ -275,12 +275,14 @@ func GetBaseHandlers(logger logger.Logger, config config.Config, templateProvide
 			errorHandler))
 
 	// docx
+	conversionEndpointTCPAddress := config.Conversion.EndpointBinding().GetTCPAddress()
+	conversionEndpointAddress := conversionEndpointTCPAddress.String()
 	handlers.Add(
 		DOCXHandlerRoute,
 		DOCX(logger,
 			config.Conversion.DOCX.Tool(),
+			conversionEndpointAddress,
 			headerWriterFactory.Dynamic(),
-			fileOrchestrator,
 			conversionModelOrchestrator,
 			templateProvider,
 			errorHandler))
