@@ -184,6 +184,11 @@ $(function() {
 {{end}}
 {{end}}
 
+<!-- github ribbon -->
+<a href="https://github.com/andreaskoch/allmark">
+	<img style="position: absolute; top: 0; left: 0; border: 0;" src="/theme/github-ribbon.png" alt="Fork allmark on GitHub">
+</a>
+
 </body>
 </html>`
 

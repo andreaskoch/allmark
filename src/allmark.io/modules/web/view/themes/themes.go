@@ -34,6 +34,9 @@ func init() {
 			// favicon
 			newFileFromBase64("favicon.ico", themefiles.FaviconIco),
 
+			// Github Ribbon
+			newFileFromBase64("github-ribbon.png", themefiles.GithubRibbonPNG),
+
 			// presentations
 			newFileFromText("deck.js", themefiles.DeckJs),
 			newFileFromText("deck.css", themefiles.DeckCss),
