@@ -13,15 +13,16 @@ import (
 var portRangeStart = 33000
 
 // portRangeEnd  defines the highest allowed port to be used.
-const portRangeEnd = 33100
+const portRangeEnd = 34000
 
 // GetFreePort returns a free port for the given TCPAddr.
 func GetFreePort(network string, baseAddress net.TCPAddr) int {
 
-	// Don't reuse an already used ports
-	portRangeStart++
-
 	for portToTest := portRangeStart; portToTest < portRangeEnd; portToTest++ {
+
+		// Don't reuse an already used port
+		// for the next call to GetFreePort
+		portRangeStart = portToTest + 1
 
 		// assign a port to the base address
 		baseAddress.Port = portToTest
@@ -36,7 +37,7 @@ func GetFreePort(network string, baseAddress net.TCPAddr) int {
 }
 
 // isPortFree checks if the port for the given network and base address is free or not.
-func isPortFree(network string, baseAddress net.TCPAddr) bool {
+func isPortFree(network string, baseAddress net.TCPAddr) (isFree bool) {
 	addr, err := net.ResolveTCPAddr(network, baseAddress.String())
 	if err != nil {
 		return false
