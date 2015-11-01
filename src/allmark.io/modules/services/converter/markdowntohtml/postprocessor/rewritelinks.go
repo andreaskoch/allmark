@@ -6,6 +6,7 @@ package postprocessor
 
 import (
 	"allmark.io/modules/common/paths"
+	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
 	"fmt"
 	"regexp"
@@ -16,7 +17,7 @@ var (
 	htmlLinkPattern = regexp.MustCompile(`(src|href)="([^"]+)"`)
 )
 
-func rewireLinks(pathProvider paths.Pather, files []*model.File, html string) string {
+func rewireLinks(pathProvider paths.Pather, base route.Route, files []*model.File, html string) string {
 
 	allMatches := htmlLinkPattern.FindAllStringSubmatch(html, -1)
 	for _, matches := range allMatches {
@@ -28,7 +29,9 @@ func rewireLinks(pathProvider paths.Pather, files []*model.File, html string) st
 		// components
 		originalText := strings.TrimSpace(matches[0])
 		linkType := strings.TrimSpace(matches[1])
-		path := strings.TrimSpace(matches[2])
+		filePath := strings.TrimSpace(matches[2])
+		fileRoute := route.Combine(base, route.NewFromRequest(filePath))
+		path := fileRoute.Value()
 
 		// get matching file
 		matchingFile := getMatchingFiles(path, files)

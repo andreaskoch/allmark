@@ -14,7 +14,7 @@ func Test_IsAbsoluteURI_ParameterIsRelativeURI_ResultIsFalse(t *testing.T) {
 	expected := false
 
 	// act
-	result := isAbsoluteURI(input)
+	result := IsAbsoluteURI(input)
 
 	// assert
 	if result != expected {
@@ -28,7 +28,7 @@ func Test_IsAbsoluteURI_ParameterIsHTTPURL_ResultIsTrue(t *testing.T) {
 	expected := true
 
 	// act
-	result := isAbsoluteURI(input)
+	result := IsAbsoluteURI(input)
 
 	// assert
 	if result != expected {
@@ -42,7 +42,7 @@ func Test_IsAbsoluteURI_ParameterIsHTTPURL_Uppercase_ResultIsTrue(t *testing.T) 
 	expected := true
 
 	// act
-	result := isAbsoluteURI(input)
+	result := IsAbsoluteURI(input)
 
 	// assert
 	if result != expected {
@@ -56,7 +56,7 @@ func Test_IsAbsoluteURI_ParameterIsHTTPsURL_ResultIsTrue(t *testing.T) {
 	expected := true
 
 	// act
-	result := isAbsoluteURI(input)
+	result := IsAbsoluteURI(input)
 
 	// assert
 	if result != expected {
@@ -77,7 +77,7 @@ func Test_IsAbsoluteURI_ParametersAreAbsoluteURLs_ResultIsTrue(t *testing.T) {
 
 	for _, input := range inputs {
 		// act
-		result := isAbsoluteURI(input)
+		result := IsAbsoluteURI(input)
 
 		// assert
 		if result != expected {

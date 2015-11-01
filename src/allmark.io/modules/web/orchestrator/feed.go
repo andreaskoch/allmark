@@ -60,7 +60,7 @@ func (orchestrator *FeedOrchestrator) getItems(baseURL string, itemsPerPage, pag
 
 	latestItems, found := pagedItems(orchestrator.getLatestItems(rootItem.Route()), itemsPerPage, page)
 	if !found {
-		return feedEntries, fmt.Errorf("No items found (Items per page: %v, Page: %v)", itemsPerPage, page)
+		return []viewmodel.FeedEntry{}, fmt.Errorf("No items found (Items per page: %v, Page: %v)", itemsPerPage, page)
 	}
 
 	for _, item := range latestItems {

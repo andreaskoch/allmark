@@ -12,24 +12,24 @@ import (
 	"strings"
 )
 
-func NewImageProvider(pathProvider paths.Pather, thumbnailIndex *thumbnail.Index) *ImageProvider {
+func NewImageProvider(thumbnailPathProvider paths.Pather, thumbnailIndex *thumbnail.Index) *ImageProvider {
 	return &ImageProvider{
-		pathProvider:   pathProvider,
-		thumbnailIndex: thumbnailIndex,
+		thumbnailPathProvider: thumbnailPathProvider,
+		thumbnailIndex:        thumbnailIndex,
 	}
 }
 
 type ImageProvider struct {
-	pathProvider   paths.Pather
-	thumbnailIndex *thumbnail.Index
+	thumbnailPathProvider paths.Pather
+	thumbnailIndex        *thumbnail.Index
 }
 
 // GetImagePath returns the image path for the given file route.
 // If one or more thumbnais exist it will return the thumbnail path (e.g. srcset="/thumbnails/105-D6134C1B-320-240.png 320w, /thumbnails/105-D6134C1B-640-480.png 640w, /thumbnails/105-D6134C1B-1024-768.png 1024w").
 // If there is no thumbnail is will just return the canonical image path (e.g. src="document/files/sample.png")
-func (provider *ImageProvider) GetImagePath(fileRoute route.Route) string {
+func (provider *ImageProvider) GetImagePath(imagePathProvider paths.Pather, fileRoute route.Route) string {
 
-	fullSizeImagePath := provider.getImagePath(fileRoute)
+	fullSizeImagePath := imagePathProvider.Path(fileRoute.Value())
 
 	// get thumbnail paths
 	small, smallExists := provider.getThumbnailPath(fileRoute, thumbnail.SizeSmall)
@@ -81,9 +81,5 @@ func (provider *ImageProvider) getThumbnailPath(fileRoute route.Route, dimension
 
 	}
 
-	return provider.getImagePath(thumb.ThumbRoute()), true
-}
-
-func (provider *ImageProvider) getImagePath(fileRoute route.Route) string {
-	return provider.pathProvider.Path(fileRoute.Value())
+	return provider.thumbnailPathProvider.Path(thumb.ThumbRoute().Value()), true
 }

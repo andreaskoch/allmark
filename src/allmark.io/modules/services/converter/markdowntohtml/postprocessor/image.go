@@ -44,7 +44,9 @@ func (postprocessor *imagePostProcessor) Convert(markdown string) (convertedCont
 
 		// parameters
 		originalText := strings.TrimSpace(match[0])
-		path := strings.TrimSpace(match[1])
+		filePath := strings.TrimSpace(match[1])
+		fileRoute := route.Combine(postprocessor.base, route.NewFromRequest(filePath))
+		path := fileRoute.Value()
 
 		// normalize the path with the current path provider
 		path = postprocessor.pathProvider.Path(path)
@@ -59,7 +61,7 @@ func (postprocessor *imagePostProcessor) Convert(markdown string) (convertedCont
 		}
 
 		// get the image path (src="...", srcset="...")
-		imagePath := postprocessor.imageProvider.GetImagePath(file.Route())
+		imagePath := postprocessor.imageProvider.GetImagePath(postprocessor.pathProvider, file.Route())
 
 		// replace markdown with the image code
 		convertedContent = strings.Replace(convertedContent, originalText, imagePath, 1)

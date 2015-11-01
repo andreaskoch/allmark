@@ -14,6 +14,7 @@ import (
 
 var itemsPerPage = 5
 
+// RSS cretes a new RSS-Feed handler.
 func RSS(headerWriter header.HeaderWriter,
 	feedOrchestrator *orchestrator.FeedOrchestrator,
 	templateProvider templates.Provider,
@@ -22,7 +23,7 @@ func RSS(headerWriter header.HeaderWriter,
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// get the current baseURL
-		hostname := getBaseURLFromRequest(r)
+		baseURL := getBaseURLFromRequest(r)
 
 		// set headers
 		headerWriter.Write(w, header.CONTENTTYPE_XML)
@@ -34,13 +35,13 @@ func RSS(headerWriter header.HeaderWriter,
 		}
 
 		// get the RSS template
-		feedTemplate, err := templateProvider.GetRSSTemplate(hostname)
+		feedTemplate, err := templateProvider.GetRSSTemplate(baseURL)
 		if err != nil {
 			fmt.Fprintf(w, "Template not found. Error: %s", err)
 			return
 		}
 
-		feedModel, err := feedOrchestrator.GetFeed(hostname, itemsPerPage, page)
+		feedModel, err := feedOrchestrator.GetFeed(baseURL, itemsPerPage, page)
 
 		// display error 404 non-existing page has been requested
 		if err != nil {

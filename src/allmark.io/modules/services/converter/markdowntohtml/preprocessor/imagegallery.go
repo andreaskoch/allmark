@@ -98,7 +98,7 @@ func (converter *imageGalleryExtension) getImageLinksByPath(path string) []strin
 		imageTitle := file.Route().LastComponentName() // use the file name for the title
 
 		// calculate the image code
-		imagePath := converter.imageProvider.GetImagePath(file.Route())
+		imagePath := converter.imageProvider.GetImagePath(converter.pathProvider, file.Route())
 		imageCode := fmt.Sprintf(`<img %s alt="%s"/>`, imagePath, imageTitle)
 
 		// link the image to the original

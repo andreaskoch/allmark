@@ -7,6 +7,7 @@ package orchestrator
 import (
 	"time"
 
+	"allmark.io/modules/common/paths"
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
 	"allmark.io/modules/web/view/viewmodel"
@@ -34,7 +35,7 @@ func (orchestrator *ViewModelOrchestrator) GetFullViewModel(itemRoute route.Rout
 		if viewModel, exists := orchestrator.fullViewmodelsByRoute.Get(itemRoute.String()); exists {
 
 			// append the content
-			viewModel.Content = orchestrator.getHTMLFromRoute(itemRoute)
+			viewModel.Content = orchestrator.getHTMLFromRoute(orchestrator.relativePather(itemRoute), itemRoute)
 
 			return viewModel, true
 		}
@@ -138,7 +139,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModel(itemRoute route.Route) (
 	}
 
 	// append the content
-	vm.Content = orchestrator.getHTMLFromRoute(itemRoute)
+	vm.Content = orchestrator.getHTMLFromRoute(orchestrator.relativePather(itemRoute), itemRoute)
 
 	return vm, true
 }
@@ -157,7 +158,7 @@ func (orchestrator *ViewModelOrchestrator) GetViewModelByAlias(alias string) (vi
 	}
 
 	// append the content
-	vm.Content = orchestrator.getHTMLFromRoute(item.Route())
+	vm.Content = orchestrator.getHTMLFromRoute(orchestrator.relativePather(item.Route()), item.Route())
 
 	return vm, true
 }
@@ -178,11 +179,12 @@ func (orchestrator *ViewModelOrchestrator) GetLatest(itemRoute route.Route, page
 			}
 
 			// convert the content
+			absolutePather := orchestrator.absolutePather("/")
 			for _, model := range latestModels {
 				itemRoute := route.NewFromRequest(model.Route)
 
 				// convert to html
-				content := orchestrator.getHTMLFromRoute(itemRoute)
+				content := orchestrator.getHTMLFromRoute(absolutePather, itemRoute)
 
 				// lazy-load
 				content = lazyLoad(content)
@@ -334,6 +336,7 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route)
 	childItems := orchestrator.getChildren(itemRoute)
 	for _, childItem := range childItems {
 		baseModel := getBaseModel(rootItem, childItem, orchestrator.config)
+		baseModel.Route = orchestrator.relativePather(itemRoute).Path(baseModel.Route)
 		childModels = append(childModels, baseModel)
 	}
 
@@ -343,27 +346,27 @@ func (orchestrator *ViewModelOrchestrator) getChildModels(itemRoute route.Route)
 	return childModels
 }
 
-// getHTMLFromItem returns the converted HTML code for the given item model.
-func (orchestrator *ViewModelOrchestrator) getHTMLFromItem(item *model.Item) string {
+// getHTMLFromRoute returns the converted HTML code for the item with the given route.
+func (orchestrator *ViewModelOrchestrator) getHTMLFromRoute(pathProvider paths.Pather, route route.Route) string {
+	item := orchestrator.getItem(route)
 	if item == nil {
 		return ""
 	}
 
-	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, orchestrator.relativePather(item.Route()), item)
+	return orchestrator.getHTMLFromItem(pathProvider, item)
+}
+
+// getHTMLFromItem returns the converted HTML code for the given item model.
+func (orchestrator *ViewModelOrchestrator) getHTMLFromItem(pathProvider paths.Pather, item *model.Item) string {
+	if item == nil {
+		return ""
+	}
+
+	convertedContent, err := orchestrator.converter.Convert(orchestrator.getItemByAlias, pathProvider, item)
 	if err != nil {
 		orchestrator.logger.Warn("Cannot convert content for route %q. Error: %s.", item.Route(), err.Error())
 		return "<!-- Conversion Error -->"
 	}
 
 	return convertedContent
-}
-
-// getHTMLFromRoute returns the converted HTML code for the item with the given route.
-func (orchestrator *ViewModelOrchestrator) getHTMLFromRoute(route route.Route) string {
-	item := orchestrator.getItem(route)
-	if item == nil {
-		return ""
-	}
-
-	return orchestrator.getHTMLFromItem(item)
 }

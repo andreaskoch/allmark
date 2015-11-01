@@ -32,8 +32,6 @@ func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 		return itemPath
 	}
 
-	var matchingRouteHasBeenFound bool
-	var matchingRoute route.Route
 	for _, route := range webPathProvider.routesProvider.Routes() {
 
 		// ignore all routes which are not a child of the base route
@@ -46,20 +44,13 @@ func (webPathProvider *RelativeWebPathProvider) Path(itemPath string) string {
 			continue
 		}
 
-		// a matching route has been found
-		matchingRouteHasBeenFound = true
-		matchingRoute = route
-		break
+		// intersect the child route with the base route to get full path
+		path := strings.TrimPrefix(route.Value(), webPathProvider.baseRoute.Value())
+		return strings.TrimPrefix(path, "/")
 	}
 
-	if !matchingRouteHasBeenFound {
-		// path could not be resolved, return fallback
-		return strings.TrimPrefix(strings.Replace(itemPath, webPathProvider.baseRoute.Value(), "", 1), "/")
-	}
+	return strings.TrimPrefix(strings.Replace(itemPath, webPathProvider.baseRoute.Value(), "", 1), "/")
 
-	// intersect the child route with the base route to get full path
-	path := strings.TrimPrefix(matchingRoute.Value(), webPathProvider.baseRoute.Value())
-	return strings.TrimPrefix(path, "/")
 }
 
 func (webPathProvider *RelativeWebPathProvider) Base() route.Route {

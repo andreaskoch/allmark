@@ -41,7 +41,7 @@ func (postprocessor *Postprocessor) Convert(
 	}
 
 	// Rewrite Links
-	html = rewireLinks(pathProvider, files, html)
+	html = rewireLinks(pathProvider, itemRoute, files, html)
 
 	// Add Emojis
 	html = addEmojis(html)
