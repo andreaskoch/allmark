@@ -8,7 +8,7 @@ type BreadcrumbNavigation struct {
 	Entries []Breadcrumb `json:"entries"`
 }
 
-func (navigation *BreadcrumbNavigation) IsAvailable() bool {
+func (navigation BreadcrumbNavigation) IsAvailable() bool {
 	return len(navigation.Entries) > 0
 }
 

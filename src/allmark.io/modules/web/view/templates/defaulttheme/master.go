@@ -209,7 +209,7 @@ const toplevelNavigationSnippet = `{{define "toplevelnavigation-snippet"}}
 
 const breadcrumbNavigationSnippet = `{{define "breadcrumbnavigation-snippet"}}
 <nav class="breadcrumb" itemprop="breadcrumb">
-{{ if .BreadcrumbNavigation}}
+{{if .BreadcrumbNavigation.IsAvailable}}
 	{{range .BreadcrumbNavigation.Entries}}
 		<a href="{{.Path}}">{{.Title}}</a>{{if not .IsLast}} » {{end}}
 	{{end}}
@@ -219,21 +219,21 @@ const breadcrumbNavigationSnippet = `{{define "breadcrumbnavigation-snippet"}}
 
 const itemNavigationSnippet = `{{define "itemnavigation-snippet"}}
 <nav class="navigation">
-{{if .ItemNavigation}}
+{{if .ItemNavigation.IsAvailable}}
 	<div class="navelement parent">
-		{{if .ItemNavigation.Parent}}
+		{{if .ItemNavigation.Parent.Path}}
 		<a href="{{.ItemNavigation.Parent.Path}}" title="{{.ItemNavigation.Parent.Title}}">↑ Parent</a>
 		{{end}}
 	</div>
 
 	<div class="navelement previous">
-		{{if .ItemNavigation.Previous}}
+		{{if .ItemNavigation.Previous.Path}}
 		<a class="previous" href="{{.ItemNavigation.Previous.Path}}" title="{{.ItemNavigation.Previous.Title}}">← Previous</a>
 		{{end}}
 	</div>
 
 	<div class="navelement next">
-		{{if .ItemNavigation.Next}}
+		{{if .ItemNavigation.Next.Path}}
 		<a class="next" href="{{.ItemNavigation.Next.Path}}" title="{{.ItemNavigation.Next.Title}}">Next →</a>
 		{{end}}
 	</div>

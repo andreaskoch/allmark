@@ -71,20 +71,26 @@ func (orchestrator *NavigationOrchestrator) GetBreadcrumbNavigation(route route.
 	}
 
 	// append a new navigation entry and return it
-	navigation.Entries = append(navigation.Entries, viewmodel.Breadcrumb{
+	unmarkedEntries := append(navigation.Entries, viewmodel.Breadcrumb{
 		Title: item.Title,
 		Level: item.Route().Level(),
 		Path:  orchestrator.itemPather().Path(item.Route().Value()),
 	})
 
 	// mark the entries
-	for index, entry := range navigation.Entries {
-		if index < (len(navigation.Entries) - 1) {
+	markdedEntries := make([]viewmodel.Breadcrumb, 0)
+	for index, entry := range unmarkedEntries {
+
+		if index < (len(unmarkedEntries) - 1) {
 			entry.IsLast = false
 		} else {
 			entry.IsLast = true
 		}
+
+		markdedEntries = append(markdedEntries, entry)
 	}
+
+	navigation.Entries = markdedEntries
 
 	return navigation
 }

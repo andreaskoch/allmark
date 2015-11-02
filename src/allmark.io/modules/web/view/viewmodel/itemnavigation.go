@@ -10,6 +10,11 @@ type ItemNavigation struct {
 	Next     NavEntry `json:"next"`
 }
 
+// IsAvailable returns a flag indicating whether the item navigation model is initialized or not.
+func (nav ItemNavigation) IsAvailable() bool {
+	return nav.Parent.Path != "" || nav.Previous.Path != "" || nav.Next.Path != ""
+}
+
 type NavEntry struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
