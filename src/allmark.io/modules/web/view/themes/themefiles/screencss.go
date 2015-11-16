@@ -95,9 +95,9 @@ img[data-sizes="auto"] {
 }
 
 h1,h2,h3,h4,h5,h6 {
+    line-height: 1em;
     font-weight: normal;
     color: #111;
-    line-height: 1em;
 }
 
 h4,h5,h6 {
@@ -105,18 +105,18 @@ h4,h5,h6 {
 }
 
 h1 {
-    font-size: 2.5em;
+    font-size: 2.0em;
     margin: 0;
 }
 
 h2 {
-    font-size: 2em;
+    font-size: 1.6em;
     border-bottom: 1px solid silver;
     padding-bottom: 5px;
 }
 
 h3 {
-    font-size: 1.5em;
+    font-size: 1.4em;
 }
 
 h4 {
@@ -124,11 +124,11 @@ h4 {
 }
 
 h5 {
-    font-size: 1em;
+    font-size: 1.1em;
 }
 
 h6 {
-    font-size: 0.9em;
+    font-size: 1em;
 }
 
 blockquote {
@@ -160,6 +160,7 @@ pre , code, kbd, samp {
     border-radius: 3px;
     background-color: #F8F8F8;
     border: 1px solid #CCC;
+    line-height: 1.3em;
 }
 
 pre {
@@ -236,8 +237,7 @@ ul.tree ul {
 
 ul.tree li {
     margin: 0;
-    padding: 0 12px;
-    line-height: 20px;
+    padding: 0 1em;
     background: url(tree-node.png) no-repeat;
 }
 
@@ -390,8 +390,9 @@ body>nav.search .typeahead {
 
 .tt-suggestion {
   padding: 3px 20px;
-  font-size: 18px;
-  line-height: 24px;
+  font-size: 1.2em;
+  line-height: 1.4em;
+  cursor: pointer;
 }
 
 .tt-suggestion.tt-cursor {
@@ -450,27 +451,8 @@ article>.description {
 }
 
 article>.publisher {
-    font-size: 0.8em;
-    margin: 0 0 1.5em 0;
-}
-
-article .attachments {
-    margin: 1.5em 0 0 0;
-    font-size: 1.0em;
-}
-
-article .attachments>header {
-    font-weight: bold;
-}
-
-article .attachments ul.tree li {
-    color: #369;
-    font-weight: bold;
-}
-
-article .attachments ul.tree li a {
-    color: #369;
-    font-weight: bold;
+  font-size: 0.9em;
+  margin: 0.5em 0 1.2em 0;
 }
 
 article>.aliases {
@@ -665,6 +647,10 @@ section.video {
     margin: 2em 0;
 }
 
+video {
+    max-width: 100%;
+}
+
 section.video>header {
     font-size: 1.2em;
 }
@@ -837,6 +823,10 @@ article.presentation .slide {
     font-size: 0.8em;
 }
 
+.ribbon {
+  display: none;
+}
+
 @media only screen and (max-height: 500px) {
     body>article {
         min-height: 300px;
@@ -915,5 +905,9 @@ article.presentation .slide {
     body {
         font-size: 16px;
         width: 75%;
+    }
+
+    .ribbon {
+      display: block;
     }
 }`

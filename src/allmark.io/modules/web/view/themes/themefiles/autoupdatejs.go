@@ -158,6 +158,9 @@ const AutoupdateJs = `var Autoupdate = (function () {
             // update the content
             $('.content').html(model.content);
 
+            // on-change handlers
+            executeOnChangeCallbacks();
+
             // snippets
             if (typeof(model.snippets) !== 'object') {
               return;

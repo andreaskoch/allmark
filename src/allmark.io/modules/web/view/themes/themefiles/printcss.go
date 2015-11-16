@@ -101,6 +101,14 @@ body>footer {
     display: none;
 }
 
+.ribbon {
+  display: none;
+}
+
+.allmark-promo {
+  display: none;
+}
+
 .video video {
     display: none;
 }
