@@ -10,7 +10,7 @@ import (
 
 	"allmark.io/modules/common/route"
 	"allmark.io/modules/model"
-	"allmark.io/modules/services/converter/markdowntohtml/common"
+	"allmark.io/modules/services/converter/markdowntohtml/imageprovider"
 	"allmark.io/modules/services/thumbnail"
 )
 
@@ -25,7 +25,7 @@ func Test_Convert(t *testing.T) {
 	baseRoute := route.New()
 	files := []*model.File{}
 	thumbnailIndex := thumbnail.EmptyIndex()
-	imageProvider := common.NewImageProvider(pathProvider, thumbnailIndex)
+	imageProvider := imageprovider.NewImageProvider(pathProvider, thumbnailIndex)
 
 	postprocessor := newImagePostprocessor(pathProvider, baseRoute, files, imageProvider)
 

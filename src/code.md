@@ -20,6 +20,7 @@ allmark relies on a number of third-party libraries:
 - [github.com/abbot/go-http-auth](github.com/abbot/go-http-auth)
 - [github.com/spf13/afero](github.com/spf13/afero)
 - [github.com/kyokomi/emoji](github.com/kyokomi/emoji)
+- [github.com/mitchellh/go-homedir](github.com/mitchellh/go-homedir)
 
 These dependencies are not covered by the allmark copyright/license. See the respective projects for their copyright & licensing details.
 

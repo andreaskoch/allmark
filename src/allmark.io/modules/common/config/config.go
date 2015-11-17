@@ -13,7 +13,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 
 	"allmark.io/modules/common/certificates"
@@ -21,6 +20,7 @@ import (
 	"allmark.io/modules/common/ports"
 	"allmark.io/modules/common/util/fsutil"
 	"github.com/abbot/go-http-auth"
+	"github.com/mitchellh/go-homedir"
 )
 
 // Global configuration constants.
@@ -53,6 +53,7 @@ const (
 	DefaultUserStoreFileName         = "users.htpasswd"
 )
 
+// homeDirectory returns the current users home directory path.
 var homeDirectory func() string
 
 // A flag indicating whether the DOCX conversion tool is available
@@ -62,13 +63,13 @@ var conversionEndpointBinding *TCPBinding
 
 func init() {
 
-	usr, err := user.Current()
+	homeDirPath, err := homedir.Dir()
 	if err != nil {
 		panic(fmt.Sprintf("Cannot determine the current users home direcotry. Error: %s", err))
 	}
 
 	homeDirectory = func() string {
-		return filepath.Clean(usr.HomeDir)
+		return filepath.Clean(homeDirPath)
 	}
 
 	// check if pandoc is available in the path

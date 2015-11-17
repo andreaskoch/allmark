@@ -19,7 +19,7 @@ func Test_RelativeWebPathProvider_RootAsBasePath_Path_ReturnsPathWithLeadingSlas
 	routesProvider := dummyRoutesProvider{routes}
 	pathProvider := newRelativeWebPathProvider(routesProvider, baseRoute)
 	inputPath := "ya/da/ya/da"
-	expected := "/ya/da/ya/da"
+	expected := "ya/da/ya/da"
 
 	// act
 	result := pathProvider.Path(inputPath)
