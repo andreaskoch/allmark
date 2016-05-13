@@ -130,11 +130,17 @@ In hac habitasse platea dictumst. Nulla vestibulum lacinia tincidunt.
 
 You can download the **latest binaries** of allmark for your operating system from [allmark.io/bin](HTTPS://allmark.io/bin)
 
-**Linux**
+**Linux (amd64)**
 
 ```bash
-sudo su
-curl -s --insecure HTTPS://allmark.io/bin/allmark > /usr/local/bin/allmark
+sudo curl https://allmark.io/bin/linux/amd64/allmark -o /usr/local/bin/allmark
+chmod +x /usr/local/bin/allmark
+```
+
+**Linux (arm)**
+
+```bash
+sudo curl https://allmark.io/bin/linux/arm/allmark -o /usr/local/bin/allmark
 chmod +x /usr/local/bin/allmark
 ```
 
