@@ -4,7 +4,7 @@ All of allmarks' features in detail
 
 This is an unordered list of the most prominent features of allmark:
 
-1. Renders [GitHub Flavored MarkDown](HTTPS://help.github.com/articles/github-flavored-markdown/)
+1. Renders [GitHub Flavored MarkDown](https://help.github.com/articles/github-flavored-markdown/)
 2. Full text search (+ Autocomplete)
 3. Live-Reload / Live-Editing (via WebSockets)
 4. Document Tagging

@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -qy pandoc
 
 # Build
 ADD . /go
-RUN go run make.go -crosscompile
-RUN go run make.go -install
+RUN make install
+RUN make crosscompile
 
 # Data
 RUN mkdir /data
