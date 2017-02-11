@@ -101,7 +101,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 		- `Bindings`: An array of 0..n TCP bindings that will be used to serve HTTP
 			- `Network`: `"tcp4"` for IPv4 or `"tcp6"` for IPv6
 			- `IP`: An IPv4 address (e.g. `"0.0.0.0"`, `"127.0.0.1"`) or an IPv6 address (e.g. `"::"`, `"::1"`)
-			- `Zone`: The [IPv6 zone index](HTTPS://en.wikipedia.org/wiki/IPv6_address#Link-local_addresses_and_zone_indices) (e.g. `""`, `"eth0"`, `"eth1"`; (default: `""`)
+			- `Zone`: The [IPv6 zone index](https://en.wikipedia.org/wiki/IPv6_address#Link-local_addresses_and_zone_indices) (e.g. `""`, `"eth0"`, `"eth1"`; (default: `""`)
 			- `Port`: 0-65535 (0 means that a random port will be allocated)
 	- `HTTPS`
 		- `Enabled`: If set to `true` HTTPS is enabled. If set to `false` HTTPS is disabled.
@@ -137,7 +137,7 @@ The **configuration file** has a **JSON format** and is located in `.allmark/con
 		- ...
 - `Conversion`
 	- `RTF`: Rich-text Conversion
-		- `Enabled`: If set to `true` rich-text conversion is enabled. allmark uses [pandoc](http://pandoc.org/) for the rich-text conversion. If the [pandoc binary](HTTPS://github.com/jgm/pandoc/releases/latest) is not found in your PATH, rich-text conversion will not be available.
+		- `Enabled`: If set to `true` rich-text conversion is enabled. allmark uses [pandoc](http://pandoc.org/) for the rich-text conversion. If the [pandoc binary](https://github.com/jgm/pandoc/releases/latest) is not found in your PATH, rich-text conversion will not be available.
 	- `Thumbnails`: Image-Thumbnail creation.
 		- `Enabled`: If set to `true` allmark will create smaller versions (Small: 320x240, Medium: 640x480, Large: 1024x768) for all images in your repository and use the respective version depending on the screen size of your clients (default: `false`).
 	- `IndexFileName`: The name of the file where allmark stores an index of all thumbnails it has created (default: `"thumbnail.index"`).

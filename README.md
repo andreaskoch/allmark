@@ -128,38 +128,32 @@ In hac habitasse platea dictumst. Nulla vestibulum lacinia tincidunt.
 
 ## Download / Installation
 
-You can download the **latest binaries** of allmark for your operating system from [allmark.io/bin](HTTPS://allmark.io/bin)
+You can download the **latest binaries** of allmark for your operating system from [allmark.io/bin](https://allmark.io/bin)
 
-**Linux (amd64)**
-
-```bash
-sudo curl https://allmark.io/bin/linux/amd64/allmark -o /usr/local/bin/allmark
-chmod +x /usr/local/bin/allmark
-```
-
-**Linux (arm)**
+**Linux**
 
 ```bash
-sudo curl https://allmark.io/bin/linux/arm/allmark -o /usr/local/bin/allmark
+sudo su
+curl -s --insecure https://allmark.io/bin/allmark > /usr/local/bin/allmark
 chmod +x /usr/local/bin/allmark
 ```
 
 **Mac OS**
 
 ```bash
-sudo curl "HTTPS://allmark.io/bin/darwin_amd64/allmark" -o "/usr/local/bin/allmark"
+sudo curl "https://allmark.io/bin/darwin_amd64/allmark" -o "/usr/local/bin/allmark"
 sudo chmod +x /usr/local/bin/allmark
 ```
 
 **Windows**
 
 ```powershell
-Invoke-WebRequest HTTPS://allmark.io/bin/windows_amd64/allmark.exe -OutFile allmark.exe
+Invoke-WebRequest https://allmark.io/bin/windows_amd64/allmark.exe -OutFile allmark.exe
 ```
 
-All binaries at [allmark.io](HTTPS://allmark.io) are up-to-date builds of the **master**-branch.
+All binaries at [allmark.io](https://allmark.io) are up-to-date builds of the **master**-branch.
 
-If you want to download and install binaries from the **develop**-branch you can go to [develop.allmark.io/bin](HTTPS://develop.allmark.io).
+If you want to download and install binaries from the **develop**-branch you can go to [develop.allmark.io/bin](https://develop.allmark.io).
 
 ## Features
 
@@ -182,9 +176,7 @@ If you want to see **allmark in action** you can visit my blog [AndyK Docs](http
 
 ## Build
 
-[![Build Status](HTTPS://travis-ci.org/andreaskoch/allmark.png)](HTTPS://travis-ci.org/andreaskoch/allmark)
-
-There is also an automated docker build at [registry.hub.docker.com/u/andreaskoch/allmark/](HTTPS://registry.hub.docker.com/u/andreaskoch/allmark/) which builds the develop and master branch every time a commit is pushed.
+[![Build Status](https://travis-ci.org/andreaskoch/allmark.png)](https://travis-ci.org/andreaskoch/allmark)
 
 Or you can build allmark yourself if you have [go installed](http://golang.org/doc/install) (see: [documentation/development/build](documentation/development/build)).
 
