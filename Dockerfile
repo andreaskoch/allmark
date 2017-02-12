@@ -15,4 +15,6 @@ ADD . /data
 
 VOLUME ["/data"]
 
+EXPOSE 33001
+
 CMD ["/go/bin/allmark", "serve", "/data"]
