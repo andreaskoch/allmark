@@ -141,7 +141,7 @@ chmod +x /usr/local/bin/allmark
 **Mac OS**
 
 ```bash
-sudo curl "https://allmark.io/bin/darwin_amd64/allmark" -o "/usr/local/bin/allmark"
+sudo curl "http://allmark.io/bin/files/allmark_darwin_amd64" -o "/usr/local/bin/allmark"
 sudo chmod +x /usr/local/bin/allmark
 ```
 
