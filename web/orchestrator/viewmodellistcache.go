@@ -36,7 +36,7 @@ func newViewModelListCache() ViewModelListCache {
 func (m ViewModelListCache) GetShard(key string) *ConcurrentViewModelListMapShared {
 	hasher := fnv.New32()
 	hasher.Write([]byte(key))
-	return m[int(hasher.Sum32())%VIEWMODELLISTCACHE_SHARD_COUNT]
+	return m[hasher.Sum32()%uint32(VIEWMODELLISTCACHE_SHARD_COUNT)]
 }
 
 // Sets the given value under the specified key.
