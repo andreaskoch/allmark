@@ -50,6 +50,7 @@ const (
 	DefaultLiveReloadEnabled         = false
 	DefaultConversionDocxEnabled     = true
 	DefaultAuthenticationEnabled     = false
+	DefaltSuppressBrowser            = false
 	DefaultUserStoreFileName         = "users.htpasswd"
 )
 
@@ -205,6 +206,9 @@ func Default(baseFolder string) *Config {
 
 	// DOCX Conversion
 	config.Conversion.DOCX.Enabled = DefaultConversionDocxEnabled
+	
+	// Browser surpression
+	config.SurpressBrowser = DefaltSuppressBrowser
 
 	// Logging
 	config.LogLevel = DefaultLogLevel.String()
@@ -384,6 +388,7 @@ type Config struct {
 	Indexing   Indexing
 	LiveReload LiveReload
 	Analytics  Analytics
+	SurpressBrowser bool
 
 	baseFolder      string
 	metaDataFolder  string
@@ -583,6 +588,7 @@ func (config *Config) apply(newConfig *Config) (*Config, error) {
 	config.Server = newConfig.Server
 	config.Web = newConfig.Web
 	config.Conversion = newConfig.Conversion
+	config.SurpressBrowser = newConfig.SurpressBrowser
 	config.LogLevel = newConfig.LogLevel
 	config.Indexing = newConfig.Indexing
 	config.LiveReload = newConfig.LiveReload

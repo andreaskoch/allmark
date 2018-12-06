@@ -183,11 +183,13 @@ func (server *Server) Start() chan error {
 
 	}
 
-	// open HTTP URL(s) in a browser
-	for _, url := range uniqueURLs {
-		server.logger.Info("Open URL: %s", url)
-		go open.Run(url)
-	}
+	//if server.config.SurpressBrowser {
+	//	// open HTTP URL(s) in a browser
+	//	for _, url := range uniqueURLs {
+	//		server.logger.Info("Open URL: %s", url)
+	//		go open.Run(url)
+	//	}
+	//}
 
 	return result
 }
