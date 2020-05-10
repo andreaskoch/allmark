@@ -145,6 +145,22 @@ const masterTemplate = `<!DOCTYPE HTML>
 <script src="/theme/presentation.js"></script>
 <script src="/theme/latest.js"></script>
 <script src="/theme/codehighlighting/highlight.js"></script>
+<script src="/theme/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false, theme:'default'});</script>
+<script>
+function renderMermaid(){
+	mermaid.init(undefined,document.querySelectorAll(".mermaid"));
+}
+$(function() {
+	$(document).on('ready', function() {
+		renderMermaid();
+	});
+	renderMermaid();
+});
+$( ".preview" ).change(function() {
+	renderMermaid();
+});
+</script>
 <script type="text/javascript">
 $(function() {
 	// code highligting

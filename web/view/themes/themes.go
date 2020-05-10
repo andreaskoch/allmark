@@ -27,6 +27,7 @@ func init() {
 			// javascript libraries
 			newFileFromText("modernizr.js", themefiles.Modernizr),
 			newFileFromText("jquery.js", themefiles.JqueryJs),
+			newFileFromBase64("mermaid.min.js", themefiles.MermaidJs),
 
 			// web socket auto update
 			newFileFromText("autoupdate.js", themefiles.AutoupdateJs),

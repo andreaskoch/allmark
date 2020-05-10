@@ -256,11 +256,23 @@ img {
 }
 
 table {
+    border: 1px solid black;
     border-collapse: collapse;
     border-spacing: 0;
+    margin-bottom: 12px;
+    margin-top: 12px;
 }
 
 td {
+    padding: 5px;
+    border: 1px solid black;
+    vertical-align: top;
+}
+
+th {
+    background-color: #e0e0e0;
+    padding: 5px;
+    border: 1px solid black;
     vertical-align: top;
 }
 
@@ -908,6 +920,6 @@ article.presentation .slide {
     }
 
     .ribbon {
-      display: block;
+      display: none;
     }
 }`

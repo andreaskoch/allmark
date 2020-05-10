@@ -35,6 +35,7 @@ $(function() {
 			$.each(items, function(index, item) {
 				$.tmpl( "itemTemplate", item).appendTo( "article>.preview>ul" );
 			});
+			$( "article>.preview>ul" ).trigger("change");
 		},
 		dataType: "json"
 	});

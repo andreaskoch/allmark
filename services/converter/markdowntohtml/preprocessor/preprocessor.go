@@ -83,6 +83,13 @@ func (preprocessor *Preprocessor) Convert(
 		preprocessor.logger.Warn("Error while converting reference extensions. Error: %s", referenceConversionError)
 	}
 
+	// markdown extension: mermaid
+	mermaidConverter := newMermaidExtension(pathProvider, files)
+	markdown, mermaidConversionError := mermaidConverter.Convert(markdown)
+	if mermaidConversionError != nil {
+		preprocessor.logger.Warn("Error while converting reference extensions. Error: %s", referenceConversionError)
+	}
+
 	return markdown, nil
 
 }

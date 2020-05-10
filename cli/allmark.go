@@ -37,7 +37,7 @@ const (
 	CommandNameVersion = "version"
 )
 
-var version = "v0.10.0-dev"
+var version = "v0.20.0-dev-TMT"
 
 var (
 	serveFlags       = flag.NewFlagSet("serve-flags", flag.ContinueOnError)
