@@ -5,11 +5,11 @@
 package handlers
 
 import (
-	"github.com/andreaskoch/allmark/common/route"
-	"github.com/andreaskoch/allmark/web/header"
-	"github.com/andreaskoch/allmark/web/orchestrator"
-	"github.com/andreaskoch/allmark/web/view/templates"
-	"github.com/andreaskoch/allmark/web/view/viewmodel"
+	"github.com/elWyatt/allmark/common/route"
+	"github.com/elWyatt/allmark/web/header"
+	"github.com/elWyatt/allmark/web/orchestrator"
+	"github.com/elWyatt/allmark/web/view/templates"
+	"github.com/elWyatt/allmark/web/view/viewmodel"
 	"fmt"
 	"net/http"
 )

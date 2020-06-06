@@ -7,16 +7,16 @@ package main
 import (
 	"fmt"
 
-	"github.com/andreaskoch/allmark/common/config"
-	"github.com/andreaskoch/allmark/common/logger/console"
-	"github.com/andreaskoch/allmark/common/logger/loglevel"
-	"github.com/andreaskoch/allmark/common/shutdown"
-	"github.com/andreaskoch/allmark/common/util/fsutil"
-	"github.com/andreaskoch/allmark/dataaccess/filesystem"
-	"github.com/andreaskoch/allmark/services/initialization"
-	"github.com/andreaskoch/allmark/services/parser"
-	"github.com/andreaskoch/allmark/services/thumbnail"
-	"github.com/andreaskoch/allmark/web/server"
+	"github.com/elWyatt/allmark/common/config"
+	"github.com/elWyatt/allmark/common/logger/console"
+	"github.com/elWyatt/allmark/common/logger/loglevel"
+	"github.com/elWyatt/allmark/common/shutdown"
+	"github.com/elWyatt/allmark/common/util/fsutil"
+	"github.com/elWyatt/allmark/dataaccess/filesystem"
+	"github.com/elWyatt/allmark/services/initialization"
+	"github.com/elWyatt/allmark/services/parser"
+	"github.com/elWyatt/allmark/services/thumbnail"
+	"github.com/elWyatt/allmark/web/server"
 	// "github.com/davecheney/profile"
 	"flag"
 	"os"
@@ -37,7 +37,7 @@ const (
 	CommandNameVersion = "version"
 )
 
-var version = "v0.20.0-dev-TMT"
+var version = "v0.21.0-dev-TMT"
 
 var (
 	serveFlags       = flag.NewFlagSet("serve-flags", flag.ContinueOnError)
@@ -149,7 +149,7 @@ func printUsageInformation(args []string) {
 	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameInit, "Initialize the configuration")
 	fmt.Fprintf(os.Stderr, "  %7s  %s\n", CommandNameServe, "Start serving the supplied repository via HTTP and HTTPs")
 	fmt.Fprintf(os.Stderr, "\n")
-	fmt.Fprintf(os.Stderr, "Fork me on GitHub %q\n", "https://github.com/andreaskoch/allmark")
+	fmt.Fprintf(os.Stderr, "Fork me on GitHub %q\n", "https://github.com/elWyatt/allmark")
 
 	os.Exit(2)
 }

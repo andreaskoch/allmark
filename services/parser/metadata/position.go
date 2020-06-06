@@ -5,7 +5,7 @@
 package metadata
 
 import (
-	"github.com/andreaskoch/allmark/services/parser/pattern"
+	"github.com/elWyatt/allmark/services/parser/pattern"
 	"fmt"
 )
 

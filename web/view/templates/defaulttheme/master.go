@@ -5,7 +5,7 @@
 package defaulttheme
 
 import (
-	"github.com/andreaskoch/allmark/web/view/templates/templatenames"
+	"github.com/elWyatt/allmark/web/view/templates/templatenames"
 )
 
 func init() {
@@ -129,7 +129,7 @@ const masterTemplate = `<!DOCTYPE HTML>
 	</nav>
 
 	<section class="allmark-promo">
-		powered by <a href="https://github.com/andreaskoch/allmark">allmark - the markdown webserver</a>
+		powered by <a href="https://github.com/elWyatt/allmark">allmark - the markdown webserver</a>
 	</section>
 </footer>
 
@@ -201,7 +201,7 @@ $(function() {
 {{end}}
 
 <!-- github ribbon -->
-<a href="https://github.com/andreaskoch/allmark" class="ribbon">
+<a href="https://github.com/elWyatt/allmark" class="ribbon">
 	<img style="position: absolute; top: 0; left: 0; border: 0;" src="/theme/github-ribbon.png" alt="Fork allmark on GitHub">
 </a>
 

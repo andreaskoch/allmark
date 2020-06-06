@@ -5,8 +5,8 @@
 package dataaccess
 
 import (
-	"github.com/andreaskoch/allmark/common/content"
-	"github.com/andreaskoch/allmark/common/route"
+	"github.com/elWyatt/allmark/common/content"
+	"github.com/elWyatt/allmark/common/route"
 )
 
 // A File represents a file ressource that is associated with an Item.

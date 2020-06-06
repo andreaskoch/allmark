@@ -5,7 +5,7 @@
 package themes
 
 import (
-	"github.com/andreaskoch/allmark/common/util/fsutil"
+	"github.com/elWyatt/allmark/common/util/fsutil"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"

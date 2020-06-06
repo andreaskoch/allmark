@@ -5,9 +5,9 @@
 package filetreerenderer
 
 import (
-	"github.com/andreaskoch/allmark/common/route"
-	"github.com/andreaskoch/allmark/common/tree"
-	"github.com/andreaskoch/allmark/model"
+	"github.com/elWyatt/allmark/common/route"
+	"github.com/elWyatt/allmark/common/tree"
+	"github.com/elWyatt/allmark/model"
 )
 
 type FileNode struct {

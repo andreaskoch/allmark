@@ -9,9 +9,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/andreaskoch/allmark/web/view/templates/defaulttheme"
-	"github.com/andreaskoch/allmark/web/view/templates/templatenames"
-	"github.com/andreaskoch/allmark/web/webpaths"
+	"github.com/elWyatt/allmark/web/view/templates/defaulttheme"
+	"github.com/elWyatt/allmark/web/view/templates/templatenames"
+	"github.com/elWyatt/allmark/web/webpaths"
 )
 
 // A Provider gives access to all required templates.

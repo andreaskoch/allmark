@@ -5,7 +5,7 @@
 package defaulttheme
 
 import (
-	"github.com/andreaskoch/allmark/web/view/templates/templatenames"
+	"github.com/elWyatt/allmark/web/view/templates/templatenames"
 	"fmt"
 )
 

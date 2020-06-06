@@ -5,11 +5,11 @@
 package preprocessor
 
 import (
-	"github.com/andreaskoch/allmark/common/logger"
-	"github.com/andreaskoch/allmark/common/paths"
-	"github.com/andreaskoch/allmark/common/route"
-	"github.com/andreaskoch/allmark/model"
-	"github.com/andreaskoch/allmark/services/converter/markdowntohtml/imageprovider"
+	"github.com/elWyatt/allmark/common/logger"
+	"github.com/elWyatt/allmark/common/paths"
+	"github.com/elWyatt/allmark/common/route"
+	"github.com/elWyatt/allmark/model"
+	"github.com/elWyatt/allmark/services/converter/markdowntohtml/imageprovider"
 )
 
 // Preprocessor provides pre-processing capabilties for markdown code.

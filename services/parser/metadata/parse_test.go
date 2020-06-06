@@ -7,7 +7,7 @@ package metadata
 import (
 	"testing"
 
-	"github.com/andreaskoch/allmark/model"
+	"github.com/elWyatt/allmark/model"
 )
 
 func Test_normalizeAlias(t *testing.T) {

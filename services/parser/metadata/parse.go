@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andreaskoch/allmark/common/util/dateutil"
-	"github.com/andreaskoch/allmark/model"
-	"github.com/andreaskoch/allmark/services/parser/pattern"
+	"github.com/elWyatt/allmark/common/util/dateutil"
+	"github.com/elWyatt/allmark/model"
+	"github.com/elWyatt/allmark/services/parser/pattern"
 )
 
 var aliasForbiddenCharacters = regexp.MustCompile(`[^\w\d-_]`)

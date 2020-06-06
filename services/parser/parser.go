@@ -10,13 +10,13 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/andreaskoch/allmark/common/logger"
-	"github.com/andreaskoch/allmark/dataaccess"
-	"github.com/andreaskoch/allmark/model"
-	"github.com/andreaskoch/allmark/services/parser/cleanup"
-	"github.com/andreaskoch/allmark/services/parser/document"
-	"github.com/andreaskoch/allmark/services/parser/presentation"
-	"github.com/andreaskoch/allmark/services/parser/typedetection"
+	"github.com/elWyatt/allmark/common/logger"
+	"github.com/elWyatt/allmark/dataaccess"
+	"github.com/elWyatt/allmark/model"
+	"github.com/elWyatt/allmark/services/parser/cleanup"
+	"github.com/elWyatt/allmark/services/parser/document"
+	"github.com/elWyatt/allmark/services/parser/presentation"
+	"github.com/elWyatt/allmark/services/parser/typedetection"
 )
 
 type Parser struct {

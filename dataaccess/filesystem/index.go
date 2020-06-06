@@ -5,8 +5,8 @@
 package filesystem
 
 import (
-	"github.com/andreaskoch/allmark/common/route"
-	"github.com/andreaskoch/allmark/dataaccess"
+	"github.com/elWyatt/allmark/common/route"
+	"github.com/elWyatt/allmark/dataaccess"
 	"fmt"
 )
 

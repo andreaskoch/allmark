@@ -5,8 +5,8 @@
 package filesystem
 
 import (
-	"github.com/andreaskoch/allmark/common/logger"
-	"github.com/andreaskoch/allmark/common/route"
+	"github.com/elWyatt/allmark/common/logger"
+	"github.com/elWyatt/allmark/common/route"
 	"fmt"
 	"github.com/andreaskoch/go-fswatch"
 )

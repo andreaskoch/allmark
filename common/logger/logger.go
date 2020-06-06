@@ -5,7 +5,7 @@
 package logger
 
 import (
-	"github.com/andreaskoch/allmark/common/logger/loglevel"
+	"github.com/elWyatt/allmark/common/logger/loglevel"
 )
 
 type Logger interface {

@@ -4,7 +4,7 @@
 
 package themes
 
-import "github.com/andreaskoch/allmark/web/view/themes/themefiles"
+import "github.com/elWyatt/allmark/web/view/themes/themefiles"
 
 var defaultTheme *Theme
 

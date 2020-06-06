@@ -5,7 +5,7 @@
 package model
 
 import (
-	"github.com/andreaskoch/allmark/dataaccess"
+	"github.com/elWyatt/allmark/dataaccess"
 	"strings"
 )
 

@@ -5,7 +5,7 @@
 package paths
 
 import (
-	"github.com/andreaskoch/allmark/common/route"
+	"github.com/elWyatt/allmark/common/route"
 )
 
 type Pather interface {

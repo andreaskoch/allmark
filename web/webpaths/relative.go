@@ -7,8 +7,8 @@ package webpaths
 import (
 	"strings"
 
-	"github.com/andreaskoch/allmark/common/route"
-	"github.com/andreaskoch/allmark/dataaccess"
+	"github.com/elWyatt/allmark/common/route"
+	"github.com/elWyatt/allmark/dataaccess"
 )
 
 // Create a new relative web path provider

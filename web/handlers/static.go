@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"github.com/andreaskoch/allmark/common/util/fsutil"
-	"github.com/andreaskoch/allmark/common/util/hashutil"
-	"github.com/andreaskoch/allmark/web/header"
+	"github.com/elWyatt/allmark/common/util/fsutil"
+	"github.com/elWyatt/allmark/common/util/hashutil"
+	"github.com/elWyatt/allmark/web/header"
 	"net/http"
 	"path/filepath"
 	"strings"
