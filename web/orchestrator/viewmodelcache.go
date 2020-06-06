@@ -8,12 +8,12 @@
 package orchestrator
 
 import (
-	"github.com/andreaskoch/allmark/web/view/viewmodel"
+	"github.com/elWyatt/allmark/web/view/viewmodel"
 	"hash/fnv"
 	"sync"
 )
 
-var VIEWMODELCACHE_SHARD_COUNT = 32
+var VIEWMODELCACHE_SHARD_COUNT = uint(32)
 
 // A "thread" safe map of type string:viewmodel.Model.
 // To avoid lock bottlenecks this map is dived to several (VIEWMODELCACHE_SHARD_COUNT) map shards.
@@ -26,7 +26,7 @@ type ConcurrentViewModelMapShared struct {
 // Creates a new concurrent viewmodel cache map.
 func newViewmodelCache() ViewModelCache {
 	m := make(ViewModelCache, VIEWMODELCACHE_SHARD_COUNT)
-	for i := 0; i < VIEWMODELCACHE_SHARD_COUNT; i++ {
+	for i := uint(0); i < VIEWMODELCACHE_SHARD_COUNT; i++ {
 		m[i] = &ConcurrentViewModelMapShared{items: make(map[string]viewmodel.Model)}
 	}
 	return m
@@ -36,7 +36,7 @@ func newViewmodelCache() ViewModelCache {
 func (m ViewModelCache) GetShard(key string) *ConcurrentViewModelMapShared {
 	hasher := fnv.New32()
 	hasher.Write([]byte(key))
-	return m[int(hasher.Sum32())%VIEWMODELCACHE_SHARD_COUNT]
+	return m[uint(hasher.Sum32())%VIEWMODELCACHE_SHARD_COUNT]
 }
 
 // Sets the given value under the specified key.
@@ -63,7 +63,7 @@ func (m ViewModelCache) Get(key string) (viewmodel.Model, bool) {
 // Returns the number of elements within the map.
 func (m ViewModelCache) Count() int {
 	count := 0
-	for i := 0; i < VIEWMODELCACHE_SHARD_COUNT; i++ {
+	for i := uint(0); i < VIEWMODELCACHE_SHARD_COUNT; i++ {
 		shard := m[i]
 		shard.RLock()
 		count += len(shard.items)

@@ -5,9 +5,9 @@
 package filesystem
 
 import (
-	"github.com/andreaskoch/allmark/common/content"
-	"github.com/andreaskoch/allmark/common/route"
-	"github.com/andreaskoch/allmark/common/util/hashutil"
+	"github.com/elWyatt/allmark/common/content"
+	"github.com/elWyatt/allmark/common/route"
+	"github.com/elWyatt/allmark/common/util/hashutil"
 	"fmt"
 )
 

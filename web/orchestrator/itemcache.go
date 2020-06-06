@@ -8,12 +8,12 @@
 package orchestrator
 
 import (
-	"github.com/andreaskoch/allmark/model"
+	"github.com/elWyatt/allmark/model"
 	"hash/fnv"
 	"sync"
 )
 
-var ITEMCACHE_SHARD_COUNT = 32
+var ITEMCACHE_SHARD_COUNT = uint(32)
 
 // A "thread" safe map of type string:*model.Item.
 // To avoid lock bottlenecks this map is dived to several (ITEMCACHE_SHARD_COUNT) map shards.
@@ -26,7 +26,7 @@ type ConcurrentItemMapShared struct {
 // Creates a new concurrent item cache map.
 func newItemCache() ItemCache {
 	m := make(ItemCache, ITEMCACHE_SHARD_COUNT)
-	for i := 0; i < ITEMCACHE_SHARD_COUNT; i++ {
+	for i := uint(0); i < ITEMCACHE_SHARD_COUNT; i++ {
 		m[i] = &ConcurrentItemMapShared{items: make(map[string]*model.Item)}
 	}
 	return m
@@ -36,7 +36,7 @@ func newItemCache() ItemCache {
 func (m ItemCache) GetShard(key string) *ConcurrentItemMapShared {
 	hasher := fnv.New32()
 	hasher.Write([]byte(key))
-	return m[int(hasher.Sum32())%ITEMCACHE_SHARD_COUNT]
+	return m[uint(hasher.Sum32())%ITEMCACHE_SHARD_COUNT]
 }
 
 // Sets the given value under the specified key.
@@ -63,7 +63,7 @@ func (m ItemCache) Get(key string) (*model.Item, bool) {
 // Returns the number of elements within the map.
 func (m ItemCache) Count() int {
 	count := 0
-	for i := 0; i < ITEMCACHE_SHARD_COUNT; i++ {
+	for i := uint(0); i < ITEMCACHE_SHARD_COUNT; i++ {
 		shard := m[i]
 		shard.RLock()
 		count += len(shard.items)

@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andreaskoch/allmark/common/config"
-	"github.com/andreaskoch/allmark/common/route"
-	"github.com/andreaskoch/allmark/model"
-	"github.com/andreaskoch/allmark/web/view/viewmodel"
+	"github.com/elWyatt/allmark/common/config"
+	"github.com/elWyatt/allmark/common/route"
+	"github.com/elWyatt/allmark/model"
+	"github.com/elWyatt/allmark/web/view/viewmodel"
 )
 
 func getBaseModel(root, item *model.Item, config config.Config) viewmodel.Base {

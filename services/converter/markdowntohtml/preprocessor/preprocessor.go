@@ -5,11 +5,11 @@
 package preprocessor
 
 import (
-	"github.com/andreaskoch/allmark/common/logger"
-	"github.com/andreaskoch/allmark/common/paths"
-	"github.com/andreaskoch/allmark/common/route"
-	"github.com/andreaskoch/allmark/model"
-	"github.com/andreaskoch/allmark/services/converter/markdowntohtml/imageprovider"
+	"github.com/elWyatt/allmark/common/logger"
+	"github.com/elWyatt/allmark/common/paths"
+	"github.com/elWyatt/allmark/common/route"
+	"github.com/elWyatt/allmark/model"
+	"github.com/elWyatt/allmark/services/converter/markdowntohtml/imageprovider"
 )
 
 // Preprocessor provides pre-processing capabilties for markdown code.
@@ -80,6 +80,13 @@ func (preprocessor *Preprocessor) Convert(
 	referenceConverter := newReferenceExtension(pathProvider, aliasResolver)
 	markdown, referenceConversionError := referenceConverter.Convert(markdown)
 	if referenceConversionError != nil {
+		preprocessor.logger.Warn("Error while converting reference extensions. Error: %s", referenceConversionError)
+	}
+
+	// markdown extension: mermaid
+	mermaidConverter := newMermaidExtension(pathProvider, files)
+	markdown, mermaidConversionError := mermaidConverter.Convert(markdown)
+	if mermaidConversionError != nil {
 		preprocessor.logger.Warn("Error while converting reference extensions. Error: %s", referenceConversionError)
 	}
 

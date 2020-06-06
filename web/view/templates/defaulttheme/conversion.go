@@ -5,7 +5,7 @@
 package defaulttheme
 
 import (
-	"github.com/andreaskoch/allmark/web/view/templates/templatenames"
+	"github.com/elWyatt/allmark/web/view/templates/templatenames"
 )
 
 func init() {
@@ -13,6 +13,7 @@ func init() {
 }
 
 const converterTemplate = `
+<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">

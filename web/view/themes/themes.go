@@ -4,7 +4,7 @@
 
 package themes
 
-import "github.com/andreaskoch/allmark/web/view/themes/themefiles"
+import "github.com/elWyatt/allmark/web/view/themes/themefiles"
 
 var defaultTheme *Theme
 
@@ -27,6 +27,7 @@ func init() {
 			// javascript libraries
 			newFileFromText("modernizr.js", themefiles.Modernizr),
 			newFileFromText("jquery.js", themefiles.JqueryJs),
+			newFileFromBase64("mermaid.min.js", themefiles.MermaidJs),
 
 			// web socket auto update
 			newFileFromText("autoupdate.js", themefiles.AutoupdateJs),

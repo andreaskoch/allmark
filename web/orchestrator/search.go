@@ -5,8 +5,8 @@
 package orchestrator
 
 import (
-	"github.com/andreaskoch/allmark/web/orchestrator/search"
-	"github.com/andreaskoch/allmark/web/view/viewmodel"
+	"github.com/elWyatt/allmark/web/orchestrator/search"
+	"github.com/elWyatt/allmark/web/view/viewmodel"
 	"strings"
 )
 

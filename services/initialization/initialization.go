@@ -5,10 +5,10 @@
 package initialization
 
 import (
-	"github.com/andreaskoch/allmark/common/config"
-	"github.com/andreaskoch/allmark/common/util/fsutil"
-	"github.com/andreaskoch/allmark/web/view/templates"
-	"github.com/andreaskoch/allmark/web/view/themes"
+	"github.com/elWyatt/allmark/common/config"
+	"github.com/elWyatt/allmark/common/util/fsutil"
+	"github.com/elWyatt/allmark/web/view/templates"
+	"github.com/elWyatt/allmark/web/view/themes"
 	"fmt"
 )
 

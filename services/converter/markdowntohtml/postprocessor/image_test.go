@@ -8,16 +8,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/andreaskoch/allmark/common/route"
-	"github.com/andreaskoch/allmark/model"
-	"github.com/andreaskoch/allmark/services/converter/markdowntohtml/imageprovider"
-	"github.com/andreaskoch/allmark/services/thumbnail"
+	"github.com/elWyatt/allmark/common/route"
+	"github.com/elWyatt/allmark/model"
+	"github.com/elWyatt/allmark/services/converter/markdowntohtml/imageprovider"
+	"github.com/elWyatt/allmark/services/thumbnail"
 )
 
 func Test_Convert(t *testing.T) {
 	// arrange
 	title := "Build Status"
-	imagePath := "https://travis-ci.org/andreaskoch/allmark.png"
+	imagePath := "https://travis-ci.org/elWyatt/allmark.png"
 	expected := fmt.Sprintf(`<img src="%s" alt="%s"/>`, imagePath, title)
 	input := fmt.Sprintf(`<img src="%s" alt="%s"/>`, imagePath, title)
 

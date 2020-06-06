@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/andreaskoch/allmark/common/logger"
+	"github.com/elWyatt/allmark/common/logger"
 	"github.com/abbot/go-http-auth"
 	"net/http"
 )
